@@ -731,3 +731,9 @@
 .confetti i{ position:absolute; top:-5%; width:10px; height:14px; opacity:.95; animation:confFall linear infinite; }
 @keyframes confFall{ 0%{ transform:translateY(-10vh) rotate(0deg); } 100%{ transform:translateY(110vh) rotate(720deg); } }
 @media (prefers-reduced-motion: reduce){ .confetti i{ animation:none; display:none; } }
+
+/* emoji pictures: the visible box is 1.25em x 1em, like the emoji text they replace */
+.emo{ display:block; width:1.85em; height:1.6em; margin:-0.3em; max-width:none; pointer-events:none; }
+.tglyph{ display:inline-block; vertical-align:bottom; }
+.eq .emo{ font-size:inherit; }
+td .emo, .ic .emo{ display:inline-block; vertical-align:middle; font-size:1.3em; margin:-0.3em -0.2em; }

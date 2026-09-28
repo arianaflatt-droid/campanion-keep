@@ -88,8 +88,11 @@ export const ITEMS = [
 // To use a picture instead of an emoji, drop a transparent PNG in assets/gear/ and set img, e.g. img: "assets/gear/cap.png"
 ITEMS.forEach(it => { if (!("img" in it)) it.img = null; });
 export const GEAR = ITEMS.filter(it => it.streak);
+// Companions and gear are drawn from pictures of the Google (Chromebook) emoji, so hats and shades line up the
+// same way on every computer. Each picture has 0.3em of padding around the emoji box (see .emo in style.css).
+export const emojiImg = key => '<img class="emo" src="assets/emoji/' + key + '.webp" alt="">';
 export function itemArt(it, cls) {
-  return it.img ? '<img class="' + (cls || "") + '" src="' + it.img + '" alt="">' : it.glyph;
+  return it.img ? '<img class="' + (cls || "") + '" src="' + it.img + '" alt="">' : emojiImg("gear-" + it.id);
 }
 export const SIDEKICKS = { axolotl: "Axolotl", duck: "Duck", ghost: "Ghost-olotl" };
 // The Ghost-olotl reward: set once the class defeats the first Ghost-olotl. Stays after Haunt-O-Ween ends.
@@ -251,7 +254,7 @@ export function pinnedBadgeHTML(st, cls) {
   return '<img class="pinbadge' + (cls ? " " + cls : "") + '" src="assets/badges/' + esc(id) + '.webp" alt="" title="Pinned badge">';
 }
 export function petHTML(c, worn) {
-  return '<span class="petwrap"><span class="tglyph">' + c.glyph + "</span>" +
+  return '<span class="petwrap"><span class="tglyph">' + (c.creature ? c.glyph : emojiImg("pet-" + c.id)) + "</span>" +
     (worn ? '<span class="gear" style="' + gearStyle(c, worn) + '">' + itemArt(worn, "gimg") + "</span>" : "") + "</span>";
 }
 

@@ -174,7 +174,8 @@ export function teacherReward(students, d) {
   const arr = (a, i) => (Array.isArray(a) ? a[i] : undefined);
   const team = students.filter(s => s.companionId), hit = team.filter(s => arr(s.status, d) === "c").length;
   const missed = team.filter(s => { const v = arr(s.status, d); return v !== "c" && v !== "e"; }).length;
-  return { eggs: hit, xp: missed * TEACHER_XP_PER_MISS, hit, missed };
+  // a day when everyone hit 120 still gives the teacher one level's worth of XP
+  return { eggs: hit, xp: missed > 0 ? missed * TEACHER_XP_PER_MISS : TEACHER_XP_PER_MISS, hit, missed };
 }
 
 /* ---------- gacha ---------- */
