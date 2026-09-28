@@ -425,7 +425,8 @@ function viewCollector() {
     '<div class="field"><label for="arenaOv">Battle arena</label><select id="arenaOv">' + opt("auto", "On schedule") + opt("open", "Open now (all day)") + opt("closed", "Closed") + "</select></div>" +
     '<label class="modebox" style="margin:0;padding:8px 12px;"><input type="checkbox" id="lunchArenaBox"' + (cls.lunchArena === false ? "" : " checked") + '><span><b>\u2600\uFE0F Lunch arena</b><small>Weekdays 12\u20131 pm for students who already hit 120 XP today</small></span></label>' +
     '<label class="modebox" style="margin:0;padding:8px 12px;"><input type="checkbox" id="goalArenaBox"' + (cls.goalArena ? " checked" : "") + '><span><b>\u2B50 120 XP battlers</b><small>Any weekday, any time: students who hit 120 XP today can battle each other</small></span></label>' +
-    '<label class="modebox" style="margin:0;padding:8px 12px;"><input type="checkbox" id="tradeBox"' + (cls.tradeOff ? "" : " checked") + '><span><b>\u{1F504} Trading</b><small>Students (and you) can swap creatures when both agree</small></span></label></div>' +
+    '<label class="modebox" style="margin:0;padding:8px 12px;"><input type="checkbox" id="tradeBox"' + (cls.tradeOff ? "" : " checked") + '><span><b>\u{1F504} Trading</b><small>Students (and you) can swap creatures when both agree</small></span></label>' +
+    '<label class="modebox" style="margin:0;padding:8px 12px;"><input type="checkbox" id="lunchBonusBox"' + (cls.lunchBonus === false ? "" : " checked") + '><span><b>\u2600\uFE0F Lunch Hero bonus egg</b><small>+1 egg for students whose lunch data shows 120+ XP</small></span></label></div>' +
     '<p class="lede" style="font-size:12.5px;margin-bottom:10px;">Each day since that date: 120+ XP = 1 egg, plus 1 more for every extra 120 that day (under 120 = no egg). All XP also stays in each student\u2019s bank for levels. Arena schedule: ' + esc(ARENA_HOURS) + ".</p>";
   const rows = students.filter(x => x.companionId);
   if (!rows.length) return h + '<p class="lede">No students yet.</p></div>';
@@ -775,6 +776,7 @@ document.addEventListener("change", async ev => {
   const id = ev.target.id;
   if (id === "hauntBox") { await toggleHaunt(); return; }
   if (ev.target.dataset && ev.target.dataset.trsel) { if (cls) onTradeChange(ev.target, tctx()); return; }
+  if (id === "lunchBonusBox") { const on = ev.target.checked; try { await updateDoc(classRef, { lunchBonus: on }); flash("Saved \u2014 Lunch Hero bonus egg " + (on ? "on" : "off") + "."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
   if (id === "tradeBox") { const on = ev.target.checked; try { await updateDoc(classRef, { tradeOff: !on }); flash("Saved \u2014 trading " + (on ? "on" : "off") + "."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
   if (id === "goalArenaBox") { const on = ev.target.checked; try { await updateDoc(classRef, { goalArena: on }); flash("Saved \u2014 120 XP battlers " + (on ? "can battle any time on weekdays" : "follow the normal schedule") + "."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
   if (id === "lunchArenaBox") { const on = ev.target.checked; try { await updateDoc(classRef, { lunchArena: on }); flash("Saved \u2014 lunch arena " + (on ? "on" : "off") + "."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }

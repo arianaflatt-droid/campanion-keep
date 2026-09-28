@@ -18,9 +18,9 @@ export function nudges(st, cls, battles, students) {
 
   // ---- today's XP ----
   if (today != null && today < goal) {
-    const left = goal - today;
+    const left = goal - today, lunchOpen = !(cls && cls.lunchBonus === false) && azNow().h < 12;
     add(sim.atRisk ? 0 : 1, sim.atRisk ? "⚠️" : "\u{1F3AF}",
-      "You’re <b>" + left.toLocaleString() + " XP" + "</b> from " + goal + " today" + (sim.atRisk ? " — hit it to heal " + pet + " back to full health!" : ". You’ve got this!"));
+      "You’re <b>" + left.toLocaleString() + " XP" + "</b> from " + goal + " today" + (sim.atRisk ? " — hit it to heal " + pet + " back to full health!" : lunchOpen ? ". Hit it <b>before lunch</b> for a bonus egg! \u2600\uFE0F" : ". You’ve got this!"));
   } else if (today != null && today >= goal) {
     const nextEgg = PULL_XP - (today % PULL_XP);
     add(3, "\u{1F389}", "You hit " + goal + " today! Just <b>" + nextEgg.toLocaleString() + " more XP" + "</b> earns " + (today >= PULL_XP ? "another" : "an") + " egg.");
