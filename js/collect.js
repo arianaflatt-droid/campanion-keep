@@ -81,7 +81,7 @@ export function statsOf(c, lvl) {
 }
 // Forms that show in the lorebook: every form up to the one each owned family has reached.
 export function seenSet(st) {
-  const out = new Set();
+  const out = new Set((st && st.dex) || []);   // dex = forms seen on creatures that were traded away
   Object.entries(owned(st)).forEach(([fam, e]) => {
     const f = family(fam); if (!f) return;
     const top = formIndex(fam, e.lvl || 1);
@@ -145,6 +145,32 @@ function rollEvent(st, cls) {
   return null;
 }
 
+/* ---------- the teacher's own collection ----------
+   Saved on the class doc (cls.teacher). Each finalized day gives the teacher 1 egg for every student who hit 120 XP,
+   and TEACHER_XP_PER_MISS banked XP for every student who didn't (excused days don't count).
+   Her eggs can also hatch Legendaries (0.05%). She shows up in the arena as "Ms. Ariana" and can battle students. */
+export const TEACHER_ID = "teacher";
+export const TEACHER_XP_PER_MISS = 120;   // one level per student who missed 120
+export const TEACHER_ODDS = [["Common", 0.6995], ["Uncommon", 0.20], ["Rare", 0.08], ["Super Rare", 0.02], ["Legendary", 0.0005]];
+export function teacherPlayer(cls, name) {
+  const t = (cls && cls.teacher) || {};
+  return { id: TEACHER_ID, isTeacher: true, name: name || t.name || "Ms. Ariana", companionId: "teacher", coll: t.coll || {},
+    pullsUsed: Number(t.pullsUsed) || 0, xpSpent: Number(t.xpSpent) || 0, bonusPulls: Number(t.eggsEarned) || 0, bonusXP: Number(t.xpEarned) || 0,
+    legendaryPulls: 0, legendaryUsed: 0, arenaReady: !!t.arenaReady, xpHist: {} };
+}
+export function rollTeacherRarity() {
+  let r = Math.random();
+  for (const [name, p] of TEACHER_ODDS) { if (r < p) return name; r -= p; }
+  return "Common";
+}
+// What finalizing day d gives the teacher.
+export function teacherReward(students, d) {
+  const arr = (a, i) => (Array.isArray(a) ? a[i] : undefined);
+  const team = students.filter(s => s.companionId), hit = team.filter(s => arr(s.status, d) === "c").length;
+  const missed = team.filter(s => { const v = arr(s.status, d); return v !== "c" && v !== "e"; }).length;
+  return { eggs: hit, xp: missed * TEACHER_XP_PER_MISS, hit, missed };
+}
+
 /* ---------- gacha ---------- */
 function pick(list) { return list[Math.floor(Math.random() * list.length)]; }
 export function rollRarity() {
@@ -192,6 +218,7 @@ export function hitGoalToday(st, cls, date) {
   return Math.max(Number(h.l) || 0, Number(h.d) || 0) >= goal;
 }
 export function arenaOpenFor(st, cls, date) {
+  if (st && st.isTeacher) return !(cls && cls.arenaOverride === "closed");
   if (arenaOpen(cls, date)) return true;
   if (cls && cls.arenaOverride === "closed") return false;
   if (!hitGoalToday(st, cls, date)) return false;
@@ -208,7 +235,7 @@ export function arenaOpenFor(st, cls, date) {
 export function fighterFrom(st, fam) {
   const e = owned(st)[fam]; if (!e) return null;
   const c = formOf(fam, e.lvl || 1), s = statsOf(c, e.lvl || 1);
-  return { fam, id: c.id, lvl: e.lvl || 1, name: c.name, img: e.sparkle ? sparkleImg(c) : c.img, sparkle: !!e.sparkle, face: c.face || "R", type: c.types[0], types: c.types, weak: c.weak, attack: c.attack, hp: s.hp, df: s.df, dmg: s.dmg, cur: s.hp };
+  return { fam, id: c.id, lvl: e.lvl || 1, name: e.nick || c.name, species: c.name, img: e.sparkle ? sparkleImg(c) : c.img, sparkle: !!e.sparkle, face: c.face || "R", type: c.types[0], types: c.types, weak: c.weak, attack: c.attack, hp: s.hp, df: s.df, dmg: s.dmg, cur: s.hp };
 }
 export function teamSize(a, b) { return Math.max(0, Math.min(TEAM_MAX, ownedFams(a).length, ownedFams(b).length)); }
 export function hitDamage(att, def, crit) {

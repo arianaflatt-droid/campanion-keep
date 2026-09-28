@@ -1,11 +1,13 @@
 import { newlyEarned, badgeById } from "./badges.js";
+import { onTradeClick, onTradeChange, settleTrades } from "./trade-ui.js";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js";
 import {
   applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES
 } from "./game.js";
-import { duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js";
-import { watchBattles,
+import { teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js";
+import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db
 } from "./db.js";
@@ -17,7 +19,7 @@ let day = todayIndex();
 const busy = {};
 let flashMsg = null, flashTimer = null, flashOk = false;
 let ctab = (() => { try { return localStorage.getItem("ck-ctab") || "daily"; } catch (e) { return "daily"; } })();
-let unsub = [], battles = [], badgeWriting = false;
+let unsub = [], battles = [], trades = [], badgeWriting = false;
 
 function todayIndex() { const d = new Date().getDay(); return d >= 1 && d <= 5 ? d - 1 : 0; }
 function blankStudent(name, order) {
@@ -65,7 +67,8 @@ else onAuthStateChanged(auth, u => {
     if (c && c.haunt && !c.hauntSince) updateDoc(classRef, { hauntSince: azToday() }).catch(() => {});   // Hexaduck streaks start today if the mode was already on
     if (c && !c.collectorStart) updateDoc(classRef, { collectorStart: (() => { const t = new Date(); return t.getFullYear() + "-" + String(t.getMonth() + 1).padStart(2, "0") + "-" + String(t.getDate()).padStart(2, "0"); })() }).catch(() => {}); if (!c) mode = "setup"; else if (mode === "boot" || mode === "setup") mode = "guide"; detectEvents(); render(); },
     e => flash("Couldn’t load the class — " + e.code)));
-  unsub.push(watchBattles(l => { battles = l; lockBadges(); }, () => {}));
+  unsub.push(watchBattles(l => { battles = l; lockBadges(); if (ctab === "collector") render(); }, () => {}));
+  unsub.push(watchTrades(l => { trades = l; if (cls) settleTrades(tctx()); if (ctab === "collector") render(); }, () => {}));
   unsub.push(watchStudents(list => { students = applyDisplayNames(list); studentsLoaded = true; detectEvents(); lockBadges(); render(); },
     e => flash("Couldn’t load students — " + e.code)));
 });
@@ -199,7 +202,26 @@ function confetti() {
 
 /* ================= render ================= */
 const app = document.getElementById("app");
-function render() {
+/* ---------- the teacher's own creatures (saved on the class doc as cls.teacher) ---------- */
+function tplayer() { return teacherPlayer(cls); }
+async function tpatch(data, quiet) {
+  const t = Object.assign({}, cls.teacher || {}), up = {};
+  Object.keys(data).forEach(k => { t[k] = data[k]; up["teacher." + k] = data[k]; });
+  cls.teacher = t;
+  if (!quiet) render(true);
+  try { await updateDoc(classRef, up); } catch (e) { flash("That didn\u2019t save \u2014 " + (e.code || e.message)); }
+}
+function tctx() {
+  const me = tplayer();
+  return { cls, students: students.concat([me]), battles, trades, me, patch: tpatch, render: () => render(true), flash };
+}
+function teacherCollectorCard() {
+  return '<div class="card"><div class="card-head"><h2>\u{1F9D1}\u200D\u{1F3EB} Your collection</h2><span class="fact">battle your students!</span></div>' +
+    '<p class="lede" style="font-size:13.5px;">Your own collection. Students see you in the arena as <b>' + esc(tplayer().name) + "</b>.</p></div>" +
+    collectorTab(tctx());
+}
+function render(force) {
+  if (!force && mode === "guide" && ctab === "collector" && collectorBusy()) return;   // don't redraw mid egg-hatch or page flip
   document.getElementById("wrap").className = mode === "class" || mode === "battle" ? "wrap wide" : "wrap";
   document.getElementById("pageTitle").textContent = mode === "class" ? "The Keep" : mode === "battle" ? "Battle Area" : "Companion Keep Console";
   document.getElementById("eyebrow").textContent = mode === "class" ? ((cls && cls.weekLabel) || "This week")
@@ -228,13 +250,13 @@ function render() {
     h += '<div class="tabs ctabs" role="tablist">' + tabs.map(([k, l]) => '<button role="tab" class="tab' + (ctab === k ? " on" : "") + '" data-ctab="' + k + '" aria-selected="' + (ctab === k) + '">' + l + "</button>").join("") + "</div>";
     if (ctab === "daily") h += viewDaily() + viewRewards();
     else if (ctab === "students") h += viewStandings() + viewAssign() + viewLosses() + viewLinks();
-    else if (ctab === "collector") h += viewCollector();
+    else if (ctab === "collector") h += teacherCollectorCard() + viewCollector();
     else if (ctab === "events") h += viewModes() + duckAdmin() + (isHaunt(cls) ? viewBucket() + viewPrizes() + viewShop() : "");
     else h += viewClassSettings();
   }
 
   const active = document.activeElement, keep = active && active.id && active.matches("input, textarea") ? { id: active.id, v: active.value, pos: active.selectionStart } : null;
-  app.innerHTML = h;
+  app.innerHTML = h + (mode === "guide" && ctab === "collector" && cls ? collectorOverlays(tctx()) : "");
   if (keep) { const n = document.getElementById(keep.id); if (n) { n.value = keep.v; n.focus(); try { n.setSelectionRange(keep.pos, keep.pos); } catch (e) {} } }
   renderRules();
 }
@@ -262,6 +284,7 @@ function finalizeBox() {
     (isHaunt(cls) ? "<br>\u{1F36C} Ms. Ariana\u2019s bucket gets <b>+" + f.candy + "</b> candy." : "") +
     "<br>\u2B50 Full health: <b>" + f.full.length + "</b> student" + (f.full.length === 1 ? "" : "s") + " (they go on your reward list)." +
     (f.died.length ? "<br>\u{1F480} Disappears: " + f.died.map(x => esc(x.name)).join(", ") + " (added to the losses log)." : "") +
+    (() => { const tr = teacherReward(students, day); return "<br>\u{1F9D1}\u200D\u{1F3EB} Your creatures: <b>+" + tr.eggs + " egg" + (tr.eggs === 1 ? "" : "s") + "</b> and <b>+" + tr.xp + " XP</b>."; })() +
     '<div class="row" style="margin-top:8px;"><button class="btn small" data-act="finalizeOk">Yes, finalize</button><button class="btn ghost small" data-act="finalizeCancel">Cancel</button></div></div>';
 }
 
@@ -401,7 +424,8 @@ function viewCollector() {
     '<button class="btn ghost" data-act="saveCollStart">Save</button>' +
     '<div class="field"><label for="arenaOv">Battle arena</label><select id="arenaOv">' + opt("auto", "On schedule") + opt("open", "Open now (all day)") + opt("closed", "Closed") + "</select></div>" +
     '<label class="modebox" style="margin:0;padding:8px 12px;"><input type="checkbox" id="lunchArenaBox"' + (cls.lunchArena === false ? "" : " checked") + '><span><b>\u2600\uFE0F Lunch arena</b><small>Weekdays 12\u20131 pm for students who already hit 120 XP today</small></span></label>' +
-    '<label class="modebox" style="margin:0;padding:8px 12px;"><input type="checkbox" id="goalArenaBox"' + (cls.goalArena ? " checked" : "") + '><span><b>\u2B50 120 XP battlers</b><small>Any weekday, any time: students who hit 120 XP today can battle each other</small></span></label></div>' +
+    '<label class="modebox" style="margin:0;padding:8px 12px;"><input type="checkbox" id="goalArenaBox"' + (cls.goalArena ? " checked" : "") + '><span><b>\u2B50 120 XP battlers</b><small>Any weekday, any time: students who hit 120 XP today can battle each other</small></span></label>' +
+    '<label class="modebox" style="margin:0;padding:8px 12px;"><input type="checkbox" id="tradeBox"' + (cls.tradeOff ? "" : " checked") + '><span><b>\u{1F504} Trading</b><small>Students (and you) can swap creatures when both agree</small></span></label></div>' +
     '<p class="lede" style="font-size:12.5px;margin-bottom:10px;">Each day since that date: 120+ XP = 1 egg, plus 1 more for every extra 120 that day (under 120 = no egg). All XP also stays in each student\u2019s bank for levels. Arena schedule: ' + esc(ARENA_HOURS) + ".</p>";
   const rows = students.filter(x => x.companionId);
   if (!rows.length) return h + '<p class="lede">No students yet.</p></div>';
@@ -749,6 +773,8 @@ document.addEventListener("input", ev => {
 document.addEventListener("change", async ev => {
   const id = ev.target.id;
   if (id === "hauntBox") { await toggleHaunt(); return; }
+  if (ev.target.dataset && ev.target.dataset.trsel) { if (cls) onTradeChange(ev.target, tctx()); return; }
+  if (id === "tradeBox") { const on = ev.target.checked; try { await updateDoc(classRef, { tradeOff: !on }); flash("Saved \u2014 trading " + (on ? "on" : "off") + "."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
   if (id === "goalArenaBox") { const on = ev.target.checked; try { await updateDoc(classRef, { goalArena: on }); flash("Saved \u2014 120 XP battlers " + (on ? "can battle any time on weekdays" : "follow the normal schedule") + "."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
   if (id === "lunchArenaBox") { const on = ev.target.checked; try { await updateDoc(classRef, { lunchArena: on }); flash("Saved \u2014 lunch arena " + (on ? "on" : "off") + "."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
   if (id === "arenaOv") { const v = ev.target.value; try { await updateDoc(classRef, { arenaOverride: v === "auto" ? null : v }); flash("Saved \u2014 arena " + (v === "auto" ? "on its schedule" : v) + "."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
@@ -773,6 +799,8 @@ document.addEventListener("change", async ev => {
 /* ================= clicks ================= */
 document.addEventListener("click", async ev => {
   let el;
+  if ((el = ev.target.closest("[data-tr]"))) { if (cls) await onTradeClick(el, tctx()); return; }
+  if ((el = ev.target.closest("[data-cc]"))) { if (cls) await collectorClick(el, tctx()); return; }
   if ((el = ev.target.closest("[data-day]"))) { day = Number(el.dataset.day); render(); return; }
   if ((el = ev.target.closest("[data-ring]"))) {
     const s = sOf(el.dataset.ring), st = arr5(s.status, "");
@@ -947,10 +975,14 @@ document.addEventListener("click", async ev => {
     const date = dateOfDay(d);
     const rewards = (cls.rewardLog || []).filter(r => !(r.date === date && r.day === d));
     rewards.unshift({ date, day: d, week: cls.weekLabel || "", students: f.full.map(x => ({ id: x.id, name: x.name })), rewarded: [] });
+    // the teacher's collector: 1 egg per student at 120, banked XP per student who missed
+    const tr = teacherReward(students, d), tprev = (cls.teacherLog || {})[date], tt = cls.teacher || {};
+    const tEggs = Math.max(0, (Number(tt.eggsEarned) || 0) - (tprev ? tprev.eggs : 0) + tr.eggs), tXp = Math.max(0, (Number(tt.xpEarned) || 0) - (tprev ? tprev.xp : 0) + tr.xp);
     batch.update(classRef, { recorded: rec, finalized: fin, finalAmt: amt, finalDied: died.map(x => x.join(",")),
-      bucketEarned: (Number(cls.bucketEarned) || 0) + f.candy, rewardLog: rewards.slice(0, 60) });
+      bucketEarned: (Number(cls.bucketEarned) || 0) + f.candy, rewardLog: rewards.slice(0, 60),
+      "teacher.eggsEarned": tEggs, "teacher.xpEarned": tXp, ["teacherLog." + date]: { eggs: tr.eggs, xp: tr.xp } });
     f.died.forEach(x => batch.update(studentRef(x.id), { deaths: (x.deaths || []).concat([{ date, day: d, week: cls.weekLabel || "" }]) }));
-    try { await batch.commit(); flash("Saved \u2014 " + DAYS[d] + " is finalized." + (f.candy ? " +" + f.candy + " candy for Ms. Ariana!" : "")); } catch (e) { flash("Couldn\u2019t finalize \u2014 " + e.code); }
+    try { await batch.commit(); flash("Saved \u2014 " + DAYS[d] + " is finalized." + (f.candy ? " +" + f.candy + " candy for Ms. Ariana!" : "") + " You earned " + tr.eggs + " egg" + (tr.eggs === 1 ? "" : "s") + " and " + tr.xp + " XP for your creatures."); } catch (e) { flash("Couldn\u2019t finalize \u2014 " + e.code); }
     return;
   }
   if (act === "unfinalize") {
@@ -960,8 +992,10 @@ document.addEventListener("click", async ev => {
     const diedStr = arr5(cls.finalDied, ""), ids = String(diedStr[d] || "").split(",").filter(Boolean); diedStr[d] = "";
     const batch = writeBatch(db);
     const date = dateOfDay(d);
+    const tlog = (cls.teacherLog || {})[date], tt = cls.teacher || {};
     batch.update(classRef, { finalized: fin, finalAmt: amt, finalDied: diedStr, bucketEarned: Math.max(0, (Number(cls.bucketEarned) || 0) - back),
-      rewardLog: (cls.rewardLog || []).filter(r => !(r.date === date && r.day === d)) });
+      rewardLog: (cls.rewardLog || []).filter(r => !(r.date === date && r.day === d)),
+      ...(tlog ? { "teacher.eggsEarned": Math.max(0, (Number(tt.eggsEarned) || 0) - tlog.eggs), "teacher.xpEarned": Math.max(0, (Number(tt.xpEarned) || 0) - tlog.xp), ["teacherLog." + date]: null } : {}) });
     ids.forEach(id => { const x = sOf(id); if (x) batch.update(studentRef(id), { deaths: (x.deaths || []).filter(e => !(e.date === date && e.day === d)) }); });
     try { await batch.commit(); flash("Saved \u2014 " + DAYS[d] + " is open again."); } catch (e) { flash("Couldn\u2019t undo \u2014 " + e.code); }
     return;

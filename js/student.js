@@ -2,12 +2,14 @@ import {
   applyDisplayNames, companionOf, petCreatures, pinnedBadgeHTML, DAYS, SHORT, ROSTER, GEAR, SIDEKICKS, BANNER, bannerFor, isHaunt, battleOn, candyOf, basketHTML, CANDY_FULL, bossState, attacksReady, bossBarHTML, GHOST_IMG, ghostUnlocked, STORE, candyLeft, candySpent, ownedCount, ownsItem, storeArt, nextAttack, dmgOf, HAT_BONUS, BREW_BONUS, teamHTML, WHEEL, pickSlice, wheelHTML, spinTo, PRIZES, prizeSlices, bucketState, bucketHTML, baseDamage, EAT_PER_DAY, dayEaten, dayXP, byId, esc, arr5, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, sidekickSVG, petHTML, itemArt
 } from "./game.js";
-import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchBattles, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js";
+import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchBattles, watchTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js";
 import { nudgeCard } from "./nudges.js";
 import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js";
+import { teacherPlayer, hasStarter } from "./collect.js";
+import { onTradeClick, onTradeChange, settleTrades } from "./trade-ui.js";
 import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js";
 
-let cls = null, students = [], battles = [], loaded = { c: false, s: false };
+let cls = null, students = [], battles = [], trades = [], loaded = { c: false, s: false };
 let tab = (() => { try { return localStorage.getItem("ck-tab") || "pet"; } catch (e) { return "pet"; } })();
 let me = new URLSearchParams(location.search).get("s") || load();
 let attackFx = null, fxTimer = null;
@@ -26,8 +28,9 @@ else {
   onAuthStateChanged(auth, u => {
     if (!u) { anonSignIn().catch(e => { error = "Couldn’t connect (" + e.code + "). Try reloading."; render(); }); return; }
     watchClass(c => { cls = c; loaded.c = true; render(); }, e => { error = "Couldn’t load your class (" + e.code + ")."; render(); });
-    watchStudents(l => { students = applyDisplayNames(l); loaded.s = true; nameBattles(); render(); }, e => { error = "Couldn’t load your class (" + e.code + ")."; render(); });
+    watchStudents(l => { students = applyDisplayNames(l); loaded.s = true; nameBattles(); const s = students.find(x => x.id === me); if (s && !PREVIEW && trades.length) settleTrades(collectorCtx(s)); render(); }, e => { error = "Couldn’t load your class (" + e.code + ")."; render(); });
     watchBattles(l => { battles = l; nameBattles(); render(); }, () => {});
+    watchTrades(l => { trades = l; const s = students.find(x => x.id === me); if (s && !PREVIEW) settleTrades(collectorCtx(s)); render(); }, () => {});
     setInterval(() => render(), 60000);   // arena opens/closes on the clock
   });
 }
@@ -64,7 +67,11 @@ function badgeChime() {
   } catch (e) {}
 }
 
-function collectorCtx(s) { return { cls, students, battles, me: s, patch, render, flash }; }
+// The teacher can battle too: she's added to the arena list as "Ms. Ariana" once she has a starter creature.
+function collectorCtx(s) {
+  const t = cls && cls.teacher ? teacherPlayer(cls) : null;
+  return { cls, students: t && hasStarter(t) ? students.concat([t]) : students, battles, trades, me: s, patch, render, flash };
+}
 function render(force) {
   if (wheelBusy) return;          // don't redraw mid-spin; the spin calls render() when it stops
   if (!force && collectorBusy()) return;   // egg hatch / page flip animations call render(true) themselves
@@ -84,7 +91,7 @@ function render(force) {
   const party = !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !collectorBusy() ? badgeParty(cur) : "";
   app.innerHTML = h + prizeOverlay() + (cur && cur.companionId && cls ? collectorOverlays(collectorCtx(cur)) : "") + party;
   if (party) { const key = unseenBadges(cur).join(","); if (key !== partyKey) { partyKey = key; badgeChime(); } }
-  if (keep) { const n = document.getElementById(keep.id); if (n) { n.focus(); try { n.setSelectionRange(keep.pos, keep.pos); } catch (e) {} } }
+  if (keep) { const n = document.getElementById(keep.id); if (n) { if (keep.id === "nickIn") n.value = keep.v; n.focus(); try { n.setSelectionRange(keep.pos, keep.pos); } catch (e) {} } }
 }
 
 function viewNames() {
@@ -271,6 +278,7 @@ function battleCard(s, c) {
 }
 
 document.addEventListener("change", ev => {
+  if (ev.target.dataset && ev.target.dataset.trsel) { const s = students.find(x => x.id === me); if (s) onTradeChange(ev.target, collectorCtx(s)); return; }
   if (ev.target.id === "previewPick") { me = ev.target.value; history.replaceState(null, "", "?s=" + encodeURIComponent(me) + "&preview=1"); picking = null; render(true); scrollTo({ top: 0 }); }
 });
 document.addEventListener("input", ev => { if (ev.target.id === "petName") draftName = ev.target.value; });
@@ -290,6 +298,7 @@ document.addEventListener("click", async ev => {
   if ((el = ev.target.closest("[data-pinbadge]"))) { const id = el.dataset.pinbadge || null; await patch({ pinnedBadge: id }); if (id) flash("Pinned! It\u2019s on your companion in The Keep.", true); return; }
   if ((el = ev.target.closest("[data-petcr]"))) { await patch({ petCreature: el.dataset.petcr || null }); return; }
   if ((el = ev.target.closest("[data-tab]"))) { tab = el.dataset.tab; try { localStorage.setItem("ck-tab", tab); } catch (e) {} render(true); scrollTo({ top: 0 }); return; }
+  if ((el = ev.target.closest("[data-tr]"))) { const s = students.find(x => x.id === me); if (s && !PREVIEW) await onTradeClick(el, collectorCtx(s)); return; }
   if ((el = ev.target.closest("[data-cc]"))) { const s = students.find(x => x.id === me); if (s) await collectorClick(el, collectorCtx(s)); return; }
   if ((el = ev.target.closest("[data-me]"))) { me = el.dataset.me; save(me); picking = null; draftName = ""; render(); scrollTo({ top: 0 }); return; }
   if ((el = ev.target.closest("[data-pick]"))) { picking = el.dataset.pick; render(); return; }
@@ -385,5 +394,6 @@ document.addEventListener("keydown", ev => {
   if (ev.key !== "Enter") return;
   if (ev.target.id === "petName") document.querySelector('[data-act="choose"]').click();
   if (ev.target.id === "rename") document.querySelector('[data-act="rename"]').click();
+  if (ev.target.id === "nickIn") { const b = document.querySelector('[data-cc="nickSave"]'); if (b) b.click(); }
 });
 render();

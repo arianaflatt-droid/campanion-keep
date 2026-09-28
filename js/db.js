@@ -27,6 +27,23 @@ export const newBattleRef = () => doc(battlesCol);
 export function watchBattles(cb, onErr) {
   return onSnapshot(battlesCol, snap => cb(snap.docs.map(d => Object.assign({ id: d.id }, d.data()))), onErr);
 }
+// Trades between players (students and the teacher)
+export const tradesCol = db ? collection(db, "classes", CLASS_ID, "trades") : null;
+export const tradeRef = id => doc(db, "classes", CLASS_ID, "trades", id);
+export const newTradeRef = () => doc(tradesCol);
+export function watchTrades(cb, onErr) {
+  return onSnapshot(tradesCol, snap => cb(snap.docs.map(d => Object.assign({ id: d.id }, d.data()))), onErr);
+}
+export async function changeTrade(id, fn) {
+  if (PREVIEW) return null;
+  return runTransaction(db, async tx => {
+    const ref = tradeRef(id), snap = await tx.get(ref);
+    if (!snap.exists()) return null;
+    const next = fn(JSON.parse(JSON.stringify(snap.data())));
+    if (next) tx.set(ref, next);
+    return next;
+  });
+}
 // Read-modify-write a battle safely when both players act at once. fn(data) returns the new data (or null to skip).
 export async function changeBattle(id, fn) {
   if (PREVIEW) return null;

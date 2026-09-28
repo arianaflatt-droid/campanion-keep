@@ -3,9 +3,10 @@ import {
   CREATURES, FAMILIES, creature, family, xpTotal, pullsLeft, legendaryLeft, bankXP, xpToNextPull, owned, ownedFams, hasStarter,
   formIndex, formOf, statsOf, seenSet, rollRarity, doPull, arenaOpen, arenaOpenFor, lunchHour, hitGoalToday, LUNCH_ARENA, ARENA_HOURS, fighterFrom, teamSize, alive, resolve,
   STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
-  EVENTS, eventOpen, eventWindow, eventStreak, hasEvent, eventUnlocked, azToday
+  EVENTS, eventOpen, eventWindow, eventStreak, hasEvent, eventUnlocked, azToday, rollTeacherRarity, TEACHER_ODDS
 } from "./collect.js";
 import { newBattleRef, changeBattle, setDoc } from "./db.js";
+import { tradeCard } from "./trade-ui.js";
 
 const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const PER_PAGE = 20;
@@ -39,14 +40,17 @@ export function collectorTab(c) {
     (leg ? stat("\u{1F31F}", leg, "legendary egg" + (leg === 1 ? "" : "s")) : "") +
     stat("⭐", bank.toLocaleString(), "XP in your bank") +
     stat("\u{1F4D6}", seen.size + " / " + CREATURES.length, "in your lorebook") + "</div>" +
-    '<p class="muted" style="margin:10px 0 12px;">Reach ' + PULL_XP + " XP in a day for an egg, and every " + PULL_XP + " more that day earns another. Next egg today in <b>" + xpToNextPull(s, c.cls) + " XP</b>. All your XP also goes into your bank to level up creatures (" + LEVEL_XP + " XP = 1 level).</p>" +
+    (s.isTeacher
+      ? '<p class="muted" style="margin:10px 0 12px;">Each day you finalize gives you <b>1 egg for every student who hit 120 XP</b> and <b>' + LEVEL_XP + " banked XP (1 level) for every student who didn\u2019t</b>. Excused days don\u2019t count.</p>"
+      : '<p class="muted" style="margin:10px 0 12px;">Reach ' + PULL_XP + " XP in a day for an egg, and every " + PULL_XP + " more that day earns another. Next egg today in <b>" + xpToNextPull(s, c.cls) + " XP</b>. All your XP also goes into your bank to level up creatures (" + LEVEL_XP + " XP = 1 level).</p>") +
     '<div class="row"><button class="btn big" data-cc="hatch"' + (pulls ? "" : " disabled") + ">\u{1F95A} Hatch an egg</button>" +
     (leg ? '<button class="btn big gold" data-cc="hatchLeg">\u{1F31F} Hatch a legendary egg</button>' : "") +
     '<button class="btn ghost big" data-cc="book">\u{1F4D6} Open lorebook</button></div>' +
-    '<p class="muted" style="margin-top:8px;">Egg odds: ' + ODDS.map(([r, p]) => r + " " + Math.round(p * 100) + "%").join(" · ") + "</p></div>";
-  h += eventCards(s, c.cls);
+    '<p class="muted" style="margin-top:8px;">Egg odds: ' + (s.isTeacher ? TEACHER_ODDS : ODDS).map(([r, p]) => r + " " + (p < 0.01 ? (p * 100).toFixed(2) : Math.round(p * 100)) + "%").join(" · ") + "</p></div>";
+  if (!s.isTeacher) h += eventCards(s, c.cls);
   h += myCreatures(s, bank);
   h += arenaCard(s);
+  h += tradeCard(c);
   return h;
 }
 // Limited event cards (Duckarune, Hexaduck): shown only while each event is running
@@ -77,6 +81,15 @@ function starterView() {
     "</div></div>";
 }
 
+// Nicknames: saved on the creature's family (coll[fam].nick), so they stay through evolutions.
+let naming = null;
+const NICK_MAX = 16;
+function nameRow(f, e, c) {
+  if (naming === f) return '<div class="nickedit"><input id="nickIn" type="text" maxlength="' + NICK_MAX + '" value="' + esc(e.nick || "") + '" placeholder="' + esc(c.name) + '">' +
+    '<div class="row" style="gap:4px;justify-content:center;"><button class="btn small" data-cc="nickSave" data-fam="' + f + '">Save</button><button class="btn ghost small" data-cc="nickCancel">Cancel</button></div></div>';
+  return (e.nick ? "<b>" + esc(e.nick) + '</b><small class="muted">' + esc(c.name) + "</small>" : "<b>" + esc(c.name) + "</b>") +
+    '<button class="nickbtn" data-cc="nick" data-fam="' + f + '" title="Give it a name">\u270F\uFE0F ' + (e.nick ? "Rename" : "Name it") + "</button>";
+}
 function myCreatures(s, bank) {
   const fams = ownedFams(s).sort((a, b) => formOf(a, 1).id - formOf(b, 1).id);
   let h = '<div class="card"><div class="card-head"><h2>My creatures</h2><span class="fact">' + fams.length + " families</span></div><div class=\"mygrid\">";
@@ -84,7 +97,7 @@ function myCreatures(s, bank) {
     const e = owned(s)[f], lvl = e.lvl || 1, c = formOf(f, lvl), st = statsOf(c, lvl), maxed = lvl >= MAX_LEVEL;
     const next = family(f).forms[formIndex(f, lvl) + 1], evoAt = c.evolvesAt;
     h += '<div class="mycard" style="--rc:' + RARITY_COLOR[c.rarity] + '"><button class="mypic" data-cc="detail" data-id="' + c.id + '">' + img(c, "", spOf(f)) + "</button>" +
-      "<b>" + esc(c.name) + '</b><span class="lv">Lv ' + lvl + "</span>" +
+      nameRow(f, e, c) + '<span class="lv">Lv ' + lvl + "</span>" +
       '<small class="muted">❤ ' + st.hp + " · \u{1F6E1} " + st.df + " · ⚔ " + st.dmg + "</small>" +
       (next && evoAt ? '<small class="evo">Evolves at Lv ' + evoAt + "</small>" : "") +
       '<button class="btn small" data-cc="lvl" data-fam="' + f + '"' + (bank >= LEVEL_XP && !maxed ? "" : " disabled") + ">" + (maxed ? "Max level" : "⬆ Level up · " + LEVEL_XP + " XP") + "</button></div>";
@@ -189,7 +202,7 @@ function detailPage(c, seen) {
   const e = owned(ctx.me)[c.fam], lvl = e ? e.lvl || 1 : 1, cur = e && formOf(c.fam, lvl).id === c.id, st = statsOf(c, cur ? lvl : 1);
   const fam = family(c.fam), bank = bankXP(ctx.me, ctx.cls);
   let h = '<div class="dtop"><button class="btn small ghost" data-cc="back">◀ Back to lorebook</button><span class="num">#' + c.id + "</span></div>" +
-    '<div class="dhead">' + img(c, "dimg") + "<div><h2>" + esc(c.name) + "</h2>" + rarityPill(c.rarity) + " " + typePills(c) +
+    '<div class="dhead">' + img(c, "dimg") + "<div><h2>" + esc(c.name) + "</h2>" + (e && e.nick && cur ? '<p class="dline">Your <b>' + esc(e.nick) + "</b></p>" : "") + rarityPill(c.rarity) + " " + typePills(c) +
     '<p class="dline"><b>Weak to:</b> ' + esc(c.weak.join(", ")) + " (takes double damage)</p>" +
     (c.title ? '<p class="dline"><i>' + esc(c.title) + "</i>" + (c.event ? ' <span class="rpill" style="background:#2B6FD6">\u{1F986} Limited event</span>' : "") + "</p>" : "") +
     '<p class="dline"><b>' + (c.move ? "Signature move" : "Attack") + ":</b> " + esc(c.attack) + "</p>" + (c.move ? '<p class="dline muted">' + esc(c.move) + "</p>" : "") + "</div></div>" +
@@ -304,7 +317,7 @@ export async function onClick(el, c) {
   if (a === "hatch" || a === "hatchLeg") {
     const leg = a === "hatchLeg";
     if (leg ? !legendaryLeft(s) : !pullsLeft(s, c.cls)) return;
-    const res = doPull(s, leg ? "Legendary" : rollRarity(), c.cls);
+    const res = doPull(s, leg ? "Legendary" : s.isTeacher ? rollTeacherRarity() : rollRarity(), c.cls);
     hatch = { phase: "shake", res, legendary: leg };
     const data = { coll: res.coll };
     if (leg) data.legendaryUsed = (Number(s.legendaryUsed) || 0) + 1; else data.pullsUsed = (Number(s.pullsUsed) || 0) + 1;
@@ -323,6 +336,14 @@ export async function onClick(el, c) {
     later(280, () => { book.page = Math.max(0, Math.min(PAGES - 1, book.page + d)); book.flip = d > 0 ? "in-next" : "in-prev"; });
     later(600, () => { book.flip = ""; busyUntil = 0; });
     return;
+  }
+  if (a === "nick") { naming = el.dataset.fam; c.render(true); const i = document.getElementById("nickIn"); if (i) { i.focus(); i.select(); } return; }
+  if (a === "nickCancel") { naming = null; return c.render(true); }
+  if (a === "nickSave") {
+    const f = el.dataset.fam, i = document.getElementById("nickIn"), e = owned(s)[f]; if (!e) return;
+    const nick = (i ? i.value : "").replace(/\s+/g, " ").trim().slice(0, NICK_MAX);
+    const coll = Object.assign({}, owned(s)); coll[f] = Object.assign({}, e); if (nick) coll[f].nick = nick; else delete coll[f].nick;
+    naming = null; return c.patch({ coll });
   }
   if (a === "detail") {
     const id = Number(el.dataset.id);
