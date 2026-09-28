@@ -70,7 +70,7 @@ export const ROSTER = [
   { id: "dragon",  name: "Dragon Hatchling", glyph: "\u{1F409}", fit: { hat: [0.38, 0.12, 0.3, -8],   eyes: [0.44, 0.15, 0.24, 0],   snack: [1.08, 0.86] } },
   { id: "unicorn", name: "Unicorn Foal",     glyph: "\u{1F984}", fit: { hat: [0.47, 0.2, 0.36, -10],  eyes: [0.5, 0.45, 0.28, -6],   snack: [1.08, 0.86] } },
   { id: "griffin", name: "Griffin Cub",      glyph: "\u{1F985}", fit: { hat: [0.31, 0.31, 0.26, -10], eyes: [0.33, 0.37, 0.2, -6],   snack: [1.1, 0.86] } },
-  { id: "sprite",  name: "Pixel Sprite",     glyph: "\u{1F47E}", fit: { hat: [0.61, 0.2, 0.44, 0],   eyes: [0.6, 0.42, 0.62, 0],    snack: [1.12, 0.86] } },
+  { id: "sprite",  name: "Pixel Sprite",     glyph: "\u{1F47E}", fit: { hat: [0.61, 0.2, 0.44, 0], cap: [0.61, 0.27, 0.44, 0],   eyes: [0.6, 0.42, 0.62, 0],    snack: [1.12, 0.86] } },
   { id: "pixie",   name: "Pixie",            glyph: "\u{1F9DA}", fit: { hat: [0.6, 0.03, 0.26, 0],    eyes: [0.6, 0.11, 0.16, 0],    snack: [1.08, 0.86] } },
   { id: "golem",   name: "Stone Golem",      glyph: "\u{1F5FF}", fit: { hat: [0.6, 0.09, 0.56, 0],    eyes: [0.61, 0.35, 0.56, 0],   snack: [1.1, 0.86] } }
 ];
@@ -188,6 +188,8 @@ export function sidekickSVG(kind, big) {
 
 // Hats sit on the head (anchored at their bottom-centre); shades centre on the eyes.
 const HAT_SCALE = { cap: 1, hat: 1.05, crown: 0.95, witch: 1.25 };
+// How far up each hat is lifted from its anchor point (the cap emoji has empty space under its brim, so it sits lower).
+const HAT_LIFT = { cap: 72, hat: 88, crown: 88, witch: 88 };
 const GLYPH_W = 1.25;   // emoji box is 1.25em wide x 1em tall
 const pos = (x, y) => "left:" + (x / GLYPH_W * 100).toFixed(1) + "%;top:" + (y * 100).toFixed(1) + "%;";
 export function gearStyle(c, worn) {
@@ -200,8 +202,8 @@ export function gearStyle(c, worn) {
     const [x, y] = f.snack || [1.1, 0.86];
     return pos(x, y) + "font-size:0.34em;transform:translate(-50%,-50%) rotate(-8deg);";
   }
-  const [x, y, sz, r] = f.hat || [0.6, 0.2, 0.45, 0];
-  return pos(x, y) + "font-size:" + (sz * (HAT_SCALE[worn.id] || 1)).toFixed(3) + "em;transform:translate(-50%,-88%) rotate(" + r + "deg);transform-origin:50% 88%;";
+  const [x, y, sz, r] = f[worn.id] || f.hat || [0.6, 0.2, 0.45, 0];
+  return pos(x, y) + "font-size:" + (sz * (HAT_SCALE[worn.id] || 1)).toFixed(3) + "em;transform:translate(-50%,-" + (HAT_LIFT[worn.id] || 88) + "%) rotate(" + r + "deg);transform-origin:50% " + (HAT_LIFT[worn.id] || 88) + "%;";
 }
 /* ---------- Student names ----------
    Names are shown as the first name only. When two students share a first name, their last initial is added ("Maya J.").

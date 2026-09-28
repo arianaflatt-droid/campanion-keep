@@ -4,7 +4,7 @@ import {
   simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES
 } from "./game.js";
-import { duckWindow, duckOpen, azToday, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js";
+import { duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js";
 import { watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db
@@ -279,7 +279,7 @@ function viewDaily() {
     '<button class="btn ghost" data-act="clearDay">Clear ' + SHORT[day] + "</button>" +
     (arr5(cls.finalized, false)[day]
       ? '<button class="btn ghost" data-act="unfinalize">\u{1F512} ' + SHORT[day] + " finalized \u00b7 undo</button>"
-      : '<button class="btn" data-act="finalize" style="background:var(--good);">\u2705 Finalize ' + DAYS[day] + "</button>") + "</div>" + pasteBox() + finalizeBox() +
+      : '<button class="btn" data-act="finalize" style="background:var(--good);">\u2705 Finalize ' + DAYS[day] + "</button>") + "</div>" + lunchLateBox() + pasteBox() + finalizeBox() +
     '<p class="lede" style="font-size:13px;margin-bottom:12px;">CSV or XLSX with <b>name</b> and <b>completed</b> columns. The <b>lunch</b> file marks who already hit ' + goal +
     ' (their sidekick joins them today). The <b>end-of-day</b> file decides health and turns the day on.</p>';
 
@@ -400,7 +400,8 @@ function viewCollector() {
     '<div class="row" style="margin-bottom:12px;"><div class="field"><label for="collStart">Counting XP since</label><input id="collStart" type="date" value="' + esc(cls.collectorStart || "") + '"></div>' +
     '<button class="btn ghost" data-act="saveCollStart">Save</button>' +
     '<div class="field"><label for="arenaOv">Battle arena</label><select id="arenaOv">' + opt("auto", "On schedule") + opt("open", "Open now") + opt("closed", "Closed") + "</select></div>" +
-    '<label class="modebox" style="margin:0;padding:8px 12px;"><input type="checkbox" id="lunchArenaBox"' + (cls.lunchArena === false ? "" : " checked") + '><span><b>\u2600\uFE0F Lunch arena</b><small>Weekdays 12\u20131 pm for students who already hit 120 XP today</small></span></label></div>' +
+    '<label class="modebox" style="margin:0;padding:8px 12px;"><input type="checkbox" id="lunchArenaBox"' + (cls.lunchArena === false ? "" : " checked") + '><span><b>\u2600\uFE0F Lunch arena</b><small>Weekdays 12\u20131 pm for students who already hit 120 XP today</small></span></label>' +
+    '<label class="modebox" style="margin:0;padding:8px 12px;"><input type="checkbox" id="goalArenaBox"' + (cls.goalArena ? " checked" : "") + '><span><b>\u2B50 120 XP battlers</b><small>Any weekday, any time: students who hit 120 XP today can battle each other</small></span></label></div>' +
     '<p class="lede" style="font-size:12.5px;margin-bottom:10px;">Each day since that date: 120+ XP = 1 egg, plus 1 more for every extra 120 that day (under 120 = no egg). All XP also stays in each student\u2019s bank for levels. Arena schedule: ' + esc(ARENA_HOURS) + ".</p>";
   const rows = students.filter(x => x.companionId);
   if (!rows.length) return h + '<p class="lede">No students yet.</p></div>';
@@ -535,7 +536,9 @@ function viewClassSettings() {
     '<div class="field" style="flex:1;min-width:180px;"><label for="gClass">Class name</label><input id="gClass" type="text" maxlength="48" value="' + esc(cls.className || "") + '"></div>' +
     '<div class="field" style="flex:1;min-width:150px;"><label for="gWeek">Week label</label><input id="gWeek" type="text" maxlength="32" value="' + esc(cls.weekLabel || "") + '"></div>' +
     '<div class="field" style="width:130px;"><label for="gGoal">Daily XP goal</label><input id="gGoal" type="number" min="10" max="2000" step="10" value="' + goalXP(cls) + '"></div>' +
+    '<div class="field" style="width:150px;"><label for="gLunch">Lunch cutoff (AZ)</label><input id="gLunch" type="time" value="' + esc(lunchCutoff()) + '"></div>' +
     '<button class="btn ghost" data-act="saveClass">Save</button></div>' +
+    '<p class="muted small" style="margin-top:6px;">Lunch data for today can only be used before the lunch cutoff, so students who reach ' + goalXP(cls) + " after lunch don\u2019t become Lunch Heroes.</p>" +
     '<div class="row" style="margin-top:18px;border-top:1px solid var(--line-2);padding-top:16px;"><button class="btn danger" data-act="newWeek">' +
     (busy.confirmNewWeek ? "Yes — clear the whole week" : "Start a new week") + '</button><span class="lede" style="font-size:13px;">' +
     (busy.confirmNewWeek ? "Clears every day, lunch mark, gear and cape for all " + students.length + " students." + (isHaunt(cls) ? " Candy carries over." : "") : "Students keep their companions and names.") + "</span></div></div>" +
@@ -669,6 +672,28 @@ function pasteBox() {
     '<button class="btn" data-act="pasteDay"' + (rows.length ? "" : " disabled") + ">Use as end-of-day data</button></div></div>";
 }
 
+// Lunch cutoff: lunch data for TODAY is only accepted before this time (Arizona). Default 12:30.
+function lunchCutoff() { return (cls && cls.lunchCutoff) || "12:30"; }
+function pastLunchCutoff(d) {
+  if (dateOfDay(d) !== azToday()) return false;          // an earlier day's lunch file is fine (catching up)
+  const t = azNow(), [h, m] = lunchCutoff().split(":").map(Number);
+  return t.h * 60 + t.m >= h * 60 + (m || 0);
+}
+const fmtCut = () => { const [h, m] = lunchCutoff().split(":").map(Number); return ((h % 12) || 12) + ":" + String(m || 0).padStart(2, "0") + (h >= 12 ? " pm" : " am"); };
+// Everything uploaded or pasted goes through here: late lunch data is stopped so it can't create Lunch Heroes.
+async function sendUpload(up) {
+  if (up.kind === "lunch" && pastLunchCutoff(up.day)) { busy.lunchLate = up; render(); scrollTo({ top: 0 }); return; }
+  busy.lunchLate = null;
+  await applyUpload(up);
+}
+function lunchLateBox() {
+  const up = busy.lunchLate; if (!up) return "";
+  return '<div class="banner warn" style="margin-bottom:12px;"><b>\u23F0 It\u2019s after the lunch cutoff (' + esc(fmtCut()) + ").</b> Today\u2019s lunch data has to come from before lunch, or students who hit " + goalXP(cls) +
+    " later in the day would become Lunch Heroes. This data wasn\u2019t saved." +
+    '<div class="row" style="margin-top:8px;"><button class="btn small" data-act="lateAsDay">Use it as end-of-day data instead</button>' +
+    '<button class="btn ghost small" data-act="lateCancel">Cancel</button></div></div>';
+}
+
 async function applyUpload(up) {
   const goal = goalXP(cls), d = up.day;
   const best = {}; let unmatched = [];
@@ -724,6 +749,7 @@ document.addEventListener("input", ev => {
 document.addEventListener("change", async ev => {
   const id = ev.target.id;
   if (id === "hauntBox") { await toggleHaunt(); return; }
+  if (id === "goalArenaBox") { const on = ev.target.checked; try { await updateDoc(classRef, { goalArena: on }); flash("Saved \u2014 120 XP battlers " + (on ? "can battle any time on weekdays" : "follow the normal schedule") + "."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
   if (id === "lunchArenaBox") { const on = ev.target.checked; try { await updateDoc(classRef, { lunchArena: on }); flash("Saved \u2014 lunch arena " + (on ? "on" : "off") + "."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
   if (id === "arenaOv") { const v = ev.target.value; try { await updateDoc(classRef, { arenaOverride: v === "auto" ? null : v }); flash("Saved \u2014 arena " + (v === "auto" ? "on its schedule" : v) + "."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
   if (id === "lossRange") { busy.lossRange = ev.target.value; render(); return; }
@@ -739,7 +765,7 @@ document.addEventListener("change", async ev => {
     const up = { kind: id === "upLunch" ? "lunch" : "day", day, file: file.name, rows,
       nameKey: pickKey(keys, NAME_KEYS), xpKey: pickKey(keys, XP_KEYS), guideKey: keys.includes("guide") ? "guide" : null };
     busy.lastUpload = up;
-    await applyUpload(up);
+    await sendUpload(up);
   } catch (e) { flash(e.message || "Couldn’t read that file."); }
   ev.target.value = "";
 });
@@ -874,7 +900,8 @@ document.addEventListener("click", async ev => {
   if (act === "saveClass") {
     try {
       await updateDoc(classRef, { className: document.getElementById("gClass").value.trim(), weekLabel: document.getElementById("gWeek").value.trim(),
-        goal: Math.max(10, Math.min(2000, Math.floor(Number(document.getElementById("gGoal").value) || 120))) });
+        goal: Math.max(10, Math.min(2000, Math.floor(Number(document.getElementById("gGoal").value) || 120))),
+        lunchCutoff: document.getElementById("gLunch").value || "12:30" });
       flash("Saved.");
     } catch (e) { flash("Couldn’t save — " + e.code); }
     return;
@@ -885,8 +912,10 @@ document.addEventListener("click", async ev => {
     const rows = parsePasted(busy.pasteText || ""); if (!rows.length) return;
     const up = { kind: act === "pasteLunch" ? "lunch" : "day", day, file: "pasted data", rows, nameKey: "name", xpKey: "completed", guideKey: null };
     busy.lastUpload = up; busy.paste = false; busy.pasteText = "";
-    await applyUpload(up); return;
+    await sendUpload(up); return;
   }
+  if (act === "lateCancel") { busy.lunchLate = null; render(); return; }
+  if (act === "lateAsDay") { const up = Object.assign({}, busy.lunchLate, { kind: "day" }); busy.lunchLate = null; busy.lastUpload = up; await applyUpload(up); return; }
   if (act === "eggAllCancel") { busy.eggAll = false; render(); return; }
   if (act === "eggAll") {
     if (!busy.eggAll) { busy.eggAll = true; render(); return; }

@@ -119,8 +119,9 @@ function arenaCard(s) {
   // a battle already started can always be finished; new ones only while the arena is open
   if (!open) return h + '<p class="lede">The arena opens ' + esc(ARENA_HOURS) + ".</p>" +
     (ctx.cls && ctx.cls.lunchArena === false ? "" : '<p class="lede" style="margin-top:6px;">\u2600\uFE0F <b>Lunch arena:</b> ' + esc(LUNCH_ARENA) + "." +
-      (lunchHour() && !hitGoalToday(s, ctx.cls) ? " Hit 120 XP to join right now!" : "") + "</p>") + "</div>";
-  if (lunchOnly) h += '<p class="lede" style="margin-bottom:10px;">\u2600\uFE0F <b>Lunch arena</b> until 1 pm \u2014 you hit 120 XP today, so you can battle other players who did too!</p>';
+      (lunchHour() && !hitGoalToday(s, ctx.cls) ? " Hit 120 XP to join right now!" : "") + "</p>") +
+    (ctx.cls && ctx.cls.goalArena && !hitGoalToday(s, ctx.cls) ? '<p class="lede" style="margin-top:6px;">\u2B50 Hit 120 XP today and you can battle right away!</p>' : "") + "</div>";
+  if (lunchOnly) h += '<p class="lede" style="margin-bottom:10px;">' + (ctx.cls && ctx.cls.goalArena ? "\u2B50 <b>120 XP battlers</b> \u2014 you hit 120 XP today, so you can battle other players who did too!" : "\u2600\uFE0F <b>Lunch arena</b> until 1 pm \u2014 you hit 120 XP today, so you can battle other players who did too!") + "</p>";
   const ready = !!s.arenaReady, busy = busyIds();
   h += '<label class="modebox" style="margin-bottom:12px;"><input type="checkbox" data-cc="ready"' + (ready ? " checked" : "") + "><span><b>I’m ready to battle</b><small>Other ready players can challenge you, and you can challenge them.</small></span></label>";
   const others = ctx.students.filter(x => x.id !== s.id && x.arenaReady && hasStarter(x) && arenaOpenFor(x, ctx.cls));   // during the lunch arena, only other 120 XP players

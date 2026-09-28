@@ -194,8 +194,11 @@ export function hitGoalToday(st, cls, date) {
 export function arenaOpenFor(st, cls, date) {
   if (arenaOpen(cls, date)) return true;
   if (cls && cls.arenaOverride === "closed") return false;
+  if (!hitGoalToday(st, cls, date)) return false;
+  // "120 XP battlers" switch: anyone at 120 today can battle any time on a weekday
+  if (cls && cls.goalArena && !["Sat", "Sun"].includes(azNow(date).day)) return true;
   if (cls && cls.lunchArena === false) return false;
-  return lunchHour(date) && hitGoalToday(st, cls, date);
+  return lunchHour(date);
 }
 
 /* ---------- battles ----------
