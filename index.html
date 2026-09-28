@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Companion Keep · Teacher</title>
+<link rel="icon" href="assets/axolotl.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Karla:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <div class="topbar">
+    <div>
+      <p class="eyebrow" id="eyebrow">Teacher console</p>
+      <h1 id="pageTitle">Companion Keep Console</h1>
+    </div>
+    <div class="row" id="topActions"></div>
+  </div>
+
+  <div id="app"></div>
+
+  <section class="card" id="rulesCard" hidden style="margin-top:16px;">
+    <div class="card-head"><h2>How the week works</h2></div>
+    <div class="rules">
+      <div class="rule">
+        <h3>Daily XP</h3>
+        <p>Upload each day's spreadsheet (CSV or XLSX with <b>name</b> and <b>completed</b> columns). Students at the goal are marked <b style="color:var(--good)">hit</b>; everyone else in the file is <b style="color:var(--bad)">missed</b>.</p>
+        <p style="margin-top:9px;"><b style="color:var(--warn)">&#9728;&#65039; By lunch:</b> upload a lunch-time spreadsheet (or tap the sun) for students who already hit the goal. Their axolotl or duck sidekick joins them on the board <i>that day only</i>.</p>
+        <p style="margin-top:9px;">Tap a 120 XP box to fix it by hand: blank &rarr; hit &rarr; excused.</p>
+      </div>
+      <div class="rule">
+        <h3>The 120 XP rule</h3>
+        <table class="tbl">
+          <thead><tr><th>Overall XP</th><th>Companion</th></tr></thead>
+          <tbody>
+            <tr><td>Hit 120</td><td class="eff">Full health (120)</td></tr>
+            <tr><td><b>Miss 120 once</b></td><td class="eff">Half health (60)</td></tr>
+            <tr><td>Hit 120 the next day</td><td class="eff">Back to full health</td></tr>
+            <tr><td><b>Miss 120 two days in a row</b></td><td class="eff" style="color:var(--bad);">Disappears</td></tr>
+            <tr><td>Hit 120 after it disappears</td><td class="eff">Unlocks a Hero Cape you can award</td></tr>
+            <tr><td>Excused</td><td class="eff">Skipped</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="rule">
+        <h3>Streak gear</h3>
+        <table class="tbl" id="itemTable"><thead><tr><th>Item</th><th>Unlocks at</th></tr></thead><tbody></tbody></table>
+        <p style="margin-top:9px;">Just for looks. Unlocked gear stays for the week. Students choose one to wear on their page.</p>
+      </div>
+    </div>
+  </section>
+</div>
+<canvas id="fx" hidden style="position:fixed;inset:0;pointer-events:none;z-index:60;"></canvas>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script type="module" src="js/teacher.js"></script>
+</body>
+</html>
