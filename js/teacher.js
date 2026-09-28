@@ -402,6 +402,8 @@ function viewCollector() {
     '<p class="lede" style="font-size:12.5px;margin-bottom:10px;">Each day since that date: 120+ XP = 1 egg, plus 1 more for every extra 120 that day (under 120 = no egg). All XP also stays in each student\u2019s bank for levels. Arena schedule: ' + esc(ARENA_HOURS) + ".</p>";
   const rows = students.filter(x => x.companionId);
   if (!rows.length) return h + '<p class="lede">No students yet.</p></div>';
+  h += '<div class="row" style="margin-bottom:10px;align-items:center;"><button class="btn" data-act="eggAll">' + (busy.eggAll ? "Yes \u2014 give all " + rows.length + " students a free egg" : "\u{1F95A} Free egg for everyone") + "</button>" +
+    (busy.eggAll ? '<button class="btn ghost small" data-act="eggAllCancel">Cancel</button>' : '<span class="muted small">Free eggs use the normal odds (Common 70% \u00b7 Uncommon 20% \u00b7 Rare 8% \u00b7 Super Rare 2%).</span>') + "</div>";
   h += '<div class="scroll-x"><table class="tbl"><thead><tr><th>Student</th><th>Creatures</th><th>Lorebook</th><th>Eggs ready</th><th>XP bank</th><th>Legendary</th><th></th></tr></thead><tbody>';
   rows.forEach(x => {
     const fams = ownedFams(x), top = fams.map(f => formOf(f, (x.coll[f] || {}).lvl || 1)).sort((a, b) => ((x.coll[b.fam] || {}).lvl || 1) - ((x.coll[a.fam] || {}).lvl || 1))[0];
@@ -409,7 +411,8 @@ function viewCollector() {
       (Object.values(x.coll || {}).some(e => e.sparkle) ? ' <span title="Sparkle creatures">\u2728\u00d7' + Object.values(x.coll || {}).filter(e => e.sparkle).length + "</span>" : "") +
       "</td><td>" + seenSet(x).size + " / " + CREATURES.length + "</td><td>" + pullsLeft(x, cls) + "</td><td>" + bankXP(x, cls).toLocaleString() + "</td><td>" + legendaryLeft(x) + ' waiting</td><td><div class="row" style="gap:6px;flex-wrap:nowrap;">' +
       '<button class="btn small" data-legend="' + x.id + '" style="background:#E9A91C;color:#3a2500;">\u{1F31F} Send legendary egg</button>' +
-      '<button class="btn ghost small" data-bonuspull="' + x.id + '">+1 egg</button></div></td></tr>';
+      '<button class="btn small" data-bonuspull="' + x.id + '">\u{1F95A} Send free egg</button>' +
+      ((Number(x.bonusPulls) || 0) > 0 && pullsLeft(x, cls) > 0 ? '<button class="btn ghost small" data-unbonus="' + x.id + '" title="Take back a free egg that hasn\u2019t been hatched">\u21A9 Take one back</button>' : "") + "</div></td></tr>";
   });
   return h + "</tbody></table></div></div>";
 }
@@ -745,7 +748,12 @@ document.addEventListener("click", async ev => {
   }
   if ((el = ev.target.closest("[data-bonuspull]"))) {
     const x = sOf(el.dataset.bonuspull); await patch(x.id, { bonusPulls: (Number(x.bonusPulls) || 0) + 1 });
-    flash("Saved \u2014 gave " + x.name + " a bonus egg."); return;
+    flash("Saved \u2014 sent " + x.name + " a free egg!"); return;
+  }
+  if ((el = ev.target.closest("[data-unbonus]"))) {
+    const x = sOf(el.dataset.unbonus); if (!((Number(x.bonusPulls) || 0) > 0 && pullsLeft(x, cls) > 0)) return;
+    await patch(x.id, { bonusPulls: (Number(x.bonusPulls) || 0) - 1 });
+    flash("Saved \u2014 took back one free egg from " + x.name + "."); return;
   }
   if ((el = ev.target.closest("[data-rewarded]"))) {
     const [i, sid] = el.dataset.rewarded.split(":");
@@ -831,6 +839,15 @@ document.addEventListener("click", async ev => {
         goal: Math.max(10, Math.min(2000, Math.floor(Number(document.getElementById("gGoal").value) || 120))) });
       flash("Saved.");
     } catch (e) { flash("Couldn’t save — " + e.code); }
+    return;
+  }
+  if (act === "eggAllCancel") { busy.eggAll = false; render(); return; }
+  if (act === "eggAll") {
+    if (!busy.eggAll) { busy.eggAll = true; render(); return; }
+    busy.eggAll = false;
+    const batch = writeBatch(db), list = students.filter(x => x.companionId);
+    list.forEach(x => batch.update(studentRef(x.id), { bonusPulls: (Number(x.bonusPulls) || 0) + 1 }));
+    try { await batch.commit(); flash("Saved \u2014 sent a free egg to all " + list.length + " students!"); } catch (e) { flash("Couldn\u2019t send the eggs \u2014 " + e.code); }
     return;
   }
   if (act === "saveDuck") { try { await updateDoc(classRef, { duckStart: document.getElementById("duckStart").value || null }); flash("Saved the Duckarune event dates."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
