@@ -128,7 +128,9 @@ service cloud.firestore {
 
         // ---- Creature Collector ---- hatching, levelling and the arena "ready" switch.
         function studentCollect() {
-          return changed().hasOnly(["coll", "starter", "pullsUsed", "legendaryUsed", "xpSpent", "arenaReady", "dex", "spares"])
+          return changed().hasOnly(["coll", "starter", "pullsUsed", "legendaryUsed", "birthdayUsed", "xpSpent", "arenaReady", "dex", "spares"])
+            && now("birthdayUsed", 0) >= was("birthdayUsed", 0) && now("birthdayUsed", 0) <= was("birthdayUsed", 0) + 1
+            && now("birthdayUsed", 0) <= was("birthdayEggs", 0)
             && now("pullsUsed", 0) >= was("pullsUsed", 0) && now("pullsUsed", 0) <= was("pullsUsed", 0) + 1
             && now("legendaryUsed", 0) >= was("legendaryUsed", 0) && now("legendaryUsed", 0) <= was("legendaryUsed", 0) + 1
             && now("legendaryUsed", 0) <= was("legendaryPulls", 0)
@@ -137,7 +139,7 @@ service cloud.firestore {
 
         // ---- Badges: earned badges are only ever added (never removed); pin one earned badge ----
         function studentBadges() {
-          return changed().hasOnly(["badges", "badgesSeen", "pinnedBadge"])
+          return changed().hasOnly(["badges", "badgesSeen", "pinnedBadge", "bdaySeen"])
             && now("badges", {}) is map && now("badges", {}).keys().hasAll(was("badges", {}).keys())
             && now("badgesSeen", {}) is map
             && (now("pinnedBadge", null) == null || now("badges", {}).keys().hasAny([now("pinnedBadge", "")]));

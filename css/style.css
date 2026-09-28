@@ -717,3 +717,17 @@
 .trbtns{ margin-left:auto; display:flex; gap:6px; align-items:center; }
 .trmake{ margin-top:10px; padding-top:10px; border-top:1px solid var(--line-2); }
 .trmake select{ min-width:180px; }
+
+.btn.bday{ background:linear-gradient(90deg,#FF7AC6,#FFB84D,#7AD7FF); color:#3a1740; border:0; }
+.eventmsg.ev-bday{ color:#D8438F; }
+
+/* birthday pop-up */
+.bdayover{ position:fixed; inset:0; z-index:70; display:grid; place-items:center; padding:16px; background:rgba(30,10,45,.72); overflow:hidden; animation:bpFade .3s ease-out; }
+.bdaybox{ position:relative; z-index:2; background:linear-gradient(160deg,#FFF4FB,#FFF9E8); border-radius:24px; padding:22px 22px 18px; max-width:460px; width:100%; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,.4); border:3px solid #FFB84D; }
+.bdaybox h2{ font-family:var(--display); font-size:30px; margin:4px 0 6px; background:linear-gradient(90deg,#E0457B,#FF9F1C,#3AA0E8,#8E5BE0); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.bdaycake{ font-size:56px; line-height:1; animation:bpPop .7s cubic-bezier(.2,1.6,.4,1); }
+.bdaywish{ width:190px; height:190px; object-fit:contain; filter:brightness(0) drop-shadow(0 0 14px rgba(255,184,77,.9)); animation:duckBob 3s ease-in-out infinite; }
+.confetti{ position:absolute; inset:0; pointer-events:none; }
+.confetti i{ position:absolute; top:-5%; width:10px; height:14px; opacity:.95; animation:confFall linear infinite; }
+@keyframes confFall{ 0%{ transform:translateY(-10vh) rotate(0deg); } 100%{ transform:translateY(110vh) rotate(720deg); } }
+@media (prefers-reduced-motion: reduce){ .confetti i{ animation:none; display:none; } }

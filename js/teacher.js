@@ -6,7 +6,7 @@ import {
   simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES
 } from "./game.js";
-import { teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js";
+import { birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db
@@ -436,9 +436,10 @@ function viewCollector() {
     const fams = ownedFams(x), top = fams.map(f => formOf(f, (x.coll[f] || {}).lvl || 1)).sort((a, b) => ((x.coll[b.fam] || {}).lvl || 1) - ((x.coll[a.fam] || {}).lvl || 1))[0];
     h += "<tr><td><b>" + esc(x.name) + "</b></td><td>" + fams.length + (top ? ' <span class="muted">best: ' + esc(top.name) + " Lv " + ((x.coll[top.fam] || {}).lvl || 1) + "</span>" : fams.length ? "" : ' <span class="muted">no starter yet</span>') +
       (Object.values(x.coll || {}).some(e => e.sparkle) ? ' <span title="Sparkle creatures">\u2728\u00d7' + Object.values(x.coll || {}).filter(e => e.sparkle).length + "</span>" : "") +
-      "</td><td>" + seenSet(x).size + " / " + CREATURES.length + "</td><td>" + pullsLeft(x, cls) + "</td><td>" + bankXP(x, cls).toLocaleString() + "</td><td>" + legendaryLeft(x) + ' waiting</td><td><div class="row" style="gap:6px;flex-wrap:nowrap;">' +
+      "</td><td>" + seenSet(x).size + " / " + CREATURES.length + "</td><td>" + pullsLeft(x, cls) + "</td><td>" + bankXP(x, cls).toLocaleString() + "</td><td>" + legendaryLeft(x) + " waiting" + (birthdayLeft(x) ? ' <span title="Birthday egg waiting">\u{1F382}</span>' : "") + '</td><td><div class="row" style="gap:6px;flex-wrap:nowrap;">' +
       '<button class="btn small" data-legend="' + x.id + '" style="background:#E9A91C;color:#3a2500;">\u{1F31F} Send legendary egg</button>' +
       '<button class="btn small" data-bonuspull="' + x.id + '">\u{1F95A} Send free egg</button>' +
+      '<button class="btn small bday" data-bday="' + x.id + '" title="Sends a birthday egg that always hatches Wisholotl">\u{1F382} Birthday egg</button>' +
       ((Number(x.bonusPulls) || 0) > 0 && pullsLeft(x, cls) > 0 ? '<button class="btn ghost small" data-unbonus="' + x.id + '" title="Take back a free egg that hasn\u2019t been hatched">\u21A9 Take one back</button>' : "") + "</div></td></tr>";
   });
   return h + "</tbody></table></div></div>";
@@ -841,6 +842,14 @@ document.addEventListener("click", async ev => {
   if ((el = ev.target.closest("[data-bonuspull]"))) {
     const x = sOf(el.dataset.bonuspull); await patch(x.id, { bonusPulls: (Number(x.bonusPulls) || 0) + 1 });
     flash("Saved \u2014 sent " + x.name + " a free egg!"); return;
+  }
+  if ((el = ev.target.closest("[data-bday]"))) {
+    const x = sOf(el.dataset.bday); if (!x) return;
+    const batch = writeBatch(db);
+    batch.update(studentRef(x.id), { birthdayEggs: (Number(x.birthdayEggs) || 0) + 1 });
+    if (!cls.wishInPool) batch.update(classRef, { wishInPool: true });   // from now on Wisholotl can come from legendary eggs too
+    try { await batch.commit(); flash("Saved \u2014 sent " + x.name + " a birthday egg! \u{1F382}"); } catch (e) { flash("Couldn\u2019t send it \u2014 " + e.code); }
+    return;
   }
   if ((el = ev.target.closest("[data-unbonus]"))) {
     const x = sOf(el.dataset.unbonus); if (!((Number(x.bonusPulls) || 0) > 0 && pullsLeft(x, cls) > 0)) return;

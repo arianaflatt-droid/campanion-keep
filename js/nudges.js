@@ -1,7 +1,7 @@
 // Nudge messages: short, friendly "you're close!" notes at the top of a student's page.
 // Each rule returns a nudge or null; the most useful few are shown (lower pri = shown first).
 import { dayXP, simulate, GEAR, goalXP, arr5, esc, isHaunt, battleOn, nextAttack, companionOf, bossState } from "./game.js";
-import { EVENTS, eventOpen, eventUnlocked, hasEvent, eventStreak, creature, family, azNow, pullsLeft, legendaryLeft, bankXP, LEVEL_XP, PULL_XP, hasStarter, owned, MAX_LEVEL } from "./collect.js";
+import { birthdayLeft, EVENTS, eventOpen, eventUnlocked, hasEvent, eventStreak, creature, family, azNow, pullsLeft, legendaryLeft, bankXP, LEVEL_XP, PULL_XP, hasStarter, owned, MAX_LEVEL } from "./collect.js";
 import { badgeState } from "./badges.js";
 
 const MAX_SHOWN = 3;
@@ -41,6 +41,7 @@ export function nudges(st, cls, battles, students) {
 
   // ---- Creature Collector ----
   if (hasStarter(st)) {
+    if (birthdayLeft(st)) add(0, "\u{1F382}", "<b>Happy birthday!</b> Ms. Ariana sent you a birthday egg. Go hatch it!", "collect");
     const eggs = pullsLeft(st, cls) + legendaryLeft(st);
     if (eggs) add(2, "\u{1F95A}", "You have <b>" + plural(eggs, "egg") + "</b> waiting to hatch!", "collect");
     const bank = bankXP(st, cls), canLevel = Object.values(owned(st)).some(e => (e.lvl || 1) < MAX_LEVEL);

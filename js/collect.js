@@ -59,6 +59,9 @@ export function todayXP(st, cls) {
   const d = dayXPs(st, cls).find(x => x.date === iso); return d ? d.xp : 0;
 }
 export function pullsLeft(st, cls) { return Math.max(0, pullsEarned(st, cls) - (Number(st.pullsUsed) || 0)); }
+// Birthday eggs: the teacher sends one on a student's birthday; it always hatches Wisholotl.
+export const WISH_FAM = "L-28";
+export function birthdayLeft(st) { return Math.max(0, (Number(st.birthdayEggs) || 0) - (Number(st.birthdayUsed) || 0)); }
 export function legendaryLeft(st) { return Math.max(0, (Number(st.legendaryPulls) || 0) - (Number(st.legendaryUsed) || 0)); }
 export function bankXP(st, cls) { return Math.max(0, xpTotal(st, cls) + (Number(st.bonusXP) || 0) - (Number(st.xpSpent) || 0)); }
 export function xpToNextPull(st, cls) { const x = todayXP(st, cls); return PULL_XP - (x % PULL_XP); }
@@ -182,10 +185,14 @@ export function rollRarity() {
   return "Common";
 }
 // Returns the new coll map and what happened: { fam, id, rarity, dupe, lvl }
-export function doPull(st, rarity, cls) {
-  const pool = FAMILIES.filter(f => f.rarity === rarity && !f.event);   // event creatures never come from normal eggs
-  const ev = rollEvent(st, cls), event = ev ? ev.key : null;
-  const fam = ev ? ev.fam : pick(pool).id;
+// opts.force = a family id (birthday egg). opts.legendaryEgg = an egg the teacher sent: once any birthday egg has been sent,
+// Wisholotl is also in the pool for teacher-sent legendary eggs.
+export function doPull(st, rarity, cls, opts) {
+  opts = opts || {};
+  const pool = FAMILIES.filter(f => f.rarity === rarity && (!f.event || (opts.legendaryEgg && f.id === WISH_FAM && cls && cls.wishInPool)));   // event creatures never come from normal eggs
+  const ev = opts.force ? null : rollEvent(st, cls);
+  const event = opts.force ? (family(opts.force) || {}).event || null : ev ? ev.key : null;
+  const fam = opts.force || (ev ? ev.fam : pick(pool).id);
   const coll = Object.assign({}, owned(st));
   const had = coll[fam], sparkle = Math.random() < SPARKLE_CHANCE;
   if (had) coll[fam] = Object.assign({}, had, { lvl: Math.min(MAX_LEVEL, (had.lvl || 1) + 1) });

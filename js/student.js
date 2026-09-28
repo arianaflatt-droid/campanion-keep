@@ -55,6 +55,31 @@ function lockBadges(s) {
   badgeWriting = true;
   updateDoc(studentRef(s.id), data).catch(() => {}).finally(() => { badgeWriting = false; });
 }
+// 🎂 Birthday pop-up: shows once each time the teacher sends a birthday egg (bdaySeen counts the ones already shown).
+let bdayChimed = false;
+function birthdayParty(s) {
+  if (!((Number(s.birthdayEggs) || 0) > (Number(s.bdaySeen) || 0))) return "";
+  const cols = ["#FF7AC6", "#FFB84D", "#7AD7FF", "#B28CFF", "#7BE0A0", "#FFE066"];
+  let conf = "";
+  for (let i = 0; i < 70; i++) conf += '<i style="left:' + ((i * 37) % 100) + "%;background:" + cols[i % cols.length] + ";animation-delay:" + ((i * 0.13) % 3).toFixed(2) + "s;animation-duration:" + (2.6 + (i % 5) * 0.4).toFixed(1) + "s;" + (i % 3 ? "" : "border-radius:50%;") + '"></i>';
+  return '<div class="bdayover" role="dialog" aria-label="Happy birthday"><div class="confetti" aria-hidden="true">' + conf + "</div>" +
+    '<div class="bdaybox"><div class="bdaycake">\u{1F382}</div><h2>Happy Birthday, ' + esc(s.name) + "!</h2>" +
+    '<img src="assets/creatures/l28-1.webp" alt="" class="bdaywish">' +
+    "<p>Ms. Ariana sent you a <b>birthday egg</b>! Something magical is waiting inside\u2026 \u2728</p>" +
+    '<div class="row" style="justify-content:center;gap:10px;margin-top:12px;"><button class="btn big bday" data-bdayok="hatch">\u{1F95A} Open my birthday egg!</button>' +
+    '<button class="btn ghost" data-bdayok="later">Later</button></div></div></div>';
+}
+function birthdayTune() {
+  try { if (localStorage.getItem("ck-mute") === "1") return; } catch (e) {}
+  try {   // "Happy Birthday" first line
+    const ac = new (window.AudioContext || window.webkitAudioContext)(), t = ac.currentTime;
+    [[392, .3], [392, .15], [440, .45], [392, .45], [523, .45], [494, .9]].reduce((at, [f, d]) => {
+      const o = ac.createOscillator(), g = ac.createGain(); o.type = "triangle"; o.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, t + at); g.gain.exponentialRampToValueAtTime(0.16, t + at + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + at + d);
+      o.connect(g).connect(ac.destination); o.start(t + at); o.stop(t + at + d + 0.05); return at + d;
+    }, 0);
+  } catch (e) {}
+}
 function badgeChime() {
   try { if (localStorage.getItem("ck-mute") === "1") return; } catch (e) {}
   try {
@@ -88,8 +113,10 @@ function render(force) {
   }
   const cur = students.find(x => x.id === me);
   if (cur && cur.companionId && cls) lockBadges(cur);
-  const party = !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !collectorBusy() ? badgeParty(cur) : "";
-  app.innerHTML = h + prizeOverlay() + (cur && cur.companionId && cls ? collectorOverlays(collectorCtx(cur)) : "") + party;
+  const bday = !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !collectorBusy() ? birthdayParty(cur) : "";
+  const party = !bday && !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !collectorBusy() ? badgeParty(cur) : "";
+  app.innerHTML = h + prizeOverlay() + (cur && cur.companionId && cls ? collectorOverlays(collectorCtx(cur)) : "") + party + bday;
+  if (bday && !bdayChimed) { bdayChimed = true; birthdayTune(); }
   if (party) { const key = unseenBadges(cur).join(","); if (key !== partyKey) { partyKey = key; badgeChime(); } }
   if (keep) { const n = document.getElementById(keep.id); if (n) { if (keep.id === "nickIn") n.value = keep.v; n.focus(); try { n.setSelectionRange(keep.pos, keep.pos); } catch (e) {} } }
 }
@@ -284,6 +311,15 @@ document.addEventListener("change", ev => {
 document.addEventListener("input", ev => { if (ev.target.id === "petName") draftName = ev.target.value; });
 document.addEventListener("click", async ev => {
   let el;
+  if ((el = ev.target.closest("[data-bdayok]"))) {
+    const s = students.find(x => x.id === me); if (!s) return;
+    const seen = Number(s.birthdayEggs) || 0; s.bdaySeen = seen; bdayChimed = false;
+    if (el.dataset.bdayok === "hatch") { tab = "collect"; try { localStorage.setItem("ck-tab", tab); } catch (e) {} }
+    render(true);
+    try { await updateDoc(studentRef(me), { bdaySeen: seen }); } catch (e) {}
+    if (el.dataset.bdayok === "hatch") { const b = document.querySelector('[data-cc="hatchBday"]'); if (b) b.click(); }
+    return;
+  }
   if ((el = ev.target.closest("[data-bparty]"))) {
     const s = students.find(x => x.id === me); if (!s) return;
     const v = el.dataset.bparty, data = {};

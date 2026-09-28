@@ -121,6 +121,12 @@ On weekdays from 12–1 pm (Arizona time), the Battle Arena opens only for stude
 - Once caught, each egg keeps a **1%** chance to be another one (a free level), even after Haunt-O-Ween ends.
 - Art: `assets/creatures/l27-1.webp`, Sparkle: `assets/creatures/sparkle/l27-1.webp`. Like Duckarune, it doesn't count toward the Lorebook badges.
 
+### 🎂 Birthday Legendary: Wisholotl
+- On a student's birthday, click **🎂 Birthday egg** next to their name on the **🥚 Collector** tab.
+- The student gets a **Happy Birthday** pop-up with confetti and a tune. Their birthday egg always hatches **Wisholotl** (Light / Arcane, "The Birthday Wish Axolotl"). The Sparkle is a golden version.
+- Once you've sent at least one birthday egg, Wisholotl also joins the pool for any **legendary egg** you send later. Normal eggs never hatch it.
+- It can't be traded, and it doesn't count toward the Lorebook badges, but it does count toward the Event Collector badges.
+
 ### 🏅 Badges
 - Students have a **🏅 Badges** tab with 61 badges. Unearned badges are empty "?" spaces with a hint and a progress bar. Badges and their rules live in `js/badges.js`, and the art is in `assets/badges/`.
 - **Earned badges are locked in forever.** They're saved on the student (`badges`) the moment the student page or your console notices them, and the security rules only let badges be added, never removed.
