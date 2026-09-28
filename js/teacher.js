@@ -274,11 +274,12 @@ function viewDaily() {
   h += '<div class="row" style="margin-bottom:10px;align-items:center;">' +
     '<label class="btn" style="background:var(--warn);color:#fff;" for="upLunch">☀️ Upload lunch spreadsheet</label><input id="upLunch" type="file" accept=".csv,.xlsx,.xls" hidden>' +
     '<label class="btn" for="upDay">Upload end-of-day spreadsheet</label><input id="upDay" type="file" accept=".csv,.xlsx,.xls" hidden>' +
+    '<button class="btn ghost" data-act="pasteOpen">\u{1F4CB} Paste data</button>' +
     '<button class="btn ghost" data-act="toggleRecorded">' + (rec[day] ? "✓ " + DAYS[day] + " is counting" : "Count " + DAYS[day] + " toward health") + "</button>" +
     '<button class="btn ghost" data-act="clearDay">Clear ' + SHORT[day] + "</button>" +
     (arr5(cls.finalized, false)[day]
       ? '<button class="btn ghost" data-act="unfinalize">\u{1F512} ' + SHORT[day] + " finalized \u00b7 undo</button>"
-      : '<button class="btn" data-act="finalize" style="background:var(--good);">\u2705 Finalize ' + DAYS[day] + "</button>") + "</div>" + finalizeBox() +
+      : '<button class="btn" data-act="finalize" style="background:var(--good);">\u2705 Finalize ' + DAYS[day] + "</button>") + "</div>" + pasteBox() + finalizeBox() +
     '<p class="lede" style="font-size:13px;margin-bottom:12px;">CSV or XLSX with <b>name</b> and <b>completed</b> columns. The <b>lunch</b> file marks who already hit ' + goal +
     ' (their sidekick joins them today). The <b>end-of-day</b> file decides health and turns the day on.</p>';
 
@@ -635,6 +636,38 @@ async function addRosterFromFile(file) {
   flash(added ? "Added " + added + " name" + (added === 1 ? "" : "s") + " to the roster box. Check them, then click Save roster." : "Everyone in that file is already on your roster.", true);
 }
 
+/* ---------- copy & paste ----------
+   Paste straight from the XP page. For each student, the name is the line just before a "291 / 120" number,
+   and only the number before the slash is used. Header text stuck to the first name ("Social StudiesJenesis") is removed. */
+const PASTE_HEADERS = ["Social Studies", "Science", "Vocabulary", "Language", "Writing", "Reading", "FastMath", "Math", "Total", "Student"];
+export function parsePasted(text) {
+  const lines = String(text || "").replace(/\r/g, "").split("\n").map(x => x.replace(/\u00a0/g, " ").trim());
+  const out = [];
+  lines.forEach((ln, i) => {
+    const m = ln.match(/^(\d[\d,]*)\s*\/\s*\d/);          // "291 / 120101" -> 291
+    if (!m) return;
+    let j = i - 1; while (j >= 0 && !/[A-Za-z]/.test(lines[j])) j--;   // the nearest line above with letters
+    if (j < 0) return;
+    let name = lines[j];
+    PASTE_HEADERS.forEach(hd => { const k = name.lastIndexOf(hd); if (k >= 0 && /^[A-Z]/.test(name.slice(k + hd.length))) name = name.slice(k + hd.length); });
+    name = name.replace(/\s+/g, " ").trim();
+    if (name && !/^\d/.test(name)) out.push({ name, completed: Number(m[1].replace(/,/g, "")) });
+  });
+  return out;
+}
+function pasteBox() {
+  if (!busy.paste) return "";
+  const rows = parsePasted(busy.pasteText || ""), matched = rows.filter(r => matchStudent(r.name));
+  return '<div class="pastebox"><div class="row" style="justify-content:space-between;align-items:center;"><b>\u{1F4CB} Paste ' + DAYS[day] + '\u2019s XP</b><button class="btn ghost small" data-act="pasteClose">Close</button></div>' +
+    '<p class="muted small" style="margin:4px 0 8px;">Select the whole table on the XP page, copy it, and paste it here. Only the first number before the slash (like <b>291</b> in \u201c291 / 120\u201d) is used for each student.</p>' +
+    '<textarea id="pasteBox" rows="8" placeholder="Paste here\u2026">' + esc(busy.pasteText || "") + "</textarea>" +
+    (rows.length ? '<div class="pasteprev"><span class="muted small">Found ' + rows.length + " student" + (rows.length === 1 ? "" : "s") + " \u00b7 " + matched.length + " on your roster:</span> " +
+      rows.map(r => '<span class="chip' + (matchStudent(r.name) ? "" : " off") + '">' + esc(r.name) + " <b>" + r.completed + "</b></span>").join("") + "</div>"
+      : busy.pasteText ? '<p class="small" style="color:var(--bad);margin-top:6px;">Couldn\u2019t find any \u201cnumber / 120\u201d totals in that text.</p>' : "") +
+    '<div class="row" style="margin-top:10px;"><button class="btn" style="background:var(--warn);color:#fff;" data-act="pasteLunch"' + (rows.length ? "" : " disabled") + ">\u2600\uFE0F Use as lunch data</button>" +
+    '<button class="btn" data-act="pasteDay"' + (rows.length ? "" : " disabled") + ">Use as end-of-day data</button></div></div>";
+}
+
 async function applyUpload(up) {
   const goal = goalXP(cls), d = up.day;
   const best = {}; let unmatched = [];
@@ -683,7 +716,10 @@ async function applyUpload(up) {
   render();
 }
 
-document.addEventListener("input", ev => { if (ev.target.id === "rosterBox") busy.rosterDraft = ev.target.value; });
+document.addEventListener("input", ev => {
+  if (ev.target.id === "rosterBox") busy.rosterDraft = ev.target.value;
+  if (ev.target.id === "pasteBox") { busy.pasteText = ev.target.value; clearTimeout(busy.pasteT); busy.pasteT = setTimeout(render, 250); }
+});
 document.addEventListener("change", async ev => {
   const id = ev.target.id;
   if (id === "hauntBox") { await toggleHaunt(); return; }
@@ -840,6 +876,14 @@ document.addEventListener("click", async ev => {
       flash("Saved.");
     } catch (e) { flash("Couldn’t save — " + e.code); }
     return;
+  }
+  if (act === "pasteOpen") { busy.paste = true; render(); const b = document.getElementById("pasteBox"); if (b) b.focus(); return; }
+  if (act === "pasteClose") { busy.paste = false; render(); return; }
+  if (act === "pasteLunch" || act === "pasteDay") {
+    const rows = parsePasted(busy.pasteText || ""); if (!rows.length) return;
+    const up = { kind: act === "pasteLunch" ? "lunch" : "day", day, file: "pasted data", rows, nameKey: "name", xpKey: "completed", guideKey: null };
+    busy.lastUpload = up; busy.paste = false; busy.pasteText = "";
+    await applyUpload(up); return;
   }
   if (act === "eggAllCancel") { busy.eggAll = false; render(); return; }
   if (act === "eggAll") {
