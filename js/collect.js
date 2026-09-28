@@ -184,6 +184,19 @@ export function arenaOpen(cls, date) {
   return (mins >= 11 * 60 && mins < 12 * 60) || mins >= 14 * 60;
 }
 export const ARENA_HOURS = "Weekdays 11 am–12 pm and 2 pm–midnight · all day on weekends (Arizona time)";
+// Lunch arena: weekdays 12–1 pm, only for students who already hit 120 XP today (lunch or end-of-day upload).
+export const LUNCH_ARENA = "Weekdays 12–1 pm for anyone who has already hit 120 XP today";
+export function lunchHour(date) { const t = azNow(date); return !["Sat", "Sun"].includes(t.day) && t.h === 12; }
+export function hitGoalToday(st, cls, date) {
+  const goal = (cls && Number(cls.goal)) || 120, h = ((st && st.xpHist) || {})[azToday(date)] || {};
+  return Math.max(Number(h.l) || 0, Number(h.d) || 0) >= goal;
+}
+export function arenaOpenFor(st, cls, date) {
+  if (arenaOpen(cls, date)) return true;
+  if (cls && cls.arenaOverride === "closed") return false;
+  if (cls && cls.lunchArena === false) return false;
+  return lunchHour(date) && hitGoalToday(st, cls, date);
+}
 
 /* ---------- battles ----------
    A battle doc: { a:{id,name}, b:{id,name}, status: invite|team|lead|done|declined, n, turn:"A"|"B",

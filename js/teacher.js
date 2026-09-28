@@ -399,7 +399,8 @@ function viewCollector() {
   let h = '<div class="card"><div class="card-head"><h2>\u{1F95A} Creature Collector</h2><span class="fact">arena <b>' + (open ? "OPEN" : "closed") + "</b></span></div>" +
     '<div class="row" style="margin-bottom:12px;"><div class="field"><label for="collStart">Counting XP since</label><input id="collStart" type="date" value="' + esc(cls.collectorStart || "") + '"></div>' +
     '<button class="btn ghost" data-act="saveCollStart">Save</button>' +
-    '<div class="field"><label for="arenaOv">Battle arena</label><select id="arenaOv">' + opt("auto", "On schedule") + opt("open", "Open now") + opt("closed", "Closed") + "</select></div></div>" +
+    '<div class="field"><label for="arenaOv">Battle arena</label><select id="arenaOv">' + opt("auto", "On schedule") + opt("open", "Open now") + opt("closed", "Closed") + "</select></div>" +
+    '<label class="modebox" style="margin:0;padding:8px 12px;"><input type="checkbox" id="lunchArenaBox"' + (cls.lunchArena === false ? "" : " checked") + '><span><b>\u2600\uFE0F Lunch arena</b><small>Weekdays 12\u20131 pm for students who already hit 120 XP today</small></span></label></div>' +
     '<p class="lede" style="font-size:12.5px;margin-bottom:10px;">Each day since that date: 120+ XP = 1 egg, plus 1 more for every extra 120 that day (under 120 = no egg). All XP also stays in each student\u2019s bank for levels. Arena schedule: ' + esc(ARENA_HOURS) + ".</p>";
   const rows = students.filter(x => x.companionId);
   if (!rows.length) return h + '<p class="lede">No students yet.</p></div>';
@@ -723,6 +724,7 @@ document.addEventListener("input", ev => {
 document.addEventListener("change", async ev => {
   const id = ev.target.id;
   if (id === "hauntBox") { await toggleHaunt(); return; }
+  if (id === "lunchArenaBox") { const on = ev.target.checked; try { await updateDoc(classRef, { lunchArena: on }); flash("Saved \u2014 lunch arena " + (on ? "on" : "off") + "."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
   if (id === "arenaOv") { const v = ev.target.value; try { await updateDoc(classRef, { arenaOverride: v === "auto" ? null : v }); flash("Saved \u2014 arena " + (v === "auto" ? "on its schedule" : v) + "."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
   if (id === "lossRange") { busy.lossRange = ev.target.value; render(); return; }
   if (id === "lossFrom") { busy.lossFrom = ev.target.value; render(); return; }

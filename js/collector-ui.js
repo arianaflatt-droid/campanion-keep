@@ -1,7 +1,7 @@
 // Student side of the Creature Collector: the tab, egg hatching, the lorebook and arena battles.
 import {
   CREATURES, FAMILIES, creature, family, xpTotal, pullsLeft, legendaryLeft, bankXP, xpToNextPull, owned, ownedFams, hasStarter,
-  formIndex, formOf, statsOf, seenSet, rollRarity, doPull, arenaOpen, ARENA_HOURS, fighterFrom, teamSize, alive, resolve,
+  formIndex, formOf, statsOf, seenSet, rollRarity, doPull, arenaOpen, arenaOpenFor, lunchHour, hitGoalToday, LUNCH_ARENA, ARENA_HOURS, fighterFrom, teamSize, alive, resolve,
   STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
   EVENTS, eventOpen, eventWindow, eventStreak, hasEvent, eventUnlocked, azToday
 } from "./collect.js";
@@ -104,10 +104,9 @@ function busyIds() {
   return ids;
 }
 function arenaCard(s) {
-  const open = arenaOpen(ctx.cls);
+  const open = arenaOpenFor(s, ctx.cls), lunchOnly = open && !arenaOpen(ctx.cls);
   let h = '<div class="card arenacard" style="background-image:linear-gradient(rgba(20,12,40,.72),rgba(20,12,40,.82)),url(assets/arena-bg.jpg)">' +
     '<div class="card-head"><h2>⚔️ Battle Arena</h2><span class="fact ' + (open ? "open" : "") + '">' + (open ? "OPEN" : "closed") + "</span></div>";
-  if (!open) return h + '<p class="lede">The arena opens ' + esc(ARENA_HOURS) + ".</p></div>";
   const mine = myBattle(s);
   if (mine) {
     const me = mine.a.id === s.id ? "A" : "B", them = me === "A" ? mine.b : mine.a;
@@ -117,9 +116,14 @@ function arenaCard(s) {
       '<div class="row" style="margin-top:10px;"><button class="btn ghost" data-cc="decline" data-b="' + mine.id + '">Cancel challenge</button></div></div>';
     return h + '<p class="lede">You’re in a battle with <b>' + esc(them.name) + '</b>!</p><div class="row" style="margin-top:10px;"><button class="btn big" data-cc="enter" data-b="' + mine.id + '">⚔️ ' + (mine.status === "done" ? "See the result" : "Go to battle") + "</button></div></div>";
   }
+  // a battle already started can always be finished; new ones only while the arena is open
+  if (!open) return h + '<p class="lede">The arena opens ' + esc(ARENA_HOURS) + ".</p>" +
+    (ctx.cls && ctx.cls.lunchArena === false ? "" : '<p class="lede" style="margin-top:6px;">\u2600\uFE0F <b>Lunch arena:</b> ' + esc(LUNCH_ARENA) + "." +
+      (lunchHour() && !hitGoalToday(s, ctx.cls) ? " Hit 120 XP to join right now!" : "") + "</p>") + "</div>";
+  if (lunchOnly) h += '<p class="lede" style="margin-bottom:10px;">\u2600\uFE0F <b>Lunch arena</b> until 1 pm \u2014 you hit 120 XP today, so you can battle other players who did too!</p>';
   const ready = !!s.arenaReady, busy = busyIds();
   h += '<label class="modebox" style="margin-bottom:12px;"><input type="checkbox" data-cc="ready"' + (ready ? " checked" : "") + "><span><b>I’m ready to battle</b><small>Other ready players can challenge you, and you can challenge them.</small></span></label>";
-  const others = ctx.students.filter(x => x.id !== s.id && x.arenaReady && hasStarter(x));
+  const others = ctx.students.filter(x => x.id !== s.id && x.arenaReady && hasStarter(x) && arenaOpenFor(x, ctx.cls));   // during the lunch arena, only other 120 XP players
   if (!ready) return h + "</div>";
   if (!others.length) return h + '<p class="lede">Nobody else is ready yet. Hang tight!</p></div>';
   h += '<div class="readylist">' + others.map(o => {
