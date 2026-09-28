@@ -66,6 +66,9 @@ export function xpToNextPull(st, cls) { const x = todayXP(st, cls); return PULL_
 /* ---------- collection ----------
    coll = { "C-01": { lvl: 5, at: ISO } }  (one entry per family; the form comes from the level) */
 export function owned(st) { return st.coll || {}; }
+// Spares: duplicate creatures kept for trading instead of turning into a free level. [{ id, fam, lvl, sparkle, at }]
+export function spares(st) { return (st && st.spares) || []; }
+export const spareId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 export function ownedFams(st) { return Object.keys(owned(st)); }
 export function hasStarter(st) { return ownedFams(st).length > 0; }
 export function formIndex(fam, lvl) {
@@ -156,7 +159,7 @@ export function teacherPlayer(cls, name) {
   const t = (cls && cls.teacher) || {};
   return { id: TEACHER_ID, isTeacher: true, name: name || t.name || "Ms. Ariana", companionId: "teacher", coll: t.coll || {},
     pullsUsed: Number(t.pullsUsed) || 0, xpSpent: Number(t.xpSpent) || 0, bonusPulls: Number(t.eggsEarned) || 0, bonusXP: Number(t.xpEarned) || 0,
-    legendaryPulls: 0, legendaryUsed: 0, arenaReady: !!t.arenaReady, xpHist: {} };
+    legendaryPulls: 0, legendaryUsed: 0, arenaReady: !!t.arenaReady, xpHist: {}, spares: t.spares || [], dex: t.dex || [] };
 }
 export function rollTeacherRarity() {
   let r = Math.random();
@@ -191,7 +194,7 @@ export function doPull(st, rarity, cls) {
   const newSparkle = sparkle && !(had && had.sparkle);
   if (sparkle) coll[fam].sparkle = true;
   const lvl = coll[fam].lvl;
-  return { coll, fam, rarity: event ? "Legendary" : rarity, event, dupe: !!had, lvl, sparkle, newSparkle, id: formOf(fam, lvl).id, evolved: had && formIndex(fam, had.lvl || 1) !== formIndex(fam, lvl) };
+  return { coll, fam, prev: had ? Object.assign({}, had) : null, rarity: event ? "Legendary" : rarity, event, dupe: !!had, lvl, sparkle, newSparkle, id: formOf(fam, lvl).id, evolved: had && formIndex(fam, had.lvl || 1) !== formIndex(fam, lvl) };
 }
 
 /* ---------- arena schedule (Arizona time: no daylight saving) ---------- */

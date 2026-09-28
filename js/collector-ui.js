@@ -2,7 +2,7 @@
 import {
   CREATURES, FAMILIES, creature, family, xpTotal, pullsLeft, legendaryLeft, bankXP, xpToNextPull, owned, ownedFams, hasStarter,
   formIndex, formOf, statsOf, seenSet, rollRarity, doPull, arenaOpen, arenaOpenFor, lunchHour, hitGoalToday, LUNCH_ARENA, ARENA_HOURS, fighterFrom, teamSize, alive, resolve,
-  STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
+  spares, spareId, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
   EVENTS, eventOpen, eventWindow, eventStreak, hasEvent, eventUnlocked, azToday, rollTeacherRarity, TEACHER_ODDS
 } from "./collect.js";
 import { newBattleRef, changeBattle, setDoc } from "./db.js";
@@ -102,7 +102,19 @@ function myCreatures(s, bank) {
       (next && evoAt ? '<small class="evo">Evolves at Lv ' + evoAt + "</small>" : "") +
       '<button class="btn small" data-cc="lvl" data-fam="' + f + '"' + (bank >= LEVEL_XP && !maxed ? "" : " disabled") + ">" + (maxed ? "Max level" : "⬆ Level up · " + LEVEL_XP + " XP") + "</button></div>";
   });
-  return h + "</div></div>";
+  h += "</div>";
+  const sp = spares(s);
+  if (sp.length) {
+    h += '<h3 class="bdg-group" style="margin-top:16px;">\u{1F504} Spares for trading <span class="muted small">(' + sp.length + ")</span></h3><div class=\"mygrid spares\">";
+    sp.forEach(x => {
+      const c = formOf(x.fam, x.lvl || 1), mine = owned(s)[x.fam];
+      h += '<div class="mycard spare" style="--rc:' + RARITY_COLOR[c.rarity] + '"><div class="mypic">' + img(c, "", !!x.sparkle) + "</div>" +
+        "<b>" + (x.sparkle ? "\u2728 " : "") + esc(c.name) + '</b><span class="lv">Lv ' + (x.lvl || 1) + " \u00b7 spare</span>" +
+        '<button class="btn small ghost" data-cc="useSpare" data-sp="' + x.id + '">' + (mine ? "\u2B06 Use for +1 level" : "Add to my collection") + "</button></div>";
+    });
+    h += "</div>";
+  }
+  return h + "</div>";
 }
 
 /* ================= arena ================= */
@@ -167,7 +179,10 @@ function hatchOverlay() {
       '<div class="revtxt">' + rarityPill(c.rarity) + (r.sparkle ? ' <span class="rpill" style="background:linear-gradient(90deg,#ff7ad9,#ffd84d,#7ae7ff)">\u2728 SPARKLE</span>' : "") + "<h2>" + (r.sparkle ? "\u2728 " : "") + esc(c.name) + "</h2>" +
       (r.event ? '<p class="eventmsg ev-' + r.event + '">' + (r.event === "hex" ? "\u{1F383}" : "\u{1F986}") + " LIMITED EVENT LEGENDARY! " + (r.dupe ? "Another " + esc(c.name) + "!" : "You caught <b>" + esc(c.name) + ", " + esc(c.title || "") + "</b>! It\u2019s yours forever.") + "</p>" : "") +
       (r.newSparkle ? '<p class="sparkmsg">WOW! A 1-in-2,000 Sparkle! Your ' + esc(c.name) + " family is now Sparkle forever.</p>" : "") +
-      (r.dupe ? '<p>You already had this family — <b>free level up! Now Lv ' + r.lvl + "</b>" + (r.evolved ? " and it <b>evolved!</b>" : "") + "</p>" : "<p><b>NEW!</b> Added to your lorebook.</p>") +
+      (r.dupe && r.kept ? "<p>\u{1F504} Kept as a <b>spare for trading</b>. Find it under My creatures.</p>"
+        : r.dupe ? '<p>You already had this family — <b>free level up! Now Lv ' + r.lvl + "</b>" + (r.evolved ? " and it <b>evolved!</b>" : "") + "</p>" +
+          (ctx.cls && ctx.cls.tradeOff ? "" : '<p><button class="btn small ghost" data-cc="keepSpare">\u{1F504} Keep it as a spare for trading instead</button></p>')
+        : "<p><b>NEW!</b> Added to your lorebook.</p>") +
       '<div class="row" style="justify-content:center;margin-top:10px;">' +
       (pullsLeft(ctx.me, ctx.cls) && !hatch.legendary ? '<button class="btn big" data-cc="hatch">\u{1F95A} Hatch another</button>' : "") +
       '<button class="btn ghost big" data-cc="hatchDone">Done</button></div></div>';
@@ -328,6 +343,20 @@ export async function onClick(el, c) {
     return;
   }
   if (a === "hatchDone") { hatch = null; return c.render(true); }
+  if (a === "keepSpare") {   // undo the free level and keep the duplicate as a spare instead
+    const r = hatch && hatch.res; if (!r || !r.dupe || r.kept || !r.prev) return;
+    const coll = Object.assign({}, owned(s)); coll[r.fam] = Object.assign({}, r.prev);
+    const list = spares(s).concat([{ id: spareId(), fam: r.fam, lvl: 1, at: new Date().toISOString(), ...(r.sparkle ? { sparkle: true } : {}) }]);
+    r.kept = true; r.id = formOf(r.fam, 1).id;
+    return c.patch({ coll, spares: list });
+  }
+  if (a === "useSpare") {   // turn a spare back into a free level (or make it the main one if you don't have that family)
+    const sp = spares(s).find(x => x.id === el.dataset.sp); if (!sp) return;
+    const coll = Object.assign({}, owned(s)), had = coll[sp.fam];
+    coll[sp.fam] = had ? Object.assign({}, had, { lvl: Math.min(MAX_LEVEL, (had.lvl || 1) + 1) }) : { lvl: sp.lvl || 1, at: new Date().toISOString(), ...(sp.sparkle ? { sparkle: true } : {}) };
+    c.flash(had ? "Used your spare: +1 level!" : "It\u2019s part of your collection now!", true);
+    return c.patch({ coll, spares: spares(s).filter(x => x.id !== sp.id) });
+  }
   if (a === "book") { book = { open: false, page: 0 }; return c.render(true); }
   if (a === "bookOpen") { book.opening = true; hold(900); c.render(true); later(850, () => { book.open = true; book.opening = false; book.flip = "turn-in"; busyUntil = 0; }); return; }
   if (a === "bookClose") { book = null; return c.render(true); }

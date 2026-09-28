@@ -700,3 +700,20 @@
 .pasteprev{ margin-top:8px; display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
 .pasteprev .chip{ background:var(--panel); border:1px solid var(--line); border-radius:999px; padding:3px 10px; font-size:13px; }
 .pasteprev .chip.off{ opacity:.5; text-decoration:line-through; }
+
+/* creature nicknames */
+.nickbtn{ border:0; background:none; color:var(--ink-3); font-size:12px; cursor:pointer; padding:2px 4px; }
+.nickbtn:hover{ color:var(--ink); text-decoration:underline; }
+.nickedit{ display:flex; flex-direction:column; gap:6px; width:100%; }
+.nickedit input{ width:100%; text-align:center; font-weight:700; }
+
+/* trading */
+.tradecard .trrow{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:10px; border-radius:12px; border:1.5px solid var(--line); margin-bottom:8px; background:var(--panel-2); }
+.tradecard .trrow.in{ border-color:#3FA46A; }
+.trside{ display:flex; align-items:center; gap:8px; min-width:0; }
+.trside small{ line-height:1.25; }
+.trimg{ width:56px; height:56px; object-fit:contain; border-radius:10px; background:#fff; border:2px solid var(--rc,#ccc); }
+.trarrow{ font-size:22px; color:var(--ink-3); }
+.trbtns{ margin-left:auto; display:flex; gap:6px; align-items:center; }
+.trmake{ margin-top:10px; padding-top:10px; border-top:1px solid var(--line-2); }
+.trmake select{ min-width:180px; }

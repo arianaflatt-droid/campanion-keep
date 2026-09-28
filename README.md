@@ -21,7 +21,7 @@ A classroom pet-survival game. Each student looks after a companion, and its hea
 - **Hit 120 XP** = full health (120). **Miss once** = half health (60). **Miss two days in a row** = the pet disappears.
 - **Hero Cape:** after a pet disappears, it unlocks when the student hits 120 again. You award it from the console, and it brings the pet back.
 - **Streak gear** (just for looks, stays unlocked all week, one worn at a time): 1 day 🧢 Ball Cap, 2 days 🕶️ Cool Shades, 3 days 🍪 Snack Pack, 4 days 🎩 Cozy Hat, 5 days 👑 Crown.
-- **Lunch sidekick:** a student who hits 120 by lunch gets their axolotl or duck next to their pet, for that day only.
+- **Lunch sidekick:** a student who hits 120 by lunch gets their axolotl or duck next to their pet, for that day only. Today's lunch data is only accepted before the **lunch cutoff** (12:30 pm by default, change it in ⚙️ Settings). After that, the console offers to use the data as end-of-day data instead. You can still tap the ☀️ next to a student to fix a Lunch Hero by hand.
 - **Excused days** are skipped. They don't help or hurt.
 
 ### 🎃 Haunt-O-Ween Mode
@@ -86,6 +86,28 @@ Nudges with a **Go →** button jump to the right tab. The rules live in `js/nud
 - **Add names from a spreadsheet** reads a name column, or first-name and last-name columns, from any CSV/XLSX. It skips names already on the roster, and in mixed-class files it keeps only your class's guide. Check the names, then click **Save roster**.
 - **Uploads are matched** to the roster by exact full name first, then by first + last name (middle names and capitals ignored), then by a "First L" initial, then by a first name that only one student has.
 - **Names on screen** show the first name only. When two students share a first name, the last initial is added ("Maya J." and "Maya L.").
+
+### 🧑‍🏫 The teacher's collection
+The **🥚 Collector** tab starts with your own collection. Pick a starter, hatch eggs, level up, name creatures and use the lorebook, just like students do.
+- **Eggs:** every day you **finalize** gives you 1 egg for each student who hit 120 XP.
+- **XP:** you get 120 banked XP (1 level) for each student who didn't hit 120. Excused days don't count, and **Undo** on a finalized day takes the reward back.
+- **Odds:** your eggs can hatch Legendaries, at a 0.05% chance: Common 69.95% · Uncommon 20% · Rare 8% · Super Rare 2% · Legendary 0.05%.
+- **Battling:** tick **I'm ready to battle** and students see you in their arena as **Ms. Ariana**. You can challenge them, or they can challenge you. The arena is always open for you unless it's set to Closed, while students still follow their normal hours. To battle, keep the Collector tab open.
+- Your collection is saved on the class, not as a student, so it never shows up on The Keep, in standings or in badges.
+
+### 🔄 Trading
+Students and the teacher can swap creatures from the **🔄 Trading** card at the bottom of the Creature Collector.
+- Pick a player, the creature you want from them, and the creature you'll give, then **Send offer**. The other player sees it and taps **Accept** or **No thanks**. You can cancel an offer that's still waiting.
+- Creatures keep their level and Sparkle, but nicknames don't carry over. The lorebook remembers creatures you traded away.
+- **Spares:** when an egg hatches a family you already have, it's a free level by default. Tap **🔄 Keep it as a spare for trading instead** to keep the duplicate. Spares show under **My creatures → Spares for trading**, and you can trade them, use one for **+1 level**, or add it to your collection if you don't have that family.
+- If a trade gives you a family you already have, it becomes a spare.
+- You can't trade your last creature (spares don't count), you can't trade while in a battle, and limited event Legendaries (Duckarune, Hexaduck) can't be traded.
+- Turn trading on or off with the **🔄 Trading** checkbox on the console's **🥚 Collector** tab.
+- Trades are stored in `classes/{class}/trades`, so publish the updated `firestore.rules`.
+
+### ☀️ Lunch arena
+On weekdays from 12–1 pm (Arizona time), the Battle Arena opens only for students who have already hit 120 XP that day, from the lunch or end-of-day upload or paste. They can only see and challenge other students who also hit 120. A battle that's already started can be finished after 1 pm. Turn it off with the **☀️ Lunch arena** checkbox on the console's **🥚 Collector** tab. "Closed" in the arena menu also closes it.
+- **⭐ 120 XP battlers** (checkbox on the same tab, off by default): while it's on, any student who has hit 120 XP today can battle other 120 XP students at any time on a weekday, not just at lunch. Everyone else follows the normal schedule.
 
 ### 🦆 Limited event: Duckarune
 - A standalone Legendary (Water / Arcane, "The Runebound Duck"). It runs for **10 school days** from Mon Sep 28 (ends Fri Oct 9). Change the start date or turn it off in the console's **Creature Collector** card.
