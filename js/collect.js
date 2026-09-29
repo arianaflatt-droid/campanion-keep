@@ -90,7 +90,9 @@ export function releaseProblem(st, key, battles, trades) {
     if (st.starter === fam) return "Your starter creature stays with you.";
     if (st.petCreature === fam) return "That creature is your companion right now.";
   }
-  if ((battles || []).some(b => ["invite", "team", "lead"].includes(b.status) && ((b.a && b.a.id === st.id) || (b.b && b.b.id === st.id)))) return "Finish your battle first!";
+  // only a battle started in the last hour counts (old challenges nobody answered don't block releasing)
+  const recent = b => !b.created || Date.now() - new Date(b.created).getTime() < 3600e3;
+  if ((battles || []).some(b => ["invite", "team", "lead"].includes(b.status) && recent(b) && ((b.a && b.a.id === st.id) || (b.b && b.b.id === st.id)))) return "Finish your battle first!";
   const inTrade = (trades || []).some(t => t.status === "offer" && [t.give, t.get].some(x => x && (isSpare ? x.spare === sp.id : !x.spare && x.fam === fam)) && ((t.a && t.a.id === st.id) || (t.b && t.b.id === st.id)));
   if (inTrade) return "That creature is in a trade offer. Cancel the offer first.";
   return null;

@@ -86,8 +86,10 @@ function starterView() {
 // Nicknames: saved on the creature's family (coll[fam].nick), so they stay through evolutions.
 let naming = null;
 let releasing = null;   // "m:FAM" or "s:ID" waiting for "Yes, release"
+let releaseMsg = null;  // { key, why }: shown right on the card when a release can't happen
 function releaseRow(key, fam, name) {
   const xp = releaseXP(fam);
+  if (releaseMsg && releaseMsg.key === key) return '<small class="relwhy">\u26A0\uFE0F ' + esc(releaseMsg.why) + "</small>";
   if (releasing === key) return '<div class="relask"><small>Release ' + esc(name) + " for <b>" + xp + ' XP</b>? It\u2019s gone for good.</small>' +
     '<div class="row" style="gap:4px;justify-content:center;"><button class="btn small danger" data-cc="releaseOk" data-key="' + esc(key) + '">Yes, release</button><button class="btn ghost small" data-cc="releaseCancel">Keep it</button></div></div>';
   return '<button class="relbtn" data-cc="release" data-key="' + esc(key) + '" title="Release it for ' + xp + ' XP">\u{1F54A}\uFE0F Release \u00b7 ' + xp + " XP</button>";
@@ -378,15 +380,17 @@ export async function onClick(el, c) {
     c.flash(had ? "Used your spare: +1 level!" : "It\u2019s part of your collection now!", true);
     return c.patch({ coll, spares: spares(s).filter(x => x.id !== sp.id) });
   }
-  if (a === "release") { releasing = el.dataset.key; return c.render(true); }
+  if (a === "release") { releasing = el.dataset.key; releaseMsg = null; return c.render(true); }
   if (a === "releaseCancel") { releasing = null; return c.render(true); }
   if (a === "releaseOk") {   // release a creature (or spare) for banked XP
     const key = el.dataset.key; releasing = null;
-    const why = releaseProblem(s, key, c.battles, c.trades); if (why) { c.render(true); return c.flash(why); }
+    const why = releaseProblem(s, key, c.battles, c.trades);
+    if (why) { releaseMsg = { key, why }; c.render(true); setTimeout(() => { if (releaseMsg && releaseMsg.key === key) { releaseMsg = null; c.render(true); } }, 5000); return; }
     let fam, name, data;
     if (key.startsWith("s:")) {
       const sp = spares(s).find(x => x.id === key.slice(2)); fam = sp.fam; name = formOf(fam, sp.lvl || 1).name;
-      data = { spares: spares(s).filter(x => x.id !== sp.id) };
+      const dex = new Set(s.dex || []), top = formIndex(fam, sp.lvl || 1); family(fam).forms.forEach((id, i) => { if (i <= top) dex.add(id); });
+      data = { spares: spares(s).filter(x => x.id !== sp.id), dex: [...dex] };
     } else {
       fam = key.slice(2); const e = owned(s)[fam], top = formIndex(fam, e.lvl || 1); name = e.nick || formOf(fam, e.lvl || 1).name;
       const coll = Object.assign({}, owned(s)); delete coll[fam];
