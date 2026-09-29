@@ -173,8 +173,11 @@ function hatchOverlay() {
   const r = hatch.res, c = r && creature(r.id);
   let h = '<div class="hatchover" style="background-image:url(assets/hatch-bg.jpg)"><div class="hatchstage">';
   if (hatch.phase !== "reveal") {
-    h += '<div class="eggwrap ' + hatch.phase + (hatch.legendary ? " leg" : "") + '"><img class="egg whole" src="assets/egg.png" alt="">' +
-      '<img class="egg top" src="assets/egg.png" alt=""><img class="egg bot" src="assets/egg.png" alt=""><span class="flash"></span></div>' +
+    // the egg's colour shows its rarity: Common silver, Uncommon green, Rare blue, Super Rare purple, Legendary gold
+    const ek = c ? { "Common": "common", "Uncommon": "uncommon", "Rare": "rare", "Super Rare": "superrare", "Legendary": "legendary" }[c.rarity] : null;
+    const egg = ek ? "assets/egg-" + ek + ".webp" : "assets/egg.png";
+    h += '<div class="eggwrap ' + hatch.phase + (hatch.legendary || (c && c.rarity === "Legendary") ? " leg" : "") + '" style="--rc:' + (c ? RARITY_COLOR[c.rarity] : "#FFE6AA") + '"><img class="egg whole" src="' + egg + '" alt="">' +
+      '<img class="egg top" src="' + egg + '" alt=""><img class="egg bot" src="' + egg + '" alt=""><span class="flash"></span></div>' +
       '<p class="hatchtxt">' + (hatch.phase === "shake" ? "Something is moving…" : "") + "</p>";
   } else {
     h += '<div class="reveal" style="--rc:' + RARITY_COLOR[c.rarity] + '"><span class="rays"></span>' + img(c, "revimg", r.sparkle) + "</div>" +

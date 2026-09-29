@@ -89,18 +89,18 @@ export function cornucopiaHTML(corn, cls) {
 //   eyes = [x, y, size, tilt]  centre of the sunglasses
 //   snack = [x, y]             snack pack beside the pet
 export const ROSTER = [
-  { id: "otter",   name: "River Otter",      glyph: "\u{1F9A6}", fit: { hat: [0.29, 0.22, 0.38, -18], eyes: [0.28, 0.33, 0.26, -14], snack: [1.02, 0.86] } },
-  { id: "raccoon", name: "Raccoon",          glyph: "\u{1F99D}", fit: { hat: [0.62, 0.27, 0.52, 0],   eyes: [0.63, 0.53, 0.46, 0],   snack: [1.1, 0.86] } },
-  { id: "fox",     name: "Arctic Fox",       glyph: "\u{1F98A}", fit: { hat: [0.6, 0.27, 0.5, 0],     eyes: [0.6, 0.56, 0.5, 0],     snack: [1.1, 0.88] } },
-  { id: "sloth",   name: "Sloth",            glyph: "\u{1F9A5}", fit: { hat: [0.31, 0.27, 0.3, -6],   eyes: [0.31, 0.39, 0.3, 0],    snack: [1.02, 0.86] } },
-  { id: "badger",  name: "Honey Badger",     glyph: "\u{1F9A1}", fit: { hat: [0.24, 0.48, 0.3, -12],  eyes: [0.19, 0.57, 0.24, -6],  snack: [1.1, 0.86] } },
-  { id: "octopus", name: "Octopus",          glyph: "\u{1F419}", fit: { hat: [0.74, 0.26, 0.42, 8],   eyes: [0.72, 0.42, 0.34, 0],   snack: [1.12, 0.86] } },
-  { id: "dragon",  name: "Dragon Hatchling", glyph: "\u{1F409}", fit: { hat: [0.38, 0.12, 0.3, -8],   eyes: [0.44, 0.15, 0.24, 0],   snack: [1.08, 0.86] } },
-  { id: "unicorn", name: "Unicorn Foal",     glyph: "\u{1F984}", fit: { hat: [0.47, 0.2, 0.36, -10],  eyes: [0.5, 0.45, 0.28, -6],   snack: [1.08, 0.86] } },
-  { id: "griffin", name: "Griffin Cub",      glyph: "\u{1F985}", fit: { hat: [0.31, 0.31, 0.26, -10], eyes: [0.33, 0.37, 0.2, -6],   snack: [1.1, 0.86] } },
-  { id: "sprite",  name: "Pixel Sprite",     glyph: "\u{1F47E}", fit: { hat: [0.61, 0.2, 0.44, 0], cap: [0.61, 0.27, 0.44, 0],   eyes: [0.6, 0.42, 0.62, 0],    snack: [1.12, 0.86] } },
-  { id: "pixie",   name: "Pixie",            glyph: "\u{1F9DA}", fit: { hat: [0.6, 0.03, 0.26, 0],    eyes: [0.6, 0.11, 0.16, 0],    snack: [1.08, 0.86] } },
-  { id: "golem",   name: "Stone Golem",      glyph: "\u{1F5FF}", fit: { hat: [0.6, 0.09, 0.56, 0],    eyes: [0.61, 0.35, 0.56, 0],   snack: [1.1, 0.86] } }
+  { id: "otter",   name: "River Otter",      glyph: "\u{1F9A6}", fit: { hat: [0.3, 0.3, 0.3, -20], cap: [0.3, 0.33, 0.32, -20], eyes: [0.41, 0.41, 0.26, -18], snack: [1.08, 0.82] } },
+  { id: "raccoon", name: "Raccoon",          glyph: "\u{1F99D}", fit: { hat: [0.8, 0.2, 0.38, 8], cap: [0.8, 0.24, 0.4, 8], eyes: [0.84, 0.38, 0.32, 6], snack: [1.14, 0.88] } },
+  { id: "fox",     name: "Red Fox",          glyph: "\u{1F98A}", fit: { hat: [0.84, 0.21, 0.36, 8], cap: [0.84, 0.25, 0.38, 8], eyes: [0.86, 0.4, 0.32, 6], snack: [1.14, 0.88] } },
+  { id: "sloth",   name: "Sloth",            glyph: "\u{1F9A5}", fit: { hat: [0.47, 0.31, 0.34, -10], cap: [0.49, 0.33, 0.36, -10], eyes: [0.49, 0.52, 0.32, -14], snack: [0.98, 0.88] } },
+  { id: "badger",  name: "Honey Badger",     glyph: "\u{1F9A1}", fit: { hat: [0.84, 0.21, 0.36, 12], cap: [0.84, 0.25, 0.38, 12], eyes: [0.93, 0.39, 0.3, 10], snack: [1.16, 0.88] } },
+  { id: "octopus", name: "Octopus",          glyph: "\u{1F419}", fit: { hat: [0.635, 0.1, 0.5, 0], cap: [0.635, 0.16, 0.5, 0], eyes: [0.665, 0.29, 0.36, 0], snack: [1.12, 0.86] } },
+  { id: "dragon",  name: "Dragon Hatchling", glyph: "\u{1F409}", fit: { hat: [0.745, 0.19, 0.38, 4], cap: [0.745, 0.23, 0.4, 4], eyes: [0.775, 0.325, 0.3, 6], snack: [1.12, 0.88] } },
+  { id: "unicorn", name: "Unicorn Foal",     glyph: "\u{1F984}", fit: { hat: [0.8, 0.2, 0.32, 10], cap: [0.8, 0.23, 0.34, 10], eyes: [0.9, 0.35, 0.24, 8], snack: [1.02, 0.84] } },
+  { id: "griffin", name: "Griffin Cub",      glyph: "\u{1F985}", fit: { hat: [0.5, 0.21, 0.36, -6], cap: [0.5, 0.25, 0.38, -6], eyes: [0.44, 0.33, 0.34, -10], snack: [1.12, 0.88] } },
+  { id: "sprite",  name: "Pixel Sprite",     glyph: "\u{1F47E}", fit: { hat: [0.625, 0.35, 0.46, 0], cap: [0.625, 0.38, 0.48, 0], eyes: [0.625, 0.52, 0.56, 0], snack: [1.14, 0.86] } },
+  { id: "pixie",   name: "Pixie",            glyph: "\u{1F9DA}", fit: { hat: [0.7, 0.19, 0.34, 6], cap: [0.72, 0.22, 0.36, 6], eyes: [0.78, 0.39, 0.28, 8], snack: [1.02, 0.82] } },
+  { id: "golem",   name: "Stone Golem",      glyph: "\u{1F5FF}", fit: { hat: [0.64, 0.2, 0.36, 4], cap: [0.64, 0.23, 0.38, 4], eyes: [0.66, 0.37, 0.34, 4], snack: [1.14, 0.88] } }
 ];
 
 export const ITEMS = [
