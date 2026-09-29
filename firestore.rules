@@ -31,8 +31,15 @@ service cloud.firestore {
 
         function klass() { return get(/databases/$(database)/documents/classes/$(classId)).data; }
         function haunt() { return klass().get("haunt", false) == true; }
-        // True once the class has defeated its first Ghost-olotl (Witch Hat + Ghost-olotl pet unlocked).
+        // Gobble-Palooza uses the same Battle Area, shop and wheel rules as Haunt-O-Ween (corn instead of candy).
+        function gobble() { return klass().get("gobble", false) == true; }
+        function battleMode() { return haunt() || gobble(); }
+        // True once the class has defeated its first Ghost-olotl (Witch Hat, Witch's Brew snack + Ghost-olotl pet unlocked).
         function ghostBeaten() { return klass().get("ghostDefeated", false) == true; }
+        // True once the class has defeated its first Turducken (Pilgrim Hat, Pumpkin Pie snack + Turducken pet unlocked).
+        function turkeyBeaten() { return klass().get("turkeyDefeated", false) == true; }
+        // +5 damage: the Witch's Hat during Haunt-O-Ween, the Pilgrim Hat during Gobble-Palooza.
+        function hatBonus() { return (gobble() ? was("pilgrimHat", false) == true : was("witchHat", false) == true) ? 5 : 0; }
         function changed() { return request.resource.data.diff(resource.data).affectedKeys(); }
         function was(k, d) { return resource.data.get(k, d); }
         function now(k, d) { return request.resource.data.get(k, d); }
@@ -46,13 +53,18 @@ service cloud.firestore {
                  "dragon", "unicorn", "griffin", "sprite", "pixie", "golem"]
             && now("petName", "") is string && now("petName", "").size() <= 22
             && (now("equipped", null) in [null, "", "cap", "shades", "snack", "hat", "crown"]
-                || (now("equipped", null) == "witch" && (ghostBeaten() || was("witchHat", false) == true)))
+                || (now("equipped", null) == "witch" && (ghostBeaten() || was("witchHat", false) == true))
+                || (now("equipped", null) == "brewsnack" && ghostBeaten())
+                || (now("equipped", null) == "pilgrim" && (turkeyBeaten() || was("pilgrimHat", false) == true))
+                || (now("equipped", null) == "piesnack" && turkeyBeaten()))
             && (now("sidekick", "axolotl") in ["axolotl", "duck"]
-                || (now("sidekick", "axolotl") == "ghost" && ghostBeaten()));
+                || (now("sidekick", "axolotl") == "ghost" && ghostBeaten())
+                || (now("sidekick", "axolotl") == "turkey" && turkeyBeaten()));
         }
 
-        // ---- Attack the Ghost-olotl ----
-        // Uses one unused 120 XP day OR one bought attack. Damage = base (+5 Witch's Hat) (+10 if a brew is used).
+        // ---- Attack the Ghost-olotl / Turducken ----
+        // Uses one unused 120 XP day OR one bought attack. Damage = base (+5 hat) (+10 if a brew or pie is used).
+        // Turducken attacks are also counted in turkeyAtk (so Haunt-O-Ween badges don't count them).
         function oldAtk(i) { return was("attacks", [false, false, false, false, false])[i]; }
         function newAtk(i) { return request.resource.data.attacks[i]; }
         function slotOk(i) { return newAtk(i) == oldAtk(i) || (oldAtk(i) == false && newAtk(i) == true && resource.data.status[i] == "c"); }
@@ -64,11 +76,13 @@ service cloud.firestore {
         }
         function usedBrew() { return now("brews", 0) == was("brews", 0) - 1 && was("brews", 0) > 0; }
         function attackDamage() {
-          return klass().get("bossDmg", 50) + (was("witchHat", false) == true ? 5 : 0) + (usedBrew() ? 10 : 0);
+          return klass().get("bossDmg", 50) + hatBonus() + (usedBrew() ? 10 : 0);
         }
+        function turkeyCount() { return gobble() ? now("turkeyAtk", 0) == was("turkeyAtk", 0) + 1 : same("turkeyAtk", 0); }
         function studentAttack() {
-          return haunt()
-            && changed().hasOnly(["attacks", "attackTotal", "dmgTotal", "extraAttacks", "brews"])
+          return battleMode()
+            && changed().hasOnly(["attacks", "attackTotal", "dmgTotal", "extraAttacks", "brews", "turkeyAtk"])
+            && turkeyCount()
             && (usedBrew() || same("brews", 0))
             && ((same("attacks", [false, false, false, false, false]) && now("extraAttacks", 0) == was("extraAttacks", 0) - 1 && was("extraAttacks", 0) > 0)
                 || (same("extraAttacks", 0) && usedDay()))
@@ -77,7 +91,7 @@ service cloud.firestore {
         }
 
         // ---- Candy Shop ---- keep these prices in step with STORE in js/game.js.
-        function price(id) { return {"spin": 60, "witchhat": 600, "brew": 60, "attack": 120}.get(id, 999999999); }
+        function price(id) { return {"spin": 60, "witchhat": 600, "brew": 60, "attack": 120, "pilgrimhat": 600, "pie": 60}.get(id, 999999999); }
         // The companion eats the first 120 candy each day (keep in step with EAT_PER_DAY in js/game.js).
         function dayXp(i) {
           return was("xp", [null, null, null, null, null])[i] != null ? resource.data.xp[i]
@@ -92,24 +106,26 @@ service cloud.firestore {
         function studentBuy() {
           let newP = request.resource.data.purchases;
           let id = newP[newP.size() - 1].id;
-          return haunt()
-            && changed().hasOnly(["purchases", "candySpent", "spins", "brews", "extraAttacks", "witchHat", "equipped"])
+          return battleMode()
+            && changed().hasOnly(["purchases", "candySpent", "spins", "brews", "extraAttacks", "witchHat", "pilgrimHat", "equipped"])
             && newP.size() == was("purchases", []).size() + 1
             && newP[newP.size() - 1].cost == price(id)
             && now("candySpent", 0) == was("candySpent", 0) + price(id)
             && now("candySpent", 0) <= candyEarned()
-            && plusOneIf("spins", id == "spin") && plusOneIf("brews", id == "brew") && plusOneIf("extraAttacks", id == "attack")
+            && plusOneIf("spins", id == "spin") && plusOneIf("brews", id == "brew" || id == "pie") && plusOneIf("extraAttacks", id == "attack")
             && (id == "witchhat"
-                  ? (was("witchHat", false) == false && now("witchHat", false) == true && now("equipped", null) == "witch")
-                  : (same("witchHat", false) && same("equipped", null)));
+                  ? (was("witchHat", false) == false && now("witchHat", false) == true && now("equipped", null) == "witch" && same("pilgrimHat", false))
+                  : (id == "pilgrimhat"
+                      ? (was("pilgrimHat", false) == false && now("pilgrimHat", false) == true && now("equipped", null) == "pilgrim" && same("witchHat", false))
+                      : (same("witchHat", false) && same("pilgrimHat", false) && same("equipped", null))));
         }
 
         // ---- Trick or Treat Wheel ---- one spin at a time; each result can only do what its slice does.
         function spinEntry() { return request.resource.data.spinLog[request.resource.data.spinLog.size() - 1]; }
         function studentSpin() {
           let e = spinEntry();
-          return haunt()
-            && changed().hasOnly(["spinLog", "spins", "candyBonus", "stolen", "attackTotal", "dmgTotal"])
+          return battleMode()
+            && changed().hasOnly(["spinLog", "spins", "candyBonus", "stolen", "attackTotal", "dmgTotal", "turkeyAtk"])
             && request.resource.data.spinLog.size() == was("spinLog", []).size() + 1
             && was("spins", 0) > 0
             && e.id in ["candy75", "steal", "nothing", "reroll", "prize", "attack"]
@@ -121,9 +137,10 @@ service cloud.firestore {
             && (e.id == "attack"
                   ? ((now("attackTotal", 0) == was("attackTotal", 0) + 1
                       && now("dmgTotal", 0) == was("dmgTotal", was("attackTotal", 0) * klass().get("bossDmg", 50))
-                           + klass().get("bossDmg", 50) + (was("witchHat", false) == true ? 5 : 0))
-                     || (same("attackTotal", 0) && same("dmgTotal", 0)))
-                  : (same("attackTotal", 0) && same("dmgTotal", 0)));
+                           + klass().get("bossDmg", 50) + hatBonus()
+                      && turkeyCount())
+                     || (same("attackTotal", 0) && same("dmgTotal", 0) && same("turkeyAtk", 0)))
+                  : (same("attackTotal", 0) && same("dmgTotal", 0) && same("turkeyAtk", 0)));
         }
 
         // ---- Creature Collector ---- hatching, levelling and the arena "ready" switch.
@@ -144,11 +161,12 @@ service cloud.firestore {
             && now("badgesSeen", {}) is map
             && (now("pinnedBadge", null) == null || now("badges", {}).keys().hasAny([now("pinnedBadge", "")]));
         }
-        // ---- A level-100 creature can be picked as the companion ----
+        // ---- A level-100 creature, or a caught event Legendary (any level), can be picked as the companion ----
         function studentPet() {
           return changed().hasOnly(["petCreature"])
             && (now("petCreature", null) == null
-                || was("coll", {}).get(now("petCreature", ""), {}).get("lvl", 0) >= 100);
+                || was("coll", {}).get(now("petCreature", ""), {}).get("lvl", 0) >= 100
+                || (now("petCreature", "") in ["L-26", "L-27", "L-28", "L-29"] && was("coll", {}).keys().hasAny([now("petCreature", "")])));
         }
 
         allow update: if isTeacher() || (request.auth != null && (studentLooks() || studentAttack() || studentBuy() || studentSpin() || studentCollect() || studentBadges() || studentPet()));

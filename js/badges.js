@@ -73,14 +73,31 @@ export const bestFullWeekRun = (st, bt, cls) => { let best = 0, run = 0; fullWee
 export const bestSafeRun = st => { const lost = new Set((st.deaths || []).map(x => x.date)); let best = 0, run = 0; days(st).forEach(d => { run = lost.has(d.date) ? 0 : run + 1; best = Math.max(best, run); }); return best; };
 export const capes = st => Math.max(Number(st.capesTotal) || 0, (st.items || []).filter(i => i.id === "cape").length);
 /* Haunt-O-Ween */
-export const attacks = st => Number(st.attackTotal) || 0;
+// Gobble-Palooza uses the same save fields, so Haunt-O-Ween badges only count live candy while Haunt-O-Ween is on
+// (or before Gobble-Palooza has ever run). Turning Gobble-Palooza on saves the candy totals as candyBest etc. first.
+const hauntLive = cls => !!(cls && cls.haunt && !cls.gobble) || !(cls && cls.gobbleSince);
+const hauntSpin = e => e.s !== "gobble";
+export const attacks = st => Math.max(0, (Number(st.attackTotal) || 0) - (Number(st.turkeyAtk) || 0));   // Ghost-olotl attacks
 export const helpedDefeat = (st, bt, cls) => (ghostUnlocked(cls) && attacks(st) > 0 ? 1 : 0);
-export const candyEarned = st => Math.max(Number(st.candyBest) || 0, candyOf(st));
-export const candySpentBest = st => Math.max(Number(st.spentBest) || 0, Number(st.candySpent) || 0);
-export const prizeSpins = st => (st.spinLog || []).filter(e => e.id === "prize").length;
-export const steals = st => Math.max(Number(st.stolenBest) || 0, Number(st.stolen) || 0, (st.spinLog || []).filter(e => e.id === "steal" && e.amt > 0).length);
+export const candyEarned = (st, bt, cls) => Math.max(Number(st.candyBest) || 0, hauntLive(cls) ? candyOf(st) : 0);
+export const candySpentBest = (st, bt, cls) => Math.max(Number(st.spentBest) || 0, hauntLive(cls) ? Number(st.candySpent) || 0 : 0);
+export const prizeSpins = st => (st.spinLog || []).filter(e => e.id === "prize" && hauntSpin(e)).length;
+export const steals = (st, bt, cls) => Math.max(Number(st.stolenBest) || 0, hauntLive(cls) ? Number(st.stolen) || 0 : 0, (st.spinLog || []).filter(e => e.id === "steal" && e.amt > 0 && hauntSpin(e)).length);
 // event Legendaries caught (Duckarune, Hexaduck, and any future event creatures)
 const EVENT_FAMS = [...new Set(CREATURES.filter(c => c.event).map(c => c.fam))];
+/* Battles against Ms. Ariana (the teacher is player id "teacher") */
+const vsTeacher = (st, bt) => finished(st, bt).filter(b => (b.a && b.a.id === "teacher") || (b.b && b.b.id === "teacher"));
+const myTeam = (st, b) => (b.team && b.team[sideOf(st, b)]) || [];
+const theirTeam = (st, b) => (b.team && b.team[sideOf(st, b) === "A" ? "B" : "A"]) || [];
+const isLeg = f => String(f && f.fam).startsWith("L-");
+export const teacherBattles = (st, bt) => vsTeacher(st, bt).length;
+export const teacherWins = (st, bt) => vsTeacher(st, bt).filter(b => won(st, b)).length;
+export const teacherStreak = (st, bt) => { let best = 0, run = 0; vsTeacher(st, bt).forEach(b => { run = won(st, b) ? run + 1 : 0; best = Math.max(best, run); }); return best; };
+export const teacherCommonWins = (st, bt) => vsTeacher(st, bt).filter(b => won(st, b) && myTeam(st, b).length && myTeam(st, b).every(f => String(f.fam).startsWith("C-"))).length;
+export const teacherLegendWins = (st, bt) => vsTeacher(st, bt).filter(b => won(st, b) && theirTeam(st, b).some(isLeg) && !myTeam(st, b).some(isLeg)).length;
+export const teacherPerfect = (st, bt) => vsTeacher(st, bt).filter(b => won(st, b) && !(b.log || []).some(e => e.k === "faint" && e.s === sideOf(st, b))).length;
+/* Gobble-Palooza */
+export const turkeyHelped = (st, bt, cls) => (cls && cls.turkeyDefeated && (Number(st.turkeyAtk) || 0) > 0 ? 1 : 0);
 export const eventsCaught = st => EVENT_FAMS.filter(f => owned(st)[f]).length;
 const LORE = CREATURES.filter(c => !c.event).length, lore = pct => Math.ceil(LORE * pct / 100);
 
@@ -93,6 +110,8 @@ export const BADGE_GROUPS = [
   { key: "arena", title: "\u2694\uFE0F Arena" },
   { key: "care", title: "\u{1F43E} Companion Care" },
   { key: "haunt", title: "\u{1F383} Haunt-O-Ween" },
+  { key: "teacher", title: "\u{1F34E} Battle Ms. Ariana" },
+  { key: "gobble", title: "\u{1F983} Gobble-Palooza" },
 ];
 
 export const BADGES = [
@@ -156,6 +175,15 @@ export const BADGES = [
   { id: "big-spender", group: "haunt", name: "Big Spender", desc: "Spend 500 candy at the shop", goal: 500, img: "assets/badges/big-spender.webp", emoji: "\u{1F6CD}\uFE0F", check: candySpentBest },
   { id: "witchy",      group: "haunt", name: "Witchy",      desc: "Buy the Witch\u2019s Hat", goal: 1, img: "assets/badges/witchy.webp", emoji: "\u{1F9D9}", check: st => (st.witchHat ? 1 : 0) },
   { id: "lucky-spin",  group: "haunt", name: "Lucky Spin",  desc: "Land a Prize! on the wheel", goal: 1, img: "assets/badges/lucky-spin.webp", emoji: "\u{1F381}", check: prizeSpins },
+  { id: "t-challenge",     group: "teacher", name: "Challenge Accepted", desc: "Battle Ms. Ariana for the first time", goal: 1, img: "assets/badges/t-challenge.webp", emoji: "\u2694\uFE0F", check: teacherBattles },
+  { id: "t-tamer",         group: "teacher", name: "Teacher Tamer", desc: "Beat Ms. Ariana once", goal: 1, img: "assets/badges/t-tamer.webp", emoji: "\u{1F34E}", check: teacherWins },
+  { id: "t-top",           group: "teacher", name: "Top of the Class", desc: "Beat Ms. Ariana 5 times", goal: 5, img: "assets/badges/t-top.webp", emoji: "\u{1F4DA}", check: teacherWins },
+  { id: "t-valedictorian", group: "teacher", name: "Valedictorian", desc: "Beat Ms. Ariana 3 times in a row", goal: 3, img: "assets/badges/t-valedictorian.webp", emoji: "\u{1F393}", check: teacherStreak },
+  { id: "t-popquiz",       group: "teacher", name: "Pop Quiz", desc: "Beat Ms. Ariana using only Common creatures", goal: 1, img: "assets/badges/t-popquiz.webp", emoji: "\u270F\uFE0F", check: teacherCommonWins },
+  { id: "t-legendary",     group: "teacher", name: "Legendary Lesson", desc: "Beat Ms. Ariana when her team has a Legendary and yours doesn\u2019t", goal: 1, img: "assets/badges/t-legendary.webp", emoji: "\u{1F451}", check: teacherLegendWins },
+  { id: "t-perfect",       group: "teacher", name: "Perfect Score", desc: "Beat Ms. Ariana without any of your creatures fainting", goal: 1, img: "assets/badges/t-perfect.webp", emoji: "\u{1F4AF}", check: teacherPerfect },
+  { id: "turkey-takedown", group: "gobble", name: "Turkey Takedown", desc: "Help defeat the Turducken", goal: 1, img: "assets/badges/turkey-takedown.webp", emoji: "\u{1F983}", check: turkeyHelped },
+  { id: "ev-thanks",       group: "gobble", name: "Thanksolotl", desc: "Catch the limited Thanksolotl during Gobble-Palooza", goal: 1, img: "assets/badges/ev-thanks.webp", emoji: "\u{1F342}", check: st => (owned(st)["L-29"] ? 1 : 0) },
   { id: "candy-thief", group: "haunt", name: "Candy Thief", desc: "Steal candy from Ms. Ariana", goal: 1, img: "assets/badges/candy-thief.webp", emoji: "\u{1F9B9}", check: steals },
 ];
 

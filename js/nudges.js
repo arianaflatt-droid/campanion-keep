@@ -1,6 +1,6 @@
 // Nudge messages: short, friendly "you're close!" notes at the top of a student's page.
 // Each rule returns a nudge or null; the most useful few are shown (lower pri = shown first).
-import { dayXP, simulate, GEAR, goalXP, arr5, esc, isHaunt, battleOn, nextAttack, companionOf, bossState } from "./game.js";
+import { seasonOf, dayXP, simulate, GEAR, goalXP, arr5, esc, isHaunt, battleOn, nextAttack, companionOf, bossState } from "./game.js";
 import { birthdayLeft, EVENTS, eventOpen, eventUnlocked, hasEvent, eventStreak, creature, family, azNow, pullsLeft, legendaryLeft, bankXP, LEVEL_XP, PULL_XP, hasStarter, owned, MAX_LEVEL } from "./collect.js";
 import { badgeState } from "./badges.js";
 
@@ -33,7 +33,7 @@ export function nudges(st, cls, battles, students) {
   }
 
   // ---- streak gear ----
-  const nextGear = GEAR.filter(g => !g.ghost && !sim.unlocked.includes(g.id)).sort((a, b) => a.streak - b.streak)[0];
+  const nextGear = GEAR.filter(g => !g.ghost && !g.turkey && !sim.unlocked.includes(g.id)).sort((a, b) => a.streak - b.streak)[0];
   if (nextGear && sim.alive) {
     const need = Math.max(1, nextGear.streak - sim.hitRun);
     if (need <= 2) add(2, "\u{1F525}", "<b>" + plural(need, "more " + goal + " XP day") + "</b> in a row unlocks the <b>" + esc(nextGear.name) + "</b>!");
@@ -63,10 +63,10 @@ export function nudges(st, cls, battles, students) {
     add(3, "\u{1F3C5}", "You’re <b>" + (close.goal - close.n).toLocaleString() + " away</b> from a mystery badge! <span class=\"muted\">Hint: " + esc(close.desc) + "</span>", "badges");
   }
 
-  // ---- Haunt-O-Ween ----
-  if (isHaunt(cls) && battleOn(cls) && !bossState(cls, students).defeated) {
+  // ---- Haunt-O-Ween / Gobble-Palooza ----
+  if (battleOn(cls) && !bossState(cls, students).defeated) {
     const atk = nextAttack(st, cls).count;
-    if (atk) add(1, "⚔️", "You have <b>" + plural(atk, "attack") + "</b> ready for the Ghost-olotl!", "haunt");
+    if (atk) add(1, "⚔️", "You have <b>" + plural(atk, "attack") + "</b> ready for the " + seasonOf(cls).boss + "!", "haunt");
   }
 
   return out.sort((a, b) => a.pri - b.pri).slice(0, MAX_SHOWN);

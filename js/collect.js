@@ -113,6 +113,8 @@ export function seenSet(st) {
 export const EVENTS = [
   { key: "duck", fam: "L-26", icon: "\u{1F986}", start: "2026-09-28", schoolDays: 10, streak: 5, first: 0.95, again: 0.01, againAfter: true },
   { key: "hex",  fam: "L-27", icon: "\u{1F383}", haunt: true, streak: 5, first: 0.95, again: 0.01, againAfter: true },
+  // Thanksolotl: all of November (Gobble-Palooza). The streak only counts November days. Arizona dates.
+  { key: "thanks", fam: "L-29", icon: "\u{1F983}", from: "2026-11-01", to: "2026-11-30", label: "Gobble-Palooza", streak: 5, first: 0.95, again: 0.01, againAfter: true },
 ];
 export const DUCK = EVENTS[0], HEX = EVENTS[1];
 const isoDate = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
@@ -126,10 +128,12 @@ export function duckWindow(cls) {
   return { start: days[0], end: days[days.length - 1], days };
 }
 export function eventWindow(ev, cls) {
+  if (ev.from) { const d = new Date(ev.from + "T12:00:00"), days = []; while (isoDate(d) <= ev.to) { if (d.getDay() > 0 && d.getDay() < 6) days.push(isoDate(d)); d.setDate(d.getDate() + 1); } return { start: ev.from, end: ev.to, days }; }
   if (ev.haunt) return { start: (cls && cls.hauntSince) || "0000-00-00", end: null };
   return duckWindow(cls);
 }
 export function eventOpen(ev, cls, date) {
+  if (ev.from) { if (cls && cls[ev.key + "Off"]) return false; const t = azToday(date); return t >= ev.from && t <= ev.to; }
   if (ev.haunt) return !!(cls && cls.haunt);
   if (cls && cls.duckOff) return false;
   const w = duckWindow(cls), t = azToday(date);
@@ -143,7 +147,7 @@ export function streaks(st, cls, since) {
   Object.keys(h).sort().forEach(date => { if (since && date < since) return; const x = h[date] || {}, v = Number(x.d != null ? x.d : x.l) || 0; run = v >= goal ? run + 1 : 0; best = Math.max(best, run); });
   return { best, current: run };
 }
-export const eventStreak = (ev, st, cls) => streaks(st, cls, ev.haunt ? eventWindow(ev, cls).start : null);
+export const eventStreak = (ev, st, cls) => streaks(st, cls, ev.haunt || ev.from ? eventWindow(ev, cls).start : null);
 export const hasEvent = (ev, st) => !!owned(st)[ev.fam];
 export const hasDuck = st => hasEvent(DUCK, st);
 export function eventUnlocked(ev, st, cls) { return eventOpen(ev, cls) && eventStreak(ev, st, cls).best >= ev.streak; }

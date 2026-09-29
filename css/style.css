@@ -737,3 +737,25 @@
 .tglyph{ display:inline-block; vertical-align:bottom; }
 .eq .emo{ font-size:inherit; }
 td .emo, .ic .emo{ display:inline-block; vertical-align:middle; font-size:1.3em; margin:-0.3em -0.2em; }
+
+  /* ===== Battle backdrops ===== */
+  .arena.fight.haunt{ background:linear-gradient(rgba(21,10,34,.55), rgba(21,10,34,.72)), url("../assets/haunt-arena.webp") center 35% / cover no-repeat, #221034; }
+
+  /* ===== Gobble-Palooza (fall colors) ===== */
+  .hero.gobble{ background:radial-gradient(120% 140% at 50% 0%, #9A4A16 0%, #4A1F08 70%); box-shadow:inset 0 0 0 2px #F2A541; }
+  .hero.gobble h2 b, .hero.gobble .haunt-tag{ color:#FFD27A; }
+  .hero.gobble .haunt-sub{ color:#FBE9D0; }
+  .arena.gobble{ color:#FDF1E1; background:radial-gradient(70% 60% at 50% 45%, #8A4318 0%, #4A2009 70%, #2C1204 100%); box-shadow:inset 0 0 0 2px #C9772E; }
+  .arena.gobble .arena-title, .arena.gobble .arena-win, .arena.gobble .bb-title{ color:#FFD27A; }
+  .arena.gobble .arena-k, .arena.gobble .arena-none, .arena.gobble .arena-foot, .arena.gobble .team-cap, .arena.gobble .bb-sub{ color:#E8C9A4; }
+  .arena.gobble .bosstrack{ background:#2C1204; box-shadow:inset 0 0 0 2px #C9772E; }
+  .arena.gobble .bosstrack span{ background:linear-gradient(90deg,#D9481F,#F6A445); }
+  .arena.gobble .ghostimg{ filter:drop-shadow(0 0 26px rgba(255,190,90,.45)); }
+  .basket.corn .bk img{ position:static !important; }
+  .basket.corn .candycount{ background:#4A2009; color:#FFD27A; }
+  .basket.corn.full .candycount{ background:#D9731A; color:#fff; }
+  .basket.corn.giant .candycount{ background:#D9731A; color:#fff; }
+  .basket.corn .bk .candy{ font-size:.2em; }
+  .side.turkey{ height:36px; } .side.turkey.big{ height:64px; }
+  .arena.fight.gobble{ background:linear-gradient(rgba(44,18,4,.55), rgba(44,18,4,.74)), url("../assets/gobble/gobble-arena.webp") center 40% / cover no-repeat, #4A2009; }
+  .lede .gimg{ display:inline-block; vertical-align:middle; height:1.4em; }
