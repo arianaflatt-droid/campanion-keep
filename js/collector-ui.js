@@ -175,8 +175,12 @@ function hatchOverlay() {
   if (hatch.phase !== "reveal") {
     // the egg's colour shows its rarity: Common silver, Uncommon green, Rare blue, Super Rare purple, Legendary gold
     const ek = c ? { "Common": "common", "Uncommon": "uncommon", "Rare": "rare", "Super Rare": "superrare", "Legendary": "legendary" }[c.rarity] : null;
-    const egg = ek ? "assets/egg-" + ek + ".webp" : "assets/egg.png";
-    h += '<div class="eggwrap ' + hatch.phase + (hatch.legendary || (c && c.rarity === "Legendary") ? " leg" : "") + '" style="--rc:' + (c ? RARITY_COLOR[c.rarity] : "#FFE6AA") + '"><img class="egg whole" src="' + egg + '" alt="">' +
+    // during Haunt-O-Ween, Ghost-type creatures (and Hexaduck, the Haunt-O-Ween event Legendary) hatch from the spooky egg
+    const spooky = c && ctx.cls && ctx.cls.haunt && !ctx.cls.gobble && (c.types.includes("Ghost") || c.event === "hex");
+    // during Gobble-Palooza, Nature-type creatures (and Thanksolotl) hatch from the harvest egg
+    const harvest = !spooky && c && ctx.cls && ctx.cls.gobble && (c.types.includes("Nature") || c.event === "thanks");
+    const egg = spooky ? "assets/egg-haunt.webp" : harvest ? "assets/egg-gobble.webp" : ek ? "assets/egg-" + ek + ".webp" : "assets/egg.png";
+    h += '<div class="eggwrap ' + hatch.phase + (hatch.legendary || (c && c.rarity === "Legendary") ? " leg" : "") + (spooky ? " haunt" : harvest ? " harvest" : "") + '" style="--rc:' + (spooky ? "#B45CFF" : harvest ? "#F2A541" : c ? RARITY_COLOR[c.rarity] : "#FFE6AA") + '"><img class="egg whole" src="' + egg + '" alt="">' +
       '<img class="egg top" src="' + egg + '" alt=""><img class="egg bot" src="' + egg + '" alt=""><span class="flash"></span></div>' +
       '<p class="hatchtxt">' + (hatch.phase === "shake" ? "Something is moving…" : "") + "</p>";
   } else {

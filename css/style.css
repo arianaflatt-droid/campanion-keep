@@ -760,3 +760,5 @@ td .emo, .ic .emo{ display:inline-block; vertical-align:middle; font-size:1.3em;
   .side.turkey{ height:36px; } .side.turkey.big{ height:64px; }
   .arena.fight.gobble{ background:linear-gradient(rgba(44,18,4,.55), rgba(44,18,4,.74)), url("../assets/gobble/gobble-arena.webp") center 40% / cover no-repeat, #4A2009; }
   .lede .gimg{ display:inline-block; vertical-align:middle; height:1.4em; }
+  .eggwrap.haunt{ aspect-ratio:475/520; }
+  .eggwrap.harvest{ aspect-ratio:513/520; }
