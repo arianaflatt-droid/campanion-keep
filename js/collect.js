@@ -19,6 +19,9 @@ export const HAS_SPARKLE_ART = false; // kept for older code; use hasSparkleArt(
 export function sparkleImg(c) { return hasSparkleArt(c) ? c.img.replace("assets/creatures/", "assets/creatures/sparkle/") : c.img; }
 export function isSparkle(st, fam) { const e = (st.coll || {})[fam]; return !!(e && e.sparkle); }
 
+// Bump ART_VERSION whenever creature pictures are replaced, so browsers load the new art instead of old saved copies.
+export const ART_VERSION = "20260929b";
+CREATURES.forEach(c => { if (c.img && !c.img.includes("?")) c.img += "?v=" + ART_VERSION; });
 const byIdMap = {}; CREATURES.forEach(c => { byIdMap[c.id] = c; });
 const famMap = {}; FAMILIES.forEach(f => { famMap[f.id] = f; });
 export const creature = id => byIdMap[id] || null;
