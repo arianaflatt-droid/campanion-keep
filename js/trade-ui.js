@@ -6,8 +6,10 @@
 // Players can offer a creature from their collection OR a spare (a duplicate kept for trading).
 // Receiving a family you already have turns it into a spare. You can't trade away your last creature
 // (spares don't count), limited event creatures (Duckarune, Hexaduck) can't be traded, and not during a battle.
+// Trading follows the same schedule as the arena (its own switches in the teacher console), and a player has to
+// tick "I'm ready to trade" (tradeReady) before anyone can send them an offer.
 import { esc } from "./game.js";
-import { owned, ownedFams, family, formOf, creature, RARITY_COLOR, hasStarter, spares, spareId } from "./collect.js";
+import { owned, ownedFams, family, formOf, creature, RARITY_COLOR, hasStarter, spares, spareId, tradeOpen, tradeOpenFor, lunchHour, hitGoalToday, ARENA_HOURS, LUNCH_ARENA } from "./collect.js";
 import { newTradeRef, changeTrade, setDoc } from "./db.js";
 
 let pick = { who: "", theirs: "", mine: "" };
@@ -38,18 +40,18 @@ const mineOf = (ctx, s) => (ctx.trades || []).filter(t => t.a && t.b && (t.a.id 
 
 export function tradeCard(ctx) {
   const s = ctx.me;
-  if (ctx.cls && ctx.cls.tradeOff) return "";
   if (!hasStarter(s)) return "";
+  const cls = ctx.cls, isOpen = tradeOpenFor(s, cls), lunchOnly = isOpen && !tradeOpen(cls) && !s.isTeacher, ready = !!s.tradeReady;
   const list = mineOf(ctx, s);
   const incoming = list.filter(t => open(t) && t.b.id === s.id);
   const outgoing = list.filter(t => open(t) && t.a.id === s.id);
   const recent = list.filter(t => t.status === "accepted").sort((x, y) => String(y.created).localeCompare(String(x.created))).slice(0, 3);
-  let h = '<div class="card tradecard"><div class="card-head"><h2>\u{1F504} Trading</h2><span class="fact">swap creatures</span></div>';
+  let h = '<div class="card tradecard"><div class="card-head"><h2>\u{1F504} Trading</h2><span class="fact ' + (isOpen ? "open" : "") + '">' + (isOpen ? "OPEN" : "closed") + "</span></div>";
 
   incoming.forEach(t => {
     h += '<div class="trrow in"><div class="trside">' + pic(t.give) + "<small><b>" + esc(t.a.name) + "</b> gives<br>" + esc(label(t.give)) + "</small></div>" +
       '<span class="trarrow">⇄</span><div class="trside">' + pic(t.get) + "<small>for your<br>" + esc(label(t.get)) + "</small></div>" +
-      '<div class="trbtns"><button class="btn small" data-tr="accept" data-t="' + t.id + '">Accept</button><button class="btn ghost small" data-tr="decline" data-t="' + t.id + '">No thanks</button></div></div>';
+      '<div class="trbtns">' + (isOpen ? '<button class="btn small" data-tr="accept" data-t="' + t.id + '">Accept</button>' : '<span class="muted small">Accept when trading opens</span>') + '<button class="btn ghost small" data-tr="decline" data-t="' + t.id + '">No thanks</button></div></div>';
   });
   outgoing.forEach(t => {
     h += '<div class="trrow out"><div class="trside">' + pic(t.give) + "<small>Your<br>" + esc(label(t.give)) + "</small></div>" +
@@ -62,8 +64,20 @@ export function tradeCard(ctx) {
     h += '<p class="muted small" style="margin:6px 0;">✅ You traded with ' + esc(other) + " and got " + esc(label(got)) + ".</p>";
   });
 
-  // make an offer
-  const others = ctx.students.filter(x => x.id !== s.id && hasStarter(x));
+  // trading closed: offers can still be declined or cancelled, but no new ones
+  if (!isOpen) {
+    const closed = cls && (cls.tradeOff || cls.tradeOverride === "closed");
+    return h + '<p class="lede">' + (closed ? "Trading is closed right now." : "Trading opens " + esc(ARENA_HOURS) + ".") + "</p>" +
+      (closed || (cls && cls.lunchTrade === false) ? "" : '<p class="lede" style="margin-top:6px;">\u2600\uFE0F <b>Lunch trading:</b> ' + esc(LUNCH_ARENA) + "." + (lunchHour() && !hitGoalToday(s, cls) ? " Hit 120 XP to join right now!" : "") + "</p>") +
+      (!closed && cls && cls.goalTrade && !hitGoalToday(s, cls) ? '<p class="lede" style="margin-top:6px;">\u2B50 Hit 120 XP today and you can trade right away!</p>' : "") + "</div>";
+  }
+  if (lunchOnly) h += '<p class="lede" style="margin-bottom:10px;">' + (cls && cls.goalTrade ? "\u2B50 <b>120 XP traders</b> \u2014 you hit 120 XP today, so you can trade with other players who did too!" : "\u2600\uFE0F <b>Lunch trading</b> until 1 pm \u2014 you hit 120 XP today, so you can trade with other players who did too!") + "</p>";
+  h += '<label class="modebox" style="margin-bottom:12px;"><input type="checkbox" data-trready="1"' + (ready ? " checked" : "") + "><span><b>I\u2019m ready to trade</b><small>Other ready players can send you offers, and you can send them offers.</small></span></label>";
+  if (!ready) return h + "</div>";
+
+  // make an offer (only to other ready players who can trade right now)
+  const others = ctx.students.filter(x => x.id !== s.id && hasStarter(x) && x.tradeReady && tradeOpenFor(x, cls));
+  if (!others.length) return h + '<p class="lede">Nobody else is ready to trade yet. Hang tight!</p></div>';
   const who = others.find(x => x.id === pick.who) || null;
   const mineOk = offerable(s);
   const theirsOk = who ? offerable(who) : [];
@@ -82,6 +96,8 @@ export function tradeCard(ctx) {
   return h + "</div>";
 }
 
+// The "I'm ready to trade" box
+export function onTradeReady(el, ctx) { return ctx.patch({ tradeReady: !!el.checked }); }
 // A select changed
 export function onTradeChange(el, ctx) {
   const k = el.dataset.trsel; pick[k] = el.value;
@@ -104,6 +120,8 @@ export async function onTradeClick(el, ctx) {
     const o = ctx.students.find(x => x.id === pick.who); if (!o || !pick.mine || !pick.theirs) return;
     const g = snap(s, pick.mine), w = snap(o, pick.theirs);
     const why = problem(ctx, s, g, o, w); if (why) return ctx.flash(why);
+    if (!tradeOpenFor(s, ctx.cls) || !tradeOpenFor(o, ctx.cls)) return ctx.flash("Trading isn\u2019t open for both of you right now.");
+    if (!o.tradeReady) return ctx.flash(o.name + " isn\u2019t ready to trade right now.");
     if (mineOf(ctx, s).some(t => open(t) && t.a.id === s.id && t.b.id === o.id)) return ctx.flash("You already have an offer waiting for " + o.name + ".");
     await setDoc(newTradeRef(), { a: { id: s.id, name: s.name }, b: { id: o.id, name: o.name }, give: g, get: w, status: "offer", created: new Date().toISOString() });
     pick = { who: "", theirs: "", mine: "" };
@@ -115,6 +133,7 @@ export async function onTradeClick(el, ctx) {
     return ctx.render(true);
   }
   if (a === "accept") {
+    if (!tradeOpenFor(s, ctx.cls)) return ctx.flash("Trading is closed right now \u2014 you can accept when it opens.");
     const giver = ctx.students.find(x => x.id === t.a.id); if (!giver) return ctx.flash("That player isn’t here anymore.");
     const g = t.give.spare ? snap(giver, "s:" + t.give.spare) : snap(giver, "m:" + t.give.fam), w = t.get.spare ? snap(s, "s:" + t.get.spare) : snap(s, "m:" + t.get.fam);
     const why = problem(ctx, giver, g, s, w);

@@ -6,7 +6,7 @@ import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watch
 import { nudgeCard } from "./nudges.js";
 import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js";
 import { teacherPlayer, hasStarter } from "./collect.js";
-import { onTradeClick, onTradeChange, settleTrades } from "./trade-ui.js";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js";
 import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js";
 
 let cls = null, students = [], battles = [], trades = [], loaded = { c: false, s: false };
@@ -307,6 +307,7 @@ function battleCard(s, c) {
 }
 
 document.addEventListener("change", ev => {
+  if (ev.target.dataset && ev.target.dataset.trready) { const s = students.find(x => x.id === me); if (s && !PREVIEW) onTradeReady(ev.target, collectorCtx(s)); return; }
   if (ev.target.dataset && ev.target.dataset.trsel) { const s = students.find(x => x.id === me); if (s) onTradeChange(ev.target, collectorCtx(s)); return; }
   if (ev.target.id === "previewPick") { me = ev.target.value; history.replaceState(null, "", "?s=" + encodeURIComponent(me) + "&preview=1"); picking = null; render(true); scrollTo({ top: 0 }); }
 });

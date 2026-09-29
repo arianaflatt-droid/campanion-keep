@@ -1,5 +1,5 @@
 import { newlyEarned, badgeById } from "./badges.js";
-import { onTradeClick, onTradeChange, settleTrades } from "./trade-ui.js";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js";
 import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js";
 import {
   applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
@@ -7,7 +7,7 @@ import {
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked
 } from "./game.js";
-import { EVENTS, eventOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js";
+import { EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db
@@ -456,15 +456,21 @@ function duckAdmin() {
 }
 function viewCollector() {
   const open = arenaOpen(cls), ov = cls.arenaOverride || "auto";
+  const tOpen = tradeOpen(cls), tov = cls.tradeOff ? "closed" : cls.tradeOverride || "auto";
   const opt = (v, t) => '<option value="' + v + '"' + (ov === v ? " selected" : "") + ">" + t + "</option>";
-  let h = '<div class="card"><div class="card-head"><h2>\u{1F95A} Creature Collector</h2><button class="btn small ' + (open ? "" : "ghost") + '" data-act="arenaToggle" title="Click to ' + (open ? "close" : "open") + ' the arena">\u2694\uFE0F Arena ' + (open ? "OPEN \u00b7 click to close" : "closed \u00b7 click to open") + "</button></div>" +
+  const topt = (v, t) => '<option value="' + v + '"' + (tov === v ? " selected" : "") + ">" + t + "</option>";
+  let h = '<div class="card"><div class="card-head"><h2>\u{1F95A} Creature Collector</h2><button class="btn small ' + (open ? "" : "ghost") + '" data-act="arenaToggle" title="Click to ' + (open ? "close" : "open") + ' the arena">\u2694\uFE0F Arena ' + (open ? "OPEN \u00b7 click to close" : "closed \u00b7 click to open") + "</button>" +
+    '<button class="btn small ' + (tOpen ? "" : "ghost") + '" data-act="tradeToggle" title="Click to ' + (tOpen ? "close" : "open") + ' trading">\u{1F504} Trading ' + (tOpen ? "OPEN \u00b7 click to close" : "closed \u00b7 click to open") + "</button></div>" +
     '<div class="row" style="margin-bottom:12px;"><div class="field"><label for="collStart">Counting XP since</label><input id="collStart" type="date" value="' + esc(cls.collectorStart || "") + '"></div>' +
     '<button class="btn ghost" data-act="saveCollStart">Save</button>' +
     '<div class="field"><label for="arenaOv">Battle arena</label><select id="arenaOv">' + opt("auto", "On schedule") + opt("open", "Open now (all day)") + opt("closed", "Closed") + "</select></div>" +
     '<label class="modebox" style="margin:0;padding:8px 12px;"><input type="checkbox" id="lunchArenaBox"' + (cls.lunchArena === false ? "" : " checked") + '><span><b>\u2600\uFE0F Lunch arena</b><small>Weekdays 12\u20131 pm for students who already hit 120 XP today</small></span></label>' +
     '<label class="modebox" style="margin:0;padding:8px 12px;"><input type="checkbox" id="goalArenaBox"' + (cls.goalArena ? " checked" : "") + '><span><b>\u2B50 120 XP battlers</b><small>Any weekday, any time: students who hit 120 XP today can battle each other</small></span></label>' +
-    '<label class="modebox" style="margin:0;padding:8px 12px;"><input type="checkbox" id="tradeBox"' + (cls.tradeOff ? "" : " checked") + '><span><b>\u{1F504} Trading</b><small>Students (and you) can swap creatures when both agree</small></span></label>' +
     '<label class="modebox" style="margin:0;padding:8px 12px;"><input type="checkbox" id="lunchBonusBox"' + (cls.lunchBonus === false ? "" : " checked") + '><span><b>\u2600\uFE0F Lunch Hero bonus egg</b><small>+1 egg for students whose lunch data shows 120+ XP</small></span></label></div>' +
+    '<div class="row" style="margin-bottom:12px;"><div class="field"><label for="tradeOv">\u{1F504} Trading</label><select id="tradeOv">' + topt("auto", "On schedule") + topt("open", "Open now (all day)") + topt("closed", "Closed") + "</select></div>" +
+    '<label class="modebox" style="margin:0;padding:8px 12px;"><input type="checkbox" id="lunchTradeBox"' + (cls.lunchTrade === false ? "" : " checked") + '><span><b>\u2600\uFE0F Lunch trading</b><small>Weekdays 12\u20131 pm for students who already hit 120 XP today</small></span></label>' +
+    '<label class="modebox" style="margin:0;padding:8px 12px;"><input type="checkbox" id="goalTradeBox"' + (cls.goalTrade ? " checked" : "") + '><span><b>\u2B50 120 XP traders</b><small>Any weekday, any time: students who hit 120 XP today can trade with each other</small></span></label></div>' +
+    '<p class="lede" style="font-size:12.5px;margin-bottom:10px;">Trading uses the same hours as the arena. Students have to tick \u201cI\u2019m ready to trade\u201d before anyone can send them an offer. Offers can always be declined or cancelled, but only accepted while trading is open.</p>' +
     '<p class="lede" style="font-size:12.5px;margin-bottom:10px;">Each day since that date: 120+ XP = 1 egg, plus 1 more for every extra 120 that day (under 120 = no egg). All XP also stays in each student\u2019s bank for levels. Arena schedule: ' + esc(ARENA_HOURS) + ".</p>";
   const rows = students.filter(x => x.companionId);
   if (!rows.length) return h + '<p class="lede">No students yet.</p></div>';
@@ -825,11 +831,15 @@ document.addEventListener("change", async ev => {
   const id = ev.target.id;
   if (id === "hauntBox") { await toggleHaunt(); return; }
   if (id === "gobbleBox") { await toggleGobble(); return; }
+  if (ev.target.dataset && ev.target.dataset.trready) { if (cls) onTradeReady(ev.target, tctx()); return; }
   if (ev.target.dataset && ev.target.dataset.trsel) { if (cls) onTradeChange(ev.target, tctx()); return; }
   if (id === "lunchBonusBox") { const on = ev.target.checked; try { await updateDoc(classRef, { lunchBonus: on }); flash("Saved \u2014 Lunch Hero bonus egg " + (on ? "on" : "off") + "."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
   if (id === "tradeBox") { const on = ev.target.checked; try { await updateDoc(classRef, { tradeOff: !on }); flash("Saved \u2014 trading " + (on ? "on" : "off") + "."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
   if (id === "goalArenaBox") { const on = ev.target.checked; try { await updateDoc(classRef, { goalArena: on }); flash("Saved \u2014 120 XP battlers " + (on ? "can battle any time on weekdays" : "follow the normal schedule") + "."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
   if (id === "lunchArenaBox") { const on = ev.target.checked; try { await updateDoc(classRef, { lunchArena: on }); flash("Saved \u2014 lunch arena " + (on ? "on" : "off") + "."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
+  if (id === "tradeOv") { const v = ev.target.value; try { await updateDoc(classRef, { tradeOverride: v === "auto" ? null : v, tradeOff: false }); flash("Saved \u2014 trading " + (v === "auto" ? "on its schedule" : v) + "."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
+  if (id === "lunchTradeBox") { const on = ev.target.checked; try { await updateDoc(classRef, { lunchTrade: on }); flash("Saved \u2014 lunch trading " + (on ? "on" : "off") + "."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
+  if (id === "goalTradeBox") { const on = ev.target.checked; try { await updateDoc(classRef, { goalTrade: on }); flash("Saved \u2014 120 XP traders " + (on ? "can trade any time on weekdays" : "follow the normal schedule") + "."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
   if (id === "arenaOv") { const v = ev.target.value; try { await updateDoc(classRef, { arenaOverride: v === "auto" ? null : v }); flash("Saved \u2014 arena " + (v === "auto" ? "on its schedule" : v) + "."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
   if (id === "lossRange") { busy.lossRange = ev.target.value; render(); return; }
   if (id === "lossFrom") { busy.lossFrom = ev.target.value; render(); return; }
@@ -1007,6 +1017,11 @@ document.addEventListener("click", async ev => {
   }
   if (act === "lateCancel") { busy.lunchLate = null; render(); return; }
   if (act === "lateAsDay") { const up = Object.assign({}, busy.lunchLate, { kind: "day" }); busy.lunchLate = null; busy.lastUpload = up; await applyUpload(up); return; }
+  if (act === "tradeToggle") {
+    const v = tradeOpen(cls) ? "closed" : "open";
+    try { await updateDoc(classRef, { tradeOverride: v, tradeOff: false }); flash("Saved \u2014 trading " + (v === "open" ? "OPEN for everyone. Set the Trading menu back to \u201cOn schedule\u201d to follow the normal hours." : "closed.")); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); }
+    return;
+  }
   if (act === "arenaToggle") {
     const v = arenaOpen(cls) ? "closed" : "open";
     try { await updateDoc(classRef, { arenaOverride: v }); flash("Saved \u2014 arena " + (v === "open" ? "OPEN for everyone. Set the menu back to \u201cOn schedule\u201d to follow the normal hours." : "closed.")); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); }

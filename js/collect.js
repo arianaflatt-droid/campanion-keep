@@ -174,7 +174,7 @@ export function teacherPlayer(cls, name) {
   const t = (cls && cls.teacher) || {};
   return { id: TEACHER_ID, isTeacher: true, name: name || t.name || "Ms. Ariana", companionId: "teacher", coll: t.coll || {},
     pullsUsed: Number(t.pullsUsed) || 0, xpSpent: Number(t.xpSpent) || 0, bonusPulls: Number(t.eggsEarned) || 0, bonusXP: Number(t.xpEarned) || 0,
-    legendaryPulls: 0, legendaryUsed: 0, arenaReady: !!t.arenaReady, xpHist: {}, spares: t.spares || [], dex: t.dex || [] };
+    legendaryPulls: 0, legendaryUsed: 0, arenaReady: !!t.arenaReady, tradeReady: t.tradeReady !== false, xpHist: {}, spares: t.spares || [], dex: t.dex || [] };
 }
 export function rollTeacherRarity() {
   let r = Math.random();
@@ -231,6 +231,28 @@ export function arenaOpen(cls, date) {
   const t = azNow(date), mins = t.h * 60 + t.m;
   if (t.day === "Sat" || t.day === "Sun") return true;
   return (mins >= 11 * 60 && mins < 12 * 60) || mins >= 14 * 60;
+}
+/* ---------- Trading schedule ----------
+   Same hours and switches as the arena, set separately: tradeOverride ("open"/"closed"), lunchTrade, goalTrade.
+   tradeOff (the old on/off switch) still counts as closed. */
+export function tradeOpen(cls, date) {
+  if (cls && cls.tradeOff) return false;
+  const o = cls && cls.tradeOverride;
+  if (o === "open") return true;
+  if (o === "closed") return false;
+  const t = azNow(date), mins = t.h * 60 + t.m;
+  if (t.day === "Sat" || t.day === "Sun") return true;
+  return (mins >= 11 * 60 && mins < 12 * 60) || mins >= 14 * 60;
+}
+export function tradeOpenFor(st, cls, date) {
+  const closed = cls && (cls.tradeOff || cls.tradeOverride === "closed");
+  if (st && st.isTeacher) return !closed;
+  if (tradeOpen(cls, date)) return true;
+  if (closed) return false;
+  if (!hitGoalToday(st, cls, date)) return false;
+  if (cls && cls.goalTrade && !["Sat", "Sun"].includes(azNow(date).day)) return true;
+  if (cls && cls.lunchTrade === false) return false;
+  return lunchHour(date);
 }
 export const ARENA_HOURS = "Weekdays 11 am–12 pm and 2 pm–midnight · all day on weekends (Arizona time)";
 // Lunch arena: weekdays 12–1 pm, only for students who already hit 120 XP today (lunch or end-of-day upload).
