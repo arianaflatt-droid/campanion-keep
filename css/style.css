@@ -624,7 +624,7 @@
 .bdg-hint b{ color:var(--ink); }
 
 /* pinned badge + badge pop-up + level-100 companions */
-.tile .pinbadge{ position:absolute; top:4px; right:4px; width:46px; height:46px; object-fit:contain; z-index:3; filter:drop-shadow(0 2px 3px rgba(0,0,0,.25)); }
+.tile .pinbadge{ position:absolute; top:4px; left:4px; width:46px; height:46px; object-fit:contain; z-index:3; filter:drop-shadow(0 2px 3px rgba(0,0,0,.25)); }
 .mypet{ position:relative; }
 .pinbadge.mine{ position:absolute; top:8px; right:8px; width:64px; height:64px; object-fit:contain; z-index:3; filter:drop-shadow(0 2px 4px rgba(0,0,0,.25)); }
 .crpet{ width:1em; height:1em; object-fit:contain; display:inline-block; vertical-align:bottom; margin:0 .125em; }
@@ -762,3 +762,7 @@ td .emo, .ic .emo{ display:inline-block; vertical-align:middle; font-size:1.3em;
   .lede .gimg{ display:inline-block; vertical-align:middle; height:1.4em; }
   .eggwrap.haunt{ aspect-ratio:475/520; }
   .eggwrap.harvest{ aspect-ratio:513/520; }
+
+  /* pinned badge sits top-left (Lunch Hero stays top-right), so the rank number moves to the bottom-right */
+  .tile .rank{ top:auto; bottom:8px; left:auto; right:10px; }
+  .tile.haunted .pinbadge{ top:34px; left:auto; right:6px; width:40px; height:40px; }

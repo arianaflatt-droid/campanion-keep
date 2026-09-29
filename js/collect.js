@@ -50,13 +50,14 @@ export function dayXPs(st, cls) {
   return out;
 }
 export function eggsFromXP(xp) { return xp >= PULL_XP ? Math.floor(xp / PULL_XP) : 0; }
-// Lunch Hero bonus: +1 egg on every day a student's lunch data already showed 120+ XP.
+// Lunch Hero bonus: +1 egg on every day a student is Lunch Hero: their lunch data already showed 120+ XP,
+// or the teacher marked them Lunch Hero by hand (the ☀️ button, saved as xpHist[date].lh).
 // (Lunch data is only accepted before the lunch cutoff, so this can't be earned in the afternoon.)
 export const LUNCH_BONUS_EGGS = 1;
 export function lunchBonusDays(st, cls) {
   if (cls && cls.lunchBonus === false) return 0;
   const start = (cls && cls.collectorStart) || "0000-00-00", goal = (cls && Number(cls.goal)) || 120, hist = st.xpHist || {};
-  return Object.keys(hist).filter(d => d >= start && hist[d] && hist[d].l != null && Number(hist[d].l) >= goal).length;
+  return Object.keys(hist).filter(d => d >= start && hist[d] && (hist[d].lh || (hist[d].l != null && Number(hist[d].l) >= goal))).length;
 }
 export function pullsEarned(st, cls) {
   return dayXPs(st, cls).reduce((n, d) => n + eggsFromXP(d.xp), 0) + lunchBonusDays(st, cls) * LUNCH_BONUS_EGGS + (Number(st.bonusPulls) || 0);

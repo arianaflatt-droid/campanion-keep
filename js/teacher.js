@@ -466,7 +466,7 @@ function viewCollector() {
     '<div class="field"><label for="arenaOv">Battle arena</label><select id="arenaOv">' + opt("auto", "On schedule") + opt("open", "Open now (all day)") + opt("closed", "Closed") + "</select></div>" +
     '<label class="modebox" style="margin:0;padding:8px 12px;"><input type="checkbox" id="lunchArenaBox"' + (cls.lunchArena === false ? "" : " checked") + '><span><b>\u2600\uFE0F Lunch arena</b><small>Weekdays 12\u20131 pm for students who already hit 120 XP today</small></span></label>' +
     '<label class="modebox" style="margin:0;padding:8px 12px;"><input type="checkbox" id="goalArenaBox"' + (cls.goalArena ? " checked" : "") + '><span><b>\u2B50 120 XP battlers</b><small>Any weekday, any time: students who hit 120 XP today can battle each other</small></span></label>' +
-    '<label class="modebox" style="margin:0;padding:8px 12px;"><input type="checkbox" id="lunchBonusBox"' + (cls.lunchBonus === false ? "" : " checked") + '><span><b>\u2600\uFE0F Lunch Hero bonus egg</b><small>+1 egg for students whose lunch data shows 120+ XP</small></span></label></div>' +
+    '<label class="modebox" style="margin:0;padding:8px 12px;"><input type="checkbox" id="lunchBonusBox"' + (cls.lunchBonus === false ? "" : " checked") + '><span><b>\u2600\uFE0F Lunch Hero bonus egg</b><small>+1 egg every day a student is Lunch Hero (lunch data at 120+ XP, or marked by hand with the \u2600\uFE0F button)</small></span></label></div>' +
     '<div class="row" style="margin-bottom:12px;"><div class="field"><label for="tradeOv">\u{1F504} Trading</label><select id="tradeOv">' + topt("auto", "On schedule") + topt("open", "Open now (all day)") + topt("closed", "Closed") + "</select></div>" +
     '<label class="modebox" style="margin:0;padding:8px 12px;"><input type="checkbox" id="lunchTradeBox"' + (cls.lunchTrade === false ? "" : " checked") + '><span><b>\u2600\uFE0F Lunch trading</b><small>Weekdays 12\u20131 pm for students who already hit 120 XP today</small></span></label>' +
     '<label class="modebox" style="margin:0;padding:8px 12px;"><input type="checkbox" id="goalTradeBox"' + (cls.goalTrade ? " checked" : "") + '><span><b>\u2B50 120 XP traders</b><small>Any weekday, any time: students who hit 120 XP today can trade with each other</small></span></label></div>' +
@@ -803,6 +803,7 @@ async function applyUpload(up) {
     const status = arr5(s.status, ""), early = arr5(s.early, false);
     const hist = Object.assign({}, s.xpHist || {}), day = Object.assign({}, hist[date] || {});
     if (has) day[key] = xp; else delete day[key];
+    if (up.kind === "lunch") delete day.lh;   // a lunch upload replaces any hand-marked Lunch Hero for that day
     if (Object.keys(day).length) hist[date] = day; else delete hist[date];
     let data;
     if (up.kind === "lunch") {
@@ -874,7 +875,11 @@ document.addEventListener("click", async ev => {
     const s = sOf(el.dataset.lunch), early = arr5(s.early, false), st = arr5(s.status, "");
     early[day] = !early[day];
     if (early[day] && st[day] !== "e") st[day] = "c";
-    return patch(s.id, { early, status: st });
+    // remember a hand-marked Lunch Hero in the XP history too, so it earns the Lunch Hero bonus egg
+    const date = dateOfDay(day), hist = Object.assign({}, s.xpHist || {}), h = Object.assign({}, hist[date] || {});
+    if (early[day]) h.lh = true; else delete h.lh;
+    if (Object.keys(h).length) hist[date] = h; else delete hist[date];
+    return patch(s.id, { early, status: st, xpHist: hist });
   }
   if ((el = ev.target.closest("[data-excuse]"))) {
     const s = sOf(el.dataset.excuse), st = arr5(s.status, "");

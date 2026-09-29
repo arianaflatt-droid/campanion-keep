@@ -89,17 +89,17 @@ export function cornucopiaHTML(corn, cls) {
 //   eyes = [x, y, size, tilt]  centre of the sunglasses
 //   snack = [x, y]             snack pack beside the pet
 export const ROSTER = [
-  { id: "otter",   name: "River Otter",      glyph: "\u{1F9A6}", fit: { hat: [0.3, 0.3, 0.3, -20], cap: [0.3, 0.33, 0.32, -20], eyes: [0.41, 0.41, 0.26, -18], snack: [1.08, 0.82] } },
-  { id: "raccoon", name: "Raccoon",          glyph: "\u{1F99D}", fit: { hat: [0.8, 0.2, 0.38, 8], cap: [0.8, 0.24, 0.4, 8], eyes: [0.84, 0.38, 0.32, 6], snack: [1.14, 0.88] } },
-  { id: "fox",     name: "Red Fox",          glyph: "\u{1F98A}", fit: { hat: [0.84, 0.21, 0.36, 8], cap: [0.84, 0.25, 0.38, 8], eyes: [0.86, 0.4, 0.32, 6], snack: [1.14, 0.88] } },
-  { id: "sloth",   name: "Sloth",            glyph: "\u{1F9A5}", fit: { hat: [0.47, 0.31, 0.34, -10], cap: [0.49, 0.33, 0.36, -10], eyes: [0.49, 0.52, 0.32, -14], snack: [0.98, 0.88] } },
-  { id: "badger",  name: "Honey Badger",     glyph: "\u{1F9A1}", fit: { hat: [0.84, 0.21, 0.36, 12], cap: [0.84, 0.25, 0.38, 12], eyes: [0.93, 0.39, 0.3, 10], snack: [1.16, 0.88] } },
+  { id: "otter",   name: "River Otter",      glyph: "\u{1F9A6}", fit: { hat: [0.3, 0.3, 0.3, -20], cap: [0.3, 0.33, 0.32, -20], eyes: [0.36, 0.37, 0.32, -25], snack: [1.08, 0.82] } },
+  { id: "raccoon", name: "Raccoon",          glyph: "\u{1F99D}", fit: { hat: [0.8, 0.2, 0.38, 8], cap: [0.8, 0.24, 0.4, 8], eyes: [0.85, 0.35, 0.32, -8], snack: [1.14, 0.88] } },
+  { id: "fox",     name: "Red Fox",          glyph: "\u{1F98A}", fit: { hat: [0.84, 0.21, 0.36, 8], cap: [0.84, 0.25, 0.38, 8], eyes: [0.87, 0.38, 0.32, -8], snack: [1.14, 0.88] } },
+  { id: "sloth",   name: "Sloth",            glyph: "\u{1F9A5}", fit: { hat: [0.47, 0.31, 0.34, -10], cap: [0.49, 0.33, 0.36, -10], eyes: [0.48, 0.51, 0.34, -30], snack: [0.98, 0.88] } },
+  { id: "badger",  name: "Honey Badger",     glyph: "\u{1F9A1}", fit: { hat: [0.84, 0.21, 0.36, 12], cap: [0.84, 0.25, 0.38, 12], eyes: [0.94, 0.37, 0.3, -10], snack: [1.16, 0.88] } },
   { id: "octopus", name: "Octopus",          glyph: "\u{1F419}", fit: { hat: [0.635, 0.1, 0.5, 0], cap: [0.635, 0.16, 0.5, 0], eyes: [0.665, 0.29, 0.36, 0], snack: [1.12, 0.86] } },
   { id: "dragon",  name: "Dragon Hatchling", glyph: "\u{1F409}", fit: { hat: [0.745, 0.19, 0.38, 4], cap: [0.745, 0.23, 0.4, 4], eyes: [0.775, 0.325, 0.3, 6], snack: [1.12, 0.88] } },
-  { id: "unicorn", name: "Unicorn Foal",     glyph: "\u{1F984}", fit: { hat: [0.8, 0.2, 0.32, 10], cap: [0.8, 0.23, 0.34, 10], eyes: [0.9, 0.35, 0.24, 8], snack: [1.02, 0.84] } },
+  { id: "unicorn", name: "Unicorn Foal",     glyph: "\u{1F984}", fit: { hat: [0.8, 0.2, 0.32, 10], cap: [0.8, 0.23, 0.34, 10], eyes: [0.92, 0.345, 0.26, -4], snack: [1.02, 0.84] } },
   { id: "griffin", name: "Griffin Cub",      glyph: "\u{1F985}", fit: { hat: [0.5, 0.21, 0.36, -6], cap: [0.5, 0.25, 0.38, -6], eyes: [0.44, 0.33, 0.34, -10], snack: [1.12, 0.88] } },
   { id: "sprite",  name: "Pixel Sprite",     glyph: "\u{1F47E}", fit: { hat: [0.625, 0.35, 0.46, 0], cap: [0.625, 0.38, 0.48, 0], eyes: [0.625, 0.52, 0.56, 0], snack: [1.14, 0.86] } },
-  { id: "pixie",   name: "Pixie",            glyph: "\u{1F9DA}", fit: { hat: [0.7, 0.19, 0.34, 6], cap: [0.72, 0.22, 0.36, 6], eyes: [0.78, 0.39, 0.28, 8], snack: [1.02, 0.82] } },
+  { id: "pixie",   name: "Pixie",            glyph: "\u{1F9DA}", fit: { hat: [0.7, 0.19, 0.34, 6], cap: [0.72, 0.22, 0.36, 6], eyes: [0.8, 0.385, 0.3, 0], snack: [1.02, 0.82] } },
   { id: "golem",   name: "Stone Golem",      glyph: "\u{1F5FF}", fit: { hat: [0.64, 0.2, 0.36, 4], cap: [0.64, 0.23, 0.38, 4], eyes: [0.66, 0.37, 0.34, 4], snack: [1.14, 0.88] } }
 ];
 
@@ -277,6 +277,13 @@ export function applyDisplayNames(students) {
 /* A level-100 creature can be picked as the companion instead (st.petCreature = its family id).
    Limited event Legendaries (Duckarune, Hexaduck, Wisholotl, Thanksolotl...) can be picked at any level. */
 export const PET_LEVEL = 100;
+// Where gear sits on the event Legendaries (their pictures aren't centred like the companions).
+const CREATURE_FIT = {
+  "L-26": { hat: [0.855, 0.37, 0.24, 6], cap: [0.855, 0.4, 0.26, 6], eyes: [0.88, 0.49, 0.2, 0], snack: [1.08, 0.9] },     // Duckarune
+  "L-27": { hat: [0.79, 0.22, 0.26, 8], cap: [0.8, 0.27, 0.28, 8], eyes: [0.84, 0.345, 0.2, 10], snack: [1.08, 0.9] },     // Hexaduck
+  "L-28": { hat: [0.83, 0.49, 0.26, 0], cap: [0.83, 0.52, 0.28, 0], eyes: [0.815, 0.69, 0.22, 0], snack: [1.1, 0.95] },    // Wisholotl
+  "L-29": { hat: [0.37, 0.39, 0.24, -4], cap: [0.37, 0.42, 0.26, -4], eyes: [0.345, 0.465, 0.2, -6], snack: [1.1, 0.95] } // Thanksolotl
+};
 export function creatureCompanion(st, fam) {
   const e = ((st && st.coll) || {})[fam];
   if (!e) return null;
@@ -285,7 +292,7 @@ export function creatureCompanion(st, fam) {
   const img = e.sparkle ? sparkleImg(c) : c.img;
   return { id: "cr:" + fam, fam, name: c.name, creature: true, sparkle: !!e.sparkle,
     glyph: '<img class="crpet" src="' + img + '" alt="">',
-    fit: { hat: [0.62, 0.1, 0.42, 0], eyes: [0.64, 0.34, 0.3, 0], snack: [1.1, 0.86] } };
+    fit: CREATURE_FIT[fam] || { hat: [0.62, 0.1, 0.42, 0], eyes: [0.64, 0.34, 0.3, 0], snack: [1.1, 0.86] } };
 }
 export function petCreatures(st) { return Object.keys((st && st.coll) || {}).map(f => creatureCompanion(st, f)).filter(Boolean); }
 export function companionOf(st) {
