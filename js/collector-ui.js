@@ -2,7 +2,7 @@
 import {
   CREATURES, FAMILIES, creature, family, xpTotal, pullsLeft, legendaryLeft, bankXP, xpToNextPull, owned, ownedFams, hasStarter,
   formIndex, formOf, statsOf, seenSet, rollRarity, doPull, arenaOpen, arenaOpenFor, lunchHour, hitGoalToday, LUNCH_ARENA, ARENA_HOURS, fighterFrom, teamSize, alive, resolve,
-  birthdayLeft, WISH_FAM, spares, spareId, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
+  birthdayLeft, WISH_FAM, spares, spareId, releaseXP, releaseProblem, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
   EVENTS, eventOpen, eventWindow, eventStreak, hasEvent, eventUnlocked, azToday, rollTeacherRarity, TEACHER_ODDS
 } from "./collect.js";
 import { newBattleRef, changeBattle, setDoc } from "./db.js";
@@ -85,6 +85,13 @@ function starterView() {
 
 // Nicknames: saved on the creature's family (coll[fam].nick), so they stay through evolutions.
 let naming = null;
+let releasing = null;   // "m:FAM" or "s:ID" waiting for "Yes, release"
+function releaseRow(key, fam, name) {
+  const xp = releaseXP(fam);
+  if (releasing === key) return '<div class="relask"><small>Release ' + esc(name) + " for <b>" + xp + ' XP</b>? It\u2019s gone for good.</small>' +
+    '<div class="row" style="gap:4px;justify-content:center;"><button class="btn small danger" data-cc="releaseOk" data-key="' + esc(key) + '">Yes, release</button><button class="btn ghost small" data-cc="releaseCancel">Keep it</button></div></div>';
+  return '<button class="relbtn" data-cc="release" data-key="' + esc(key) + '" title="Release it for ' + xp + ' XP">\u{1F54A}\uFE0F Release \u00b7 ' + xp + " XP</button>";
+}
 const NICK_MAX = 16;
 function nameRow(f, e, c) {
   if (naming === f) return '<div class="nickedit"><input id="nickIn" type="text" maxlength="' + NICK_MAX + '" value="' + esc(e.nick || "") + '" placeholder="' + esc(c.name) + '">' +
@@ -102,7 +109,8 @@ function myCreatures(s, bank) {
       nameRow(f, e, c) + '<span class="lv">Lv ' + lvl + "</span>" +
       '<small class="muted">❤ ' + st.hp + " · \u{1F6E1} " + st.df + " · ⚔ " + st.dmg + "</small>" +
       (next && evoAt ? '<small class="evo">Evolves at Lv ' + evoAt + "</small>" : "") +
-      '<button class="btn small" data-cc="lvl" data-fam="' + f + '"' + (bank >= LEVEL_XP && !maxed ? "" : " disabled") + ">" + (maxed ? "Max level" : "⬆ Level up · " + LEVEL_XP + " XP") + "</button></div>";
+      '<button class="btn small" data-cc="lvl" data-fam="' + f + '"' + (bank >= LEVEL_XP && !maxed ? "" : " disabled") + ">" + (maxed ? "Max level" : "⬆ Level up · " + LEVEL_XP + " XP") + "</button>" +
+      (fams.length > 1 && !family(f).event && s.starter !== f && s.petCreature !== f ? releaseRow("m:" + f, f, e.nick || c.name) : "") + "</div>";
   });
   h += "</div>";
   const sp = spares(s);
@@ -112,7 +120,8 @@ function myCreatures(s, bank) {
       const c = formOf(x.fam, x.lvl || 1), mine = owned(s)[x.fam];
       h += '<div class="mycard spare" style="--rc:' + RARITY_COLOR[c.rarity] + '"><div class="mypic">' + img(c, "", !!x.sparkle) + "</div>" +
         "<b>" + (x.sparkle ? "\u2728 " : "") + esc(c.name) + '</b><span class="lv">Lv ' + (x.lvl || 1) + " \u00b7 spare</span>" +
-        '<button class="btn small ghost" data-cc="useSpare" data-sp="' + x.id + '">' + (mine ? "\u2B06 Use for +1 level" : "Add to my collection") + "</button></div>";
+        '<button class="btn small ghost" data-cc="useSpare" data-sp="' + x.id + '">' + (mine ? "\u2B06 Use for +1 level" : "Add to my collection") + "</button>" +
+        (family(x.fam).event ? "" : releaseRow("s:" + x.id, x.fam, c.name)) + "</div>";
     });
     h += "</div>";
   }
@@ -368,6 +377,25 @@ export async function onClick(el, c) {
     coll[sp.fam] = had ? Object.assign({}, had, { lvl: Math.min(MAX_LEVEL, (had.lvl || 1) + 1) }) : { lvl: sp.lvl || 1, at: new Date().toISOString(), ...(sp.sparkle ? { sparkle: true } : {}) };
     c.flash(had ? "Used your spare: +1 level!" : "It\u2019s part of your collection now!", true);
     return c.patch({ coll, spares: spares(s).filter(x => x.id !== sp.id) });
+  }
+  if (a === "release") { releasing = el.dataset.key; return c.render(true); }
+  if (a === "releaseCancel") { releasing = null; return c.render(true); }
+  if (a === "releaseOk") {   // release a creature (or spare) for banked XP
+    const key = el.dataset.key; releasing = null;
+    const why = releaseProblem(s, key, c.battles, c.trades); if (why) { c.render(true); return c.flash(why); }
+    let fam, name, data;
+    if (key.startsWith("s:")) {
+      const sp = spares(s).find(x => x.id === key.slice(2)); fam = sp.fam; name = formOf(fam, sp.lvl || 1).name;
+      data = { spares: spares(s).filter(x => x.id !== sp.id) };
+    } else {
+      fam = key.slice(2); const e = owned(s)[fam], top = formIndex(fam, e.lvl || 1); name = e.nick || formOf(fam, e.lvl || 1).name;
+      const coll = Object.assign({}, owned(s)); delete coll[fam];
+      const dex = new Set(s.dex || []); family(fam).forms.forEach((id, i) => { if (i <= top) dex.add(id); });   // the lorebook keeps it
+      data = { coll, dex: [...dex] };
+    }
+    const xp = releaseXP(fam); data.xpReleased = (Number(s.xpReleased) || 0) + xp;
+    c.flash("Bye, " + name + "! +" + xp + " XP in your bank.", true);
+    return c.patch(data);
   }
   if (a === "book") { book = { open: false, page: 0 }; return c.render(true); }
   if (a === "bookOpen") { book.opening = true; hold(900); c.render(true); later(850, () => { book.open = true; book.opening = false; book.flip = "turn-in"; busyUntil = 0; }); return; }

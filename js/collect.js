@@ -72,7 +72,29 @@ export function pullsLeft(st, cls) { return Math.max(0, pullsEarned(st, cls) - (
 export const WISH_FAM = "L-28";
 export function birthdayLeft(st) { return Math.max(0, (Number(st.birthdayEggs) || 0) - (Number(st.birthdayUsed) || 0)); }
 export function legendaryLeft(st) { return Math.max(0, (Number(st.legendaryPulls) || 0) - (Number(st.legendaryUsed) || 0)); }
-export function bankXP(st, cls) { return Math.max(0, xpTotal(st, cls) + (Number(st.bonusXP) || 0) - (Number(st.xpSpent) || 0)); }
+export function bankXP(st, cls) { return Math.max(0, xpTotal(st, cls) + (Number(st.bonusXP) || 0) + (Number(st.xpReleased) || 0) - (Number(st.xpSpent) || 0)); }
+/* ---------- releasing ----------
+   A creature (from the collection or a spare) can be released for banked XP, by rarity.
+   Keep in step with the 300 cap in firestore.rules. */
+export const RELEASE_XP = { "Common": 20, "Uncommon": 40, "Rare": 80, "Super Rare": 150, "Legendary": 300 };
+export function releaseXP(fam) { const f = FAMILIES.find(x => x.id === fam); return (f && RELEASE_XP[f.rarity]) || 0; }
+// Why this creature can't be released right now (null = it can). key is "m:FAM" (collection) or "s:ID" (spare).
+export function releaseProblem(st, key, battles, trades) {
+  const isSpare = String(key).startsWith("s:");
+  const sp = isSpare ? spares(st).find(x => x.id === key.slice(2)) : null, fam = isSpare ? sp && sp.fam : String(key).replace(/^m:/, "");
+  if (!fam || (isSpare ? !sp : !owned(st)[fam])) return "That creature isn\u2019t here anymore.";
+  const f = FAMILIES.find(x => x.id === fam);
+  if (f && f.event) return "Limited event Legendaries can\u2019t be released.";
+  if (!isSpare) {
+    if (Object.keys(owned(st)).length < 2) return "You can\u2019t release your last creature.";
+    if (st.starter === fam) return "Your starter creature stays with you.";
+    if (st.petCreature === fam) return "That creature is your companion right now.";
+  }
+  if ((battles || []).some(b => ["invite", "team", "lead"].includes(b.status) && ((b.a && b.a.id === st.id) || (b.b && b.b.id === st.id)))) return "Finish your battle first!";
+  const inTrade = (trades || []).some(t => t.status === "offer" && [t.give, t.get].some(x => x && (isSpare ? x.spare === sp.id : !x.spare && x.fam === fam)) && ((t.a && t.a.id === st.id) || (t.b && t.b.id === st.id)));
+  if (inTrade) return "That creature is in a trade offer. Cancel the offer first.";
+  return null;
+}
 export function xpToNextPull(st, cls) { const x = todayXP(st, cls); return PULL_XP - (x % PULL_XP); }
 
 /* ---------- collection ----------
@@ -174,7 +196,7 @@ export const TEACHER_ODDS = [["Common", 0.6995], ["Uncommon", 0.20], ["Rare", 0.
 export function teacherPlayer(cls, name) {
   const t = (cls && cls.teacher) || {};
   return { id: TEACHER_ID, isTeacher: true, name: name || t.name || "Ms. Ariana", companionId: "teacher", coll: t.coll || {},
-    pullsUsed: Number(t.pullsUsed) || 0, xpSpent: Number(t.xpSpent) || 0, bonusPulls: Number(t.eggsEarned) || 0, bonusXP: Number(t.xpEarned) || 0,
+    pullsUsed: Number(t.pullsUsed) || 0, xpSpent: Number(t.xpSpent) || 0, bonusPulls: Number(t.eggsEarned) || 0, bonusXP: Number(t.xpEarned) || 0, xpReleased: Number(t.xpReleased) || 0,
     legendaryPulls: 0, legendaryUsed: 0, arenaReady: !!t.arenaReady, tradeReady: t.tradeReady !== false, xpHist: {}, spares: t.spares || [], dex: t.dex || [] };
 }
 export function rollTeacherRarity() {

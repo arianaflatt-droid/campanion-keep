@@ -766,3 +766,8 @@ td .emo, .ic .emo{ display:inline-block; vertical-align:middle; font-size:1.3em;
   /* pinned badge sits top-left (Lunch Hero stays top-right), so the rank number moves to the bottom-right */
   .tile .rank{ top:auto; bottom:8px; left:auto; right:10px; }
   .tile.haunted .pinbadge{ top:34px; left:auto; right:6px; width:40px; height:40px; }
+  /* releasing a creature for XP */
+  .relbtn{ border:0; background:none; color:var(--ink-3); font-size:11.5px; cursor:pointer; padding:2px 4px; margin-top:2px; }
+  .relbtn:hover{ color:var(--bad); text-decoration:underline; }
+  .relask{ display:flex; flex-direction:column; gap:4px; margin-top:4px; }
+  .relask small{ font-size:11.5px; line-height:1.3; }
