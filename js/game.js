@@ -1,4 +1,4 @@
-import { formOf, sparkleImg } from "./collect.js";
+import { formOf, sparkleImg, azNow } from "./collect.js";
 // Shared rules + drawing for the teacher console and the student page.
 
 export const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
@@ -204,12 +204,17 @@ export function tier(sim) {
 }
 
 // The day the board is "showing": the latest day with any counted or lunch data.
-export function boardDay(cls, students) {
+export function boardDay(cls, students, date) {
   const rec = recordedDays(cls);
   let day = -1;
   for (let d = 0; d < 5; d++) {
     if (rec[d] || students.some(s => arr5(s.early, false)[d])) day = d;
   }
+  // Once that day is finalized and a later school day has started, show today (so yesterday's
+  // lunch sidekicks and power-ups don't hang around until today's first upload).
+  const today = { Mon: 0, Tue: 1, Wed: 2, Thu: 3, Fri: 4 }[azNow(date).day];
+  const fin = arr5(cls && cls.finalized, false);
+  if (today != null && today > day && (day < 0 || fin[day])) day = today;
   return day;
 }
 
