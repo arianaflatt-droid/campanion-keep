@@ -772,3 +772,5 @@ td .emo, .ic .emo{ display:inline-block; vertical-align:middle; font-size:1.3em;
   .relask{ display:flex; flex-direction:column; gap:4px; margin-top:4px; }
   .relask small{ font-size:11.5px; line-height:1.3; }
   .relwhy{ color:var(--bad); font-size:11.5px; line-height:1.3; margin-top:4px; }
+  .hero .rings{ display:block; margin-top:6px; font-size:.72em; font-weight:800; color:#fff; }
+  .hero .rings b{ color:#FFE08A; }

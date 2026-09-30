@@ -4,7 +4,8 @@ import { formOf, sparkleImg, azNow } from "./collect.js";
 export const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 export const SHORT = ["Mon", "Tue", "Wed", "Thu", "Fri"];
 export const MAX_HP = 120, HALF_HP = 60;
-export const BANNER_TEXT = 'Keep Your Companion at Full Health Today and Earn <b>500 XP</b>!';
+export const BANNER_TEXT = 'Keep Your Companion at Full Health Today and Earn <b>500 XP</b>!' +
+  '<span class="rings">\u2B55 Close All Your Rings to Get a <b>Legendary Egg</b>! \u{1F95A}</span>';
 export const BANNER = '<div class="hero"><h2>' + BANNER_TEXT + "</h2></div>";
 export const HAUNT_BANNER = '<div class="hero haunt"><p class="haunt-tag">\u{1F383} Haunt-O-Ween Mode \u{1F47B}</p><h2>' + BANNER_TEXT +
   '</h2><p class="haunt-sub">Every XP is a piece of candy! Your companion eats the first 120 each day to power its attack \u2014 the rest fills your pumpkin basket.</p></div>';
@@ -91,7 +92,7 @@ export function cornucopiaHTML(corn, cls) {
 export const ROSTER = [
   { id: "otter",   name: "River Otter",      glyph: "\u{1F9A6}", fit: { hat: [0.3, 0.3, 0.3, -20], cap: [0.3, 0.33, 0.32, -20], eyes: [0.36, 0.37, 0.32, -25], snack: [1.08, 0.82] } },
   { id: "raccoon", name: "Raccoon",          glyph: "\u{1F99D}", fit: { hat: [0.8, 0.2, 0.38, 8], cap: [0.8, 0.24, 0.4, 8], eyes: [0.85, 0.35, 0.32, -8], snack: [1.14, 0.88] } },
-  { id: "fox",     name: "Red Fox",          glyph: "\u{1F98A}", fit: { hat: [0.84, 0.21, 0.36, 8], cap: [0.84, 0.25, 0.38, 8], eyes: [0.87, 0.38, 0.32, -8], snack: [1.14, 0.88] } },
+  { id: "fox",     name: "Red Fox",          glyph: "\u{1F98A}", fit: { hat: [0.84, 0.21, 0.36, 8], cap: [0.84, 0.25, 0.38, 8], eyes: [0.853, 0.393, 0.36, -23], snack: [1.14, 0.88] } },
   { id: "sloth",   name: "Sloth",            glyph: "\u{1F9A5}", fit: { hat: [0.47, 0.31, 0.34, -10], cap: [0.49, 0.33, 0.36, -10], eyes: [0.48, 0.51, 0.34, -30], snack: [0.98, 0.88] } },
   { id: "badger",  name: "Honey Badger",     glyph: "\u{1F9A1}", fit: { hat: [0.84, 0.21, 0.36, 12], cap: [0.84, 0.25, 0.38, 12], eyes: [0.94, 0.37, 0.3, -10], snack: [1.16, 0.88] } },
   { id: "octopus", name: "Octopus",          glyph: "\u{1F419}", fit: { hat: [0.635, 0.1, 0.5, 0], cap: [0.635, 0.16, 0.5, 0], eyes: [0.665, 0.29, 0.36, 0], snack: [1.12, 0.86] } },
