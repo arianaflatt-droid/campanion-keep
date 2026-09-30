@@ -104,13 +104,19 @@ function nameRow(f, e, c) {
   return (e.nick ? "<b>" + esc(e.nick) + '</b><small class="muted">' + esc(c.name) + "</small>" : "<b>" + esc(c.name) + "</b>") +
     '<button class="nickbtn" data-cc="nick" data-fam="' + f + '" title="Give it a name">\u270F\uFE0F ' + (e.nick ? "Rename" : "Name it") + "</button>";
 }
+// Favorites (coll[fam].fav) come first, then the rest in lorebook order.
+function sortedFams(s) {
+  const o = owned(s);
+  return ownedFams(s).sort((a, b) => (o[b].fav ? 1 : 0) - (o[a].fav ? 1 : 0) || formOf(a, 1).id - formOf(b, 1).id);
+}
+const favBtn = (f, e) => '<button class="favbtn' + (e.fav ? " on" : "") + '" data-cc="fav" data-fam="' + f + '" title="' + (e.fav ? "Remove from favorites" : "Add to favorites") + '" aria-label="Favorite">' + (e.fav ? "\u2B50" : "\u2606") + "</button>";
 function myCreatures(s, bank) {
-  const fams = ownedFams(s).sort((a, b) => formOf(a, 1).id - formOf(b, 1).id);
-  let h = '<div class="card"><div class="card-head"><h2>My creatures</h2><span class="fact">' + fams.length + " families</span></div><div class=\"mygrid\">";
+  const fams = sortedFams(s), nFav = fams.filter(f => owned(s)[f].fav).length;
+  let h = '<div class="card"><div class="card-head"><h2>My creatures</h2><span class="fact">' + fams.length + " families" + (nFav ? " \u00b7 \u2B50 " + nFav : "") + "</span></div>" + '<p class="muted small" style="margin:-4px 0 10px;">Tap \u2606 to favorite a creature. Favorites show first here and when you pick a battle team.</p>' + '<div class="mygrid">';
   fams.forEach(f => {
     const e = owned(s)[f], lvl = e.lvl || 1, c = formOf(f, lvl), st = statsOf(c, lvl), maxed = lvl >= MAX_LEVEL;
     const next = family(f).forms[formIndex(f, lvl) + 1], evoAt = c.evolvesAt;
-    h += '<div class="mycard" style="--rc:' + RARITY_COLOR[c.rarity] + '"><button class="mypic" data-cc="detail" data-id="' + c.id + '">' + img(c, "", spOf(f)) + "</button>" +
+    h += '<div class="mycard' + (e.fav ? " fav" : "") + '" style="--rc:' + RARITY_COLOR[c.rarity] + '">' + favBtn(f, e) + '<button class="mypic" data-cc="detail" data-id="' + c.id + '">' + img(c, "", spOf(f)) + "</button>" +
       nameRow(f, e, c) + '<span class="lv">Lv ' + lvl + "</span>" +
       '<small class="muted">❤ ' + st.hp + " · \u{1F6E1} " + st.df + " · ⚔ " + st.dmg + "</small>" +
       (next && evoAt ? '<small class="evo">Evolves at Lv ' + evoAt + "</small>" : "") +
@@ -313,9 +319,9 @@ function battleOverlay() {
   if (bt.status === "declined") return h + '<div class="bpanel"><p>The challenge was declined.</p></div></div>';
   if (bt.status === "invite") return h + '<div class="bpanel"><p>Waiting for ' + esc(thN) + " to accept…</p></div></div>";
   if (bt.status === "team" && !(bt.team && bt.team[me])) {
-    const fams = ownedFams(ctx.me);
+    const fams = sortedFams(ctx.me);
     return h + '<div class="bpanel"><h3>Choose your team: pick ' + bt.n + "</h3><div class=\"teamgrid\">" + fams.map(f => { const c = formOf(f, owned(ctx.me)[f].lvl || 1), on = picks.includes(f);
-      return '<button class="tpick' + (on ? " on" : "") + '" data-cc="pickTeam" data-fam="' + f + '">' + img(c, "", spOf(f)) + "<b>" + esc(c.name) + "</b><small>Lv " + (owned(ctx.me)[f].lvl || 1) + "</small></button>"; }).join("") +
+      return '<button class="tpick' + (on ? " on" : "") + '" data-cc="pickTeam" data-fam="' + f + '">' + (owned(ctx.me)[f].fav ? '<span class="tfav">\u2B50</span>' : "") + img(c, "", spOf(f)) + "<b>" + esc(owned(ctx.me)[f].nick || c.name) + "</b><small>Lv " + (owned(ctx.me)[f].lvl || 1) + "</small></button>"; }).join("") +
       '</div><button class="btn big" data-cc="lockTeam"' + (picks.length === bt.n ? "" : " disabled") + ">Lock in team (" + picks.length + "/" + bt.n + ")</button></div></div>";
   }
   if (bt.status === "team") return h + '<div class="bpanel"><p>Team locked in! Waiting for ' + esc(thN) + " to choose…</p></div></div>";
@@ -427,6 +433,11 @@ export async function onClick(el, c) {
     return;
   }
   if (a === "nick") { naming = el.dataset.fam; c.render(true); const i = document.getElementById("nickIn"); if (i) { i.focus(); i.select(); } return; }
+  if (a === "fav") {
+    const f = el.dataset.fam, e = owned(s)[f]; if (!e) return;
+    const coll = Object.assign({}, owned(s)); coll[f] = Object.assign({}, e); if (e.fav) delete coll[f].fav; else coll[f].fav = true;
+    return c.patch({ coll });
+  }
   if (a === "nickCancel") { naming = null; return c.render(true); }
   if (a === "nickSave") {
     const f = el.dataset.fam, i = document.getElementById("nickIn"), e = owned(s)[f]; if (!e) return;

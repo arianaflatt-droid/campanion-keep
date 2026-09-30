@@ -831,3 +831,10 @@ td .emo, .ic .emo{ display:inline-block; vertical-align:middle; font-size:1.3em;
   .presentbox.golden{ box-shadow:0 0 0 3px #FFE08A, 0 0 60px rgba(255,214,90,.55); }
   .dcheck{ display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--line-2); flex-wrap:wrap; }
   .dcheck .who{ font-weight:700; min-width:90px; } .dcheck .what{ flex:1; min-width:180px; }
+  /* Favorite creatures */
+  .mycard{ position:relative; }
+  .mycard .favbtn{ position:absolute; top:6px; right:6px; z-index:2; width:32px; height:32px; border-radius:99px; border:1.5px solid var(--line); background:var(--panel); font-size:18px; line-height:1; color:#B8A36A; cursor:pointer; padding:0; }
+  .mycard .favbtn.on{ background:#FFF3C4; border-color:#E9C46A; }
+  .mycard.fav{ box-shadow:0 0 0 2px #E9C46A; }
+  .tpick{ position:relative; }
+  .tpick .tfav{ position:absolute; top:4px; right:6px; font-size:16px; line-height:1; }
