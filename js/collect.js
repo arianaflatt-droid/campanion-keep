@@ -101,7 +101,7 @@ export function releaseProblem(st, key, battles, trades) {
   }
   // only a battle started in the last hour counts (old challenges nobody answered don't block releasing)
   const recent = b => !b.created || Date.now() - new Date(b.created).getTime() < 3600e3;
-  if ((battles || []).some(b => ["invite", "team", "lead"].includes(b.status) && recent(b) && ((b.a && b.a.id === st.id) || (b.b && b.b.id === st.id)))) return "Finish your battle first!";
+  if ((battles || []).some(b => ["invite", "team", "lead", "fight"].includes(b.status) && recent(b) && ((b.a && b.a.id === st.id) || (b.b && b.b.id === st.id)))) return "Finish your battle first!";
   const inTrade = (trades || []).some(t => t.status === "offer" && [t.give, t.get].some(x => x && (isSpare ? x.spare === sp.id : !x.spare && x.fam === fam)) && ((t.a && t.a.id === st.id) || (t.b && t.b.id === st.id)));
   if (inTrade) return "That creature is in a trade offer. Cancel the offer first.";
   return null;
@@ -336,6 +336,61 @@ export function hitDamage(att, def, crit) {
   if (weak) d *= 2;
   if (crit) d *= CRIT_MULT;
   return { dmg: Math.max(1, Math.round(d)), weak };
+}
+/* ---------- battle moves (both players pick, then the round plays out) ----------
+   attack = normal hit · power = 1.5x damage but 75% to hit · guard = take half damage this round
+   heal = +35% HP (once per creature) · swap = switch to another creature on your team (uses your turn) */
+export const MOVES = {
+  attack: { icon: "\u2694\uFE0F", name: "Attack" },
+  power:  { icon: "\u{1F4A5}", name: "Power Move", mult: 1.5, hit: 0.75 },
+  guard:  { icon: "\u{1F6E1}\uFE0F", name: "Guard" },
+  heal:   { icon: "\u{1F49A}", name: "Heal", pct: 0.35 },
+  swap:   { icon: "\u{1F504}", name: "Swap" }
+};
+export function moveOk(bt, side, mv) {
+  const team = bt.team && bt.team[side], cur = team && team[bt.active[side]];
+  if (!mv || !MOVES[mv.m] || !cur || cur.cur <= 0) return false;
+  if (mv.m === "heal") return !cur.healed && cur.cur < cur.hp;
+  if (mv.m === "swap") return Number.isInteger(mv.to) && mv.to !== bt.active[side] && team[mv.to] && team[mv.to].cur > 0;
+  return true;
+}
+// Play one round once both moves are in. Mutates and returns the battle.
+export function resolveRound(bt) {
+  const other = s => (s === "A" ? "B" : "A"), mv = bt.moves || {};
+  const first = bt.turn || "A", order = [first, other(first)], who = s => (s === "A" ? bt.a.name : bt.b.name);
+  bt.round = (Number(bt.round) || 0) + 1;
+  const guard = {};
+  // 1. swaps
+  order.forEach(s => { const m = mv[s]; if (m && m.m === "swap" && moveOk(bt, s, m)) {
+    const from = bt.team[s][bt.active[s]]; bt.active[s] = m.to;
+    bt.log.push({ k: "swap", s, i: m.to, n: bt.team[s][m.to].name, from: from.name, who: who(s) }); } });
+  // 2. heals and guards
+  order.forEach(s => { const m = mv[s], f = bt.team[s][bt.active[s]]; if (!m || !f) return;
+    if (m.m === "heal" && !f.healed && f.cur < f.hp) { const amt = Math.min(f.hp - f.cur, Math.round(f.hp * MOVES.heal.pct)); f.cur += amt; f.healed = true;
+      bt.log.push({ k: "heal", s, i: bt.active[s], n: f.name, amt, left: f.cur, max: f.hp }); }
+    if (m.m === "guard") { guard[s] = true; bt.log.push({ k: "guard", s, i: bt.active[s], n: f.name }); } });
+  // 3. attacks, in order; a creature that faints first doesn't get to hit
+  for (const s of order) {
+    const m = mv[s], o = other(s); if (!m || (m.m !== "attack" && m.m !== "power")) continue;
+    const att = bt.team[s][bt.active[s]], def = bt.team[o][bt.active[o]];
+    if (!att || !def || att.cur <= 0 || def.cur <= 0) continue;
+    const power = m.m === "power", miss = power && Math.random() >= MOVES.power.hit, crit = !miss && Math.random() < CRIT_CHANCE;
+    let { dmg, weak } = hitDamage(att, def, crit);
+    if (power) dmg = Math.round(dmg * MOVES.power.mult);
+    if (guard[o]) dmg = Math.max(1, Math.round(dmg / 2));
+    if (miss) dmg = 0;
+    def.cur = Math.max(0, def.cur - dmg);
+    bt.log.push({ k: "hit", s, ai: bt.active[s], di: bt.active[o], a: att.name, atk: power ? att.attack + " (Power)" : att.attack, d: def.name, dmg, crit, weak: weak && !miss, miss, power, guarded: !!guard[o], left: def.cur, max: def.hp });
+    if (def.cur <= 0) {
+      bt.log.push({ k: "faint", s: o, i: bt.active[o], n: def.name });
+      bt.active[o] = null;
+      if (!alive(bt.team[o])) { bt.status = "done"; bt.winner = s; bt.log.push({ k: "win", s }); bt.moves = { A: null, B: null }; return bt; }
+    }
+  }
+  bt.moves = { A: null, B: null };
+  bt.turn = other(first);   // the other player goes first next round
+  bt.status = bt.active.A != null && bt.active.B != null ? "fight" : "lead";
+  return bt;
 }
 export function alive(team) { return (team || []).filter(f => f.cur > 0).length; }
 // Fight until one active creature faints (or the battle ends). Mutates and returns the battle.

@@ -23,9 +23,15 @@ function snap(st, key) {
   const fam = String(key).replace(/^m:/, ""), e = entry(st, fam) || {}; return { fam, lvl: e.lvl || 1, sparkle: !!e.sparkle };
 }
 const has = (st, t) => (t.spare ? spares(st).some(y => y.id === t.spare) : !!entry(st, t.fam));
-function offerable(st) {   // everything this player could give
+// Marked "up for trade" (coll[fam].forTrade or a spare's forTrade)
+export function forTrade(st, key) {
+  if (String(key).startsWith("s:")) return !!(spares(st).find(y => y.id === key.slice(2)) || {}).forTrade;
+  return !!(entry(st, String(key).replace(/^m:/, "")) || {}).forTrade;
+}
+function offerable(st) {   // everything this player could give (the ones up for trade first)
   const mains = ownedFams(st).filter(f => !isEvent(f)).map(f => "m:" + f);
-  return (ownedFams(st).length > 1 ? mains : []).concat(spares(st).filter(x => !isEvent(x.fam)).map(x => "s:" + x.id));
+  const all = (ownedFams(st).length > 1 ? mains : []).concat(spares(st).filter(x => !isEvent(x.fam)).map(x => "s:" + x.id));
+  return all.filter(k => forTrade(st, k)).concat(all.filter(k => !forTrade(st, k)));
 }
 function label(t) { const c = formOf(t.fam, t.lvl); return c ? (t.sparkle ? "✨ " : "") + c.name + " (Lv " + t.lvl + ")" : "?"; }
 function pic(t) {
@@ -33,7 +39,7 @@ function pic(t) {
   const src = t.sparkle ? c.img.replace("assets/creatures/", "assets/creatures/sparkle/") : c.img;
   return '<img class="trimg" src="' + src + '" alt="" style="--rc:' + RARITY_COLOR[c.rarity] + '">';
 }
-function inBattle(ctx, id) { return (ctx.battles || []).some(b => ["invite", "team", "lead"].includes(b.status) && (b.a.id === id || b.b.id === id)); }
+function inBattle(ctx, id) { return (ctx.battles || []).some(b => ["invite", "team", "lead", "fight"].includes(b.status) && (b.a.id === id || b.b.id === id)); }
 
 const open = t => t.status === "offer";
 const mineOf = (ctx, s) => (ctx.trades || []).filter(t => t.a && t.b && (t.a.id === s.id || t.b.id === s.id));
@@ -83,14 +89,22 @@ export function tradeCard(ctx) {
   const theirsOk = who ? offerable(who) : [];
   if (pick.mine && !mineOk.includes(pick.mine)) pick.mine = "";
   if (pick.theirs && !theirsOk.includes(pick.theirs)) pick.theirs = "";
+  // Up for trade: what other ready players marked, tap one to start an offer for it
+  const board = others.map(x => ({ x, keys: offerable(x).filter(k => forTrade(x, k)) })).filter(r => r.keys.length);
+  const mineMarked = offerable(s).filter(k => forTrade(s, k)).length;
+  h += '<div class="trboard"><b>\u{1F504} Up for trade</b>' + (board.length
+    ? board.map(r => '<div class="trbrow"><span class="trbwho">' + esc(r.x.name) + '</span><div class="trbitems">' +
+        r.keys.map(k => { const t = snap(r.x, k); return '<button class="trbitem' + (pick.who === r.x.id && pick.theirs === k ? " on" : "") + '" data-tr="want" data-who="' + r.x.id + '" data-key="' + esc(k) + '">' + pic(t) + "<small>" + esc(label(t)) + "</small></button>"; }).join("") + "</div></div>").join("")
+    : '<p class="muted small" style="margin:4px 0;">Nobody has marked anything up for trade yet.</p>') +
+    '<p class="muted small" style="margin-top:4px;">' + (mineMarked ? "You have <b>" + mineMarked + "</b> up for trade." : "Tap \u{1F504} on a creature in My creatures to put it up for trade.") + "</p></div>";
   const opt = (v, t, on) => '<option value="' + esc(v) + '"' + (on ? " selected" : "") + ">" + esc(t) + "</option>";
   h += '<div class="trmake"><b>Make an offer</b><div class="row" style="margin-top:6px;gap:8px;">' +
     '<div class="field"><label for="trWho">Trade with</label><select id="trWho" data-trsel="who">' + opt("", "Choose a player") +
       others.map(x => opt(x.id, x.name, x.id === pick.who)).join("") + "</select></div>" +
     '<div class="field"><label for="trTheirs">You want</label><select id="trTheirs" data-trsel="theirs"' + (who ? "" : " disabled") + ">" + opt("", who ? (theirsOk.length ? "Choose their creature" : "Nothing you don’t already have") : "Choose a player first") +
-      theirsOk.map(f => opt(f, label(snap(who, f)), f === pick.theirs)).join("") + "</select></div>" +
+      theirsOk.map(f => opt(f, (forTrade(who, f) ? "\u{1F504} " : "") + label(snap(who, f)), f === pick.theirs)).join("") + "</select></div>" +
     '<div class="field"><label for="trMine">You give</label><select id="trMine" data-trsel="mine">' + opt("", mineOk.length ? "Choose your creature" : "Nothing they don’t already have") +
-      mineOk.map(f => opt(f, label(snap(s, f)), f === pick.mine)).join("") + "</select></div>" +
+      mineOk.map(f => opt(f, (forTrade(s, f) ? "\u{1F504} " : "") + label(snap(s, f)), f === pick.mine)).join("") + "</select></div>" +
     '<button class="btn" data-tr="offer"' + (who && pick.theirs && pick.mine ? "" : " disabled") + ">\u{1F504} Send offer</button></div>" +
     '<p class="muted small" style="margin-top:6px;">You both have to agree. You can’t trade your last creature or limited event Legendaries, and you can’t get a creature family you already have.</p></div>';
   return h + "</div>";
@@ -127,6 +141,7 @@ export async function onTradeClick(el, ctx) {
     pick = { who: "", theirs: "", mine: "" };
     ctx.flash("Offer sent to " + o.name + "!", true); return;
   }
+  if (a === "want") { pick = { who: el.dataset.who, theirs: el.dataset.key, mine: "" }; return ctx.render(true); }
   const id = el.dataset.t, t = (ctx.trades || []).find(x => x.id === id); if (!t) return;
   if (a === "cancel" || a === "decline") {
     await changeTrade(id, d => (d.status === "offer" ? Object.assign(d, { status: a === "cancel" ? "cancelled" : "declined" }) : null));

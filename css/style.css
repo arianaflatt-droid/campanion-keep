@@ -838,3 +838,29 @@ td .emo, .ic .emo{ display:inline-block; vertical-align:middle; font-size:1.3em;
   .mycard.fav{ box-shadow:0 0 0 2px #E9C46A; }
   .tpick{ position:relative; }
   .tpick .tfav{ position:absolute; top:4px; right:6px; font-size:16px; line-height:1; }
+  /* Up for trade */
+  .tradebtn{ font-size:12px; font-weight:700; padding:4px 10px; border-radius:99px; border:1.5px dashed var(--line); background:transparent; color:var(--ink-3); cursor:pointer; margin-top:4px; }
+  .tradebtn.on{ border-style:solid; border-color:#2A8FC0; background:#E3F4FC; color:#1C6A91; }
+  .trboard{ background:var(--panel); border:1.5px solid var(--line); border-radius:12px; padding:10px 12px; margin-bottom:12px; }
+  .trbrow{ display:flex; align-items:flex-start; gap:10px; padding:6px 0; border-top:1px solid var(--line-2); flex-wrap:wrap; }
+  .trbrow:first-of-type{ border-top:0; }
+  .trbwho{ font-weight:700; min-width:80px; padding-top:18px; }
+  .trbitems{ display:flex; flex-wrap:wrap; gap:8px; flex:1; }
+  .trbitem{ display:flex; flex-direction:column; align-items:center; gap:2px; width:92px; padding:6px 4px; border-radius:10px; border:1.5px solid var(--line); background:#fff; cursor:pointer; }
+  .trbitem.on{ border-color:#2A8FC0; box-shadow:0 0 0 2px rgba(42,143,192,.3); }
+  .trbitem .trimg{ width:56px; height:56px; object-fit:contain; }
+  .trbitem small{ font-size:11px; line-height:1.2; text-align:center; }
+  /* ===== Battle moves ===== */
+  .mvgrid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+  .mvbtn{ display:flex; flex-direction:column; align-items:center; gap:2px; padding:10px 8px; border-radius:12px; border:2px solid #6E3FA0; background:rgba(255,255,255,.08); color:#fff; font-size:16px; cursor:pointer; }
+  .mvbtn b{ font-size:15px; } .mvbtn small{ font-size:11.5px; color:#D8CCEE; }
+  .mvbtn:hover:not(:disabled){ background:rgba(255,255,255,.16); transform:translateY(-1px); }
+  .mvbtn:disabled{ opacity:.4; cursor:default; }
+  .mvbtn.mv-attack{ border-color:#E8740C; } .mvbtn.mv-power{ border-color:#E0443E; } .mvbtn.mv-guard{ border-color:#4A90D9; } .mvbtn.mv-heal{ border-color:#3FB35F; }
+  .bhints{ display:flex; flex-direction:column; gap:4px; margin-bottom:10px; }
+  .bhint{ font-size:13px; padding:5px 10px; border-radius:99px; } .bhint.good{ background:rgba(63,179,95,.25); color:#C8F5D4; } .bhint.bad{ background:rgba(224,68,62,.25); color:#FFD0CC; }
+  .tpick small.good{ color:#9BF0B3; } .tpick small.bad{ color:#FFB3A8; }
+  .bfx2{ position:absolute; left:0; right:0; pointer-events:none; text-align:center; font-size:42px; font-weight:800; color:#9BF0B3; text-shadow:0 2px 8px rgba(0,0,0,.6); animation:bfx2 1s ease-out forwards; }
+  .bfx2.mine{ bottom:30%; } .bfx2.theirs{ top:18%; }
+  @keyframes bfx2{ 0%{ opacity:0; transform:translateY(10px) scale(.8);} 30%{ opacity:1; transform:none;} 100%{ opacity:0; transform:translateY(-24px);} }
+  @media (max-width:520px){ .mvgrid{ grid-template-columns:1fr; } }

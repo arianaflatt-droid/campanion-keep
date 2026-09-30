@@ -1,7 +1,7 @@
 // Student side of the Creature Collector: the tab, egg hatching, the lorebook and arena battles.
 import {
   CREATURES, FAMILIES, creature, family, xpTotal, pullsLeft, legendaryLeft, bankXP, xpToNextPull, owned, ownedFams, hasStarter,
-  formIndex, formOf, statsOf, seenSet, rollRarity, doPull, arenaOpen, arenaOpenFor, lunchHour, hitGoalToday, LUNCH_ARENA, ARENA_HOURS, fighterFrom, teamSize, alive, resolve,
+  formIndex, formOf, statsOf, seenSet, rollRarity, doPull, arenaOpen, arenaOpenFor, lunchHour, hitGoalToday, LUNCH_ARENA, ARENA_HOURS, fighterFrom, teamSize, alive, resolve, resolveRound, moveOk, MOVES, hitDamage,
   birthdayLeft, themeLeft, nextTheme, THEME_TYPES, THEME_EGG, WISH_FAM, spares, spareId, releaseXP, releaseProblem, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
   EVENTS, eventOpen, eventWindow, eventStreak, hasEvent, eventUnlocked, azToday, rollTeacherRarity, TEACHER_ODDS
 } from "./collect.js";
@@ -110,6 +110,7 @@ function sortedFams(s) {
   return ownedFams(s).sort((a, b) => (o[b].fav ? 1 : 0) - (o[a].fav ? 1 : 0) || formOf(a, 1).id - formOf(b, 1).id);
 }
 const favBtn = (f, e) => '<button class="favbtn' + (e.fav ? " on" : "") + '" data-cc="fav" data-fam="' + f + '" title="' + (e.fav ? "Remove from favorites" : "Add to favorites") + '" aria-label="Favorite">' + (e.fav ? "\u2B50" : "\u2606") + "</button>";
+const tradeBtn = (key, on) => '<button class="tradebtn' + (on ? " on" : "") + '" data-cc="forTrade" data-key="' + key + '" title="' + (on ? "Take it off the trade list" : "Put it up for trade") + '">\u{1F504} ' + (on ? "Up for trade" : "Trade?") + "</button>";
 function myCreatures(s, bank) {
   const fams = sortedFams(s), nFav = fams.filter(f => owned(s)[f].fav).length;
   let h = '<div class="card"><div class="card-head"><h2>My creatures</h2><span class="fact">' + fams.length + " families" + (nFav ? " \u00b7 \u2B50 " + nFav : "") + "</span></div>" + '<p class="muted small" style="margin:-4px 0 10px;">Tap \u2606 to favorite a creature. Favorites show first here and when you pick a battle team.</p>' + '<div class="mygrid">';
@@ -121,6 +122,7 @@ function myCreatures(s, bank) {
       '<small class="muted">❤ ' + st.hp + " · \u{1F6E1} " + st.df + " · ⚔ " + st.dmg + "</small>" +
       (next && evoAt ? '<small class="evo">Evolves at Lv ' + evoAt + "</small>" : "") +
       '<button class="btn small" data-cc="lvl" data-fam="' + f + '"' + (bank >= LEVEL_XP && !maxed ? "" : " disabled") + ">" + (maxed ? "Max level" : "⬆ Level up · " + LEVEL_XP + " XP") + "</button>" +
+      (fams.length > 1 && !family(f).event ? tradeBtn("m:" + f, e.forTrade) : "") +
       (fams.length > 1 && !family(f).event && s.starter !== f && s.petCreature !== f ? releaseRow("m:" + f, f, e.nick || c.name) : "") + "</div>";
   });
   h += "</div>";
@@ -132,7 +134,7 @@ function myCreatures(s, bank) {
       h += '<div class="mycard spare" style="--rc:' + RARITY_COLOR[c.rarity] + '"><div class="mypic">' + img(c, "", !!x.sparkle) + "</div>" +
         "<b>" + (x.sparkle ? "\u2728 " : "") + esc(c.name) + '</b><span class="lv">Lv ' + (x.lvl || 1) + " \u00b7 spare</span>" +
         '<button class="btn small ghost" data-cc="useSpare" data-sp="' + x.id + '">' + (mine ? "\u2B06 Use for +1 level" : "Add to my collection") + "</button>" +
-        (family(x.fam).event ? "" : releaseRow("s:" + x.id, x.fam, c.name)) + "</div>";
+        (family(x.fam).event ? "" : tradeBtn("s:" + x.id, x.forTrade) + releaseRow("s:" + x.id, x.fam, c.name)) + "</div>";
     });
     h += "</div>";
   }
@@ -142,12 +144,12 @@ function myCreatures(s, bank) {
 /* ================= arena ================= */
 function myBattle(s) {
   return (ctx.battles || []).filter(b => (b.a.id === s.id || b.b.id === s.id) &&
-    (["invite", "team", "lead"].includes(b.status) || (b.status === "done" && !b["seen_" + s.id])))
+    (["invite", "team", "lead", "fight"].includes(b.status) || (b.status === "done" && !b["seen_" + s.id])))
     .sort((x, y) => String(y.created).localeCompare(String(x.created)))[0] || null;
 }
 function busyIds() {
   const ids = new Set();
-  (ctx.battles || []).forEach(b => { if (["invite", "team", "lead"].includes(b.status)) { ids.add(b.a.id); ids.add(b.b.id); } });
+  (ctx.battles || []).forEach(b => { if (["invite", "team", "lead", "fight"].includes(b.status)) { ids.add(b.a.id); ids.add(b.b.id); } });
   return ids;
 }
 function arenaCard(s) {
@@ -275,8 +277,12 @@ function viewState(bt, k) {
     if (e.k === "coin") st.line = "\u{1FA99} Coin flip: " + esc(e.s === "A" ? bt.a.name : bt.b.name) + " goes first!";
     if (e.k === "send") { st[e.s].i = e.i; st.line = esc(e.who) + " sends out <b>" + esc(e.n) + "</b>!"; }
     if (e.k === "hit") { const o = e.s === "A" ? "B" : "A"; st[o].hp[e.di] = e.left; st[e.s].i = e.ai; st[o].i = e.di; st.last = e;
-      st.line = "<b>" + esc(e.a) + "</b> used " + esc(e.atk) + "! " + (e.crit ? "\u{1F4A5} Critical hit! " : "") + (e.weak ? "It’s super effective! " : "") + e.dmg + " damage."; }
+      st.line = "<b>" + esc(e.a) + "</b> used " + esc(e.atk) + "! " + (e.miss ? "It missed!" : (e.crit ? "\u{1F4A5} Critical hit! " : "") + (e.weak ? "It’s super effective! " : "") + (e.guarded ? "\u{1F6E1}\uFE0F Guarded! " : "") + e.dmg + " damage."); }
+    if (e.k === "swap") { st[e.s].i = e.i; st.line = "\u{1F504} " + esc(e.who) + " swaps " + esc(e.from) + " for <b>" + esc(e.n) + "</b>!"; }
+    if (e.k === "heal") { st[e.s].hp[e.i] = e.left; st[e.s].i = e.i; st.line = "\u{1F49A} <b>" + esc(e.n) + "</b> healed " + e.amt + " HP!"; }
+    if (e.k === "guard") { st[e.s].i = e.i; st.line = "\u{1F6E1}\uFE0F <b>" + esc(e.n) + "</b> is guarding!"; }
     if (e.k === "faint") st.line = "<b>" + esc(e.n) + "</b> fainted!";
+    if (e.k === "forfeit") st.line = "\u{1F3F3}\uFE0F " + esc(e.who) + " gave up.";
     if (e.k === "win") st.line = "\u{1F3C6} <b>" + esc(e.s === "A" ? bt.a.name : bt.b.name) + "</b> wins the battle!";
   });
   return st;
@@ -304,6 +310,9 @@ function playFor(e, me) {
   if (e.k === "hit") { noise(0.25, 0.1, 0, 1200); tone(e.crit ? 180 : 140, 0.22, "triangle", 0.25, 60, 0.35); if (e.crit) { tone(880, 0.12, "square", 0.08, null, 0.35); tone(1320, 0.18, "square", 0.08, null, 0.47); } else if (e.weak) tone(660, 0.15, "sawtooth", 0.06, 990, 0.38); }
   if (e.k === "send") { tone(330, 0.12, "square", 0.07); tone(495, 0.12, "square", 0.07, null, 0.1); tone(660, 0.18, "square", 0.07, null, 0.2); }
   if (e.k === "faint") tone(440, 0.6, "triangle", 0.15, 110);
+  if (e.k === "heal") { tone(523, 0.15, "sine", 0.1); tone(784, 0.25, "sine", 0.1, null, 0.12); }
+  if (e.k === "guard") tone(220, 0.25, "square", 0.06, 330);
+  if (e.k === "swap") { tone(440, 0.1, "square", 0.06); tone(330, 0.12, "square", 0.06, null, 0.1); }
   if (e.k === "win") { const up = e.s === me; (up ? [523, 659, 784, 1047] : [392, 349, 330, 262]).forEach((f, i) => tone(f, 0.22, "square", 0.08, null, i * 0.15)); }
 }
 
@@ -329,6 +338,7 @@ function battleOverlay() {
   const lastEv = (bt.log || [])[k - 1], fresh = lastEv && animated[bt.id] !== k ? lastEv : null;
   animated[bt.id] = k;
   const anim = fresh && fresh.k === "hit" ? fresh : null;
+  const healFx = fresh && fresh.k === "heal" ? fresh : null, guardFx = fresh && fresh.k === "guard" ? fresh : null;
   if (fresh) playFor(fresh, me);
   const winner = caught && bt.status === "done" ? bt.winner : null;
   const bob = "animation-delay:-" + (Date.now() % 2600) + "ms";
@@ -343,8 +353,9 @@ function battleOverlay() {
     const att = bt.team[anim.s][anim.ai], fromMine = anim.s === me, fx = TYPE_FX[att.type] || "\u{1F4AB}";
     h += '<div class="bfx ' + (fromMine ? "up" : "down") + (anim.crit ? " crit" : "") + '"><span class="proj">' + fx + "</span><span class=\"proj p2\">" + fx + "</span><span class=\"proj p3\">" + fx + "</span>" +
       '<span class="boom">' + fx + "</span>" +
-      '<span class="dnum' + (anim.crit ? " crit" : anim.weak ? " weak" : "") + '">' + (anim.crit ? "CRIT! " : "") + "-" + anim.dmg + (anim.weak && !anim.crit ? "<small>super effective!</small>" : "") + "</span></div>";
+      '<span class="dnum' + (anim.crit ? " crit" : anim.weak ? " weak" : "") + '">' + (anim.miss ? "MISS!" : (anim.crit ? "CRIT! " : "") + "-" + anim.dmg + (anim.weak && !anim.crit ? "<small>super effective!</small>" : anim.guarded ? "<small>guarded</small>" : "")) + "</span></div>";
   }
+  if (healFx || guardFx) { const e = healFx || guardFx; h += '<div class="bfx2 ' + (e.s === me ? "mine" : "theirs") + '"><span>' + (healFx ? "\u{1F49A} +" + healFx.amt : "\u{1F6E1}\uFE0F") + "</span></div>"; }
   if (winner) h += '<div class="confetti">' + Array.from({ length: 36 }, (_, n) => '<i style="left:' + ((n * 37) % 100) + "%;animation-delay:" + ((n * 97) % 1400) + "ms;background:" + ["#FFD34D", "#FF7AD9", "#7AE7FF", "#8BF08B", "#B08CFF"][n % 5] + '"></i>').join("") + "</div>";
   h += "</div>";
   h += '<div class="bline">' + (v.line || "&nbsp;") + "</div>";
@@ -353,9 +364,38 @@ function battleOverlay() {
     h += '<div class="bpanel"><h3>' + ((bt.log || []).some(e => e.k === "send" && e.s === me) ? "Send out your next creature" : "Who goes first?") + '</h3><div class="teamgrid">' +
       opts.map(o => '<button class="tpick" data-cc="lead" data-i="' + o.i + '">' + img(o.f, "", o.f.sparkle) + "<b>" + esc(o.f.name) + "</b><small>❤ " + o.f.cur + "/" + o.f.hp + "</small></button>").join("") + "</div></div>";
   } else if (caught && bt.status === "lead") h += '<div class="bpanel small"><p>Waiting for ' + esc(thN) + " to choose…</p></div>";
-  if (caught && bt.status === "done") h += '<div class="bpanel"><h3>' + (bt.winner === me ? "\u{1F3C6} You win!" : "Good battle!") + '</h3><button class="btn big" data-cc="closeBattle">Close</button></div>';
+  if (caught && bt.status === "fight") h += movePanel(bt, me, them, thN);
+  if (caught && bt.status === "done") h += '<div class="bpanel"><h3>' + (bt.forfeit ? (bt.forfeit === me ? "You gave up this battle." : "\u{1F3F3}\uFE0F " + esc(thN) + " gave up.") + '</h3><p class="small" style="margin:-4px 0 10px;color:#CFC3E6;">Battles that end with Give up don\u2019t count toward badges.</p><h3 style="display:none">' : bt.winner === me ? "\u{1F3C6} You win!" : "Good battle!") + '</h3><button class="btn big" data-cc="closeBattle">Close</button></div>';
   return h + "</div>";
 }
+
+// Pick a move: attack, power move, guard, heal, or swap. Both players pick, then the round plays out.
+function movePanel(bt, me, them, thN) {
+  const mine = bt.moves && bt.moves[me], theirs = bt.moves && bt.moves[them];
+  if (mine) return '<div class="bpanel small"><p>' + MOVES[mine.m].icon + " You picked <b>" + (mine.m === "swap" ? "Swap to " + esc(bt.team[me][mine.to].name) : MOVES[mine.m].name) + "</b>. Waiting for " + esc(thN) + "\u2026</p>" +
+    '<button class="btn ghost small" data-cc="undoMove">Change my move</button></div>';
+  const f = bt.team[me][bt.active[me]], o = bt.team[them][bt.active[them]];
+  const dmg = hitDamage(f, o, false), back = hitDamage(o, f, false);
+  let hint = "";
+  if (dmg.weak) hint += '<span class="bhint good">\u2B50 Your ' + esc(f.type) + " attack is super effective!</span>";
+  if (back.weak) hint += '<span class="bhint bad">\u26A0\uFE0F Their ' + esc(o.type) + " attack is super effective on " + esc(f.name) + "! Maybe swap?</span>";
+  const btn = (m, label, sub, ok) => '<button class="mvbtn mv-' + m + '" data-cc="move" data-m="' + m + '"' + (ok ? "" : " disabled") + ">" + MOVES[m].icon + " <b>" + label + "</b><small>" + sub + "</small></button>";
+  const bench = bt.team[me].map((x, i) => ({ x, i })).filter(r => r.i !== bt.active[me] && r.x.cur > 0);
+  return '<div class="bpanel"><h3>What will ' + esc(f.name) + " do?</h3>" + (theirs ? '<p class="muted small" style="margin:-4px 0 8px;color:#CFC3E6;">' + esc(thN) + " has picked a move!</p>" : "") +
+    (hint ? '<div class="bhints">' + hint + "</div>" : "") +
+    '<div class="mvgrid">' +
+      btn("attack", esc(f.attack), "about " + dmg.dmg + " damage", true) +
+      btn("power", "Power Move", "about " + Math.round(dmg.dmg * MOVES.power.mult) + " damage \u00b7 75% to hit", true) +
+      btn("guard", "Guard", "take half damage this round", true) +
+      btn("heal", "Heal", f.healed ? "already used" : f.cur >= f.hp ? "already full health" : "+" + Math.min(f.hp - f.cur, Math.round(f.hp * MOVES.heal.pct)) + " HP \u00b7 once", !f.healed && f.cur < f.hp) +
+    "</div>" +
+    (bench.length ? '<p class="muted small" style="margin:10px 0 6px;color:#CFC3E6;">\u{1F504} Or swap (uses your turn):</p><div class="teamgrid">' +
+      bench.map(r => { const w = hitDamage(o, r.x, false).weak, g = hitDamage(r.x, o, false).weak;
+        return '<button class="tpick" data-cc="move" data-m="swap" data-to="' + r.i + '">' + img(r.x, "", r.x.sparkle) + "<b>" + esc(r.x.name) + "</b><small>\u2764 " + r.x.cur + "/" + r.x.hp + "</small>" +
+          (g ? '<small class="good">\u2B50 strong vs them</small>' : w ? '<small class="bad">\u26A0\uFE0F weak to them</small>' : "") + "</button>"; }).join("") + "</div>" : "") +
+    '<button class="btn ghost small" data-cc="forfeit" style="margin-top:10px;">' + (busyForfeit ? "Yes, give up this battle" : "Give up") + "</button></div>";
+}
+let busyForfeit = false;
 
 /* ================= clicks ================= */
 export async function onClick(el, c) {
@@ -433,6 +473,13 @@ export async function onClick(el, c) {
     return;
   }
   if (a === "nick") { naming = el.dataset.fam; c.render(true); const i = document.getElementById("nickIn"); if (i) { i.focus(); i.select(); } return; }
+  if (a === "forTrade") {
+    const k = el.dataset.key;
+    if (k.startsWith("s:")) { const list = spares(s).map(x => (x.id === k.slice(2) ? Object.assign({}, x, { forTrade: !x.forTrade }) : x)); return c.patch({ spares: list }); }
+    const f = k.slice(2), e = owned(s)[f]; if (!e) return;
+    const coll = Object.assign({}, owned(s)); coll[f] = Object.assign({}, e); if (e.forTrade) delete coll[f].forTrade; else coll[f].forTrade = true;
+    return c.patch({ coll });
+  }
   if (a === "fav") {
     const f = el.dataset.fam, e = owned(s)[f]; if (!e) return;
     const coll = Object.assign({}, owned(s)); coll[f] = Object.assign({}, e); if (e.fav) delete coll[f].fav; else coll[f].fav = true;
@@ -499,10 +546,35 @@ export async function onClick(el, c) {
     await changeBattle(battleOpen, bt => {
       const me = sideOf(bt); if (bt.status !== "lead" || bt.active[me] != null || !(bt.team[me][i].cur > 0)) return null;
       bt.active[me] = i; bt.log.push({ k: "send", s: me, i, n: bt.team[me][i].name, who: me === "A" ? bt.a.name : bt.b.name });
-      if (bt.active.A != null && bt.active.B != null) resolve(bt);
+      if (bt.active.A != null && bt.active.B != null) { bt.status = "fight"; bt.moves = { A: null, B: null }; }
       return bt;
     });
     return;
+  }
+  if (a === "move") {
+    const mv = { m: el.dataset.m }; if (mv.m === "swap") mv.to = Number(el.dataset.to);
+    busyForfeit = false;
+    await changeBattle(battleOpen, bt => {
+      const me = sideOf(bt), them = me === "A" ? "B" : "A";
+      if (bt.status !== "fight" || (bt.moves && bt.moves[me]) || !moveOk(bt, me, mv)) return null;
+      bt.moves = Object.assign({ A: null, B: null }, bt.moves || {}); bt.moves[me] = mv;
+      if (bt.moves[them]) resolveRound(bt);
+      return bt;
+    });
+    return c.render(true);
+  }
+  if (a === "undoMove") {
+    await changeBattle(battleOpen, bt => { const me = sideOf(bt); if (bt.status !== "fight" || !bt.moves || !bt.moves[me]) return null; bt.moves[me] = null; return bt; });
+    return c.render(true);
+  }
+  if (a === "forfeit") {
+    if (!busyForfeit) { busyForfeit = true; return c.render(true); }
+    busyForfeit = false;
+    await changeBattle(battleOpen, bt => { const me = sideOf(bt), them = me === "A" ? "B" : "A";
+      if (!["lead", "fight"].includes(bt.status)) return null;
+      bt.status = "done"; bt.winner = them; bt.forfeit = me; bt.moves = { A: null, B: null };
+      bt.log.push({ k: "forfeit", s: me, who: me === "A" ? bt.a.name : bt.b.name }); bt.log.push({ k: "win", s: them }); return bt; });
+    return c.render(true);
   }
   if (a === "closeBattle") {
     const id = battleOpen; battleOpen = null;

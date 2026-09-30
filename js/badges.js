@@ -28,7 +28,8 @@ export const xpSpent = st => Number(st.xpSpent) || 0;
 // Arena stats come from the class's battles (finished battles stay in the battles list).
 const sideOf = (st, b) => (b.a && b.a.id === st.id ? "A" : b.b && b.b.id === st.id ? "B" : null);
 function finished(st, battles) {
-  return (battles || []).filter(b => b && b.status === "done" && b.winner && sideOf(st, b))
+  // a battle someone gave up on doesn't count for anyone's badges (so wins can't be traded)
+  return (battles || []).filter(b => b && b.status === "done" && b.winner && !b.forfeit && sideOf(st, b))
     .sort((x, y) => String(x.created).localeCompare(String(y.created)));
 }
 const won = (st, b) => sideOf(st, b) === b.winner;
