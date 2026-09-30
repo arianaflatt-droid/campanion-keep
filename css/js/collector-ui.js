@@ -2,7 +2,7 @@
 import {
   CREATURES, FAMILIES, creature, family, xpTotal, pullsLeft, legendaryLeft, bankXP, xpToNextPull, owned, ownedFams, hasStarter,
   formIndex, formOf, statsOf, seenSet, rollRarity, doPull, arenaOpen, arenaOpenFor, lunchHour, hitGoalToday, LUNCH_ARENA, ARENA_HOURS, fighterFrom, teamSize, alive, resolve,
-  birthdayLeft, WISH_FAM, spares, spareId, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
+  birthdayLeft, themeLeft, nextTheme, THEME_TYPES, THEME_EGG, WISH_FAM, spares, spareId, releaseXP, releaseProblem, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
   EVENTS, eventOpen, eventWindow, eventStreak, hasEvent, eventUnlocked, azToday, rollTeacherRarity, TEACHER_ODDS
 } from "./collect.js";
 import { newBattleRef, changeBattle, setDoc } from "./db.js";
@@ -39,6 +39,7 @@ export function collectorTab(c) {
     stat("\u{1F95A}", pulls, "egg" + (pulls === 1 ? "" : "s") + " to hatch") +
     (leg ? stat("\u{1F31F}", leg, "legendary egg" + (leg === 1 ? "" : "s")) : "") +
     (birthdayLeft(s) ? stat("\u{1F382}", birthdayLeft(s), "birthday egg" + (birthdayLeft(s) === 1 ? "" : "s")) : "") +
+    (themeLeft(s) ? stat("\u2728", themeLeft(s), "event egg" + (themeLeft(s) === 1 ? "" : "s")) : "") +
     stat("⭐", bank.toLocaleString(), "XP in your bank") +
     stat("\u{1F4D6}", seen.size + " / " + CREATURES.length, "in your lorebook") + "</div>" +
     (s.isTeacher
@@ -47,6 +48,7 @@ export function collectorTab(c) {
     '<div class="row"><button class="btn big" data-cc="hatch"' + (pulls ? "" : " disabled") + ">\u{1F95A} Hatch an egg</button>" +
     (leg ? '<button class="btn big gold" data-cc="hatchLeg">\u{1F31F} Hatch a legendary egg</button>' : "") +
     (birthdayLeft(s) ? '<button class="btn big bday" data-cc="hatchBday">\u{1F382} Hatch your birthday egg!</button>' : "") +
+    (themeLeft(s) ? '<button class="btn big gold" data-cc="hatchTheme"><img src="assets/egg-' + nextTheme(s) + '.webp" alt="" style="height:1.5em;vertical-align:middle;margin:-4px 4px -4px 0;">Hatch your ' + THEME_EGG[nextTheme(s)] + "!</button>" : "") +
     '<button class="btn ghost big" data-cc="book">\u{1F4D6} Open lorebook</button></div>' +
     '<p class="muted" style="margin-top:8px;">Egg odds: ' + (s.isTeacher ? TEACHER_ODDS : ODDS).map(([r, p]) => r + " " + (p < 0.01 ? (p * 100).toFixed(2) : Math.round(p * 100)) + "%").join(" · ") + "</p></div>";
   if (!s.isTeacher) h += eventCards(s, c.cls);
@@ -66,7 +68,8 @@ function eventCard(ev, s, cls) {
   else { const left = w.days.filter(d => d >= azToday()).length; when = nice(w.start) + " \u2013 " + nice(w.end) + " \u00b7 " + left + " school day" + (left === 1 ? "" : "s") + " left"; }
   const msg = got ? "You caught " + esc(dc.name) + "! Each egg still has a 1% chance to be another one (a free level up)."
     : on ? "<b>Unlocked!</b> Every egg you hatch has a <b>95% chance</b> to be " + esc(dc.name) + " until you catch it."
-    : "Hit " + goal120(cls) + " XP <b>" + ev.streak + " school days in a row</b>" + (ev.haunt ? " during Haunt-O-Ween" : "") + " to unlock it. Your streak: <b>" + Math.min(st.current, ev.streak) + " / " + ev.streak + "</b>.";
+    : ev.boss ? "\u{1F512} <b>Defeat the " + esc(ev.bossName) + "</b> with your class to unlock " + esc(dc.name) + "! Then every egg you hatch has a <b>95% chance</b> to be it."
+    : "Hit " + goal120(cls) + " XP <b>" + ev.streak + " school days in a row</b>" + (ev.haunt ? " during Haunt-O-Ween" : ev.label ? " during " + ev.label : "") + " to unlock it. Your streak: <b>" + Math.min(st.current, ev.streak) + " / " + ev.streak + "</b>.";
   return '<div class="card duckcard ev-' + ev.key + (on && !got ? " on" : "") + (got ? " got" : "") + '">' + img(dc, "duckimg", got && isSparkle(s, ev.fam)) +
     '<div class="duckt"><span class="duckk">' + ev.icon + " Limited event \u00b7 " + when + "</span>" +
     "<h3>" + esc(dc.name) + " <small>" + esc(dc.title || "") + "</small></h3><p>" + msg + "</p>" +
@@ -85,6 +88,15 @@ function starterView() {
 
 // Nicknames: saved on the creature's family (coll[fam].nick), so they stay through evolutions.
 let naming = null;
+let releasing = null;   // "m:FAM" or "s:ID" waiting for "Yes, release"
+let releaseMsg = null;  // { key, why }: shown right on the card when a release can't happen
+function releaseRow(key, fam, name) {
+  const xp = releaseXP(fam);
+  if (releaseMsg && releaseMsg.key === key) return '<small class="relwhy">\u26A0\uFE0F ' + esc(releaseMsg.why) + "</small>";
+  if (releasing === key) return '<div class="relask"><small>Release ' + esc(name) + " for <b>" + xp + ' XP</b>? It\u2019s gone for good.</small>' +
+    '<div class="row" style="gap:4px;justify-content:center;"><button class="btn small danger" data-cc="releaseOk" data-key="' + esc(key) + '">Yes, release</button><button class="btn ghost small" data-cc="releaseCancel">Keep it</button></div></div>';
+  return '<button class="relbtn" data-cc="release" data-key="' + esc(key) + '" title="Release it for ' + xp + ' XP">\u{1F54A}\uFE0F Release \u00b7 ' + xp + " XP</button>";
+}
 const NICK_MAX = 16;
 function nameRow(f, e, c) {
   if (naming === f) return '<div class="nickedit"><input id="nickIn" type="text" maxlength="' + NICK_MAX + '" value="' + esc(e.nick || "") + '" placeholder="' + esc(c.name) + '">' +
@@ -92,17 +104,26 @@ function nameRow(f, e, c) {
   return (e.nick ? "<b>" + esc(e.nick) + '</b><small class="muted">' + esc(c.name) + "</small>" : "<b>" + esc(c.name) + "</b>") +
     '<button class="nickbtn" data-cc="nick" data-fam="' + f + '" title="Give it a name">\u270F\uFE0F ' + (e.nick ? "Rename" : "Name it") + "</button>";
 }
+// Favorites (coll[fam].fav) come first, then the rest in lorebook order.
+function sortedFams(s) {
+  const o = owned(s);
+  return ownedFams(s).sort((a, b) => (o[b].fav ? 1 : 0) - (o[a].fav ? 1 : 0) || formOf(a, 1).id - formOf(b, 1).id);
+}
+const favBtn = (f, e) => '<button class="favbtn' + (e.fav ? " on" : "") + '" data-cc="fav" data-fam="' + f + '" title="' + (e.fav ? "Remove from favorites" : "Add to favorites") + '" aria-label="Favorite">' + (e.fav ? "\u2B50" : "\u2606") + "</button>";
+const tradeBtn = (key, on) => '<button class="tradebtn' + (on ? " on" : "") + '" data-cc="forTrade" data-key="' + key + '" title="' + (on ? "Take it off the trade list" : "Put it up for trade") + '">\u{1F504} ' + (on ? "Up for trade" : "Trade?") + "</button>";
 function myCreatures(s, bank) {
-  const fams = ownedFams(s).sort((a, b) => formOf(a, 1).id - formOf(b, 1).id);
-  let h = '<div class="card"><div class="card-head"><h2>My creatures</h2><span class="fact">' + fams.length + " families</span></div><div class=\"mygrid\">";
+  const fams = sortedFams(s), nFav = fams.filter(f => owned(s)[f].fav).length;
+  let h = '<div class="card"><div class="card-head"><h2>My creatures</h2><span class="fact">' + fams.length + " families" + (nFav ? " \u00b7 \u2B50 " + nFav : "") + "</span></div>" + '<p class="muted small" style="margin:-4px 0 10px;">Tap \u2606 to favorite a creature. Favorites show first here and when you pick a battle team.</p>' + '<div class="mygrid">';
   fams.forEach(f => {
     const e = owned(s)[f], lvl = e.lvl || 1, c = formOf(f, lvl), st = statsOf(c, lvl), maxed = lvl >= MAX_LEVEL;
     const next = family(f).forms[formIndex(f, lvl) + 1], evoAt = c.evolvesAt;
-    h += '<div class="mycard" style="--rc:' + RARITY_COLOR[c.rarity] + '"><button class="mypic" data-cc="detail" data-id="' + c.id + '">' + img(c, "", spOf(f)) + "</button>" +
+    h += '<div class="mycard' + (e.fav ? " fav" : "") + '" style="--rc:' + RARITY_COLOR[c.rarity] + '">' + favBtn(f, e) + '<button class="mypic" data-cc="detail" data-id="' + c.id + '">' + img(c, "", spOf(f)) + "</button>" +
       nameRow(f, e, c) + '<span class="lv">Lv ' + lvl + "</span>" +
       '<small class="muted">❤ ' + st.hp + " · \u{1F6E1} " + st.df + " · ⚔ " + st.dmg + "</small>" +
       (next && evoAt ? '<small class="evo">Evolves at Lv ' + evoAt + "</small>" : "") +
-      '<button class="btn small" data-cc="lvl" data-fam="' + f + '"' + (bank >= LEVEL_XP && !maxed ? "" : " disabled") + ">" + (maxed ? "Max level" : "⬆ Level up · " + LEVEL_XP + " XP") + "</button></div>";
+      '<button class="btn small" data-cc="lvl" data-fam="' + f + '"' + (bank >= LEVEL_XP && !maxed ? "" : " disabled") + ">" + (maxed ? "Max level" : "⬆ Level up · " + LEVEL_XP + " XP") + "</button>" +
+      (fams.length > 1 && !family(f).event ? tradeBtn("m:" + f, e.forTrade) : "") +
+      (fams.length > 1 && !family(f).event && s.starter !== f && s.petCreature !== f ? releaseRow("m:" + f, f, e.nick || c.name) : "") + "</div>";
   });
   h += "</div>";
   const sp = spares(s);
@@ -112,7 +133,8 @@ function myCreatures(s, bank) {
       const c = formOf(x.fam, x.lvl || 1), mine = owned(s)[x.fam];
       h += '<div class="mycard spare" style="--rc:' + RARITY_COLOR[c.rarity] + '"><div class="mypic">' + img(c, "", !!x.sparkle) + "</div>" +
         "<b>" + (x.sparkle ? "\u2728 " : "") + esc(c.name) + '</b><span class="lv">Lv ' + (x.lvl || 1) + " \u00b7 spare</span>" +
-        '<button class="btn small ghost" data-cc="useSpare" data-sp="' + x.id + '">' + (mine ? "\u2B06 Use for +1 level" : "Add to my collection") + "</button></div>";
+        '<button class="btn small ghost" data-cc="useSpare" data-sp="' + x.id + '">' + (mine ? "\u2B06 Use for +1 level" : "Add to my collection") + "</button>" +
+        (family(x.fam).event ? "" : tradeBtn("s:" + x.id, x.forTrade) + releaseRow("s:" + x.id, x.fam, c.name)) + "</div>";
     });
     h += "</div>";
   }
@@ -173,14 +195,24 @@ function hatchOverlay() {
   const r = hatch.res, c = r && creature(r.id);
   let h = '<div class="hatchover" style="background-image:url(assets/hatch-bg.jpg)"><div class="hatchstage">';
   if (hatch.phase !== "reveal") {
-    h += '<div class="eggwrap ' + hatch.phase + (hatch.legendary ? " leg" : "") + '"><img class="egg whole" src="assets/egg.png" alt="">' +
-      '<img class="egg top" src="assets/egg.png" alt=""><img class="egg bot" src="assets/egg.png" alt=""><span class="flash"></span></div>' +
+    // the egg's colour shows its rarity: Common silver, Uncommon green, Rare blue, Super Rare purple, Legendary gold
+    const ek = c ? { "Common": "common", "Uncommon": "uncommon", "Rare": "rare", "Super Rare": "superrare", "Legendary": "legendary" }[c.rarity] : null;
+    // during Haunt-O-Ween, Ghost-type creatures (and Hexaduck, the Haunt-O-Ween event Legendary) hatch from the spooky egg
+    const th = hatch.theme;   // an event egg from a Golden Present always shows that event's egg
+    const spooky = th ? th === "haunt" : c && ctx.cls && ctx.cls.haunt && !ctx.cls.gobble && !ctx.cls.jingle && (c.types.includes("Ghost") || c.event === "hex");
+    // during Gobble-Palooza, Nature-type creatures (and Thanksolotl) hatch from the harvest egg
+    const harvest = th ? th === "gobble" : !spooky && c && ctx.cls && ctx.cls.gobble && !ctx.cls.jingle && (c.types.includes("Nature") || c.event === "thanks");
+    // during Jingle Jam, Ice- and Light-type creatures (and Jinglotl) hatch from the Jingle egg
+    const jingly = th ? th === "jingle" : !spooky && !harvest && c && ctx.cls && ctx.cls.jingle && (c.types.includes("Ice") || c.types.includes("Light") || c.event === "jingle");
+    const egg = spooky ? "assets/egg-haunt.webp" : harvest ? "assets/egg-gobble.webp" : jingly ? "assets/egg-jingle.webp" : ek ? "assets/egg-" + ek + ".webp" : "assets/egg.png";
+    h += '<div class="eggwrap ' + hatch.phase + (hatch.legendary || (c && c.rarity === "Legendary") ? " leg" : "") + (spooky ? " haunt" : harvest ? " harvest" : jingly ? " jingly" : "") + '" style="--rc:' + (spooky ? "#B45CFF" : harvest ? "#F2A541" : jingly ? "#9EE3FF" : c ? RARITY_COLOR[c.rarity] : "#FFE6AA") + '"><img class="egg whole" src="' + egg + '" alt="">' +
+      '<img class="egg top" src="' + egg + '" alt=""><img class="egg bot" src="' + egg + '" alt=""><span class="flash"></span></div>' +
       '<p class="hatchtxt">' + (hatch.phase === "shake" ? "Something is moving…" : "") + "</p>";
   } else {
     h += '<div class="reveal" style="--rc:' + RARITY_COLOR[c.rarity] + '"><span class="rays"></span>' + img(c, "revimg", r.sparkle) + "</div>" +
       '<div class="revtxt">' + rarityPill(c.rarity) + (r.sparkle ? ' <span class="rpill" style="background:linear-gradient(90deg,#ff7ad9,#ffd84d,#7ae7ff)">\u2728 SPARKLE</span>' : "") + "<h2>" + (r.sparkle ? "\u2728 " : "") + esc(c.name) + "</h2>" +
       (r.event === "bday" ? '<p class="eventmsg ev-bday">\u{1F382} HAPPY BIRTHDAY! ' + (r.dupe ? "Another Wisholotl came to celebrate!" : "<b>Wisholotl, " + esc(c.title || "") + "</b>, came to make your wish come true!") + "</p>" : "") +
-      (r.event && r.event !== "bday" ? '<p class="eventmsg ev-' + r.event + '">' + (r.event === "hex" ? "\u{1F383}" : "\u{1F986}") + " LIMITED EVENT LEGENDARY! " + (r.dupe ? "Another " + esc(c.name) + "!" : "You caught <b>" + esc(c.name) + ", " + esc(c.title || "") + "</b>! It\u2019s yours forever.") + "</p>" : "") +
+      (r.event && r.event !== "bday" ? '<p class="eventmsg ev-' + r.event + '">' + (r.event === "hex" ? "\u{1F383}" : r.event === "thanks" ? "\u{1F983}" : r.event === "jingle" ? "\u{1F384}" : "\u{1F986}") + " LIMITED EVENT LEGENDARY! " + (r.dupe ? "Another " + esc(c.name) + "!" : "You caught <b>" + esc(c.name) + ", " + esc(c.title || "") + "</b>! It\u2019s yours forever.") + "</p>" : "") +
       (r.newSparkle ? '<p class="sparkmsg">WOW! A 1-in-2,000 Sparkle! Your ' + esc(c.name) + " family is now Sparkle forever.</p>" : "") +
       (r.dupe && r.kept ? "<p>\u{1F504} Kept as a <b>spare for trading</b>. Find it under My creatures.</p>"
         : r.dupe ? '<p>You already had this family — <b>free level up! Now Lv ' + r.lvl + "</b>" + (r.evolved ? " and it <b>evolved!</b>" : "") + "</p>" +
@@ -289,9 +321,9 @@ function battleOverlay() {
   if (bt.status === "declined") return h + '<div class="bpanel"><p>The challenge was declined.</p></div></div>';
   if (bt.status === "invite") return h + '<div class="bpanel"><p>Waiting for ' + esc(thN) + " to accept…</p></div></div>";
   if (bt.status === "team" && !(bt.team && bt.team[me])) {
-    const fams = ownedFams(ctx.me);
+    const fams = sortedFams(ctx.me);
     return h + '<div class="bpanel"><h3>Choose your team: pick ' + bt.n + "</h3><div class=\"teamgrid\">" + fams.map(f => { const c = formOf(f, owned(ctx.me)[f].lvl || 1), on = picks.includes(f);
-      return '<button class="tpick' + (on ? " on" : "") + '" data-cc="pickTeam" data-fam="' + f + '">' + img(c, "", spOf(f)) + "<b>" + esc(c.name) + "</b><small>Lv " + (owned(ctx.me)[f].lvl || 1) + "</small></button>"; }).join("") +
+      return '<button class="tpick' + (on ? " on" : "") + '" data-cc="pickTeam" data-fam="' + f + '">' + (owned(ctx.me)[f].fav ? '<span class="tfav">\u2B50</span>' : "") + img(c, "", spOf(f)) + "<b>" + esc(owned(ctx.me)[f].nick || c.name) + "</b><small>Lv " + (owned(ctx.me)[f].lvl || 1) + "</small></button>"; }).join("") +
       '</div><button class="btn big" data-cc="lockTeam"' + (picks.length === bt.n ? "" : " disabled") + ">Lock in team (" + picks.length + "/" + bt.n + ")</button></div></div>";
   }
   if (bt.status === "team") return h + '<div class="bpanel"><p>Team locked in! Waiting for ' + esc(thN) + " to choose…</p></div></div>";
@@ -332,6 +364,16 @@ export async function onClick(el, c) {
   ctx = c;
   const a = el.dataset.cc, s = c.me;
   if (a === "starter") { if (hasStarter(s)) return; return c.patch({ coll: { [el.dataset.fam]: { lvl: 1, at: new Date().toISOString() } }, starter: el.dataset.fam }); }
+  if (a === "hatchTheme") {
+    const key = nextTheme(s); if (!themeLeft(s) || !key) return;
+    const res = doPull(s, rollRarity(), c.cls, { types: THEME_TYPES[key] || [] });
+    hatch = { phase: "shake", res, theme: key };
+    hold(3200); c.render(true);
+    c.patch({ coll: res.coll, themeUsed: (Number(s.themeUsed) || 0) + 1 }, true);
+    later(1900, () => { hatch.phase = "crack"; hold(1400); });
+    later(2800, () => { hatch.phase = "reveal"; busyUntil = 0; });
+    return;
+  }
   if (a === "hatch" || a === "hatchLeg" || a === "hatchBday") {
     const leg = a === "hatchLeg", bday = a === "hatchBday";
     if (bday ? !birthdayLeft(s) : leg ? !legendaryLeft(s) : !pullsLeft(s, c.cls)) return;
@@ -362,6 +404,27 @@ export async function onClick(el, c) {
     c.flash(had ? "Used your spare: +1 level!" : "It\u2019s part of your collection now!", true);
     return c.patch({ coll, spares: spares(s).filter(x => x.id !== sp.id) });
   }
+  if (a === "release") { releasing = el.dataset.key; releaseMsg = null; return c.render(true); }
+  if (a === "releaseCancel") { releasing = null; return c.render(true); }
+  if (a === "releaseOk") {   // release a creature (or spare) for banked XP
+    const key = el.dataset.key; releasing = null;
+    const why = releaseProblem(s, key, c.battles, c.trades);
+    if (why) { releaseMsg = { key, why }; c.render(true); setTimeout(() => { if (releaseMsg && releaseMsg.key === key) { releaseMsg = null; c.render(true); } }, 5000); return; }
+    let fam, name, data;
+    if (key.startsWith("s:")) {
+      const sp = spares(s).find(x => x.id === key.slice(2)); fam = sp.fam; name = formOf(fam, sp.lvl || 1).name;
+      const dex = new Set(s.dex || []), top = formIndex(fam, sp.lvl || 1); family(fam).forms.forEach((id, i) => { if (i <= top) dex.add(id); });
+      data = { spares: spares(s).filter(x => x.id !== sp.id), dex: [...dex] };
+    } else {
+      fam = key.slice(2); const e = owned(s)[fam], top = formIndex(fam, e.lvl || 1); name = e.nick || formOf(fam, e.lvl || 1).name;
+      const coll = Object.assign({}, owned(s)); delete coll[fam];
+      const dex = new Set(s.dex || []); family(fam).forms.forEach((id, i) => { if (i <= top) dex.add(id); });   // the lorebook keeps it
+      data = { coll, dex: [...dex] };
+    }
+    const xp = releaseXP(fam); data.xpReleased = (Number(s.xpReleased) || 0) + xp;
+    c.flash("Bye, " + name + "! +" + xp + " XP in your bank.", true);
+    return c.patch(data);
+  }
   if (a === "book") { book = { open: false, page: 0 }; return c.render(true); }
   if (a === "bookOpen") { book.opening = true; hold(900); c.render(true); later(850, () => { book.open = true; book.opening = false; book.flip = "turn-in"; busyUntil = 0; }); return; }
   if (a === "bookClose") { book = null; return c.render(true); }
@@ -372,6 +435,18 @@ export async function onClick(el, c) {
     return;
   }
   if (a === "nick") { naming = el.dataset.fam; c.render(true); const i = document.getElementById("nickIn"); if (i) { i.focus(); i.select(); } return; }
+  if (a === "forTrade") {
+    const k = el.dataset.key;
+    if (k.startsWith("s:")) { const list = spares(s).map(x => (x.id === k.slice(2) ? Object.assign({}, x, { forTrade: !x.forTrade }) : x)); return c.patch({ spares: list }); }
+    const f = k.slice(2), e = owned(s)[f]; if (!e) return;
+    const coll = Object.assign({}, owned(s)); coll[f] = Object.assign({}, e); if (e.forTrade) delete coll[f].forTrade; else coll[f].forTrade = true;
+    return c.patch({ coll });
+  }
+  if (a === "fav") {
+    const f = el.dataset.fam, e = owned(s)[f]; if (!e) return;
+    const coll = Object.assign({}, owned(s)); coll[f] = Object.assign({}, e); if (e.fav) delete coll[f].fav; else coll[f].fav = true;
+    return c.patch({ coll });
+  }
   if (a === "nickCancel") { naming = null; return c.render(true); }
   if (a === "nickSave") {
     const f = el.dataset.fam, i = document.getElementById("nickIn"), e = owned(s)[f]; if (!e) return;
