@@ -4,9 +4,9 @@ import {
   formIndex, formOf, statsOf, seenSet, rollRarity, doPull, arenaOpen, arenaOpenFor, lunchHour, hitGoalToday, LUNCH_ARENA, ARENA_HOURS, fighterFrom, teamSize, alive, resolve, resolveRound, moveOk, MOVES, hitDamage,
   birthdayLeft, themeLeft, nextTheme, THEME_TYPES, THEME_EGG, WISH_FAM, spares, spareId, releaseXP, releaseProblem, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
   EVENTS, eventOpen, eventWindow, eventStreak, hasEvent, eventUnlocked, azToday, rollTeacherRarity, TEACHER_ODDS
-} from "./collect.js?v=20260930a";
-import { newBattleRef, changeBattle, setDoc } from "./db.js?v=20260930a";
-import { tradeCard } from "./trade-ui.js?v=20260930a";
+} from "./collect.js?v=20260930b";
+import { newBattleRef, changeBattle, setDoc } from "./db.js?v=20260930b";
+import { tradeCard } from "./trade-ui.js?v=20260930b";
 
 const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const PER_PAGE = 20;
@@ -51,7 +51,7 @@ export function collectorTab(c) {
     (themeLeft(s) ? '<button class="btn big gold" data-cc="hatchTheme"><img src="assets/egg-' + nextTheme(s) + '.webp" alt="" style="height:1.5em;vertical-align:middle;margin:-4px 4px -4px 0;">Hatch your ' + THEME_EGG[nextTheme(s)] + "!</button>" : "") +
     '<button class="btn ghost big" data-cc="book">\u{1F4D6} Open lorebook</button></div>' +
     '<p class="muted" style="margin-top:8px;">Egg odds: ' + (s.isTeacher ? TEACHER_ODDS : ODDS).map(([r, p]) => r + " " + (p < 0.01 ? (p * 100).toFixed(2) : Math.round(p * 100)) + "%").join(" · ") + "</p></div>";
-  if (!s.isTeacher) h += eventCards(s, c.cls);
+  if (!s.isTeacher) h += eventCards(s, c.cls) + ideaCard(s, c.cls);
   h += myCreatures(s, bank);
   h += arenaCard(s);
   h += tradeCard(c);
@@ -139,6 +139,44 @@ function myCreatures(s, bank) {
     h += "</div>";
   }
   return h + "</div>";
+}
+
+/* ================= creature ideas ================= */
+// Hit 120 XP in a day and you can send Ms. Ariana one idea for a new creature that day.
+const IDEA_TYPES = ["Air", "Arcane", "Crystal", "Dark", "Dragon", "Earth", "Electric", "Fire", "Ghost", "Ice", "Light", "Nature", "Normal", "Poison", "Rock", "Steel", "Water"];
+let ideaOpen = false, ideaTypes = [], ideaKind = "creature", ideaSlot = "hat";
+const IDEA_SLOTS = { hat: "\u{1F3A9} On the head", eyes: "\u{1F576}\uFE0F On the eyes", snack: "\u{1F36A} A snack / held item", other: "\u2728 Something else" };
+const ideaKeep = ["ideaName", "ideaAnimal", "ideaLore"];
+function keepIdeaFields(fn) {
+  const keep = ideaKeep.map(id => { const n = document.getElementById(id); return n ? n.value : null; });
+  fn(); ideaKeep.forEach((id, i) => { const n = document.getElementById(id); if (n && keep[i] != null) n.value = keep[i]; });
+}
+function ideaCard(s, cls) {
+  const today = azToday(), sent = (s.ideas || []).filter(x => x.date === today).length, ok = hitGoalToday(s, cls);
+  let h = '<div class="card ideacard"><div class="card-head"><h2>\u{1F4A1} Invent something!</h2><span class="fact">' + (s.ideas || []).length + " sent</span></div>";
+  if (!ok) return h + '<p class="lede">Hit <b>' + ((cls && cls.goal) || 120) + " XP</b> today and you can send Ms. Ariana an idea for a brand-new creature or accessory!</p></div>";
+  if (sent) return h + '<p class="lede">\u2705 Your idea for today is sent! Hit ' + ((cls && cls.goal) || 120) + " XP another day to send another one.</p>" + ideaList(s) + "</div>";
+  if (!ideaOpen) return h + '<p class="lede">You hit ' + ((cls && cls.goal) || 120) + " XP today, so you can send one idea! Ms. Ariana might add it to the game.</p>" +
+    '<div class="row"><button class="btn" data-cc="ideaStart" data-k="creature">\u{1F43E} Invent a creature</button><button class="btn" data-cc="ideaStart" data-k="gear">\u{1F3A9} Invent an accessory</button></div>' + ideaList(s) + "</div>";
+  const tabs = '<div class="row" style="margin-bottom:10px;gap:6px;">' + [["creature", "\u{1F43E} Creature"], ["gear", "\u{1F3A9} Accessory"]].map(([k, l]) =>
+    '<button class="tpill2' + (ideaKind === k ? " on" : "") + '" data-cc="ideaKind" data-k="' + k + '">' + l + "</button>").join("") + "</div>";
+  if (ideaKind === "gear") return h + tabs +
+    '<div class="field"><label for="ideaName">Accessory name</label><input id="ideaName" type="text" maxlength="30" placeholder="e.g. Rainbow Scarf"></div>' +
+    '<p class="muted small" style="margin:10px 0 6px;">Where does your companion wear it?</p><div class="typepick">' +
+    Object.keys(IDEA_SLOTS).map(k => '<button class="tpill2' + (ideaSlot === k ? " on" : "") + '" data-cc="ideaSlot" data-k="' + k + '">' + IDEA_SLOTS[k] + "</button>").join("") + "</div>" +
+    '<div class="field" style="margin-top:10px;"><label for="ideaLore">What does it look like? What does it do? (optional)</label><textarea id="ideaLore" rows="3" maxlength="600" placeholder="e.g. A fuzzy striped scarf that makes your companion +5 cozy"></textarea></div>' +
+    '<div class="row" style="margin-top:10px;"><button class="btn" data-cc="ideaSend">Send my idea</button><button class="btn ghost" data-cc="ideaCancel">Cancel</button></div></div>';
+  h += tabs;
+  return h + '<div class="field"><label for="ideaName">Creature name</label><input id="ideaName" type="text" maxlength="30" placeholder="e.g. Blazewhisker"></div>' +
+    '<p class="muted small" style="margin:10px 0 6px;">Type (pick 1 or 2)</p><div class="typepick">' +
+    IDEA_TYPES.map(t => '<button class="tpill2' + (ideaTypes.includes(t) ? " on" : "") + '" data-cc="ideaType" data-t="' + t + '">' + (TYPE_FX[t] || "") + " " + t + "</button>").join("") + "</div>" +
+    '<div class="field" style="margin-top:10px;"><label for="ideaAnimal">What animal is it based on? (optional)</label><input id="ideaAnimal" type="text" maxlength="40" placeholder="e.g. a fox, a jellyfish"></div>' +
+    '<div class="field" style="margin-top:10px;"><label for="ideaLore">Lorebook story (optional)</label><textarea id="ideaLore" rows="3" maxlength="600" placeholder="Where does it live? What is it like?"></textarea></div>' +
+    '<div class="row" style="margin-top:10px;"><button class="btn" data-cc="ideaSend">Send my idea</button><button class="btn ghost" data-cc="ideaCancel">Cancel</button></div></div>';
+}
+function ideaList(s) {
+  const l = (s.ideas || []).slice().reverse().slice(0, 5); if (!l.length) return "";
+  return '<p class="muted small" style="margin:12px 0 4px;">Your ideas</p><div class="inv">' + l.map(x => "<span>" + (x.kind === "gear" ? "\u{1F3A9}" : "\u{1F43E}") + " <b>" + esc(x.name) + "</b>" + (x.kind === "gear" ? "" : " \u00b7 " + esc((x.types || []).join("/"))) + "</span>").join("") + "</div>";
 }
 
 /* ================= arena ================= */
@@ -479,6 +517,28 @@ export async function onClick(el, c) {
     const f = k.slice(2), e = owned(s)[f]; if (!e) return;
     const coll = Object.assign({}, owned(s)); coll[f] = Object.assign({}, e); if (e.forTrade) delete coll[f].forTrade; else coll[f].forTrade = true;
     return c.patch({ coll });
+  }
+  if (a === "ideaStart") { ideaOpen = true; ideaTypes = []; ideaKind = el.dataset.k || "creature"; ideaSlot = "hat"; return c.render(true); }
+  if (a === "ideaKind") { return keepIdeaFields(() => { ideaKind = el.dataset.k; c.render(true); }); }
+  if (a === "ideaSlot") { return keepIdeaFields(() => { ideaSlot = el.dataset.k; c.render(true); }); }
+  if (a === "ideaCancel") { ideaOpen = false; return c.render(true); }
+  if (a === "ideaType") {
+    const t = el.dataset.t;
+    return keepIdeaFields(() => { ideaTypes = ideaTypes.includes(t) ? ideaTypes.filter(x => x !== t) : ideaTypes.length < 2 ? ideaTypes.concat([t]) : [ideaTypes[1], t]; c.render(true); });
+  }
+  if (a === "ideaSend") {
+    const v = id => ((document.getElementById(id) || {}).value || "").replace(/\s+/g, " ").trim();
+    const name = v("ideaName").slice(0, 30), animal = v("ideaAnimal").slice(0, 40), lore = ((document.getElementById("ideaLore") || {}).value || "").trim().slice(0, 600);
+    const gear = ideaKind === "gear";
+    if (!name) return c.flash(gear ? "Give your accessory a name!" : "Give your creature a name!");
+    if (!gear && !ideaTypes.length) return c.flash("Pick at least one type!");
+    const today = azToday();
+    if (!hitGoalToday(s, c.cls) || (s.ideas || []).some(x => x.date === today)) return;
+    const idea = gear ? { date: today, kind: "gear", name, slot: ideaSlot, at: new Date().toISOString() } : { date: today, kind: "creature", name, types: ideaTypes.slice(), at: new Date().toISOString() };
+    if (lore) idea.lore = lore; if (animal && !gear) idea.animal = animal;
+    ideaOpen = false; ideaTypes = [];
+    await c.patch({ ideas: (s.ideas || []).concat([idea]) });
+    return c.flash("\u{1F4A1} Idea sent to Ms. Ariana!", true);
   }
   if (a === "fav") {
     const f = el.dataset.fam, e = owned(s)[f]; if (!e) return;

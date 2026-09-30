@@ -216,6 +216,22 @@ service cloud.firestore {
             && now("xpSpent", 0) >= was("xpSpent", 0) && now("xpSpent", 0) <= was("xpSpent", 0) + 120;
         }
 
+        // ---- Creature ideas ---- one idea per day the student hit 120 XP (checked against their saved XP history).
+        function studentIdea() {
+          let n = request.resource.data.get("ideas", []);
+          let e = n[n.size() - 1];
+          let day = was("xpHist", {}).get(e.get("date", ""), {});
+          return changed().hasOnly(["ideas"])
+            && n.size() == was("ideas", []).size() + 1 && n.size() <= 200
+            && e.keys().hasOnly(["date", "kind", "name", "types", "slot", "lore", "animal", "at"])
+            && e.name is string && e.name.size() >= 1 && e.name.size() <= 30
+            && (e.get("kind", "creature") == "gear"
+                  ? (e.get("slot", "") in ["hat", "eyes", "snack", "other"])
+                  : (e.get("kind", "creature") == "creature" && e.types is list && e.types.size() >= 1 && e.types.size() <= 2))
+            && e.get("lore", "") is string && e.get("lore", "").size() <= 600
+            && e.get("animal", "") is string && e.get("animal", "").size() <= 40
+            && (day.get("l", 0) >= klass().get("goal", 120) || day.get("d", 0) >= klass().get("goal", 120));
+        }
         // ---- Badges: earned badges are only ever added (never removed); pin one earned badge ----
         function studentBadges() {
           return changed().hasOnly(["badges", "badgesSeen", "pinnedBadge", "bdaySeen"])
@@ -231,7 +247,7 @@ service cloud.firestore {
                 || (now("petCreature", "") in ["L-26", "L-27", "L-28", "L-29", "L-30"] && was("coll", {}).keys().hasAny([now("petCreature", "")])));
         }
 
-        allow update: if isTeacher() || (request.auth != null && (studentLooks() || studentAttack() || studentBuy() || studentSpin() || studentDoor() || studentCollect() || studentBadges() || studentPet()));
+        allow update: if isTeacher() || (request.auth != null && (studentLooks() || studentAttack() || studentBuy() || studentSpin() || studentDoor() || studentIdea() || studentCollect() || studentBadges() || studentPet()));
       }
     }
   }

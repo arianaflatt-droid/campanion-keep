@@ -1,18 +1,18 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20260930a";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20260930a";
-import { DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, waitingDoors, doorXPRows, REWARD_XP } from "./doors.js?v=20260930a";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20260930a";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20260930b";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20260930b";
+import { DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, waitingDoors, doorXPRows, REWARD_XP } from "./doors.js?v=20260930b";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20260930b";
 import {
   applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20260930a";
-import { EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20260930a";
+} from "./game.js?v=20260930b";
+import { EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20260930b";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db
-} from "./db.js?v=20260930a";
+} from "./db.js?v=20260930b";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -291,6 +291,26 @@ function tctx() {
   const me = tplayer();
   return { cls, students: students.concat([me]), battles, trades, me, patch: tpatch, render: () => render(true), flash };
 }
+/* ---------- Creature ideas from students (sent on days they hit 120) ---------- */
+function ideaRows() {
+  const rows = [];
+  students.forEach(st => (st.ideas || []).forEach((x, i) => rows.push({ st, x, i })));
+  return rows.sort((a, b) => (a.x.seen ? 1 : 0) - (b.x.seen ? 1 : 0) || String(b.x.at).localeCompare(String(a.x.at)));
+}
+function newIdeas() { return ideaRows().filter(r => !r.x.seen).length; }
+function viewIdeas() {
+  const rows = ideaRows(), n = rows.filter(r => !r.x.seen).length;
+  let h = '<div class="card"><div class="card-head"><h2>\u{1F4A1} Student ideas</h2><span class="fact">' + (n ? "<b>" + n + "</b> new" : rows.length + " total") + "</span></div>";
+  if (!rows.length) return h + '<p class="lede">When a student hits ' + goalXP(cls) + " XP, they can send you one idea for a new creature or accessory that day. Their ideas show up here.</p></div>";
+  const shown = busy.allIdeas ? rows : rows.slice(0, 12);
+  h += '<div class="idealist">' + shown.map(r => '<div class="idea' + (r.x.seen ? " seen" : "") + '"><div class="ideahead">' + (r.x.kind === "gear" ? "\u{1F3A9}" : "\u{1F43E}") + " <b>" + esc(r.x.name) + "</b> <span class=\"fact\">" + esc(r.x.kind === "gear" ? "Accessory \u00b7 " + ({ hat: "head", eyes: "eyes", snack: "snack / held", other: "other" }[r.x.slot] || "") : (r.x.types || []).join(" / ")) + "</span>" +
+      '<label class="ideaseen"><input type="checkbox" data-ideaseen="' + r.st.id + ":" + r.i + '"' + (r.x.seen ? " checked" : "") + "> Seen</label></div>" +
+      '<div class="muted small">by <b>' + esc(r.st.name) + "</b> \u00b7 " + esc(new Date(r.x.date + "T12:00:00").toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })) +
+      (r.x.animal ? " \u00b7 based on: " + esc(r.x.animal) : "") + "</div>" +
+      (r.x.lore ? '<p class="idealore">' + esc(r.x.lore) + "</p>" : "") + "</div>").join("") + "</div>";
+  if (rows.length > 12) h += '<button class="btn ghost small" data-act="allIdeas">' + (busy.allIdeas ? "Show fewer" : "Show all " + rows.length) + "</button>";
+  return h + "</div>";
+}
 function teacherCollectorCard() {
   return '<div class="card"><div class="card-head"><h2>\u{1F9D1}\u200D\u{1F3EB} Your collection</h2><span class="fact">battle your students!</span></div>' +
     '<p class="lede" style="font-size:13.5px;">Your own collection. Students see you in the arena as <b>' + esc(tplayer().name) + "</b>.</p></div>" +
@@ -322,14 +342,14 @@ function render(force) {
   else if (mode === "battle") h += battleHTML(cls, students, battleFx) + healControls();
   else {
     const np = prizesOpen(), nd = waitingDoors(students, cls).length;
-    const tabs = [["daily", "\u{1F4C5} Daily"], ["students", "\u{1F43E} Students"], ["collector", "\u{1F95A} Collector"], ["events", "\u2728 Events" + (eventMode(cls) ? " " + SEASON.icon : "") + (np + nd ? ' <span class="tbadge" aria-label="' + (np + nd) + ' to check">' + (np + nd) + "</span>" : "")], ["settings", "\u2699\uFE0F Settings"]];
+    const tabs = [["daily", "\u{1F4C5} Daily"], ["students", "\u{1F43E} Students"], ["collector", "\u{1F95A} Collector" + (newIdeas() ? ' <span class="tbadge" aria-label="new creature ideas">' + newIdeas() + "</span>" : "")], ["events", "\u2728 Events" + (eventMode(cls) ? " " + SEASON.icon : "") + (np + nd ? ' <span class="tbadge" aria-label="' + (np + nd) + ' to check">' + (np + nd) + "</span>" : "")], ["settings", "\u2699\uFE0F Settings"]];
     if (!tabs.some(x => x[0] === ctab)) ctab = "daily";
     if (nd && nd > doorHidden) h += '<div class="banner prizealert"><span>\u{1F6AA} <b>' + nd + " door" + (nd === 1 ? "" : "s") + "</b> to check" + doorNames() + '</span><span class="row" style="gap:8px;"><button class="btn small" data-act="goDoors">Check doors</button><button class="btn ghost small" data-act="hideDoors">Hide</button></span></div>';
     if (np && np > prizeHidden) h += '<div class="banner prizealert"><span>\u{1F381} <b>' + np + " prize" + (np === 1 ? "" : "s") + "</b> to order or give" + prizeNames() + '</span><span class="row" style="gap:8px;"><button class="btn small" data-act="goPrizes">View prizes</button><button class="btn ghost small" data-act="hidePrizes">Hide</button></span></div>';
     h += '<div class="tabs ctabs" role="tablist">' + tabs.map(([k, l]) => '<button role="tab" class="tab' + (ctab === k ? " on" : "") + '" data-ctab="' + k + '" aria-selected="' + (ctab === k) + '">' + l + "</button>").join("") + "</div>";
     if (ctab === "daily") h += viewDaily() + viewRewards();
     else if (ctab === "students") h += viewStandings() + viewAssign() + viewLosses() + viewLinks();
-    else if (ctab === "collector") h += teacherCollectorCard() + viewCollector();
+    else if (ctab === "collector") h += viewIdeas() + teacherCollectorCard() + viewCollector();
     else if (ctab === "events") h += viewModes() + (eventMode(cls) || waitingDoors(students, cls).length ? viewDoors() : "") + duckAdmin() + (eventMode(cls) ? viewBucket() + viewPrizes() + viewShop() : prizeRows().length ? viewPrizes() : "");
     else h += viewClassSettings();
   }
@@ -1070,6 +1090,11 @@ document.addEventListener("click", async ev => {
     try { await updateDoc(classRef, { [f]: !cls[f] }); flash("Saved \u2014 " + nm + " is " + (cls[f] ? "on" : "off") + "."); } catch (e) { flash("Couldn\u2019t change that \u2014 " + e.code); }
     return;
   }
+  if ((el = ev.target.closest("[data-ideaseen]"))) {
+    const [sid, i] = el.dataset.ideaseen.split(":"), st = sOf(sid); if (!st) return;
+    const ideas = (st.ideas || []).map(x => Object.assign({}, x)); if (!ideas[i]) return;
+    ideas[i].seen = !ideas[i].seen; return patch(sid, { ideas });
+  }
   if ((el = ev.target.closest("[data-doordone]"))) {
     const [sid, path] = el.dataset.doordone.split(":"); const [d, k] = path.split("/"); const s = sOf(sid);
     const cur = !!((((s.doors || {})[d] || {})[k]) || {}).ordered;
@@ -1108,6 +1133,7 @@ document.addEventListener("click", async ev => {
 
   if (act === "signIn") { try { await teacherSignIn(); } catch (e) { flash("Sign-in didn’t finish — " + (e.code || e.message)); } return; }
   if (act === "goPrizes") { ctab = "events"; try { localStorage.setItem("ck-ctab", ctab); } catch (e) {} render(); const c = document.getElementById("prizeCard"); if (c) c.scrollIntoView({ behavior: "smooth", block: "start" }); return; }
+  if (act === "allIdeas") { busy.allIdeas = !busy.allIdeas; render(); return; }
   if (act === "goDoors") { ctab = "events"; try { localStorage.setItem("ck-ctab", ctab); } catch (e) {} render(); const c = document.getElementById("doorCard"); if (c) c.scrollIntoView({ behavior: "smooth", block: "start" }); return; }
   if (act === "hideDoors") { doorHidden = waitingDoors(students, cls).length; render(); return; }
   if (act === "doorsToggle") { const on = !cls.doorsOn; try { await updateDoc(classRef, { doorsOn: on }); flash("Saved \u2014 " + (DOOR_NAMES[SEASON.key] || "Daily Doors") + " is " + (on ? "on" : "off") + "."); } catch (e) { flash("Couldn\u2019t change that \u2014 " + e.code); } return; }

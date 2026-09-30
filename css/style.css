@@ -864,3 +864,13 @@ td .emo, .ic .emo{ display:inline-block; vertical-align:middle; font-size:1.3em;
   .bfx2.mine{ bottom:30%; } .bfx2.theirs{ top:18%; }
   @keyframes bfx2{ 0%{ opacity:0; transform:translateY(10px) scale(.8);} 30%{ opacity:1; transform:none;} 100%{ opacity:0; transform:translateY(-24px);} }
   @media (max-width:520px){ .mvgrid{ grid-template-columns:1fr; } }
+  /* Creature ideas */
+  .typepick{ display:flex; flex-wrap:wrap; gap:6px; }
+  .tpill2{ font-size:13px; font-weight:700; padding:6px 11px; border-radius:99px; border:1.5px solid var(--line); background:var(--panel); color:var(--ink-2); cursor:pointer; }
+  .tpill2.on{ background:#FFF3C4; border-color:#E9C46A; color:#6B4A00; }
+  .idealist{ display:flex; flex-direction:column; gap:8px; }
+  .idea{ border:1.5px solid #E9C46A; background:#FFFBEA; border-radius:12px; padding:10px 12px; }
+  .idea.seen{ border-color:var(--line); background:var(--panel); opacity:.7; }
+  .ideahead{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; } .ideahead b{ font-size:16px; }
+  .ideaseen{ margin-left:auto; font-size:13px; display:flex; align-items:center; gap:4px; }
+  .idealore{ margin:6px 0 0; font-size:13.5px; white-space:pre-wrap; }

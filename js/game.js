@@ -1,4 +1,4 @@
-import { formOf, sparkleImg, azNow } from "./collect.js?v=20260930a";
+import { formOf, sparkleImg, azNow } from "./collect.js?v=20260930b";
 // Shared rules + drawing for the teacher console and the student page.
 
 export const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
