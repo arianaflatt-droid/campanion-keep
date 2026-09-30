@@ -1,3 +1,4 @@
+import { presentsOpened } from "./doors.js";
 // Badges: worked out from each student's saved data, so nothing extra is stored and no rules change.
 // To add a badge: add an entry with a check(st) that returns how far along the student is,
 // and a goal. Put its picture in assets/badges/ (a transparent WEBP or PNG). Without a picture, the emoji shows.
@@ -62,10 +63,11 @@ export const bestRun = (st, bt, cls) => { let best = 0, run = 0; days(st).forEac
 export const lunchHits = (st, bt, cls) => days(st).filter(d => d.lunch != null && d.lunch >= goal(cls)).length;
 // Monday of a date's week, so days can be grouped Mon-Fri
 function weekOf(date) { const t = new Date(date + "T12:00:00"); t.setDate(t.getDate() - ((t.getDay() + 6) % 7)); return t.toISOString().slice(0, 10); }
-// a full-health week: at least 3 school days uploaded that week, and every one of them at the goal
+// a full-health week: all 5 school days (Mon-Fri) that week at the goal
+const isWeekday = date => { const g = new Date(date + "T12:00:00").getDay(); return g >= 1 && g <= 5; };
 function fullWeeks(st, cls) {
-  const w = {}; days(st).forEach(d => { const k = weekOf(d.date); (w[k] = w[k] || []).push(d); });
-  return Object.keys(w).sort().map(k => w[k].length >= 3 && w[k].every(d => d.xp >= goal(cls)));
+  const w = {}; days(st).filter(d => isWeekday(d.date)).forEach(d => { const k = weekOf(d.date); (w[k] = w[k] || []).push(d); });
+  return Object.keys(w).sort().map(k => w[k].length >= 5 && w[k].every(d => d.xp >= goal(cls)));
 }
 export const fullWeekCount = (st, bt, cls) => fullWeeks(st, cls).filter(Boolean).length;
 export const bestFullWeekRun = (st, bt, cls) => { let best = 0, run = 0; fullWeeks(st, cls).forEach(ok => { run = ok ? run + 1 : 0; best = Math.max(best, run); }); return best; };
@@ -75,9 +77,9 @@ export const capes = st => Math.max(Number(st.capesTotal) || 0, (st.items || [])
 /* Haunt-O-Ween */
 // Gobble-Palooza uses the same save fields, so Haunt-O-Ween badges only count live candy while Haunt-O-Ween is on
 // (or before Gobble-Palooza has ever run). Turning Gobble-Palooza on saves the candy totals as candyBest etc. first.
-const hauntLive = cls => !!(cls && cls.haunt && !cls.gobble) || !(cls && cls.gobbleSince);
-const hauntSpin = e => e.s !== "gobble";
-export const attacks = st => Math.max(0, (Number(st.attackTotal) || 0) - (Number(st.turkeyAtk) || 0));   // Ghost-olotl attacks
+const hauntLive = cls => !!(cls && cls.haunt && !cls.gobble && !cls.jingle) || !(cls && (cls.gobbleSince || cls.jingleSince));
+const hauntSpin = e => !e.s || e.s === "haunt";
+export const attacks = st => Math.max(0, (Number(st.attackTotal) || 0) - (Number(st.turkeyAtk) || 0) - (Number(st.grinchAtk) || 0));   // Ghost-olotl attacks
 export const helpedDefeat = (st, bt, cls) => (ghostUnlocked(cls) && attacks(st) > 0 ? 1 : 0);
 export const candyEarned = (st, bt, cls) => Math.max(Number(st.candyBest) || 0, hauntLive(cls) ? candyOf(st) : 0);
 export const candySpentBest = (st, bt, cls) => Math.max(Number(st.spentBest) || 0, hauntLive(cls) ? Number(st.candySpent) || 0 : 0);
@@ -98,6 +100,8 @@ export const teacherLegendWins = (st, bt) => vsTeacher(st, bt).filter(b => won(s
 export const teacherPerfect = (st, bt) => vsTeacher(st, bt).filter(b => won(st, b) && !(b.log || []).some(e => e.k === "faint" && e.s === sideOf(st, b))).length;
 /* Gobble-Palooza */
 export const turkeyHelped = (st, bt, cls) => (cls && cls.turkeyDefeated && (Number(st.turkeyAtk) || 0) > 0 ? 1 : 0);
+/* Jingle Jam */
+export const grinchHelped = (st, bt, cls) => (cls && cls.grinchDefeated && (Number(st.grinchAtk) || 0) > 0 ? 1 : 0);
 export const eventsCaught = st => EVENT_FAMS.filter(f => owned(st)[f]).length;
 const LORE = CREATURES.filter(c => !c.event).length, lore = pct => Math.ceil(LORE * pct / 100);
 
@@ -112,6 +116,8 @@ export const BADGE_GROUPS = [
   { key: "haunt", title: "\u{1F383} Haunt-O-Ween" },
   { key: "teacher", title: "\u{1F34E} Battle Ms. Ariana" },
   { key: "gobble", title: "\u{1F983} Gobble-Palooza" },
+  { key: "jingle", title: "\u{1F384} Jingle Jam" },
+  { key: "doors", title: "\u{1F6AA} Daily Doors" },
 ];
 
 export const BADGES = [
@@ -166,7 +172,7 @@ export const BADGES = [
   { id: "egg-480", group: "care", name: "Double Egg Day 480", desc: "Earn 480 XP in one day", goal: 480, img: "assets/badges/egg-480.webp", emoji: "\u{1F95A}", check: bestDay },
   { id: "lunch-1",  group: "care", name: "Lunch Hero",    desc: "Hit 120 XP before lunch",          goal: 1,  img: "assets/badges/lunch-1.webp",  emoji: "\u2600\uFE0F", check: lunchHits },
   { id: "lunch-10", group: "care", name: "Lunch Hero 10", desc: "Hit 120 XP before lunch 10 times", goal: 10, img: "assets/badges/lunch-10.webp", emoji: "\u2600\uFE0F", check: lunchHits },
-  { id: "health-week",  group: "care", name: "Full-Health Week",  desc: "Keep full health for a whole school week", goal: 1, img: "assets/badges/health-week.webp",  emoji: "\u2764\uFE0F", check: fullWeekCount },
+  { id: "health-week",  group: "care", name: "Full-Health Week",  desc: "Hit the goal all 5 school days in one week (Mon\u2013Fri)", goal: 1, img: "assets/badges/health-week.webp",  emoji: "\u2764\uFE0F", check: fullWeekCount },
   { id: "health-month", group: "care", name: "Full-Health Month", desc: "Keep full health for 4 school weeks in a row", goal: 4, img: "assets/badges/health-month.webp", emoji: "\u{1F496}", check: bestFullWeekRun },
   { id: "never-lost", group: "care", name: "Never Lost", desc: "30 school days in a row without your companion disappearing", goal: 30, img: "assets/badges/never-lost.webp", emoji: "\u{1F6E1}\uFE0F", check: bestSafeRun },
   { id: "ghost-1",  group: "haunt", name: "Ghost Buster",    desc: "Help defeat the Ghost-olotl", goal: 1, img: "assets/badges/ghost-1.webp", emoji: "\u{1F47B}", check: helpedDefeat },
@@ -184,6 +190,14 @@ export const BADGES = [
   { id: "t-perfect",       group: "teacher", name: "Perfect Score", desc: "Beat Ms. Ariana without any of your creatures fainting", goal: 1, img: "assets/badges/t-perfect.webp", emoji: "\u{1F4AF}", check: teacherPerfect },
   { id: "turkey-takedown", group: "gobble", name: "Turkey Takedown", desc: "Help defeat the Turducken", goal: 1, img: "assets/badges/turkey-takedown.webp", emoji: "\u{1F983}", check: turkeyHelped },
   { id: "ev-thanks",       group: "gobble", name: "Thanksolotl", desc: "Catch the limited Thanksolotl during Gobble-Palooza", goal: 1, img: "assets/badges/ev-thanks.webp", emoji: "\u{1F342}", check: st => (owned(st)["L-29"] ? 1 : 0) },
+  { id: "present-rescuer", group: "jingle", name: "Present Rescuer", desc: "Help defeat the Grinch-a-Duck", goal: 1, img: "assets/badges/present-rescuer.webp", emoji: "\u{1F381}", check: grinchHelped },
+  { id: "ev-jingle",       group: "jingle", name: "Jinglotl", desc: "Catch the limited Jinglotl during Jingle Jam", goal: 1, img: "assets/badges/ev-jingle.webp", emoji: "\u2744\uFE0F", check: st => (owned(st)["L-30"] ? 1 : 0) },
+  // Daily Doors (Haunted Doors / Harvest Doors / Advent Calendar).
+  { id: "door-1",    group: "doors", name: "Knock Knock",    desc: "Open your first Daily Doors present", goal: 1,   img: "assets/badges/door-1.webp", emoji: "\u{1F6AA}", check: st => presentsOpened(st).doors },
+  { id: "door-25",   group: "doors", name: "Door Dasher",    desc: "Open 25 Daily Doors presents",        goal: 25,  img: "assets/badges/door-25.webp", emoji: "\u{1F381}", check: st => presentsOpened(st).doors },
+  { id: "door-100",  group: "doors", name: "Door Master",    desc: "Open 100 Daily Doors presents",       goal: 100, img: "assets/badges/door-100.webp", emoji: "\u{1F511}", check: st => presentsOpened(st).doors },
+  { id: "golden-1",  group: "doors", name: "Golden Glow",    desc: "Open a Golden Present (finish every door in one day)", goal: 1, img: "assets/badges/golden-1.webp", emoji: "\u2728", check: st => presentsOpened(st).golden },
+  { id: "golden-5",  group: "doors", name: "Golden Streak",  desc: "Open 5 Golden Presents",              goal: 5,   img: "assets/badges/golden-5.webp", emoji: "\u{1F31F}", check: st => presentsOpened(st).golden },
   { id: "candy-thief", group: "haunt", name: "Candy Thief", desc: "Steal candy from Ms. Ariana", goal: 1, img: "assets/badges/candy-thief.webp", emoji: "\u{1F9B9}", check: steals },
 ];
 

@@ -63,7 +63,7 @@ export function lunchBonusDays(st, cls) {
   return Object.keys(hist).filter(d => d >= start && hist[d] && (hist[d].lh || (hist[d].l != null && Number(hist[d].l) >= goal))).length;
 }
 export function pullsEarned(st, cls) {
-  return dayXPs(st, cls).reduce((n, d) => n + eggsFromXP(d.xp), 0) + lunchBonusDays(st, cls) * LUNCH_BONUS_EGGS + (Number(st.bonusPulls) || 0);
+  return dayXPs(st, cls).reduce((n, d) => n + eggsFromXP(d.xp), 0) + lunchBonusDays(st, cls) * LUNCH_BONUS_EGGS + (Number(st.bonusPulls) || 0) + (Number(st.doorEggs) || 0);
 }
 // How much more XP today (the latest day with data) until the next egg.
 export function todayXP(st, cls) {
@@ -75,7 +75,13 @@ export function pullsLeft(st, cls) { return Math.max(0, pullsEarned(st, cls) - (
 export const WISH_FAM = "L-28";
 export function birthdayLeft(st) { return Math.max(0, (Number(st.birthdayEggs) || 0) - (Number(st.birthdayUsed) || 0)); }
 export function legendaryLeft(st) { return Math.max(0, (Number(st.legendaryPulls) || 0) - (Number(st.legendaryUsed) || 0)); }
-export function bankXP(st, cls) { return Math.max(0, xpTotal(st, cls) + (Number(st.bonusXP) || 0) + (Number(st.xpReleased) || 0) - (Number(st.xpSpent) || 0)); }
+export function bankXP(st, cls) { return Math.max(0, xpTotal(st, cls) + (Number(st.bonusXP) || 0) + (Number(st.xpReleased) || 0) + (Number(st.xpPrize) || 0) + (Number(st.doorXP) || 0) - (Number(st.xpSpent) || 0)); }
+// Event eggs (from a Golden Present): st.themeEggs = ["jingle", ...], st.themeUsed = how many are hatched.
+// Each one hatches a creature of that event's types (normal rarity odds).
+export const THEME_TYPES = { haunt: ["Ghost"], gobble: ["Nature"], jingle: ["Ice", "Light"] };
+export const THEME_EGG = { haunt: "Haunt-O-Ween egg", gobble: "Gobble-Palooza egg", jingle: "Jingle egg" };
+export function themeLeft(st) { return Math.max(0, ((st && st.themeEggs) || []).length - (Number(st && st.themeUsed) || 0)); }
+export function nextTheme(st) { return ((st && st.themeEggs) || [])[Number(st && st.themeUsed) || 0] || null; }
 /* ---------- releasing ----------
    A creature (from the collection or a spare) can be released for banked XP, by rarity.
    Keep in step with the 300 cap in firestore.rules. */
@@ -140,9 +146,11 @@ export function seenSet(st) {
      Once caught, the 1% keeps going even after Haunt-O-Ween ends. */
 export const EVENTS = [
   { key: "duck", fam: "L-26", icon: "\u{1F986}", start: "2026-09-28", schoolDays: 10, streak: 5, first: 0.95, again: 0.01, againAfter: true },
-  { key: "hex",  fam: "L-27", icon: "\u{1F383}", haunt: true, streak: 5, first: 0.95, again: 0.01, againAfter: true },
+  { key: "hex",  fam: "L-27", icon: "\u{1F383}", haunt: true, boss: "ghostDefeated", bossName: "Ghost-olotl", streak: 5, first: 0.95, again: 0.01, againAfter: true },
   // Thanksolotl: all of November (Gobble-Palooza). The streak only counts November days. Arizona dates.
-  { key: "thanks", fam: "L-29", icon: "\u{1F983}", from: "2026-11-01", to: "2026-11-30", label: "Gobble-Palooza", streak: 5, first: 0.95, again: 0.01, againAfter: true },
+  { key: "thanks", fam: "L-29", icon: "\u{1F983}", from: "2026-11-01", to: "2026-11-30", label: "Gobble-Palooza", boss: "turkeyDefeated", bossName: "Turducken", streak: 5, first: 0.95, again: 0.01, againAfter: true },
+  // Jinglotl: all of December (Jingle Jam). Unlocks for everyone once the class defeats the Grinch-a-Duck.
+  { key: "jingle", fam: "L-30", icon: "\u{1F384}", from: "2026-12-01", to: "2026-12-31", label: "Jingle Jam", boss: "grinchDefeated", bossName: "Grinch-a-Duck", streak: 5, first: 0.95, again: 0.01, againAfter: true },
 ];
 export const DUCK = EVENTS[0], HEX = EVENTS[1];
 const isoDate = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
@@ -178,7 +186,14 @@ export function streaks(st, cls, since) {
 export const eventStreak = (ev, st, cls) => streaks(st, cls, ev.haunt || ev.from ? eventWindow(ev, cls).start : null);
 export const hasEvent = (ev, st) => !!owned(st)[ev.fam];
 export const hasDuck = st => hasEvent(DUCK, st);
-export function eventUnlocked(ev, st, cls) { return eventOpen(ev, cls) && eventStreak(ev, st, cls).best >= ev.streak; }
+// Boss events (Hexaduck, Thanksolotl) unlock for everyone once the class has defeated that event's boss (no streak needed).
+// The others (Duckarune) unlock with a 5-day 120 XP streak during the event.
+export const bossLocked = (ev, cls) => !!ev.boss && !(cls && cls[ev.boss]);
+export function eventUnlocked(ev, st, cls) {
+  if (!eventOpen(ev, cls)) return false;
+  if (ev.boss) return !bossLocked(ev, cls);
+  return eventStreak(ev, st, cls).best >= ev.streak;
+}
 export const duckUnlocked = (st, cls) => eventUnlocked(DUCK, st, cls);
 export function eventChance(ev, st, cls) {
   if (hasEvent(ev, st)) return eventOpen(ev, cls) || ev.againAfter ? ev.again : 0;
@@ -230,7 +245,11 @@ export function rollRarity() {
 // Wisholotl is also in the pool for teacher-sent legendary eggs.
 export function doPull(st, rarity, cls, opts) {
   opts = opts || {};
-  const pool = FAMILIES.filter(f => f.rarity === rarity && (!f.event || (opts.legendaryEgg && f.id === WISH_FAM && cls && cls.wishInPool)));   // event creatures never come from normal eggs
+  let pool = FAMILIES.filter(f => f.rarity === rarity && (!f.event || (opts.legendaryEgg && f.id === WISH_FAM && cls && cls.wishInPool)));   // event creatures never come from normal eggs
+  if (opts.types) {   // an event egg: only creatures of those types (falls back to the whole pool if none at that rarity)
+    const typed = pool.filter(f => { const c0 = CREATURES.find(c => c.id === f.forms[0]); return c0 && c0.types.some(t => opts.types.includes(t)); });
+    if (typed.length) pool = typed;
+  }
   const ev = opts.force ? null : rollEvent(st, cls);
   const event = opts.force ? (family(opts.force) || {}).event || null : ev ? ev.key : null;
   const fam = opts.force || (ev ? ev.fam : pick(pool).id);

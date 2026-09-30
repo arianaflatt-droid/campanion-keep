@@ -33,7 +33,7 @@ export function nudges(st, cls, battles, students) {
   }
 
   // ---- streak gear ----
-  const nextGear = GEAR.filter(g => !g.ghost && !g.turkey && !sim.unlocked.includes(g.id)).sort((a, b) => a.streak - b.streak)[0];
+  const nextGear = GEAR.filter(g => !g.ghost && !g.turkey && !g.jingle && !sim.unlocked.includes(g.id)).sort((a, b) => a.streak - b.streak)[0];
   if (nextGear && sim.alive) {
     const need = Math.max(1, nextGear.streak - sim.hitRun);
     if (need <= 2) add(2, "\u{1F525}", "<b>" + plural(need, "more " + goal + " XP day") + "</b> in a row unlocks the <b>" + esc(nextGear.name) + "</b>!");
@@ -53,6 +53,7 @@ export function nudges(st, cls, battles, students) {
     if (!eventOpen(ev, cls) || hasEvent(ev, st)) return;
     const nm = esc(creature(family(ev.fam).forms[0]).name);
     if (eventUnlocked(ev, st, cls)) add(1, ev.icon, "<b>" + nm + " is unlocked!</b> Your next egg has a 95% chance to be it.", "collect");
+    else if (ev.boss) add(2, ev.icon, "\u{1F512} Defeat the <b>" + esc(ev.bossName) + "</b> with your class to unlock the limited <b>" + nm + "</b>!", "haunt");
     else { const need = Math.max(1, ev.streak - eventStreak(ev, st, cls).current); add(1, ev.icon, "<b>" + plural(need, "more " + goal + " XP day") + "</b> in a row unlocks the limited <b>" + nm + "</b>!", "collect"); }
   });
 

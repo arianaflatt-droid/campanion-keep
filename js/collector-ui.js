@@ -2,7 +2,7 @@
 import {
   CREATURES, FAMILIES, creature, family, xpTotal, pullsLeft, legendaryLeft, bankXP, xpToNextPull, owned, ownedFams, hasStarter,
   formIndex, formOf, statsOf, seenSet, rollRarity, doPull, arenaOpen, arenaOpenFor, lunchHour, hitGoalToday, LUNCH_ARENA, ARENA_HOURS, fighterFrom, teamSize, alive, resolve,
-  birthdayLeft, WISH_FAM, spares, spareId, releaseXP, releaseProblem, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
+  birthdayLeft, themeLeft, nextTheme, THEME_TYPES, THEME_EGG, WISH_FAM, spares, spareId, releaseXP, releaseProblem, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
   EVENTS, eventOpen, eventWindow, eventStreak, hasEvent, eventUnlocked, azToday, rollTeacherRarity, TEACHER_ODDS
 } from "./collect.js";
 import { newBattleRef, changeBattle, setDoc } from "./db.js";
@@ -39,6 +39,7 @@ export function collectorTab(c) {
     stat("\u{1F95A}", pulls, "egg" + (pulls === 1 ? "" : "s") + " to hatch") +
     (leg ? stat("\u{1F31F}", leg, "legendary egg" + (leg === 1 ? "" : "s")) : "") +
     (birthdayLeft(s) ? stat("\u{1F382}", birthdayLeft(s), "birthday egg" + (birthdayLeft(s) === 1 ? "" : "s")) : "") +
+    (themeLeft(s) ? stat("\u2728", themeLeft(s), "event egg" + (themeLeft(s) === 1 ? "" : "s")) : "") +
     stat("⭐", bank.toLocaleString(), "XP in your bank") +
     stat("\u{1F4D6}", seen.size + " / " + CREATURES.length, "in your lorebook") + "</div>" +
     (s.isTeacher
@@ -47,6 +48,7 @@ export function collectorTab(c) {
     '<div class="row"><button class="btn big" data-cc="hatch"' + (pulls ? "" : " disabled") + ">\u{1F95A} Hatch an egg</button>" +
     (leg ? '<button class="btn big gold" data-cc="hatchLeg">\u{1F31F} Hatch a legendary egg</button>' : "") +
     (birthdayLeft(s) ? '<button class="btn big bday" data-cc="hatchBday">\u{1F382} Hatch your birthday egg!</button>' : "") +
+    (themeLeft(s) ? '<button class="btn big gold" data-cc="hatchTheme"><img src="assets/egg-' + nextTheme(s) + '.webp" alt="" style="height:1.5em;vertical-align:middle;margin:-4px 4px -4px 0;">Hatch your ' + THEME_EGG[nextTheme(s)] + "!</button>" : "") +
     '<button class="btn ghost big" data-cc="book">\u{1F4D6} Open lorebook</button></div>' +
     '<p class="muted" style="margin-top:8px;">Egg odds: ' + (s.isTeacher ? TEACHER_ODDS : ODDS).map(([r, p]) => r + " " + (p < 0.01 ? (p * 100).toFixed(2) : Math.round(p * 100)) + "%").join(" · ") + "</p></div>";
   if (!s.isTeacher) h += eventCards(s, c.cls);
@@ -66,6 +68,7 @@ function eventCard(ev, s, cls) {
   else { const left = w.days.filter(d => d >= azToday()).length; when = nice(w.start) + " \u2013 " + nice(w.end) + " \u00b7 " + left + " school day" + (left === 1 ? "" : "s") + " left"; }
   const msg = got ? "You caught " + esc(dc.name) + "! Each egg still has a 1% chance to be another one (a free level up)."
     : on ? "<b>Unlocked!</b> Every egg you hatch has a <b>95% chance</b> to be " + esc(dc.name) + " until you catch it."
+    : ev.boss ? "\u{1F512} <b>Defeat the " + esc(ev.bossName) + "</b> with your class to unlock " + esc(dc.name) + "! Then every egg you hatch has a <b>95% chance</b> to be it."
     : "Hit " + goal120(cls) + " XP <b>" + ev.streak + " school days in a row</b>" + (ev.haunt ? " during Haunt-O-Ween" : ev.label ? " during " + ev.label : "") + " to unlock it. Your streak: <b>" + Math.min(st.current, ev.streak) + " / " + ev.streak + "</b>.";
   return '<div class="card duckcard ev-' + ev.key + (on && !got ? " on" : "") + (got ? " got" : "") + '">' + img(dc, "duckimg", got && isSparkle(s, ev.fam)) +
     '<div class="duckt"><span class="duckk">' + ev.icon + " Limited event \u00b7 " + when + "</span>" +
@@ -187,18 +190,21 @@ function hatchOverlay() {
     // the egg's colour shows its rarity: Common silver, Uncommon green, Rare blue, Super Rare purple, Legendary gold
     const ek = c ? { "Common": "common", "Uncommon": "uncommon", "Rare": "rare", "Super Rare": "superrare", "Legendary": "legendary" }[c.rarity] : null;
     // during Haunt-O-Ween, Ghost-type creatures (and Hexaduck, the Haunt-O-Ween event Legendary) hatch from the spooky egg
-    const spooky = c && ctx.cls && ctx.cls.haunt && !ctx.cls.gobble && (c.types.includes("Ghost") || c.event === "hex");
+    const th = hatch.theme;   // an event egg from a Golden Present always shows that event's egg
+    const spooky = th ? th === "haunt" : c && ctx.cls && ctx.cls.haunt && !ctx.cls.gobble && !ctx.cls.jingle && (c.types.includes("Ghost") || c.event === "hex");
     // during Gobble-Palooza, Nature-type creatures (and Thanksolotl) hatch from the harvest egg
-    const harvest = !spooky && c && ctx.cls && ctx.cls.gobble && (c.types.includes("Nature") || c.event === "thanks");
-    const egg = spooky ? "assets/egg-haunt.webp" : harvest ? "assets/egg-gobble.webp" : ek ? "assets/egg-" + ek + ".webp" : "assets/egg.png";
-    h += '<div class="eggwrap ' + hatch.phase + (hatch.legendary || (c && c.rarity === "Legendary") ? " leg" : "") + (spooky ? " haunt" : harvest ? " harvest" : "") + '" style="--rc:' + (spooky ? "#B45CFF" : harvest ? "#F2A541" : c ? RARITY_COLOR[c.rarity] : "#FFE6AA") + '"><img class="egg whole" src="' + egg + '" alt="">' +
+    const harvest = th ? th === "gobble" : !spooky && c && ctx.cls && ctx.cls.gobble && !ctx.cls.jingle && (c.types.includes("Nature") || c.event === "thanks");
+    // during Jingle Jam, Ice- and Light-type creatures (and Jinglotl) hatch from the Jingle egg
+    const jingly = th ? th === "jingle" : !spooky && !harvest && c && ctx.cls && ctx.cls.jingle && (c.types.includes("Ice") || c.types.includes("Light") || c.event === "jingle");
+    const egg = spooky ? "assets/egg-haunt.webp" : harvest ? "assets/egg-gobble.webp" : jingly ? "assets/egg-jingle.webp" : ek ? "assets/egg-" + ek + ".webp" : "assets/egg.png";
+    h += '<div class="eggwrap ' + hatch.phase + (hatch.legendary || (c && c.rarity === "Legendary") ? " leg" : "") + (spooky ? " haunt" : harvest ? " harvest" : jingly ? " jingly" : "") + '" style="--rc:' + (spooky ? "#B45CFF" : harvest ? "#F2A541" : jingly ? "#9EE3FF" : c ? RARITY_COLOR[c.rarity] : "#FFE6AA") + '"><img class="egg whole" src="' + egg + '" alt="">' +
       '<img class="egg top" src="' + egg + '" alt=""><img class="egg bot" src="' + egg + '" alt=""><span class="flash"></span></div>' +
       '<p class="hatchtxt">' + (hatch.phase === "shake" ? "Something is moving…" : "") + "</p>";
   } else {
     h += '<div class="reveal" style="--rc:' + RARITY_COLOR[c.rarity] + '"><span class="rays"></span>' + img(c, "revimg", r.sparkle) + "</div>" +
       '<div class="revtxt">' + rarityPill(c.rarity) + (r.sparkle ? ' <span class="rpill" style="background:linear-gradient(90deg,#ff7ad9,#ffd84d,#7ae7ff)">\u2728 SPARKLE</span>' : "") + "<h2>" + (r.sparkle ? "\u2728 " : "") + esc(c.name) + "</h2>" +
       (r.event === "bday" ? '<p class="eventmsg ev-bday">\u{1F382} HAPPY BIRTHDAY! ' + (r.dupe ? "Another Wisholotl came to celebrate!" : "<b>Wisholotl, " + esc(c.title || "") + "</b>, came to make your wish come true!") + "</p>" : "") +
-      (r.event && r.event !== "bday" ? '<p class="eventmsg ev-' + r.event + '">' + (r.event === "hex" ? "\u{1F383}" : "\u{1F986}") + " LIMITED EVENT LEGENDARY! " + (r.dupe ? "Another " + esc(c.name) + "!" : "You caught <b>" + esc(c.name) + ", " + esc(c.title || "") + "</b>! It\u2019s yours forever.") + "</p>" : "") +
+      (r.event && r.event !== "bday" ? '<p class="eventmsg ev-' + r.event + '">' + (r.event === "hex" ? "\u{1F383}" : r.event === "thanks" ? "\u{1F983}" : r.event === "jingle" ? "\u{1F384}" : "\u{1F986}") + " LIMITED EVENT LEGENDARY! " + (r.dupe ? "Another " + esc(c.name) + "!" : "You caught <b>" + esc(c.name) + ", " + esc(c.title || "") + "</b>! It\u2019s yours forever.") + "</p>" : "") +
       (r.newSparkle ? '<p class="sparkmsg">WOW! A 1-in-2,000 Sparkle! Your ' + esc(c.name) + " family is now Sparkle forever.</p>" : "") +
       (r.dupe && r.kept ? "<p>\u{1F504} Kept as a <b>spare for trading</b>. Find it under My creatures.</p>"
         : r.dupe ? '<p>You already had this family — <b>free level up! Now Lv ' + r.lvl + "</b>" + (r.evolved ? " and it <b>evolved!</b>" : "") + "</p>" +
@@ -350,6 +356,16 @@ export async function onClick(el, c) {
   ctx = c;
   const a = el.dataset.cc, s = c.me;
   if (a === "starter") { if (hasStarter(s)) return; return c.patch({ coll: { [el.dataset.fam]: { lvl: 1, at: new Date().toISOString() } }, starter: el.dataset.fam }); }
+  if (a === "hatchTheme") {
+    const key = nextTheme(s); if (!themeLeft(s) || !key) return;
+    const res = doPull(s, rollRarity(), c.cls, { types: THEME_TYPES[key] || [] });
+    hatch = { phase: "shake", res, theme: key };
+    hold(3200); c.render(true);
+    c.patch({ coll: res.coll, themeUsed: (Number(s.themeUsed) || 0) + 1 }, true);
+    later(1900, () => { hatch.phase = "crack"; hold(1400); });
+    later(2800, () => { hatch.phase = "reveal"; busyUntil = 0; });
+    return;
+  }
   if (a === "hatch" || a === "hatchLeg" || a === "hatchBday") {
     const leg = a === "hatchLeg", bday = a === "hatchBday";
     if (bday ? !birthdayLeft(s) : leg ? !legendaryLeft(s) : !pullsLeft(s, c.cls)) return;

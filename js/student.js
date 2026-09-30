@@ -1,5 +1,5 @@
 import {
-  applyDisplayNames, companionOf, petCreatures, pinnedBadgeHTML, DAYS, SHORT, ROSTER, GEAR, SIDEKICKS, BANNER, bannerFor, isHaunt, battleOn, candyOf, basketHTML, CANDY_FULL, bossState, attacksReady, bossBarHTML, GHOST_IMG, ghostUnlocked, turkeyUnlocked, eventMode, isGobble, setSeason, SEASON, seasonOf, STORE, candyLeft, candySpent, ownedCount, ownsItem, storeArt, nextAttack, dmgOf, HAT_BONUS, BREW_BONUS, teamHTML, WHEEL, pickSlice, wheelHTML, spinTo, PRIZES, prizeSlices, bucketState, bucketHTML, baseDamage, EAT_PER_DAY, dayEaten, dayXP, byId, esc, arr5, recordedDays, goalXP,
+  applyDisplayNames, companionOf, petCreatures, pinnedBadgeHTML, DAYS, SHORT, ROSTER, GEAR, SIDEKICKS, BANNER, bannerFor, isHaunt, battleOn, candyOf, basketHTML, CANDY_FULL, bossState, attacksReady, bossBarHTML, GHOST_IMG, ghostUnlocked, turkeyUnlocked, grinchUnlocked, isJingle, eventMode, isGobble, setSeason, SEASON, seasonOf, STORE, candyLeft, candySpent, ownedCount, ownsItem, storeArt, nextAttack, dmgOf, HAT_BONUS, BREW_BONUS, teamHTML, WHEEL, pickSlice, wheelHTML, spinTo, PRIZES, prizeSlices, bucketState, bucketHTML, baseDamage, EAT_PER_DAY, dayEaten, dayXP, byId, esc, arr5, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, sidekickSVG, petHTML, itemArt
 } from "./game.js";
 import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchBattles, watchTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js";
@@ -7,6 +7,8 @@ import { nudgeCard } from "./nudges.js";
 import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js";
 import { teacherPlayer, hasStarter } from "./collect.js";
 import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js";
+import { doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked } from "./doors.js";
+import { azToday } from "./collect.js";
 import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js";
 
 let cls = null, students = [], battles = [], trades = [], loaded = { c: false, s: false };
@@ -16,6 +18,7 @@ let attackFx = null, fxTimer = null;
 const busy = {};
 let wheelRot = 0, wheelBusy = false, wheelResult = null;
 let prizeWheel = null;   // { idx, rot, done } while the Prize Wheel pop-up is open
+let present = null;      // { date, k, r, phase: "shake" | "open", golden, prize } while a present is being opened
 let flashOk = false, picking = null, draftName = "", flashMsg = null, flashTimer = null, error = null;
 
 function load() { try { return localStorage.getItem("ck-student"); } catch (e) { return null; } }
@@ -113,9 +116,9 @@ function render(force) {
   }
   const cur = students.find(x => x.id === me);
   if (cur && cur.companionId && cls) lockBadges(cur);
-  const bday = !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !collectorBusy() ? birthdayParty(cur) : "";
-  const party = !bday && !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !collectorBusy() ? badgeParty(cur) : "";
-  app.innerHTML = h + prizeOverlay() + (cur && cur.companionId && cls ? collectorOverlays(collectorCtx(cur)) : "") + party + bday;
+  const bday = !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() ? birthdayParty(cur) : "";
+  const party = !bday && !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() ? badgeParty(cur) : "";
+  app.innerHTML = h + presentOverlay() + prizeOverlay() + (cur && cur.companionId && cls ? collectorOverlays(collectorCtx(cur)) : "") + party + bday;
   if (bday && !bdayChimed) { bdayChimed = true; birthdayTune(); }
   if (party) { const key = unseenBadges(cur).join(","); if (key !== partyKey) { partyKey = key; badgeChime(); } }
   if (keep) { const n = document.getElementById(keep.id); if (n) { if (keep.id === "nickIn") n.value = keep.v; n.focus(); try { n.setSelectionRange(keep.pos, keep.pos); } catch (e) {} } }
@@ -159,12 +162,15 @@ function viewMine(s) {
 
   const haunt = eventMode(cls), candy = haunt ? candyLeft(s) : 0, S = seasonOf(cls);
   if (tab === "haunt" && !haunt) tab = "pet";
+  const doorsOn = doorsLive(cls);
+  if (tab === "doors" && !doorsOn) tab = "pet";
   let h = notYou(s) + '<div class="tabs" role="tablist">' +
-    [["pet", "\u{1F43E} My Companion"], ["collect", "\u{1F95A} Creature Collector"], ["badges", "\u{1F3C5} Badges"]].concat(haunt ? [["haunt", S.icon + " " + S.name]] : [])
+    [["pet", "\u{1F43E} My Companion"], ["collect", "\u{1F95A} Creature Collector"], ["badges", "\u{1F3C5} Badges"]].concat(haunt ? [["haunt", S.icon + " " + S.name]] : []).concat(doorsOn ? [["doors", "\u{1F6AA} " + doorName() + doorBadge(s)]] : [])
       .map(([k, t]) => '<button role="tab" class="tab' + (tab === k ? " on" : "") + '" data-tab="' + k + '" aria-selected="' + (tab === k) + '">' + t + "</button>").join("") + "</div>";
   if (tab === "collect") return h + collectorTab(collectorCtx(s));
   if (tab === "badges") return h + badgesTab(s, battles, cls);
   if (tab === "haunt") return h + (battleOn(cls) ? battleCard(s, c) : "") + wheelCard(s) + shopCard(s);
+  if (tab === "doors") return h + doorsCard(s);
   h += nudgeCard(s, cls, battles, students);
   h += '<div class="card"><div class="mypet t-' + t.key + '">' + pinnedBadgeHTML(s, "mine") +
     (haunt ? basketHTML(candy, "big") : "") +
@@ -179,7 +185,7 @@ function viewMine(s) {
       const v = status[i], k = v === "c" ? "c" : v === "e" ? "e" : rec[i] ? "m" : "";
       return "<span><i class=\"" + k + '">' + (v === "c" ? "✓" : v === "e" ? "–" : rec[i] ? "✕" : "") + "</i>" + SHORT[i] + (early[i] ? " ☀️" : "") + "</span>";
     }).join("") + "</div>" +
-    (haunt ? '<p style="margin-top:8px;color:#E8740C;font-weight:700;">' + S.icon + " " + candy.toLocaleString() + " piece" + (candy === 1 ? "" : "s") + " of " + S.cur + " to spend" +
+    (haunt ? '<p style="margin-top:8px;color:#E8740C;font-weight:700;">' + S.icon + " " + candy.toLocaleString() + (S.key === "jingle" ? " present" + (candy === 1 ? "" : "s") : " piece" + (candy === 1 ? "" : "s") + " of " + S.cur) + " to spend" +
       (candy >= CANDY_FULL ? " \u2014 your " + S.basket + " is FULL!" : " \u00b7 " + (CANDY_FULL - candy).toLocaleString() + " more to fill your " + S.basket) + "</p>" : "") +
     '<p class="muted" style="margin-top:8px;">Streak: ' + sim.hitRun + " day" + (sim.hitRun === 1 ? "" : "s") + " · best this week: " + sim.bestRun + "</p></div></div>";
 
@@ -187,7 +193,7 @@ function viewMine(s) {
   GEAR.forEach(g => {
     const ok = sim.unlocked.includes(g.id);
     h += "<div><button class=\"eq" + (worn && worn.id === g.id ? " on" : "") + '" data-equip="' + g.id + '"' + (ok ? "" : " disabled") + ' aria-label="' + esc(g.name) + (ok ? "" : " locked") + '">' +
-      itemArt(g, "gimg") + '</button><span class="lbl">' + (ok ? esc(g.name) : g.ghost && !ghostUnlocked(cls) ? "Defeat the Ghost-olotl" : g.turkey && !turkeyUnlocked(cls) ? "Defeat the Turducken" : g.streak + "-day streak") + "</span></div>";
+      itemArt(g, "gimg") + '</button><span class="lbl">' + (ok ? esc(g.name) : g.ghost && !ghostUnlocked(cls) ? "Defeat the Ghost-olotl" : g.turkey && !turkeyUnlocked(cls) ? "Defeat the Turducken" : g.jingle && !grinchUnlocked(cls) ? "Defeat the Grinch-a-Duck" : g.streak + "-day streak") + "</span></div>";
   });
   h += '</div><p class="lede" style="margin-top:12px;font-size:13.5px;text-align:center;">Hit ' + goal + " XP days in a row to unlock more. Tap what you’re wearing to take it off.</p></div>";
 
@@ -206,16 +212,103 @@ function viewMine(s) {
     '<p class="lede" style="margin-bottom:12px;">Hit ' + goal + " XP before lunch and your sidekick joins you for the day. Who do you want?</p>" +
     '<div class="pickgrid" style="grid-template-columns:repeat(auto-fit,minmax(0,140px));justify-content:center;">' +
     Object.keys(SIDEKICKS).map(k => {
-      const locked = (k === "ghost" && !ghostUnlocked(cls)) || (k === "turkey" && !turkeyUnlocked(cls));
+      const locked = (k === "ghost" && !ghostUnlocked(cls)) || (k === "turkey" && !turkeyUnlocked(cls)) || (k === "grinch" && !grinchUnlocked(cls));
       return '<button class="pick' + ((s.sidekick || "axolotl") === k ? " on" : "") + '" data-side="' + k + '"' + (locked ? ' disabled style="opacity:.45;filter:grayscale(.7);"' : "") +
         '><span style="display:flex;justify-content:center;height:70px;align-items:flex-end;">' +
-        sidekickSVG(k, true).replace('class="side', 'style="animation:none;height:' + (k === "duck" ? 68 : k === "ghost" ? 66 : k === "turkey" ? 64 : 56) + 'px" class="side') +
-        '</span><span class="n">' + SIDEKICKS[k] + "</span>" + (locked ? '<span class="lbl" style="display:block;font-family:var(--mono);font-size:10px;color:var(--ink-3);">\u{1F512} Defeat the ' + (k === "turkey" ? "Turducken" : "Ghost-olotl") + "</span>" : "") + "</button>";
+        sidekickSVG(k, true).replace('class="side', 'style="animation:none;height:' + (k === "duck" ? 68 : k === "ghost" ? 66 : k === "turkey" ? 64 : k === "grinch" ? 64 : 56) + 'px" class="side') +
+        '</span><span class="n">' + SIDEKICKS[k] + "</span>" + (locked ? '<span class="lbl" style="display:block;font-family:var(--mono);font-size:10px;color:var(--ink-3);">\u{1F512} Defeat the ' + (k === "turkey" ? "Turducken" : k === "grinch" ? "Grinch-a-Duck" : "Ghost-olotl") + "</span>" : "") + "</button>";
     }).join("") + "</div></div>";
 
   h += '<div class="card"><div class="card-head"><h2>Rename</h2></div><div class="row"><div class="field" style="flex:1;min-width:200px;"><label for="rename">Companion name</label>' +
     '<input id="rename" type="text" maxlength="22" value="' + esc(s.petName || "") + '"></div><button class="btn ghost" data-act="rename">Save name</button></div></div>';
   return h;
+}
+
+/* ---------- Daily Doors ---------- */
+// Presents ready to open (any day) show as a number on the tab.
+function presentsReady(s) {
+  let n = 0;
+  Object.keys(s.doors || {}).forEach(d => Object.values(s.doors[d] || {}).forEach(e => { if (e && e.st === "ok") n++; }));
+  return n + (goldenReady(s, cls, azToday()) ? 1 : 0);
+}
+function doorBadge(s) { const n = presentsReady(s); return n ? ' <span class="tbadge">' + n + "</span>" : ""; }
+function doorsCard(s) {
+  const date = azToday(), list = doorsFor(cls, date), S = SEASON, gate = gateOpen(s, cls, date), day = dayDoors(s, date);
+  const art = DOOR_ART[S.key] || DOOR_ART.jingle;
+  let h = '<div class="arena doors ' + S.key + '"><p class="arena-title">\u{1F6AA} ' + esc(doorName()) + "</p>" +
+    '<p class="arena-foot" style="margin:0 0 12px;">Finish a door\u2019s task, then tap <b>I did it!</b> Ms. Ariana checks it, and a present appears for you to open. ' +
+    (hasLocked(cls, date) ? "Finish " + gateLabel(cls, date) + " to open the rest. " : "") + "Open every door today for a \u2728 <b>Golden Present</b>! New doors every day.</p>";
+  h += '<div class="doorgrid">' + list.map((task, i) => {
+    const st = doorState(s, date, i), locked = doorLocked(s, cls, date, i), e = day[String(i)] || {};
+    let body;
+    if (locked) body = '<span class="dstate lock">\u{1F512} Finish ' + gateLabel(cls, date) + " first</span>";
+    else if (st === "wait") body = '<span class="dstate wait">\u23F3 Waiting for Ms. Ariana</span>';
+    else if (st === "ok") body = '<button class="presentbtn" data-open="' + date + ":" + i + '">\u{1F381} Open your present!</button>';
+    else if (st === "open") { const t = rewardText(e.r, S); body = '<span class="dstate done">\u2705 ' + t.icon + " " + esc(t.big) + "</span>"; }
+    else body = (st === "no" ? '<span class="dstate no">\u21A9\uFE0F Not yet \u2014 try again!</span>' : "") + '<button class="btn small" data-claim="' + i + '">\u2714\uFE0F I did it!</button>';
+    return '<div class="door d-' + (locked ? "lock" : st || "new") + '"><div class="doorpic"><img src="' + art + '" alt=""><span class="dnum">' + (i + 1) + "</span>" +
+      (st === "ok" ? '<span class="dgift">\u{1F381}</span>' : st === "open" ? '<span class="dgift">\u2728</span>' : "") + "</div>" +
+      '<div class="dtask">' + (isFree(task) ? "\u{1F513} " : "") + esc(doorText(task)) + "</div>" + body + "</div>";
+  }).join("") + "</div>";
+  const g = day.g;
+  if (goldenReady(s, cls, date)) h += '<div class="goldenwrap"><button class="presentbtn golden" data-open="' + date + ':g">\u2728\u{1F381} Open your GOLDEN PRESENT! \u{1F381}\u2728</button></div>';
+  else if (g && g.st === "open") { const t = rewardText(g.r, S); h += '<p class="arena-win">\u2728 Golden Present opened: ' + t.icon + " " + esc(t.big) + "</p>"; }
+  else h += '<p class="arena-foot">\u2728 Golden Present: ' + list.filter((_, i) => ["ok", "open"].includes(doorState(s, date, i))).length + " / " + list.length + " doors done today</p>";
+  // presents from earlier days that were approved later
+  const old = [];
+  Object.keys(s.doors || {}).filter(d => d !== date).sort().forEach(d => Object.keys(s.doors[d] || {}).forEach(k => { if ((s.doors[d][k] || {}).st === "ok") old.push([d, k]); }));
+  if (old.length) h += '<div class="goldenwrap">' + old.map(([d, k]) => '<button class="presentbtn" data-open="' + d + ":" + k + '">\u{1F381} Present from ' +
+    new Date(d + "T12:00:00").toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" }) + " (door " + (Number(k) + 1) + ")</button>").join("") + "</div>";
+  return h + "</div>";
+}
+function presentOverlay() {
+  if (!present) return "";
+  const t = rewardText(present.r, SEASON);
+  return '<div class="prizeover" role="dialog" aria-label="Present"><div class="prizebox presentbox' + (present.golden ? " golden" : "") + '">' +
+    "<h2>" + (present.golden ? "\u2728 GOLDEN PRESENT \u2728" : "\u{1F381} A PRESENT! \u{1F381}") + "</h2>" +
+    (present.phase === "shake"
+      ? '<div class="giftbox shake">\u{1F381}</div><p class="arena-foot" style="font-size:14px;">Unwrapping\u2026</p>'
+      : '<div class="prizewon"><span style="font-size:72px;line-height:1;">' + t.icon + "</span><b>" + esc(t.big) + '</b><span class="arena-foot">' + esc(t.sub) + "</span>" +
+        (present.prize != null ? '<button class="attackbtn" data-act="presentSpin">\u{1F3C6} Spin the Prize Wheel!</button>' : '<button class="attackbtn" data-act="closePresent">Yay! \u{1F389}</button>') + "</div>") +
+    "</div></div>";
+}
+async function claimDoor(i) {
+  const s = students.find(x => x.id === me), date = azToday();
+  if (!s || !doorsLive(cls) || i >= doorsFor(cls, date).length || doorLocked(s, cls, date, i)) return;
+  const st = doorState(s, date, i); if (st && st !== "no") return;
+  const doors = JSON.parse(JSON.stringify(s.doors || {}));
+  doors[date] = doors[date] || {}; doors[date][String(i)] = { st: "wait", at: new Date().toISOString() };
+  await patch({ doors, lastDoor: date + "/" + i });
+  flash("Sent! Ms. Ariana will check door " + (i + 1) + ".", true);
+}
+async function openPresent(date, k) {
+  const s = students.find(x => x.id === me), S = SEASON; if (!s || present) return;
+  const golden = k === "g";
+  if (golden ? !goldenReady(s, cls, date) : doorState(s, date, k) !== "ok") return;
+  const r = rollPresent(golden);
+  const doors = JSON.parse(JSON.stringify(s.doors || {}));
+  doors[date] = doors[date] || {};
+  doors[date][k] = Object.assign({}, doors[date][k] || {}, { st: "open", r, openedAt: new Date().toISOString() });
+  const data = { doors, lastDoor: date + "/" + k };
+  let prize = null;
+  if (REWARD_XP[r.id]) data.doorXP = (Number(s.doorXP) || 0) + REWARD_XP[r.id];
+  if (r.id === "cur20") data.candyBonus = (Number(s.candyBonus) || 0) + 20;
+  if (r.id === "brew") data.brews = (Number(s.brews) || 0) + 1;
+  if (r.id === "attack") data.extraAttacks = (Number(s.extraAttacks) || 0) + 1;
+  if (r.id === "egg") data.doorEggs = (Number(s.doorEggs) || 0) + 1;
+  if (r.id === "tegg") data.themeEggs = (s.themeEggs || []).concat([S.key]);
+  if (r.id === "prize") {
+    prize = pickSlice(prizeSlices());
+    const entry = { id: "prize", src: "door", at: new Date().toISOString(), prize, prizeName: S.prizes[prize].name };
+    if (S.key !== "haunt") entry.s = S.key;
+    const pxp = Number(S.prizes[prize].xp) || 0;
+    if (pxp) { entry.xp = pxp; data.xpPrize = (Number(s.xpPrize) || 0) + pxp; }
+    data.spinLog = (s.spinLog || []).concat([entry]);
+  }
+  present = { date, k, r, phase: "shake", golden, prize };
+  render(true);
+  const saving = updateDoc(studentRef(me), data).then(() => Object.assign(s, data)).catch(e => { present = null; flash("That present didn\u2019t open \u2014 ask Ms. Ariana. (" + (e.code || e.message) + ")"); });
+  setTimeout(async () => { await saving; if (present) { present.phase = "open"; render(true); } }, 1600);
 }
 
 function openPrizeWheel(idx) {
@@ -227,7 +320,7 @@ function openPrizeWheel(idx) {
     const el = document.querySelector(".prizewheel .wheelspin");
     if (el) el.style.transform = "translate(-50%,-50%) rotate(" + prizeWheel.rot + "deg)";
   }, 500);
-  setTimeout(() => { prizeWheel.done = true; wheelBusy = false; wheelResult = "\u{1F381} You won: " + esc(SEASON.prizes[idx].name) + "!<small>Ms. Ariana has been told.</small>"; render(); }, 5800);
+  setTimeout(() => { prizeWheel.done = true; wheelBusy = false; wheelResult = "\u{1F381} You won: " + esc(SEASON.prizes[idx].name) + "!<small>" + (SEASON.prizes[idx].xp ? "It\u2019s in your XP \u2014 use it to level up your creatures! Ms. Ariana has been told." : "Ms. Ariana has been told.") + "</small>"; render(); }, 5800);
 }
 function prizeOverlay() {
   if (!prizeWheel) return "";
@@ -236,7 +329,7 @@ function prizeOverlay() {
     wheelHTML(prizeSlices(), prizeWheel.rot, "prizewheel") +
     (prizeWheel.done
       ? '<div class="prizewon">' + (p.img ? '<img src="' + esc(p.img) + '" alt="">' : '<span style="font-size:64px;line-height:1;">' + p.icon + "</span>") +
-        "<b>You won: " + esc(p.name) + '!</b><span class="arena-foot">Ms. Ariana has been told \u2014 she\u2019ll get it for you!</span>' +
+        "<b>You won: " + esc(p.name) + '!</b><span class="arena-foot">' + (p.xp ? "It\u2019s already in your XP \u2014 use it to level up your creatures!" : "Ms. Ariana has been told \u2014 she\u2019ll get it for you!") + "</span>" +
         '<button class="attackbtn" data-act="closePrize">Yay! \u{1F389}</button></div>'
       : '<p class="arena-foot" style="font-size:14px;">Spinning for your prize\u2026</p>') + "</div></div>";
 }
@@ -294,7 +387,7 @@ function battleCard(s, c) {
   else if (nx.count) {
     const parts = [b.dmg + " attack"];
     if (nx.hat) parts.push("+" + HAT_BONUS + " " + S.hatIcon + " hat");
-    if (nx.brew) parts.push("+" + BREW_BONUS + " " + S.brewIcon + " " + (S.key === "gobble" ? "pie" : "brew"));
+    if (nx.brew) parts.push("+" + BREW_BONUS + " " + S.brewIcon + " " + (S.key === "gobble" ? "pie" : S.key === "jingle" ? "cocoa" : "brew"));
     h += '<button class="attackbtn" data-act="attack">⚔️ Attack for ' + nx.damage + "!</button>" +
       '<p class="arena-foot">' + parts.join(" ") + " = <b>" + nx.damage + "</b> damage · you have <b>" + nx.count + "</b> attack" + (nx.count === 1 ? "" : "s") + " ready</p>";
   } else h += '<p class="arena-foot" style="font-size:13px;">Hit ' + goal + " XP today to earn an attack, or buy one in the " + S.shop + "!</p>";
@@ -350,13 +443,16 @@ document.addEventListener("click", async ev => {
     const data = { purchases: (s.purchases || []).concat([{ id: it.id, cost: it.cost, at: new Date().toISOString() }]), candySpent: candySpent(s) + it.cost };
     if (it.id === "witchhat") { data.witchHat = true; data.equipped = "witch"; }
     if (it.id === "pilgrimhat") { data.pilgrimHat = true; data.equipped = "pilgrim"; }
-    if (it.id === "brew" || it.id === "pie") data.brews = (Number(s.brews) || 0) + 1;
+    if (it.id === "antlers") { data.antlersHat = true; data.equipped = "antlers"; }
+    if (it.id === "brew" || it.id === "pie" || it.id === "cocoa") data.brews = (Number(s.brews) || 0) + 1;
     if (it.id === "attack") data.extraAttacks = (Number(s.extraAttacks) || 0) + 1;
     if (it.id === "spin") data.spins = (Number(s.spins) || 0) + 1;
     await patch(data);
     flash("You bought the " + it.name + "!", true);
     return;
   }
+  if ((el = ev.target.closest("[data-claim]"))) { if (!PREVIEW) await claimDoor(Number(el.dataset.claim)); return; }
+  if ((el = ev.target.closest("[data-open]"))) { if (!PREVIEW) { const [d, k] = el.dataset.open.split(":"); await openPresent(d, k); } return; }
   if ((el = ev.target.closest("[data-side]"))) return patch({ sidekick: el.dataset.side });
   if ((el = ev.target.closest("[data-equip]"))) {
     const s = students.find(x => x.id === me), worn = wornItem(s, simulate(s, cls));
@@ -369,21 +465,23 @@ document.addEventListener("click", async ev => {
     if (wheelBusy || !(Number(s.spins) > 0)) return;
     const S = SEASON, i = pickSlice(S.slices), slice = S.slices[i];
     const entry = { id: slice.id, at: new Date().toISOString() };
-    if (S.key === "gobble") entry.s = "gobble";   // keeps Gobble-Palooza spins apart from Haunt-O-Ween badges
+    if (S.key !== "haunt") entry.s = S.key;   // keeps Gobble-Palooza / Jingle Jam spins apart from Haunt-O-Ween badges
     const data = { spinLog: (s.spinLog || []).concat([entry]), spins: (Number(s.spins) || 0) - (slice.id === "reroll" ? 0 : 1) };
     let msg = slice.icon + " " + slice.label;
     if (slice.id === "candy75") { data.candyBonus = (Number(s.candyBonus) || 0) + 75; msg += "!<small>Treat! +75 " + S.cur + " in your " + S.basket + ".</small>"; }
     if (slice.id === "steal") {
       const avail = bucketState(cls, students).left, amt = Math.min(avail, 25 + Math.floor(Math.random() * 26));
       entry.amt = amt; data.stolen = (Number(s.stolen) || 0) + amt;
-      const bk = S.key === "gobble" ? "cornucopia" : "bucket";
-      msg += "<small>" + (amt ? "You snuck " + amt + " " + S.cur + " out of Ms. Ariana\u2019s " + bk + "!" : "Ms. Ariana\u2019s " + bk + " is empty \u2014 nothing to steal!") + "</small>";
+      const bk = S.key === "jingle" ? "the Grinch\u2019s Sack" : "Ms. Ariana\u2019s " + (S.key === "gobble" ? "cornucopia" : "bucket");
+      msg += "<small>" + (amt ? (S.key === "jingle" ? "You stole back " : "You snuck ") + amt + " " + S.cur + " out of " + bk + "!" : bk.charAt(0).toUpperCase() + bk.slice(1) + " is empty \u2014 nothing to steal!") + "</small>";
     }
     if (slice.id === "nothing") msg += "<small>" + slice.note + "</small>";
     if (slice.id === "reroll") msg += "<small>Your spin comes back \u2014 spin again!</small>";
     if (slice.id === "prize") {
       entry.prize = pickSlice(prizeSlices());   // decided now (rare prizes 5%), shown on the Prize Wheel
       entry.prizeName = S.prizes[entry.prize].name;
+      const pxp = Number(S.prizes[entry.prize].xp) || 0;   // XP prizes go straight into their collector XP
+      if (pxp) { entry.xp = pxp; data.xpPrize = (Number(s.xpPrize) || 0) + pxp; }
       msg += "<small>\u2728 RARE! Spinning the Prize Wheel\u2026</small>";
     }
     if (slice.id === "attack") {
@@ -393,6 +491,7 @@ document.addEventListener("click", async ev => {
         const dmg = baseDamage(cls) + (s[S.hatFlag] ? HAT_BONUS : 0);
         data.attackTotal = (Number(s.attackTotal) || 0) + 1; data.dmgTotal = dmgOf(s, cls) + dmg;
         if (S.key === "gobble") data.turkeyAtk = (Number(s.turkeyAtk) || 0) + 1;
+        if (S.key === "jingle") data.grinchAtk = (Number(s.grinchAtk) || 0) + 1;
         msg += "<small>\u2728 RARE! A free attack hits the " + S.boss + " for " + dmg + "!</small>";
       }
     }
@@ -409,6 +508,8 @@ document.addEventListener("click", async ev => {
     return;
   }
   if (act === "closePrize") { prizeWheel = null; render(); return; }
+  if (act === "closePresent") { present = null; render(); return; }
+  if (act === "presentSpin") { const idx = present && present.prize; present = null; if (idx != null) openPrizeWheel(idx); return; }
   if (act === "cancelBuy") { busy.confirmBuy = null; render(); return; }
   if (act === "attack") {
     const s = students.find(x => x.id === me);
@@ -416,6 +517,7 @@ document.addEventListener("click", async ev => {
     if (!nx.count || bossState(cls, students).defeated) return;
     const data = { attackTotal: (Number(s.attackTotal) || 0) + 1, dmgTotal: dmgOf(s, cls) + nx.damage };
     if (isGobble(cls)) data.turkeyAtk = (Number(s.turkeyAtk) || 0) + 1;   // Turducken attacks, counted apart from Ghost-olotl ones
+    if (isJingle(cls)) data.grinchAtk = (Number(s.grinchAtk) || 0) + 1;   // Grinch-a-Duck attacks
     if (nx.day !== null) { const attacks = arr5(s.attacks, false); attacks[nx.day] = true; data.attacks = attacks; }
     else data.extraAttacks = (Number(s.extraAttacks) || 0) - 1;
     if (nx.brew) data.brews = (Number(s.brews) || 0) - 1;

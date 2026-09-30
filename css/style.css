@@ -774,3 +774,60 @@ td .emo, .ic .emo{ display:inline-block; vertical-align:middle; font-size:1.3em;
   .relwhy{ color:var(--bad); font-size:11.5px; line-height:1.3; margin-top:4px; }
   .hero .rings{ display:block; margin-top:6px; font-size:.72em; font-weight:800; color:#fff; }
   .hero .rings b{ color:#FFE08A; }
+  /* Prize alerts in the teacher console */
+  .tbadge{ display:inline-block; min-width:20px; padding:1px 6px; margin-left:4px; border-radius:999px; background:#e0342f; color:#fff; font-size:12px; font-weight:800; line-height:18px; text-align:center; vertical-align:middle; }
+  .banner.prizealert{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; background:#fff1e0; color:#8a3b00; border:1.5px solid #f3b36b; font-size:15px; }
+  /* ===== Jingle Jam (winter colors) ===== */
+  .hero.jingle{ background:radial-gradient(120% 140% at 50% 0%, #1F6B45 0%, #0D2E22 70%); box-shadow:inset 0 0 0 2px #E9C46A; }
+  .hero.jingle h2 b, .hero.jingle .haunt-tag{ color:#FFE08A; }
+  .hero.jingle .haunt-sub{ color:#E6F4EC; }
+  .arena.jingle{ color:#F2F8FF; background:radial-gradient(70% 60% at 50% 45%, #1E5E78 0%, #0F2E48 70%, #081A2C 100%); box-shadow:inset 0 0 0 2px #E9C46A; }
+  .arena.jingle .arena-title, .arena.jingle .arena-win, .arena.jingle .bb-title{ color:#FFE08A; }
+  .arena.jingle .arena-k, .arena.jingle .arena-none, .arena.jingle .arena-foot, .arena.jingle .team-cap, .arena.jingle .bb-sub{ color:#CFE3F2; }
+  .arena.jingle .bosstrack{ background:#081A2C; box-shadow:inset 0 0 0 2px #E9C46A; }
+  .arena.jingle .bosstrack span{ background:linear-gradient(90deg,#C8202C,#3FB35F); }
+  .arena.jingle .ghostimg{ filter:drop-shadow(0 0 26px rgba(160,230,255,.5)); }
+  .arena.fight.jingle{ background:linear-gradient(rgba(8,26,44,.45), rgba(8,26,44,.68)), url("../assets/jingle/jingle-arena.webp") center 40% / cover no-repeat, #0F2E48; }
+  .basket.tree .bk img{ position:static !important; }
+  .basket.tree .candycount{ background:#0D2E22; color:#FFE08A; }
+  .basket.tree.full .candycount, .basket.tree.giant .candycount{ background:#C8202C; color:#fff; }
+  .basket.tree .bk .candy{ font-size:.2em; }
+  .side.grinch{ height:36px; } .side.grinch.big{ height:64px; }
+  .eggwrap.jingly{ aspect-ratio:376/400; }
+.duckcard.ev-jingle{ background:linear-gradient(120deg,#0B2238,#1E5E78 55%,#1F6B45); border-color:#9EE3FF; }
+.duckcard.ev-jingle .duckk{ color:#CFF2FF; } .duckcard.ev-jingle h3 small{ color:#FFE08A; }
+.duckcard.ev-jingle.on{ box-shadow:0 0 0 3px rgba(158,227,255,.45), 0 10px 30px rgba(30,94,120,.45); }
+.duckcard.ev-jingle:not(.on):not(.got) .duckimg{ filter:brightness(0) drop-shadow(0 0 8px rgba(158,227,255,.9)); }
+.eventmsg.ev-jingle{ color:#2A8FC0; }
+  .basket.sack{ width:170px; }
+  .basket.sack .sackbox{ position:relative; display:block; width:100%; aspect-ratio:1/1; }
+  .basket.sack .sackbox img{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; z-index:2; }
+  .basket.sack .sackbox img ~ .sackdraw{ display:none; }
+  .basket.sack .sackdraw{ position:absolute; inset:0; width:100%; height:100%; z-index:1; }
+  .basket.sack .sgift{ position:absolute; font-size:34px; line-height:1; transform:translate(-50%,-50%); z-index:3; filter:drop-shadow(0 2px 3px rgba(0,0,0,.4)); }
+  .basket.sack .candycount{ background:#C8202C; color:#fff; font-size:16px; padding:4px 12px; }
+  /* ===== Daily Doors ===== */
+  .arena.doors{ margin-bottom:16px; }
+  .doorgrid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px; margin:6px 0 14px; }
+  .door{ background:rgba(255,255,255,.07); border:1.5px solid rgba(255,255,255,.18); border-radius:14px; padding:10px 8px 12px; display:flex; flex-direction:column; align-items:center; gap:7px; text-align:center; }
+  .door .doorpic{ position:relative; width:104px; }
+  .door .doorpic img{ display:block; width:100%; height:auto; }
+  .door .dnum{ position:absolute; top:-6px; left:-6px; min-width:28px; height:28px; border-radius:99px; background:#FFE08A; color:#3A1A00; font-weight:800; font-size:15px; line-height:28px; box-shadow:0 2px 6px rgba(0,0,0,.35); }
+  .door .dgift{ position:absolute; right:-6px; bottom:-4px; font-size:34px; line-height:1; filter:drop-shadow(0 2px 6px rgba(0,0,0,.5)); }
+  .door.d-ok .dgift{ animation:giftbob 1.2s ease-in-out infinite; }
+  @keyframes giftbob{ 0%,100%{ transform:translateY(0) rotate(-6deg);} 50%{ transform:translateY(-6px) rotate(6deg);} }
+  .door .dtask{ font-weight:700; font-size:13.5px; line-height:1.25; min-height:2.5em; }
+  .door.d-lock{ opacity:.55; } .door.d-lock .doorpic img{ filter:grayscale(.8) brightness(.6); }
+  .door.d-open .doorpic img{ filter:brightness(1.1) saturate(1.1); }
+  .door.d-ok{ border-color:#FFE08A; box-shadow:0 0 0 3px rgba(255,224,138,.35), 0 0 22px rgba(255,224,138,.35); }
+  .dstate{ font-family:var(--mono); font-size:11.5px; padding:4px 8px; border-radius:99px; background:rgba(0,0,0,.28); }
+  .dstate.wait{ color:#FFE08A; } .dstate.no{ color:#FFB3A8; } .dstate.done{ color:#BFF3C8; } .dstate.lock{ color:#ddd; }
+  .presentbtn{ font-family:var(--display); font-weight:800; font-size:14px; padding:9px 14px; border-radius:12px; border:0; background:linear-gradient(180deg,#FF6B5E,#C8202C); color:#fff; box-shadow:0 3px 0 #7A0F16; cursor:pointer; }
+  .presentbtn.golden{ font-size:18px; padding:14px 22px; background:linear-gradient(180deg,#FFE58A,#E0A91E); color:#4A2A00; box-shadow:0 4px 0 #8A5E00, 0 0 30px rgba(255,214,90,.6); animation:giftbob 1.4s ease-in-out infinite; }
+  .goldenwrap{ display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin:10px 0; }
+  .giftbox{ font-size:110px; line-height:1; margin:24px auto; }
+  .giftbox.shake{ animation:giftshake .5s ease-in-out infinite; }
+  @keyframes giftshake{ 0%,100%{ transform:rotate(0);} 25%{ transform:rotate(-12deg) scale(1.05);} 75%{ transform:rotate(12deg) scale(1.05);} }
+  .presentbox.golden{ box-shadow:0 0 0 3px #FFE08A, 0 0 60px rgba(255,214,90,.55); }
+  .dcheck{ display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--line-2); flex-wrap:wrap; }
+  .dcheck .who{ font-weight:700; min-width:90px; } .dcheck .what{ flex:1; min-width:180px; }

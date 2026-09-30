@@ -1,11 +1,12 @@
-import { newlyEarned, badgeById } from "./badges.js";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js";
 import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js";
+import { DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, waitingDoors, doorXPRows, REWARD_XP } from "./doors.js";
 import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js";
 import {
   applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
-  eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked
+  eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
 } from "./game.js";
 import { EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js";
 import { watchTrades, watchBattles,
@@ -31,7 +32,7 @@ function blankStudent(name, order) {
 // Every student list in the console is alphabetical by first name, then last name.
 function byAlpha(a, b) { return String(a.fullName || a.name).localeCompare(String(b.fullName || b.name), undefined, { sensitivity: "base" }); }
 function sOf(id) { return students.find(s => s.id === id); }
-function flash(msg) { flashMsg = msg; flashOk = /^(Saved|Roster saved|New week|Haunt|\u{1F983} Gobble|Added|Everyone in that file)/u.test(msg); render(); clearTimeout(flashTimer); flashTimer = setTimeout(() => { flashMsg = null; render(); }, 6000); }
+function flash(msg) { flashMsg = msg; flashOk = /^(Saved|Roster saved|New week|Haunt|\u{1F983} Gobble|\u{1F384} Jingle|Added|Everyone in that file)/u.test(msg); render(); clearTimeout(flashTimer); flashTimer = setTimeout(() => { flashMsg = null; render(); }, 6000); }
 async function patch(id, data) {
   const s = sOf(id); if (s) Object.assign(s, data);
   render();
@@ -42,21 +43,41 @@ async function patch(id, data) {
 let autoBusy = false;
 function autoGobble() {
   if (!cls || autoBusy || !studentsLoaded) return;
-  const t = azToday(), yr = GOBBLE_FROM.slice(0, 4);
+  const t = azToday(), yr = GOBBLE_FROM.slice(0, 4), jy = JINGLE_FROM.slice(0, 4);
+  // Jingle Jam: all of December, the same way.
+  if (t >= JINGLE_FROM && t <= JINGLE_TO && !cls.jingle && cls.jingleAuto !== jy) { autoBusy = true; jingleOn().finally(() => { autoBusy = false; }); return; }
+  if (t > JINGLE_TO && cls.jingle && cls.jingleAuto === jy) { autoBusy = true; updateDoc(classRef, { jingle: false, jingleAuto: jy + "-done" }).catch(() => {}).finally(() => { autoBusy = false; }); return; }
   if (t >= GOBBLE_FROM && t <= GOBBLE_TO && !cls.gobble && cls.gobbleAuto !== yr) { autoBusy = true; gobbleOn().finally(() => { autoBusy = false; }); }
   else if (t > GOBBLE_TO && cls.gobble && cls.gobbleAuto === yr) { autoBusy = true; updateDoc(classRef, { gobble: false, gobbleAuto: yr + "-done" }).catch(() => {}).finally(() => { autoBusy = false; }); }
 }
+// Whose candy is it right now? Haunt-O-Ween badge totals are only saved from Haunt-O-Ween candy.
+const hauntCandy = () => isHaunt(cls) || !(cls.gobbleSince || cls.jingleSince);
 // Turning Gobble-Palooza on: Haunt-O-Ween goes off, everyone's corn starts at 0, a fresh Turducken and an empty cornucopia.
 // Spins, extra attacks and pies/brews they already own carry over. Haunt-O-Ween badge totals are saved first.
 async function gobbleOn() {
   const b = bossState(cls, students), batch = writeBatch(db);
-  batch.update(classRef, { gobble: true, haunt: false, gobbleSince: azToday(), gobbleAuto: GOBBLE_FROM.slice(0, 4),
+  batch.update(classRef, { gobble: true, haunt: false, jingle: false, doorsOn: false, gobbleSince: azToday(), gobbleAuto: GOBBLE_FROM.slice(0, 4),
     bucketEarned: 0, bucketSpent: 0, bossBase: b.total, bossBaseHits: b.totalHits, bossHealed: 0 });
   students.forEach(s => batch.update(studentRef(s.id), { candyBank: 0, candySpent: 0, candyBonus: 0, stolen: 0,
-    candyBest: Math.max(Number(s.candyBest) || 0, cls.haunt || !cls.gobbleSince ? candyOf(s) : 0),
-    spentBest: Math.max(Number(s.spentBest) || 0, cls.haunt || !cls.gobbleSince ? Number(s.candySpent) || 0 : 0),
-    stolenBest: Math.max(Number(s.stolenBest) || 0, cls.haunt || !cls.gobbleSince ? Number(s.stolen) || 0 : 0) }));
+    candyBest: Math.max(Number(s.candyBest) || 0, hauntCandy() ? candyOf(s) : 0),
+    spentBest: Math.max(Number(s.spentBest) || 0, hauntCandy() ? Number(s.candySpent) || 0 : 0),
+    stolenBest: Math.max(Number(s.stolenBest) || 0, hauntCandy() ? Number(s.stolen) || 0 : 0) }));
   try { await batch.commit(); if (mode === "battle") mode = "guide"; flash("\u{1F983} Gobble-Palooza is on!"); } catch (e) { flash("Couldn’t turn on Gobble-Palooza — " + e.code); }
+}
+// Turning Jingle Jam on: the other modes go off, everyone's presents start at 0, a fresh Grinch-a-Duck and an empty Grinch's Sack.
+async function jingleOn() {
+  const b = bossState(cls, students), batch = writeBatch(db);
+  batch.update(classRef, { jingle: true, gobble: false, haunt: false, doorsOn: true, jingleSince: azToday(), jingleAuto: JINGLE_FROM.slice(0, 4),
+    bucketEarned: 0, bucketSpent: 0, bossBase: b.total, bossBaseHits: b.totalHits, bossHealed: 0 });
+  students.forEach(s => batch.update(studentRef(s.id), { candyBank: 0, candySpent: 0, candyBonus: 0, stolen: 0,
+    candyBest: Math.max(Number(s.candyBest) || 0, hauntCandy() ? candyOf(s) : 0),
+    spentBest: Math.max(Number(s.spentBest) || 0, hauntCandy() ? Number(s.candySpent) || 0 : 0),
+    stolenBest: Math.max(Number(s.stolenBest) || 0, hauntCandy() ? Number(s.stolen) || 0 : 0) }));
+  try { await batch.commit(); if (mode === "battle") mode = "guide"; flash("\u{1F384} Jingle Jam is on!"); } catch (e) { flash("Couldn’t turn on Jingle Jam — " + e.code); }
+}
+async function toggleJingle() {
+  if (!isJingle(cls)) { await jingleOn(); return; }
+  try { await updateDoc(classRef, { jingle: false }); if (mode === "battle") mode = "guide"; flash("Saved \u2014 Jingle Jam is off."); } catch (e) { flash("Couldn\u2019t change that \u2014 " + e.code); }
 }
 async function toggleGobble() {
   if (!isGobble(cls)) { await gobbleOn(); return; }
@@ -71,7 +92,7 @@ async function toggleHaunt() {
 async function hauntOn(fresh) {
   const batch = writeBatch(db);
   const since = azToday();   // Hexaduck's streak counts from the day Haunt-O-Ween Mode is turned on
-  batch.update(classRef, fresh ? { haunt: true, gobble: false, hauntSince: since, bucketEarned: 0, bucketSpent: 0 } : { haunt: true, gobble: false, hauntSince: since });
+  batch.update(classRef, fresh ? { haunt: true, gobble: false, jingle: false, doorsOn: false, hauntSince: since, bucketEarned: 0, bucketSpent: 0 } : { haunt: true, gobble: false, jingle: false, doorsOn: false, hauntSince: since });
   if (fresh) students.forEach(s => batch.update(studentRef(s.id), { candyBank: 0, candySpent: 0, candyBonus: 0, stolen: 0,
     // keep each student's best totals so Haunt-O-Ween badges they earned stay earned
     candyBest: Math.max(Number(s.candyBest) || 0, candyOf(s)), spentBest: Math.max(Number(s.spentBest) || 0, Number(s.candySpent) || 0), stolenBest: Math.max(Number(s.stolenBest) || 0, Number(s.stolen) || 0) }));
@@ -111,7 +132,28 @@ function battleHit(amount) {
 }
 const popIds = {};
 // Save newly earned badges for every student (they're locked in forever; the student page celebrates them next visit).
+/* One-time cleanup (Sept 2026): the Full-Health Week badge used to be given after only 3 days at the goal.
+   Takes it back (and Full-Health Month) from anyone who hasn't really had a full Mon-Fri week. Runs once, then sets cls.healthWeekFixed. */
+let healthFixing = false;
+async function fixHealthBadges() {
+  if (healthFixing || !cls || cls.healthWeekFixed || !studentsLoaded || !students.length) return;
+  healthFixing = true;
+  const batch = writeBatch(db); let n = 0;
+  students.forEach(s => {
+    const b = Object.assign({}, s.badges || {}), seen = Object.assign({}, s.badgesSeen || {}); let changed = false;
+    if (b["health-week"] && fullWeekCount(s, battles, cls) < 1) { delete b["health-week"]; delete seen["health-week"]; changed = true; }
+    if (b["health-month"] && bestFullWeekRun(s, battles, cls) < 4) { delete b["health-month"]; delete seen["health-month"]; changed = true; }
+    if (!changed) return;
+    const data = { badges: b, badgesSeen: seen };
+    if (s.pinnedBadge && !b[s.pinnedBadge]) data.pinnedBadge = null;
+    batch.update(studentRef(s.id), data); n++;
+  });
+  batch.update(classRef, { healthWeekFixed: new Date().toISOString(), healthWeekFixedCount: n });
+  try { await batch.commit(); if (n) flash("Saved \u2014 took back the Full-Health Week badge from " + n + " student" + (n === 1 ? "" : "s") + " who hadn\u2019t had a full Mon\u2013Fri week yet."); }
+  catch (e) { healthFixing = false; }
+}
 async function lockBadges() {
+  fixHealthBadges();
   if (badgeWriting || !cls || !students.length) return;
   const batch = writeBatch(db), at = new Date().toISOString(); let n = 0;
   students.forEach(s => {
@@ -134,7 +176,7 @@ function badgeShout() {
   const same = Object.entries(best.s.badges).filter(([id, at]) => at === best.at && badgeById(id)).map(([id]) => badgeById(id));
   const b = badgeById(best.id), c = companionOf(best.s), who = best.s.name;
   const when = new Date(best.at).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
-  return '<div class="bshout"><img src="' + esc(b.img) + '" alt="">' +
+  return '<div class="bshout">' + (b.img ? '<img src="' + esc(b.img) + '" alt="">' : '<span style="font-size:48px;line-height:1;">' + b.emoji + "</span>") +
     '<div class="bshout-t"><span class="bshout-k">\u{1F3C5} Latest badge \u00b7 ' + esc(when) + "</span>" +
     "<b>" + esc(who) + " earned " + (same.length > 1 ? same.length + " badges, including " + esc(b.name) + "!" : "the " + esc(b.name) + " badge!") + "</b>" +
     "<span>" + esc(b.desc) + "</span></div>" + (c ? '<span class="bshout-pet">' + c.glyph + "</span>" : "") + "</div>";
@@ -154,7 +196,7 @@ function detectEvents() {
     if (!seen || !was) return;
     const c = companionOf(s), pet = s.name || s.petName || c.name, petN = s.petName || c.name;   // pop-ups use the student's (first) name
     if (now[s.id].unlocked > was.unlocked) fresh.push({ id: s.id, text: pet + " unlocked the " + byId(ITEMS, sim.unlocked[sim.unlocked.length - 1]).name + "!", sub: sim.bestRun + "-day 120 XP streak", glyph: byId(ITEMS, sim.unlocked[sim.unlocked.length - 1]).glyph, pet: c.glyph });
-    if (now[s.id].side >= 0 && was.side !== now[s.id].side) fresh.push({ id: s.id, text: pet + "’s " + (side === "duck" ? "duck" : side === "ghost" ? "Ghost-olotl" : side === "turkey" ? "Turducken" : "axolotl") + " came to lunch!", sub: "Hit 120 XP before lunch", glyph: "☀️", pet: c.glyph });
+    if (now[s.id].side >= 0 && was.side !== now[s.id].side) fresh.push({ id: s.id, text: pet + "’s " + (side === "duck" ? "duck" : side === "axolotl" ? "axolotl" : SIDEKICKS[side] || "axolotl") + " came to lunch!", sub: "Hit 120 XP before lunch", glyph: "☀️", pet: c.glyph });
     if (now[s.id].atk > (was.atk || 0) && eventMode(cls)) {
       const hitFor = Math.max(0, now[s.id].dmg - (was.dmg || 0)) || baseDamage(cls);
       fresh.push({ id: s.id, text: pet + " attacked the " + SEASON.boss + "!", sub: "\u2212" + hitFor + " health", glyph: "\u2694\uFE0F", pet: c.glyph, battle: true });
@@ -184,7 +226,9 @@ function detectEvents() {
     // First defeat ever: unlock the hat, the snack and the boss sidekick for good.
     if (b.defeated && !cls[S.defeatFlag] && !unlockWriting) {
       unlockWriting = true;
-      const unl = S.key === "gobble"
+      const unl = S.key === "jingle"
+        ? { text: "New unlocks: Reindeer Antlers, Hot Cocoa & Grinch-a-Duck pet!", sub: "Reindeer Antlers at a 5-day streak \u00b7 Hot Cocoa snack at 3 \u00b7 Grinch-a-Duck lunch sidekick", glyph: "\u{1F98C}", pet: "\u{1F986}" }
+        : S.key === "gobble"
         ? { text: "New unlocks: Pilgrim Hat, Pumpkin Pie & Turducken pet!", sub: "Pilgrim Hat at a 5-day streak \u00b7 Pumpkin Pie snack at 3 \u00b7 Turducken lunch sidekick", glyph: "\u{1F3A9}", pet: "\u{1F983}" }
         : { text: "New unlocks: Witch Hat, Witch\u2019s Brew & Ghost-olotl pet!", sub: "Witch Hat at a 5-day streak \u00b7 Witch\u2019s Brew snack at 3 \u00b7 Ghost-olotl lunch sidekick", glyph: "\u{1F9D9}", pet: "\u{1F47B}" };
       updateDoc(classRef, { [S.defeatFlag]: true, [S.defeatFlag + "At"]: new Date().toISOString() })
@@ -277,13 +321,16 @@ function render(force) {
   else if (mode === "class") h += keepHTML(cls, students, popIds, badgeShout());
   else if (mode === "battle") h += battleHTML(cls, students, battleFx) + healControls();
   else {
-    const tabs = [["daily", "\u{1F4C5} Daily"], ["students", "\u{1F43E} Students"], ["collector", "\u{1F95A} Collector"], ["events", "\u2728 Events" + (eventMode(cls) ? " " + SEASON.icon : "")], ["settings", "\u2699\uFE0F Settings"]];
+    const np = prizesOpen(), nd = waitingDoors(students, cls).length;
+    const tabs = [["daily", "\u{1F4C5} Daily"], ["students", "\u{1F43E} Students"], ["collector", "\u{1F95A} Collector"], ["events", "\u2728 Events" + (eventMode(cls) ? " " + SEASON.icon : "") + (np + nd ? ' <span class="tbadge" aria-label="' + (np + nd) + ' to check">' + (np + nd) + "</span>" : "")], ["settings", "\u2699\uFE0F Settings"]];
     if (!tabs.some(x => x[0] === ctab)) ctab = "daily";
+    if (nd && nd > doorHidden) h += '<div class="banner prizealert"><span>\u{1F6AA} <b>' + nd + " door" + (nd === 1 ? "" : "s") + "</b> to check" + doorNames() + '</span><span class="row" style="gap:8px;"><button class="btn small" data-act="goDoors">Check doors</button><button class="btn ghost small" data-act="hideDoors">Hide</button></span></div>';
+    if (np && np > prizeHidden) h += '<div class="banner prizealert"><span>\u{1F381} <b>' + np + " prize" + (np === 1 ? "" : "s") + "</b> to order or give" + prizeNames() + '</span><span class="row" style="gap:8px;"><button class="btn small" data-act="goPrizes">View prizes</button><button class="btn ghost small" data-act="hidePrizes">Hide</button></span></div>';
     h += '<div class="tabs ctabs" role="tablist">' + tabs.map(([k, l]) => '<button role="tab" class="tab' + (ctab === k ? " on" : "") + '" data-ctab="' + k + '" aria-selected="' + (ctab === k) + '">' + l + "</button>").join("") + "</div>";
     if (ctab === "daily") h += viewDaily() + viewRewards();
     else if (ctab === "students") h += viewStandings() + viewAssign() + viewLosses() + viewLinks();
     else if (ctab === "collector") h += teacherCollectorCard() + viewCollector();
-    else if (ctab === "events") h += viewModes() + duckAdmin() + (eventMode(cls) ? viewBucket() + viewPrizes() + viewShop() : "");
+    else if (ctab === "events") h += viewModes() + (eventMode(cls) || waitingDoors(students, cls).length ? viewDoors() : "") + duckAdmin() + (eventMode(cls) ? viewBucket() + viewPrizes() + viewShop() : prizeRows().length ? viewPrizes() : "");
     else h += viewClassSettings();
   }
 
@@ -291,7 +338,11 @@ function render(force) {
   app.innerHTML = h + (mode === "guide" && ctab === "collector" && cls ? collectorOverlays(tctx()) : "");
   if (keep) { const n = document.getElementById(keep.id); if (n) { n.value = keep.v; n.focus(); try { n.setSelectionRange(keep.pos, keep.pos); } catch (e) {} } }
   renderRules();
+  if (!baseTitle) baseTitle = document.title;
+  const np = cls && mode === "guide" ? prizesOpen() : 0;
+  document.title = (np ? "(" + np + " \u{1F381}) " : "") + baseTitle;   // shows on the browser tab too
 }
+let baseTitle = "";
 
 function renderRules() {
   const tb = document.querySelector("#itemTable tbody");
@@ -406,11 +457,11 @@ function viewStandings() {
 function healControls() {
   const k = bucketState(cls, students), b = bossState(cls, students);
   const S = SEASON;
-  return '<div class="card" style="margin-top:14px;"><div class="card-head"><h2>' + S.coin + " Heal the " + S.boss + '</h2><span class="fact">' + (S.key === "gobble" ? "Cornucopia" : "Bucket") + ": <b>" + k.left.toLocaleString() + "</b> " + S.cur + "</span></div>" +
-    '<p class="lede" style="font-size:13.5px;">Each ' + (S.key === "gobble" ? "piece of corn" : "candy") + " heals <b>" + k.rate + "</b> health. The " + S.boss + " can\u2019t heal past " + b.max.toLocaleString() + ".</p>" +
+  return '<div class="card" style="margin-top:14px;"><div class="card-head"><h2>' + S.coin + " Heal the " + S.boss + '</h2><span class="fact">' + (S.key === "gobble" ? "Cornucopia" : S.key === "jingle" ? "Sack" : "Bucket") + ": <b>" + k.left.toLocaleString() + "</b> " + S.cur + "</span></div>" +
+    '<p class="lede" style="font-size:13.5px;">Each ' + (S.key === "gobble" ? "piece of corn" : S.key === "jingle" ? "present" : "candy") + " heals <b>" + k.rate + "</b> health. The " + S.boss + " can\u2019t heal past " + b.max.toLocaleString() + ".</p>" +
     '<div class="healrow" style="justify-content:flex-start;"><div class="field"><label for="healCandy">' + S.Cur + ' to spend</label><input id="healCandy" type="number" min="1" step="1" placeholder="50"></div>' +
     '<button class="btn" data-act="heal" style="background:#2E9E5B;"' + (k.left && !b.defeated ? "" : " disabled") + ">\u{1F49A} Heal</button>" +
-    '<div class="field"><label for="healRate">Health per ' + (SEASON.key === "gobble" ? "corn" : "candy") + '</label><input id="healRate" type="number" min="1" step="1" value="' + k.rate + '"></div>' +
+    '<div class="field"><label for="healRate">Health per ' + (SEASON.key === "gobble" ? "corn" : SEASON.key === "jingle" ? "present" : "candy") + '</label><input id="healRate" type="number" min="1" step="1" value="' + k.rate + '"></div>' +
     '<button class="btn ghost" data-act="saveRate">Save rate</button></div></div>';
 }
 function viewBucket() {
@@ -419,20 +470,83 @@ function viewBucket() {
     '<p class="lede" style="font-size:13.5px;">Finalizing a day adds ' + BUCKET_PER_MISS + " for every student who missed " + goalXP(cls) + " XP. Earned " + k.earned.toLocaleString() +
     " \u00b7 stolen on the wheel " + k.stolen.toLocaleString() + " \u00b7 spent healing " + k.spent.toLocaleString() + ".</p>" + healControls().replace('<div class="card" style="margin-top:14px;">', '<div style="margin-top:6px;">') + "</div>";
 }
-function viewPrizes() {
+// Every prize any student has won, in any event. Unchecked ones show as a red number on the Events tab
+// and a banner at the top of the console until Ms. Ariana ticks "Done".
+let prizeHidden = 0;   // "Hide" on the banner hides it until another prize comes in
+function prizeRows() {
   const rows = [];
   students.forEach(s => (s.spinLog || []).forEach((e, idx) => { if (e.id === "prize") rows.push({ s, e, idx }); }));
+  // XP from Daily Doors presents (already added to their XP)
+  doorXPRows(students).forEach(r => rows.push({ s: r.s, door: r.date + "/" + r.k, e: { ordered: !!r.e.ordered, at: r.e.openedAt || r.e.at, xp: REWARD_XP[r.e.r.id], prizeName: "+" + REWARD_XP[r.e.r.id] + " XP (" + (r.k === "g" ? "Golden Present" : "door " + (Number(r.k) + 1)) + ")", doorXP: true } }));
+  return rows;
+}
+function prizesOpen() { return prizeRows().filter(r => !r.e.ordered).length; }
+function prizeNames() {
+  const o = prizeRows().filter(r => !r.e.ordered).map(r => esc(r.s.name || "?"));
+  return o.length ? ": " + (o.length > 4 ? o.slice(0, 4).join(", ") + " + " + (o.length - 4) + " more" : o.join(", ")) : "";
+}
+function prizeInfo(e) {
+  if (e.doorXP) return { name: e.prizeName, icon: "\u2B50", img: "", link: "", xp: e.xp };
+  const list = (SEASONS[e.s || "haunt"] || SEASONS.haunt).prizes;
+  return list[e.prize] || { name: e.prizeName || "Prize", icon: "\u{1F381}", img: "", link: "" };
+}
+/* ---------- Daily Doors (teacher side) ---------- */
+let doorHidden = 0;
+function doorNames() {
+  const o = [...new Set(waitingDoors(students, cls).map(r => r.s.name || "?"))].map(esc);
+  return o.length ? ": " + (o.length > 4 ? o.slice(0, 4).join(", ") + " + " + (o.length - 4) + " more" : o.join(", ")) : "";
+}
+function viewDoors() {
+  const S = SEASON, name = DOOR_NAMES[S.key] || "Daily Doors", on = doorsLive(cls), wait = waitingDoors(students, cls), today = azToday();
+  const md = d => new Date(d + "T12:00:00").toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+  let h = '<div class="card" id="doorCard"><div class="card-head"><h2>\u{1F6AA} ' + esc(name) + '</h2><span class="fact">' + (on ? "<b>ON</b>" : "off") + (wait.length ? " \u00b7 <b>" + wait.length + "</b> to check" : "") + "</span></div>" +
+    '<p class="lede" style="font-size:13.5px;">Every day students get the same doors (tasks). They tap <b>I did it!</b>, you approve it here, and a present shows up on their screen to open. ' +
+    "The first " + DOOR_GATE + " doors have to be approved before the rest unlock (a door that starts with <b>!</b> is always open). All of a day\u2019s doors approved = a \u2728 Golden Present. Doors reset every day.</p>" +
+    '<div class="row" style="margin:10px 0;"><button class="btn' + (on ? " ghost" : "") + '" data-act="doorsToggle">' + (on ? "Turn " + esc(name) + " off" : "\u{1F6AA} Turn " + esc(name) + " on") + "</button>" +
+    (eventMode(cls) ? "" : '<span class="muted small">Only works while an event mode is on.</span>') + "</div>";
+  if (wait.length) {
+    h += '<h3 style="margin-top:8px;">To check</h3><div class="row" style="margin:6px 0;"><button class="btn small" data-act="doorApproveAll">\u2705 Approve all ' + wait.length + "</button></div>" +
+      wait.map(r => '<div class="dcheck"><span class="who">' + esc(r.s.name) + '</span><span class="what"><b>Door ' + (r.i + 1) + ":</b> " + esc(r.task) + (r.date !== today ? ' <span class="muted small">(' + md(r.date) + ")</span>" : "") + "</span>" +
+        '<button class="btn small" data-doorok="' + r.s.id + ":" + r.date + ":" + r.i + '">\u2705 Approve</button><button class="btn ghost small" data-doorno="' + r.s.id + ":" + r.date + ":" + r.i + '">\u21A9\uFE0F Not yet</button></div>').join("");
+  } else if (on) h += '<p class="muted small">Nothing to check right now.</p>';
+  // today's progress
+  if (on) {
+    const list = doorsFor(cls, today), team = students.filter(x => x.companionId);
+    const done = st => list.filter((_, i) => ["ok", "open"].includes((((st.doors || {})[today] || {})[String(i)] || {}).st)).length;
+    h += '<details style="margin-top:10px;"><summary><b>Today\u2019s progress</b></summary><div class="inv" style="margin-top:8px;">' +
+      team.map(st => "<span>" + esc(st.name) + " " + done(st) + "/" + list.length + (done(st) === list.length ? " \u2728" : "") + "</span>").join("") + "</div></details>";
+  }
+  // editor
+  const list = Array.isArray(cls.doorList) && cls.doorList.length ? cls.doorList : DOOR_DEFAULT;
+  const dd = busy.doorDay || today, dayList = (cls.doorDays || {})[dd];
+  h += '<details style="margin-top:12px;"' + (busy.doorEdit ? " open" : "") + '><summary><b>\u270F\uFE0F Edit the doors</b></summary>' +
+    '<div class="field" style="margin-top:10px;"><label for="doorList">Every day\u2019s doors (one per line, in order \u2014 start a line with ! to keep that door always open)</label><textarea id="doorList" rows="10">' + esc(list.join("\n")) + "</textarea></div>" +
+    '<div class="row" style="margin-top:8px;"><button class="btn small" data-act="saveDoorList">Save doors</button><button class="btn ghost small" data-act="resetDoorList">Back to the original 9</button></div>' +
+    '<div style="margin-top:14px;border-top:1px solid var(--line-2);padding-top:12px;"><b>Different doors for one day</b>' +
+    '<div class="row" style="margin-top:8px;align-items:flex-end;"><div class="field"><label for="doorDay">Day</label><input id="doorDay" type="date" value="' + esc(dd) + '"></div>' +
+    '<span class="muted small">' + (dayList ? "\u2705 This day has its own doors." : "This day uses the every-day doors.") + "</span></div>" +
+    '<div class="field" style="margin-top:8px;"><label for="doorDayList">Doors for ' + esc(md(dd)) + '</label><textarea id="doorDayList" rows="8">' + esc((dayList || list).join("\n")) + "</textarea></div>" +
+    '<div class="row" style="margin-top:8px;"><button class="btn small" data-act="saveDoorDay">Save for ' + esc(md(dd)) + '</button>' + (dayList ? '<button class="btn ghost small" data-act="clearDoorDay">Use the every-day doors</button>' : "") + "</div>" +
+    '<p class="muted small" style="margin-top:6px;">Changing a day\u2019s doors after students have started can move their check marks to a different task, so it\u2019s best to set days ahead.</p></div></details>';
+  return h + "</div>";
+}
+async function setDoor(sid, date, i, st) {
+  try { await updateDoc(studentRef(sid), { ["doors." + date + "." + i + ".st"]: st, ["doors." + date + "." + i + ".checked"]: new Date().toISOString() }); }
+  catch (e) { flash("Couldn\u2019t save that \u2014 " + (e.code || e.message)); }
+}
+function viewPrizes() {
+  const rows = prizeRows();
   rows.sort((a, b) => (a.e.ordered ? 1 : 0) - (b.e.ordered ? 1 : 0) || String(b.e.at).localeCompare(String(a.e.at)));
   const open = rows.filter(r => !r.e.ordered).length;
-  let h = '<div class="card"><div class="card-head"><h2>\u{1F381} Prize winners</h2><span class="fact">' + (open ? "<b>" + open + "</b> to order or give" : "all done") + "</span></div>";
+  let h = '<div class="card" id="prizeCard"><div class="card-head"><h2>\u{1F381} Prize winners</h2><span class="fact">' + (open ? "<b>" + open + "</b> to order or give" : "all done") + "</span></div>";
   if (!rows.length) return h + '<p class="lede">Nobody has won a prize yet. Prize! is a 5% slice on the ' + SEASON.wheel + ', and it opens the Prize Wheel.</p></div>';
   h += '<div class="scroll-x"><table class="tbl"><thead><tr><th>Done</th><th>Student</th><th>Prize</th><th>Link</th><th>When</th></tr></thead><tbody>';
   rows.forEach(r => {
-    const p = (r.e.s === "gobble" ? SEASONS.gobble.prizes : PRIZES)[r.e.prize] || { name: r.e.prizeName || "Prize", icon: "\u{1F381}", img: "", link: "" };
+    const p = prizeInfo(r.e);
     const art = p.img ? '<img src="' + esc(p.img) + '" alt="" style="height:28px;vertical-align:middle;border-radius:6px;">' : p.icon;
-    h += "<tr" + (r.e.ordered ? ' style="opacity:.55"' : "") + '><td><input type="checkbox" data-ordered="' + r.s.id + ":" + r.idx + '"' + (r.e.ordered ? " checked" : "") +
+    h += "<tr" + (r.e.ordered ? ' style="opacity:.55"' : "") + '><td><input type="checkbox" ' + (r.door ? 'data-doordone="' + r.s.id + ":" + r.door + '"' : 'data-ordered="' + r.s.id + ":" + r.idx + '"') + '' + (r.e.ordered ? " checked" : "") +
       ' aria-label="Ordered" style="width:20px;height:20px;"></td><td><b>' + esc(r.s.name) + "</b></td><td>" + art + " " + esc(r.e.prizeName || p.name) + "</td><td>" +
-      (p.link ? '<a href="' + esc(p.link) + '" target="_blank" rel="noopener">Open link</a>' : p.xp ? '<span class="muted">give ' + p.xp + " XP</span>" : '<span class="muted">\u2014</span>') + '</td><td class="eff">' +
+      (p.link ? '<a href="' + esc(p.link) + '" target="_blank" rel="noopener">Open link</a>' : p.xp ? (r.e.xp || r.e.doorXP ? '<span class="muted">\u2705 added to their XP</span>' : '<span class="muted">give ' + p.xp + " XP</span>") : '<span class="muted">\u2014</span>') + '</td><td class="eff">' +
       esc(new Date(r.e.at).toLocaleString([], { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })) + "</td></tr>";
   });
   return h + "</tbody></table></div></div>";
@@ -447,12 +561,12 @@ function duckAdmin() {
     '<button class="btn ghost small" data-act="saveDuck">Save</button>' +
     '<button class="btn ghost small" data-act="toggleDuck">' + (cls.duckOff ? "Turn event on" : "Turn event off") + "</button></div>" +
     '<p class="small" style="margin-top:8px;"><b>\u{1F383} Hexaduck</b> <span class="fact">' + (isHaunt(cls) ? "LIVE" : "off") + "</span> runs whenever Haunt-O-Ween Mode is on. " +
-    "A 5-day 120 XP streak during the event unlocks it: 95% per egg until caught, then 1% (even after Haunt-O-Ween ends). Turn it on with Haunt-O-Ween Mode above.</p>" +
-    (() => { const th = EVENTS.find(e => e.key === "thanks"); if (!th) return ""; const live = eventOpen(th, cls);
-      return '<p class="small" style="margin-top:8px;"><b>\u{1F983} Thanksolotl</b> <span class="fact">' + (live ? "LIVE" : azToday() > th.to ? "ended" : "starts Nov 1") + "</span> runs by itself " +
-        new Date(th.from + "T12:00:00").toLocaleDateString(undefined, { month: "short", day: "numeric" }) + " \u2013 " + new Date(th.to + "T12:00:00").toLocaleDateString(undefined, { month: "short", day: "numeric" }) +
-        " (Gobble-Palooza). A 5-day 120 XP streak in November unlocks it: 95% per egg until caught, then 1% after. " +
-        '<button class="btn ghost small" data-act="thanksToggle">' + (cls.thanksOff ? "Turn event back on" : "Turn event off") + "</button></p>"; })() + "</div></div>";
+    "Defeating the Ghost-olotl unlocks it for the whole class: 95% per egg until caught, then 1% (even after Haunt-O-Ween ends). Turn it on with Haunt-O-Ween Mode above.</p>" +
+    [["thanks", "\u{1F983}", "Thanksolotl", "Nov 1", "Gobble-Palooza", "Turducken"], ["jingle", "\u{1F384}", "Jinglotl", "Dec 1", "Jingle Jam", "Grinch-a-Duck"]].map(([key, ic, nm, starts, ev, boss]) => {
+      const th = EVENTS.find(e => e.key === key); if (!th) return ""; const live = eventOpen(th, cls), md = d => new Date(d + "T12:00:00").toLocaleDateString(undefined, { month: "short", day: "numeric" });
+      return '<p class="small" style="margin-top:8px;"><b>' + ic + " " + nm + '</b> <span class="fact">' + (live ? "LIVE" : azToday() > th.to ? "ended" : "starts " + starts) + "</span> runs by itself " +
+        md(th.from) + " \u2013 " + md(th.to) + " (" + ev + "). Defeating the " + boss + " unlocks it for the whole class: 95% per egg until caught, then 1% after. " +
+        '<button class="btn ghost small" data-evtoggle="' + key + '">' + (cls[key + "Off"] ? "Turn event back on" : "Turn event off") + "</button></p>"; }).join("") + "</div></div>";
 }
 function viewCollector() {
   const open = arenaOpen(cls), ov = cls.arenaOverride || "auto";
@@ -543,7 +657,7 @@ function viewShop() {
   const rows = [];
   students.forEach(s => (s.purchases || []).forEach((p, idx) => rows.push({ s, p, idx })));
   rows.sort((a, b) => String(b.p.at).localeCompare(String(a.p.at)));
-  const S = SEASON, anyItem = id => byId(S.store, id) || byId(SEASONS.haunt.store, id) || byId(SEASONS.gobble.store, id);
+  const S = SEASON, anyItem = id => byId(S.store, id) || byId(SEASONS.haunt.store, id) || byId(SEASONS.gobble.store, id) || byId(SEASONS.jingle.store, id);
   let h = '<div class="card"><div class="card-head"><h2>' + S.coin + " " + S.shop + ' purchases</h2><span class="fact">' + rows.length + " total</span></div>" +
     '<p class="lede" style="font-size:13px;margin-bottom:10px;">In the shop now: ' + S.store.map(it => storeArt(it, "gimg") + " " + esc(it.name) + " (" + it.cost + ")").join(" \u00b7 ") + "</p>";
   if (!rows.length) return h + '<p class="lede">No purchases yet.</p></div>';
@@ -577,7 +691,7 @@ function viewLinks() {
 }
 
 function ghostSettings() {
-  const b = bossState(cls, students), S = SEASON, g = S.key === "gobble";
+  const b = bossState(cls, students), S = SEASON, g = S.key === "gobble", j = S.key === "jingle";
   return '<div style="margin-top:16px;border-top:1px solid var(--line-2);padding-top:14px;"><h3>' + S.bossIcon + " " + S.boss + "</h3>" +
     '<p class="lede" style="font-size:13.5px;margin:4px 0 10px;">Each day a student hits ' + goalXP(cls) + ' XP earns one attack. Right now: <b>' + b.left.toLocaleString() + " / " + b.max.toLocaleString() +
     "</b> health, " + b.hits + " attack" + (b.hits === 1 ? "" : "s") + " landed.</p>" +
@@ -586,7 +700,11 @@ function ghostSettings() {
     '<button class="btn ghost" data-act="saveBoss">Save</button>' +
     '<button class="btn ghost" data-act="newBoss">' + (busy.confirmBoss ? "Yes \u2014 summon a new one" : "Summon a new " + S.boss) + "</button></div>" +
     '<p class="lede" style="font-size:12.5px;margin-top:8px;">A new ' + S.boss + " starts at full health. Past attacks don\u2019t count against it.</p>" +
-    '<p class="lede" style="font-size:13px;margin-top:8px;">' + (g
+    '<p class="lede" style="font-size:13px;margin-top:8px;">' + (j
+      ? (grinchUnlocked(cls)
+        ? "\u2705 <b>Unlocked for good:</b> the Reindeer Antlers (5-day streak), the Hot Cocoa snack (3-day streak) and the Grinch-a-Duck lunch sidekick."
+        : "\u{1F512} Defeat the first Grinch-a-Duck to unlock the <b>Reindeer Antlers</b> (5-day streak), the <b>Hot Cocoa</b> snack (3-day streak) and the <b>Grinch-a-Duck</b> lunch sidekick. They stay unlocked after Jingle Jam.")
+      : g
       ? (turkeyUnlocked(cls)
         ? "\u2705 <b>Unlocked for good:</b> the Pilgrim Hat (5-day streak), the Pumpkin Pie snack (3-day streak) and the Turducken lunch sidekick."
         : "\u{1F512} Defeat the first Turducken to unlock the <b>Pilgrim Hat</b> (5-day streak), the <b>Pumpkin Pie</b> snack (3-day streak) and the <b>Turducken</b> lunch sidekick. They stay unlocked after Gobble-Palooza.")
@@ -596,8 +714,9 @@ function ghostSettings() {
 }
 
 function viewModes() {
-  const on = isHaunt(cls), gob = isGobble(cls);
-  return '<div class="card"><div class="card-head"><h2>\u2728 Special modes</h2><span class="fact">' + (on ? "<b>Haunt-O-Ween is on</b>" : gob ? "<b>Gobble-Palooza is on</b>" : "none on") + "</span></div>" +
+  const on = isHaunt(cls), gob = isGobble(cls), jin = isJingle(cls);
+  const md = d => new Date(d + "T12:00:00").toLocaleDateString(undefined, { month: "long", day: "numeric" });
+  return '<div class="card"><div class="card-head"><h2>\u2728 Special modes</h2><span class="fact">' + (on ? "<b>Haunt-O-Ween is on</b>" : gob ? "<b>Gobble-Palooza is on</b>" : jin ? "<b>Jingle Jam is on</b>" : "none on") + "</span></div>" +
     '<label class="modebox"><input type="checkbox" id="hauntBox"' + (on ? " checked" : "") + (busy.hauntAsk ? " disabled" : "") + '><span><b>\u{1F383} Haunt-O-Ween Mode</b>' +
     '<small>Adds candy baskets, the Candy Shop, the Trick or Treat Wheel, Ms. Ariana\u2019s bucket and the \u2694\uFE0F Battle Area with the Ghost-olotl. All the normal rules keep working. ' +
     "Turn it off and all of that is hidden from you and your students.</small></span></label>" +
@@ -610,7 +729,12 @@ function viewModes() {
     "It turns itself on the first time you open this console on or after " + new Date(GOBBLE_FROM + "T12:00:00").toLocaleDateString(undefined, { month: "long", day: "numeric" }) +
     " and off after " + new Date(GOBBLE_TO + "T12:00:00").toLocaleDateString(undefined, { month: "long", day: "numeric" }) + ". Turning it on turns Haunt-O-Ween off and starts everyone\u2019s corn at 0 " +
     "(spins, extra attacks and brews they already have carry over).</small></span></label>" +
-    (gob ? ghostSettings() : "") + "</div>";
+    (gob ? ghostSettings() : "") +
+    '<label class="modebox" style="margin-top:12px;"><input type="checkbox" id="jingleBox"' + (jin ? " checked" : "") + '><span><b>\u{1F384} Jingle Jam</b>' +
+    "<small>Presents under a mini tree, the Jingle Shop, the Present Wheel, the Grinch\u2019s Sack and the \u2694\uFE0F Battle Area with the Grinch-a-Duck. " +
+    "It turns itself on the first time you open this console on or after " + md(JINGLE_FROM) + " and off after " + md(JINGLE_TO) +
+    ". Turning it on turns the other modes off and starts everyone\u2019s presents at 0 (spins, extra attacks and cocoas/pies/brews they already have carry over).</small></span></label>" +
+    (jin ? ghostSettings() : "") + "</div>";
 }
 function viewClassSettings() {
   return '<div class="card"><div class="card-head"><h2>Class settings</h2></div><div class="row">' +
@@ -829,9 +953,11 @@ document.addEventListener("input", ev => {
   if (ev.target.id === "pasteBox") { busy.pasteText = ev.target.value; clearTimeout(busy.pasteT); busy.pasteT = setTimeout(render, 250); }
 });
 document.addEventListener("change", async ev => {
+  if (ev.target.id === "doorDay") { busy.doorDay = ev.target.value || null; busy.doorEdit = true; render(); return; }
   const id = ev.target.id;
   if (id === "hauntBox") { await toggleHaunt(); return; }
   if (id === "gobbleBox") { await toggleGobble(); return; }
+  if (id === "jingleBox") { await toggleJingle(); return; }
   if (ev.target.dataset && ev.target.dataset.trready) { if (cls) onTradeReady(ev.target, tctx()); return; }
   if (ev.target.dataset && ev.target.dataset.trsel) { if (cls) onTradeChange(ev.target, tctx()); return; }
   if (id === "lunchBonusBox") { const on = ev.target.checked; try { await updateDoc(classRef, { lunchBonus: on }); flash("Saved \u2014 Lunch Hero bonus egg " + (on ? "on" : "off") + "."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
@@ -937,6 +1063,18 @@ document.addEventListener("click", async ev => {
     try { await navigator.clipboard.writeText(txt); el.textContent = "Copied!"; setTimeout(render, 1400); } catch (e) { prompt("Copy these names:", txt); }
     return;
   }
+  if ((el = ev.target.closest("[data-doorok]"))) { const [sid, d, i] = el.dataset.doorok.split(":"); await setDoor(sid, d, i, "ok"); return; }
+  if ((el = ev.target.closest("[data-doorno]"))) { const [sid, d, i] = el.dataset.doorno.split(":"); await setDoor(sid, d, i, "no"); return; }
+  if ((el = ev.target.closest("[data-evtoggle]"))) {
+    const key = el.dataset.evtoggle, nm = key === "jingle" ? "Jinglotl" : "Thanksolotl", f = key + "Off";
+    try { await updateDoc(classRef, { [f]: !cls[f] }); flash("Saved \u2014 " + nm + " is " + (cls[f] ? "on" : "off") + "."); } catch (e) { flash("Couldn\u2019t change that \u2014 " + e.code); }
+    return;
+  }
+  if ((el = ev.target.closest("[data-doordone]"))) {
+    const [sid, path] = el.dataset.doordone.split(":"); const [d, k] = path.split("/"); const s = sOf(sid);
+    const cur = !!((((s.doors || {})[d] || {})[k]) || {}).ordered;
+    return patch(sid, { ["doors." + d + "." + k + ".ordered"]: !cur });
+  }
   if ((el = ev.target.closest("[data-ordered]"))) {
     const [sid, idx] = el.dataset.ordered.split(":"); const s = sOf(sid);
     const log = (s.spinLog || []).map(x => Object.assign({}, x)); if (!log[idx]) return;
@@ -951,7 +1089,8 @@ document.addEventListener("click", async ev => {
     const dec = k => Math.max(0, (Number(s[k]) || 0) - 1);
     if (p.id === "witchhat") { data.witchHat = false; if (s.equipped === "witch") data.equipped = null; }
     if (p.id === "pilgrimhat") { data.pilgrimHat = false; if (s.equipped === "pilgrim") data.equipped = null; }
-    if (p.id === "brew") data.brews = dec("brews");
+    if (p.id === "antlers") { data.antlersHat = false; if (s.equipped === "antlers") data.equipped = null; }
+    if (p.id === "brew" || p.id === "pie" || p.id === "cocoa") data.brews = dec("brews");
     if (p.id === "attack") data.extraAttacks = dec("extraAttacks");
     if (p.id === "spin") data.spins = dec("spins");
     return patch(sid, data);
@@ -968,6 +1107,32 @@ document.addEventListener("click", async ev => {
   const act = el.dataset.act;
 
   if (act === "signIn") { try { await teacherSignIn(); } catch (e) { flash("Sign-in didn’t finish — " + (e.code || e.message)); } return; }
+  if (act === "goPrizes") { ctab = "events"; try { localStorage.setItem("ck-ctab", ctab); } catch (e) {} render(); const c = document.getElementById("prizeCard"); if (c) c.scrollIntoView({ behavior: "smooth", block: "start" }); return; }
+  if (act === "goDoors") { ctab = "events"; try { localStorage.setItem("ck-ctab", ctab); } catch (e) {} render(); const c = document.getElementById("doorCard"); if (c) c.scrollIntoView({ behavior: "smooth", block: "start" }); return; }
+  if (act === "hideDoors") { doorHidden = waitingDoors(students, cls).length; render(); return; }
+  if (act === "doorsToggle") { const on = !cls.doorsOn; try { await updateDoc(classRef, { doorsOn: on }); flash("Saved \u2014 " + (DOOR_NAMES[SEASON.key] || "Daily Doors") + " is " + (on ? "on" : "off") + "."); } catch (e) { flash("Couldn\u2019t change that \u2014 " + e.code); } return; }
+  if (act === "doorApproveAll") {
+    const w = waitingDoors(students, cls), batch = writeBatch(db), byS = {};
+    w.forEach(r => { byS[r.s.id] = byS[r.s.id] || {}; byS[r.s.id]["doors." + r.date + "." + r.i + ".st"] = "ok"; });
+    Object.keys(byS).forEach(id => batch.update(studentRef(id), byS[id]));
+    try { await batch.commit(); flash("Saved \u2014 approved " + w.length + " door" + (w.length === 1 ? "" : "s") + "."); } catch (e) { flash("Couldn\u2019t save that \u2014 " + e.code); }
+    return;
+  }
+  if (act === "saveDoorList" || act === "resetDoorList") {
+    const lines = act === "resetDoorList" ? DOOR_DEFAULT.slice() : (document.getElementById("doorList").value || "").split("\n").map(x => x.trim()).filter(Boolean).slice(0, 30);
+    if (!lines.length) { flash("Add at least one door."); return; }
+    busy.doorEdit = true;
+    try { await updateDoc(classRef, { doorList: lines }); flash("Saved \u2014 " + lines.length + " doors every day."); } catch (e) { flash("Couldn\u2019t save that \u2014 " + e.code); }
+    return;
+  }
+  if (act === "saveDoorDay" || act === "clearDoorDay") {
+    const d = busy.doorDay || azToday(); busy.doorEdit = true;
+    const lines = (document.getElementById("doorDayList").value || "").split("\n").map(x => x.trim()).filter(Boolean).slice(0, 30);
+    if (act === "saveDoorDay" && !lines.length) { flash("Add at least one door."); return; }
+    try { await updateDoc(classRef, { ["doorDays." + d]: act === "clearDoorDay" ? null : lines }); flash("Saved \u2014 doors for " + d + "."); } catch (e) { flash("Couldn\u2019t save that \u2014 " + e.code); }
+    return;
+  }
+  if (act === "hidePrizes") { prizeHidden = prizesOpen(); render(); return; }
   if (act === "signOut") { await signOut(auth); return; }
   if (act === "classView") { mode = "class"; render(); scrollTo({ top: 0 }); return; }
   if (act === "backConsole") { mode = "guide"; render(); return; }
@@ -987,7 +1152,6 @@ document.addEventListener("click", async ev => {
   if (act === "hauntKeep") { busy.hauntAsk = false; await hauntOn(false); return; }
   if (act === "hauntFresh") { busy.hauntAsk = false; await hauntOn(true); return; }
   if (act === "hauntCancel") { busy.hauntAsk = false; render(); return; }
-  if (act === "thanksToggle") { try { await updateDoc(classRef, { thanksOff: !cls.thanksOff }); flash("Saved \u2014 Thanksolotl is " + (cls.thanksOff ? "on" : "off") + "."); } catch (e) { flash("Couldn\u2019t change that \u2014 " + e.code); } return; }
   if (act === "battleView") { mode = "battle"; render(); scrollTo({ top: 0 }); return; }
   if (act === "saveBoss") {
     try {

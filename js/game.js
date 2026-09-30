@@ -11,22 +11,29 @@ export const HAUNT_BANNER = '<div class="hero haunt"><p class="haunt-tag">\u{1F3
   '</h2><p class="haunt-sub">Every XP is a piece of candy! Your companion eats the first 120 each day to power its attack \u2014 the rest fills your pumpkin basket.</p></div>';
 export const GOBBLE_BANNER = '<div class="hero haunt gobble"><p class="haunt-tag">\u{1F983} Gobble-Palooza \u{1F33D}</p><h2>' + BANNER_TEXT +
   '</h2><p class="haunt-sub">Every XP is a piece of corn! Your companion eats the first 120 each day to power its attack \u2014 the rest fills your cornucopia.</p></div>';
-export function bannerFor(cls) { return isGobble(cls) ? GOBBLE_BANNER : isHaunt(cls) ? HAUNT_BANNER : BANNER; }
+export const JINGLE_BANNER = '<div class="hero haunt jingle"><p class="haunt-tag">\u{1F384} Jingle Jam \u{1F381}</p><h2>' + BANNER_TEXT +
+  '</h2><p class="haunt-sub">Every XP is a present! Your companion eats the first 120 each day to power its attack \u2014 the rest piles up under your tree.</p></div>';
+export function bannerFor(cls) { return isJingle(cls) ? JINGLE_BANNER : isGobble(cls) ? GOBBLE_BANNER : isHaunt(cls) ? HAUNT_BANNER : BANNER; }
 
 /* ---------- Haunt-O-Ween Mode ----------
    All normal rules still apply. On top of that, every XP a student earns this week is one piece of candy.
    The basket looks full at CANDY_FULL candy. */
 export const CANDY_FULL = 120;
-export function isHaunt(cls) { return !!(cls && cls.haunt) && !(cls && cls.gobble); }
+export function isHaunt(cls) { return !!(cls && cls.haunt) && !(cls && cls.gobble) && !(cls && cls.jingle); }
 /* ---------- Gobble-Palooza ----------
    Works exactly like Haunt-O-Ween, with corn instead of candy, the Turducken instead of the Ghost-olotl,
    the Pie Wheel and the Gobble-Palooza shop. It uses the same save fields (candyBank, candySpent, spins, ...),
    so only one of the two modes is ever on. Turning it on starts everyone's corn at 0.
    It turns itself on Nov 1 and off after Nov 30 (when the teacher console is opened). */
 export const GOBBLE_FROM = "2026-11-01", GOBBLE_TO = "2026-11-30";
-export function isGobble(cls) { return !!(cls && cls.gobble); }
-// A candy-style event (Haunt-O-Ween or Gobble-Palooza) is on: baskets, shop, wheel, bucket and the Battle Area.
-export function eventMode(cls) { return isHaunt(cls) || isGobble(cls); }
+export function isGobble(cls) { return !!(cls && cls.gobble) && !(cls && cls.jingle); }
+/* ---------- Jingle Jam ----------
+   The same again for December: presents under a mini tree, the Grinch-a-Duck, the Present Wheel and the Jingle Shop.
+   It turns itself on Dec 1 and off after Dec 31 (when the teacher console is opened). */
+export const JINGLE_FROM = "2026-12-01", JINGLE_TO = "2026-12-31";
+export function isJingle(cls) { return !!(cls && cls.jingle); }
+// A candy-style event (Haunt-O-Ween, Gobble-Palooza or Jingle Jam) is on: baskets, shop, wheel, bucket and the Battle Area.
+export function eventMode(cls) { return isHaunt(cls) || isGobble(cls) || isJingle(cls); }
 export function battleOn(cls) { return eventMode(cls); }
 // Candy keeps stacking week after week (candyBank) until the teacher turns Haunt-O-Ween Mode off.
 export function candyOf(st) {
@@ -60,6 +67,7 @@ const CORN_SLOTS = [
 ];
 export function basketHTML(candy, cls) {
   if (SEASON.key === "gobble") return cornucopiaHTML(candy, cls);
+  if (SEASON.key === "jingle") return treeHTML(candy, cls);
   const f = Math.min(1, candy / CANDY_FULL);
   const shown = candy > 0 ? Math.max(1, Math.round(f * CANDY_SLOTS.length)) : 0;
   let c = "";
@@ -70,6 +78,25 @@ export function basketHTML(candy, cls) {
   return '<div class="basket' + (cls ? " " + cls : "") + (f >= 1 ? " full" : "") + '" title="' + candy.toLocaleString() + ' pieces of candy">' +
     '<span class="candycount">\u{1F36C} ' + candy.toLocaleString() + "</span>" +
     '<span class="bk"><img src="assets/pumpkin-back.png" alt="">' + c + '<img src="assets/pumpkin-front.png" alt=""></span></div>';
+}
+
+// Present spots around the mini tree (% of the tree picture), filled from the pot outward and upward.
+const PRESENT_SLOTS = [
+  [22, 92], [78, 92], [10, 90], [90, 90], [30, 84], [70, 84], [16, 80], [84, 80],
+  [26, 72], [74, 72], [12, 70], [88, 70], [34, 62], [66, 62], [22, 58], [78, 58]
+];
+const PRESENT_KINDS = ["\u{1F381}", "\u{1F381}", "\u{1F36C}", "\u{1F381}", "\u2B50"];
+export function treeHTML(n, cls) {
+  const f = Math.min(1, n / CANDY_FULL);
+  const shown = n > 0 ? Math.max(1, Math.round(f * PRESENT_SLOTS.length)) : 0;
+  let c = "";
+  for (let i = 0; i < shown; i++) {
+    const [x, y] = PRESENT_SLOTS[i];
+    c += '<span class="candy" style="left:' + x + "%;top:" + y + "%;transform:translate(-50%,-50%) rotate(" + ((i * 29) % 30 - 15) + 'deg);">' + PRESENT_KINDS[i % PRESENT_KINDS.length] + "</span>";
+  }
+  return '<div class="basket tree' + (cls ? " " + cls : "") + (f >= 1 ? " full" : "") + '" title="' + n.toLocaleString() + ' presents">' +
+    '<span class="candycount">\u{1F381} ' + n.toLocaleString() + "</span>" +
+    '<span class="bk"><img src="assets/jingle/mini-tree.webp" alt="">' + c + "</span></div>";
 }
 
 export function cornucopiaHTML(corn, cls) {
@@ -117,6 +144,10 @@ export const ITEMS = [
   { id: "pilgrim", name: "Pilgrim Hat", glyph: "\u{1F3A9}", streak: 5, turkey: true, img: "assets/gear/pilgrim-hat.webp" },
   // A snack-pack choice unlocked by defeating the Turducken.
   { id: "piesnack", name: "Pumpkin Pie", glyph: "\u{1F967}", streak: 3, turkey: true, slot: "snack", img: "assets/gear/pumpkin-pie.webp" },
+  // Unlocked for good once the class defeats the Grinch-a-Duck for the first time (or bought in the Jingle Shop).
+  { id: "antlers", name: "Reindeer Antlers", glyph: "\u{1F98C}", streak: 5, jingle: true, img: "assets/gear/reindeer-antlers.webp" },
+  // A snack-pack choice unlocked by defeating the Grinch-a-Duck.
+  { id: "cocoasnack", name: "Hot Cocoa", glyph: "\u2615", streak: 3, jingle: true, slot: "snack", img: "assets/gear/hot-cocoa.webp" },
   { id: "brewsnack", name: "Witch\u2019s Brew", glyph: "\u{1F9EA}", streak: 3, ghost: true, slot: "snack", img: "assets/gear/witchs-brew.webp" },
   { id: "cape",   name: "Hero Cape",   glyph: "\u{1F9B8}", revive: true }
 ];
@@ -129,13 +160,15 @@ export const emojiImg = key => '<img class="emo" src="assets/emoji/' + key + '.w
 export function itemArt(it, cls) {
   return it.img ? '<img class="' + (cls || "") + '" src="' + it.img + '" alt="">' : emojiImg("gear-" + it.id);
 }
-export const SIDEKICKS = { axolotl: "Axolotl", duck: "Duck", ghost: "Ghost-olotl", turkey: "Turducken" };
+export const SIDEKICKS = { axolotl: "Axolotl", duck: "Duck", ghost: "Ghost-olotl", turkey: "Turducken", grinch: "Grinch-a-Duck" };
 // The Ghost-olotl reward: set once the class defeats the first Ghost-olotl. Stays after Haunt-O-Ween ends.
 export function ghostUnlocked(cls) { return !!(cls && cls.ghostDefeated); }
 // The Turducken reward: set once the class defeats the first Turducken. Stays after Gobble-Palooza ends.
 export function turkeyUnlocked(cls) { return !!(cls && cls.turkeyDefeated); }
+// The Grinch-a-Duck reward: set once the class defeats the first Grinch-a-Duck. Stays after Jingle Jam ends.
+export function grinchUnlocked(cls) { return !!(cls && cls.grinchDefeated); }
 // Is this gear's boss unlock done (true for normal gear)?
-export function bossGearOk(g, cls) { return (!g.ghost || ghostUnlocked(cls)) && (!g.turkey || turkeyUnlocked(cls)); }
+export function bossGearOk(g, cls) { return (!g.ghost || ghostUnlocked(cls)) && (!g.turkey || turkeyUnlocked(cls)) && (!g.jingle || grinchUnlocked(cls)); }
 
 export function byId(list, id) { return list.find(x => x.id === id) || null; }
 export function esc(s) {
@@ -182,7 +215,7 @@ export function simulate(st, cls) {
       else health = HALF_HP;
     }
   }
-  const unlocked = GEAR.filter(g => (bestRun >= g.streak && bossGearOk(g, cls)) || (g.id === "witch" && st.witchHat) || (g.id === "pilgrim" && st.pilgrimHat)).map(g => g.id);
+  const unlocked = GEAR.filter(g => (bestRun >= g.streak && bossGearOk(g, cls)) || (g.id === "witch" && st.witchHat) || (g.id === "pilgrim" && st.pilgrimHat) || (g.id === "antlers" && st.antlersHat)).map(g => g.id);
   return {
     health, max: MAX_HP, alive, capeReady, capeSaved, hitRun, bestRun, unlocked,
     atRisk: alive && daysCounted > 0 && missRun === 1,
@@ -222,21 +255,21 @@ export function boardDay(cls, students, date) {
 // Sidekick only appears on days the student hit 120 by lunch.
 export function sidekickToday(st, day) {
   if (day < 0 || !arr5(st.early, false)[day]) return null;
-  return ["duck", "ghost", "turkey"].includes(st.sidekick) ? st.sidekick : "axolotl";
+  return ["duck", "ghost", "turkey", "grinch"].includes(st.sidekick) ? st.sidekick : "axolotl";
 }
 
 /* ---------- art ----------
    Sidekick pictures live in assets/. Swap the PNGs to change the art (keep the file names). */
-export const SIDEKICK_ART = { axolotl: "assets/axolotl.png", duck: "assets/duck.png", ghost: "assets/ghost-pet.png", turkey: "assets/gobble/turducken-sidekick.webp" };
+export const SIDEKICK_ART = { axolotl: "assets/axolotl.png", duck: "assets/duck.png", ghost: "assets/ghost-pet.png", turkey: "assets/gobble/turducken-sidekick.webp", grinch: "assets/jingle/grinchaduck-sidekick.webp" };
 export function sidekickSVG(kind, big) {
   const k = SIDEKICK_ART[kind] ? kind : "axolotl";
   return '<img class="side ' + k + (big ? " big" : "") + '" src="' + SIDEKICK_ART[k] + '" alt="' + SIDEKICKS[k] + ' sidekick">';
 }
 
 // Hats sit on the head (anchored at their bottom-centre); shades centre on the eyes.
-const HAT_SCALE = { cap: 1, hat: 1.05, crown: 0.95, witch: 1.25, pilgrim: 1.2 };
+const HAT_SCALE = { cap: 1, hat: 1.05, crown: 0.95, witch: 1.25, pilgrim: 1.2, antlers: 1.35 };
 // How far up each hat is lifted from its anchor point (the cap emoji has empty space under its brim, so it sits lower).
-const HAT_LIFT = { cap: 72, hat: 88, crown: 88, witch: 88, pilgrim: 88 };
+const HAT_LIFT = { cap: 72, hat: 88, crown: 88, witch: 88, pilgrim: 88, antlers: 70 };
 const GLYPH_W = 1.25;   // emoji box is 1.25em wide x 1em tall
 const pos = (x, y) => "left:" + (x / GLYPH_W * 100).toFixed(1) + "%;top:" + (y * 100).toFixed(1) + "%;";
 export function gearStyle(c, worn) {
@@ -283,7 +316,8 @@ const CREATURE_FIT = {
   "L-26": { hat: [0.855, 0.37, 0.24, 6], cap: [0.855, 0.4, 0.26, 6], eyes: [0.88, 0.49, 0.2, 0], snack: [1.08, 0.9] },     // Duckarune
   "L-27": { hat: [0.79, 0.22, 0.26, 8], cap: [0.8, 0.27, 0.28, 8], eyes: [0.84, 0.345, 0.2, 10], snack: [1.08, 0.9] },     // Hexaduck
   "L-28": { hat: [0.83, 0.49, 0.26, 0], cap: [0.83, 0.52, 0.28, 0], eyes: [0.815, 0.69, 0.22, 0], snack: [1.1, 0.95] },    // Wisholotl
-  "L-29": { hat: [0.37, 0.39, 0.24, -4], cap: [0.37, 0.42, 0.26, -4], eyes: [0.345, 0.465, 0.2, -6], snack: [1.1, 0.95] } // Thanksolotl
+  "L-29": { hat: [0.37, 0.39, 0.24, -4], cap: [0.37, 0.42, 0.26, -4], eyes: [0.345, 0.465, 0.2, -6], snack: [1.1, 0.95] }, // Thanksolotl
+  "L-30": { hat: [0.86, 0.36, 0.24, 4], cap: [0.86, 0.39, 0.26, 4], eyes: [0.88, 0.53, 0.22, 0], snack: [1.1, 0.95] }    // Jinglotl
 };
 export function creatureCompanion(st, fam) {
   const e = ((st && st.coll) || {})[fam];
@@ -304,7 +338,7 @@ export function companionOf(st) {
 export function pinnedBadgeHTML(st, cls) {
   const id = st && st.pinnedBadge;
   if (!id || !(st.badges || {})[id]) return "";
-  return '<img class="pinbadge' + (cls ? " " + cls : "") + '" src="assets/badges/' + esc(id) + '.webp" alt="" title="Pinned badge">';
+  return '<img class="pinbadge' + (cls ? " " + cls : "") + '" src="assets/badges/' + esc(id) + '.webp" alt="" title="Pinned badge" onerror="this.remove()">';
 }
 export function petHTML(c, worn) {
   return '<span class="petwrap"><span class="tglyph">' + (c.creature ? c.glyph : emojiImg("pet-" + c.id)) + "</span>" +
@@ -455,7 +489,7 @@ export function battleHTML(cls, students, fx) {
    id (short, no spaces), name, cost (candy), what it does (desc), and a picture
    (img: "assets/store/<file>.png") or an emoji (glyph). */
 export const STORE = [
-  { id: "spin",     name: "Trick or Treat Wheel", glyph: "\u{1F3A1}", cost: 60,  desc: "One spin on the Trick or Treat Wheel. Spins are saved until the wheel opens!" },
+  { id: "spin",     name: "Trick or Treat Wheel", glyph: "\u{1F3A1}", cost: 60,  desc: "One spin on the Trick or Treat Wheel. Spins are saved until you use them!" },
   { id: "witchhat", name: "Witch\u2019s Hat",       img: "assets/gear/witch-hat.png",   cost: 600, once: true, desc: "Your companion wears it and every attack does +5 damage." },
   { id: "brew",     name: "Witch\u2019s Brew",      img: "assets/store/witchs-brew.png", cost: 60,  desc: "Your next attack does +10 damage. Used up after one attack." },
   { id: "attack",   name: "Attack the Ghost-olotl", glyph: "\u2694\uFE0F", cost: 120, desc: "One extra attack on the Ghost-olotl, any day." }
@@ -467,9 +501,16 @@ export const GOBBLE_STORE = [
   { id: "pie",        name: "Pumpkin Pie",         img: "assets/gear/pumpkin-pie.webp", cost: 60,  desc: "Your next attack does +10 damage. Used up after one attack." },
   { id: "attack",     name: "Attack the Turducken", glyph: "\u2694\uFE0F", cost: 120, desc: "One extra attack on the Turducken, any day." }
 ];
+// Jingle Jam shop. Keep prices in step with price() in firestore.rules.
+export const JINGLE_STORE = [
+  { id: "spin",    name: "Present Wheel",             glyph: "\u{1F381}", cost: 60,  desc: "One spin on the Present Wheel. Spins are saved until you use them!" },
+  { id: "antlers", name: "Reindeer Antlers",          img: "assets/gear/reindeer-antlers.webp", cost: 600, once: true, desc: "Your companion wears them and every attack does +5 damage." },
+  { id: "cocoa",   name: "Hot Cocoa",                 img: "assets/gear/hot-cocoa.webp", cost: 60,  desc: "Your next attack does +10 damage. Used up after one attack." },
+  { id: "attack",  name: "Attack the Grinch-a-Duck",  glyph: "\u2694\uFE0F", cost: 120, desc: "One extra attack on the Grinch-a-Duck, any day." }
+];
 export function candySpent(st) { return Math.max(0, Number(st.candySpent) || 0); }
 export function candyLeft(st) { return Math.max(0, candyOf(st) - candySpent(st)); }
-export function ownsItem(st, id) { return id === "witchhat" ? !!st.witchHat : id === "pilgrimhat" ? !!st.pilgrimHat : ownedCount(st, id) > 0; }
+export function ownsItem(st, id) { return id === "witchhat" ? !!st.witchHat : id === "pilgrimhat" ? !!st.pilgrimHat : id === "antlers" ? !!st.antlersHat : ownedCount(st, id) > 0; }
 export function ownedCount(st, id) { return (st.purchases || []).filter(p => p.id === id).length; }
 export function storeArt(it, cls) { return it.img ? '<img class="' + (cls || "") + '" src="' + it.img + '" alt="">' : it.glyph; }
 
@@ -501,6 +542,17 @@ export const PIE_WHEEL = [
   { id: "prize",   label: "Prize!",      icon: "\u{1F381}", kind: "treat", rare: true, note: "You won a prize! Ms. Ariana has been told." },
   { id: "attack",  label: "Free Attack", icon: "\u2694\uFE0F", kind: "trick", rare: true, note: "A free attack on the Turducken!" }
 ];
+// Present Wheel: green slices are treats, red slices are tricks. Same slice ids as the other wheels.
+export const PRESENT_WHEEL = [
+  { id: "candy75", label: "75 Presents", icon: "\u{1F381}", kind: "treat" },
+  { id: "steal",   label: "Steal Back",  icon: "\u{1F9B9}", kind: "trick", note: "Steal back 25\u201350 presents from the Grinch\u2019s Sack!" },
+  { id: "reroll",  label: "Reroll",      icon: "\u{1F504}", kind: "treat", note: "Spin again for free!" },
+  { id: "nothing", label: "Coal",        icon: "\u{1FAA8}", kind: "trick", note: "A lump of coal\u2026 nothing happens!" },
+  { id: "candy75", label: "75 Presents", icon: "\u{1F381}", kind: "treat" },
+  { id: "nothing", label: "Coal",        icon: "\u{1FAA8}", kind: "trick", note: "A lump of coal\u2026 nothing happens!" },
+  { id: "prize",   label: "Prize!",      icon: "\u{1F31F}", kind: "treat", rare: true, note: "You won a prize! Ms. Ariana has been told." },
+  { id: "attack",  label: "Free Attack", icon: "\u2694\uFE0F", kind: "trick", rare: true, note: "A free attack on the Grinch-a-Duck!" }
+];
 
 // The Prize Wheel opens when a student lands on "Prize!". 8 slices. A prize marked rare: true lands 5% of the time
 // (or its own `chance`, e.g. 0.02 = 2%); the others share the rest equally. empty: true = open slot, never won.
@@ -515,6 +567,17 @@ export const GOBBLE_PRIZES = [
   { name: "100 XP", icon: "\u2B50", img: "", link: "", kind: "trick", xp: 100, chance: 0.30 },
   { name: "Turkey Straw Toppers", icon: "\u{1F983}", img: "assets/prizes/gp-straw.png", link: "https://www.amazon.com/dp/B0DBLC8659", kind: "treat" },
   { name: "Turkey Duck", icon: "\u{1F986}", img: "assets/prizes/gp-duck.png", link: "https://www.amazon.com/dp/B07LC7R5GW", kind: "trick", rare: true, chance: 0.01 }
+];
+// Jingle Jam Prize Wheel. Chances: 4 prizes at 9.5%, 2 rares at 1%, two 100 XP slices at 30%.
+export const JINGLE_PRIZES = [
+  { name: "Candy Cane Straw Topper", short: "Straw Topper", icon: "\u{1F36C}", img: "assets/prizes/jj-straw.png", link: "https://a.co/d/06f2hiiR", kind: "treat" },
+  { name: "100 XP", icon: "\u2B50", img: "", link: "", kind: "trick", xp: 100, chance: 0.30 },
+  { name: "Winter Stickers", short: "Stickers", icon: "\u2744\uFE0F", img: "assets/prizes/jj-stickers.png", link: "https://a.co/d/0ixeNB5h", kind: "treat" },
+  { name: "Grinch Duck", icon: "\u{1F986}", img: "assets/prizes/jj-duck.png", link: "https://a.co/d/0j44SZTs", kind: "trick", rare: true, chance: 0.01 },
+  { name: "Snowflake Stress Cube", short: "Stress Cube", icon: "\u{1F9CA}", img: "assets/prizes/jj-cube.png", link: "https://a.co/d/0cHjOtHu", kind: "treat" },
+  { name: "100 XP", icon: "\u2B50", img: "", link: "", kind: "trick", xp: 100, chance: 0.30 },
+  { name: "Holiday Cat Pins", short: "Cat Pins", icon: "\u{1F408}\u200D\u2B1B", img: "assets/prizes/jj-catpins.png", link: "https://a.co/d/0bPDTc4T", kind: "treat" },
+  { name: "Holiday Mug", icon: "\u2615", img: "assets/prizes/jj-mug.png", link: "https://a.co/d/0dpP4y1t", kind: "trick", rare: true, chance: 0.01 }
 ];
 export const PRIZES = [
   { name: "Ghost Sticker", short: "Ghost Sticker", icon: "\u{1F47B}", img: "assets/prizes/prize-1.png", link: "https://a.co/d/0bfdSD1g", kind: "treat" },
@@ -540,9 +603,16 @@ export const SEASONS = {
     wheel: "Pie Wheel", wheelIcon: "\u{1F967}", frame: "assets/gobble/pie-wheel-frame.webp", treat: "\u{1F7E0} Pumpkin = treats", trick: "\u{1F534} apple = tricks",
     colors: { treat: ["#F4A640", "#D9731A"], trick: ["#E0443E", "#A61E24"] },
     shop: "Gobble Shop", bucket: "Ms. Ariana\u2019s Cornucopia", hatItem: "pilgrimhat", hatFlag: "pilgrimHat", hatGear: "pilgrim", hatName: "Pilgrim Hat", hatIcon: "\u{1F3A9}",
-    brewItem: "pie", brewName: "Pumpkin Pie", brewNames: "Pumpkin Pies", brewIcon: "\u{1F967}", store: GOBBLE_STORE, slices: PIE_WHEEL, prizes: GOBBLE_PRIZES }
+    brewItem: "pie", brewName: "Pumpkin Pie", brewNames: "Pumpkin Pies", brewIcon: "\u{1F967}", store: GOBBLE_STORE, slices: PIE_WHEEL, prizes: GOBBLE_PRIZES },
+  jingle: { key: "jingle", name: "Jingle Jam", icon: "\u{1F384}", cur: "presents", Cur: "Presents", coin: "\u{1F381}", basket: "tree",
+    boss: "Grinch-a-Duck", bossImg: "assets/jingle/grinchaduck.webp", bossIcon: "\u{1F986}", defeatFlag: "grinchDefeated",
+    wheel: "Present Wheel", wheelIcon: "\u{1F381}", frame: "assets/jingle/present-wheel-frame.webp", face: { cx: 0.4984, cy: 0.488, r: 0.3094 },
+    treat: "\u{1F7E2} Green = treats", trick: "\u{1F534} red = tricks",
+    colors: { treat: ["#3FB35F", "#1E7A3A"], trick: ["#E0443E", "#A61E24"] },
+    shop: "Jingle Shop", bucket: "The Grinch\u2019s Sack", hatItem: "antlers", hatFlag: "antlersHat", hatGear: "antlers", hatName: "Reindeer Antlers", hatIcon: "\u{1F98C}",
+    brewItem: "cocoa", brewName: "Hot Cocoa", brewNames: "Hot Cocoas", brewIcon: "\u2615", store: JINGLE_STORE, slices: PRESENT_WHEEL, prizes: JINGLE_PRIZES }
 };
-export function seasonOf(cls) { return isGobble(cls) ? SEASONS.gobble : SEASONS.haunt; }
+export function seasonOf(cls) { return isJingle(cls) ? SEASONS.jingle : isGobble(cls) ? SEASONS.gobble : SEASONS.haunt; }
 export let SEASON = SEASONS.haunt;
 export function setSeason(cls) { SEASON = seasonOf(cls); return SEASON; }
 export function prizeSlices() { return SEASON.prizes.map(p => Object.assign({}, p, { label: p.short || p.name })); }
@@ -588,7 +658,7 @@ export function wheelSVG(slices) {
     "</defs>" + g + '<circle r="101" fill="#000" filter="url(#wgrain)" opacity=".9" style="mix-blend-mode:multiply"/></svg>';
 }
 export function wheelHTML(slices, rotation, extra) {
-  const f = WHEEL_FACE;
+  const f = SEASON.face || WHEEL_FACE;   // each event's frame can set its own face spot
   return '<div class="wheel' + (extra ? " " + extra : "") + '"><div class="wheelspin" style="left:' + (f.cx * 100) + "%;top:" + (f.cy * 100) + "%;width:" + (f.r * 200) + "%;height:" + (f.r * 200) +
     "%;transform:translate(-50%,-50%) rotate(" + (rotation || 0) + 'deg);">' + wheelSVG(slices) + "</div>" +
     '<img class="wheelframe" src="' + SEASON.frame + '" alt="' + SEASON.wheel + '"></div>';
@@ -612,9 +682,24 @@ export function bucketState(cls, students) {
   const stolen = students.reduce((n, s) => n + (Number(s.stolen) || 0), 0);
   return { earned, spent, stolen, left: Math.max(0, earned - spent - stolen), rate: Math.max(1, Number(cls && cls.healRate) || 1) };
 }
+// The Grinch's Sack (Jingle Jam's bucket). assets/jingle/grinch-sack.webp is used if it's there; otherwise a drawn sack.
+export const SACK_IMG = "assets/jingle/grinch-sack.webp";
+export function sackHTML(n) {
+  const peek = Math.min(5, n > 0 ? Math.max(1, Math.round(n / 150)) : 0);
+  const gifts = ["\u{1F381}", "\u{1F381}", "\u2B50", "\u{1F381}", "\u{1F36C}"].slice(0, peek)
+    .map((g, i) => '<span class="sgift" style="left:' + [50, 36, 64, 43, 57][i] + "%;top:" + [24, 26, 24, 17, 18][i] + '%">' + g + "</span>").join("");
+  return '<div class="basket sack giant" title="' + n.toLocaleString() + ' presents"><span class="candycount">\u{1F381} ' + n.toLocaleString() + "</span>" +
+    '<span class="sackbox">' + gifts +
+    '<img src="' + SACK_IMG + '" alt="" onerror="this.remove()">' +
+    '<svg class="sackdraw" viewBox="0 0 120 120" aria-hidden="true"><defs><radialGradient id="sk" cx="40%" cy="40%" r="70%"><stop offset="0" stop-color="#7CCB5A"/><stop offset="1" stop-color="#2F6B2A"/></radialGradient></defs>' +
+    '<path d="M38 34 C20 50 14 78 22 98 C30 114 90 114 98 98 C106 78 100 50 82 34 Z" fill="url(#sk)" stroke="#1C3F1A" stroke-width="3"/>' +
+    '<path d="M36 34 Q60 44 84 34 L80 26 Q60 34 40 26 Z" fill="#C8202C" stroke="#7A0F16" stroke-width="2.5"/>' +
+    '<path d="M44 60 q6 -4 12 0 M64 60 q6 -4 12 0" stroke="#1C3F1A" stroke-width="3" fill="none" stroke-linecap="round"/>' +
+    '<path d="M50 78 q10 -6 20 0" stroke="#1C3F1A" stroke-width="3" fill="none" stroke-linecap="round"/></svg></span></div>';
+}
 export function bucketHTML(cls, students) {
   const b = bucketState(cls, students);
-  return '<div class="bigbucket"><p class="bb-title">' + SEASON.bucket + "</p>" + basketHTML(b.left, "giant") +
+  return '<div class="bigbucket"><p class="bb-title">' + SEASON.bucket + "</p>" + (SEASON.key === "jingle" ? sackHTML(b.left) : basketHTML(b.left, "giant")) +
     '<p class="bb-sub">+' + BUCKET_PER_MISS + " for every student who misses " + goalXP(cls) + " XP</p></div>";
 }
 
