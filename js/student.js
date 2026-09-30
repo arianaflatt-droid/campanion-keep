@@ -1,15 +1,15 @@
 import {
   applyDisplayNames, companionOf, petCreatures, pinnedBadgeHTML, DAYS, SHORT, ROSTER, GEAR, SIDEKICKS, BANNER, bannerFor, isHaunt, battleOn, candyOf, basketHTML, CANDY_FULL, bossState, attacksReady, bossBarHTML, GHOST_IMG, ghostUnlocked, turkeyUnlocked, grinchUnlocked, isJingle, eventMode, isGobble, setSeason, SEASON, seasonOf, STORE, candyLeft, candySpent, ownedCount, ownsItem, storeArt, nextAttack, dmgOf, HAT_BONUS, BREW_BONUS, teamHTML, WHEEL, pickSlice, wheelHTML, spinTo, PRIZES, prizeSlices, bucketState, bucketHTML, baseDamage, EAT_PER_DAY, dayEaten, dayXP, byId, esc, arr5, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, sidekickSVG, petHTML, itemArt
-} from "./game.js";
-import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchBattles, watchTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js";
-import { nudgeCard } from "./nudges.js";
-import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js";
-import { teacherPlayer, hasStarter } from "./collect.js";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js";
-import { doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked } from "./doors.js";
-import { azToday } from "./collect.js";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js";
+} from "./game.js?v=20260930a";
+import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchBattles, watchTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20260930a";
+import { nudgeCard } from "./nudges.js?v=20260930a";
+import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20260930a";
+import { teacherPlayer, hasStarter } from "./collect.js?v=20260930a";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20260930a";
+import { doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked } from "./doors.js?v=20260930a";
+import { azToday } from "./collect.js?v=20260930a";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20260930a";
 
 let cls = null, students = [], battles = [], trades = [], loaded = { c: false, s: false };
 let tab = (() => { try { return localStorage.getItem("ck-tab") || "pet"; } catch (e) { return "pet"; } })();
