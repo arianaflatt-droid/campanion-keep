@@ -1,19 +1,19 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261001p";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261001p";
-import { cpEarnedCalc } from "./room.js?v=20261001p";
-import { DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, waitingDoors, doorXPRows, REWARD_XP } from "./doors.js?v=20261001p";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261001p";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261001q";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261001q";
+import { cpEarnedCalc } from "./room.js?v=20261001q";
+import { GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, waitingDoors, doorXPRows, REWARD_XP } from "./doors.js?v=20261001q";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261001q";
 import {
   applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261001p";
-import { staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261001p";
+} from "./game.js?v=20261001q";
+import { staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261001q";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef
-} from "./db.js?v=20261001p";
+} from "./db.js?v=20261001q";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -613,17 +613,24 @@ function viewDoors() {
       team.map(st => "<span>" + esc(st.name) + " " + done(st) + "/" + list.length + (done(st) === list.length ? " \u2728" : "") + "</span>").join("") + "</div></details>";
   }
   // editor
-  const list = Array.isArray(cls.doorList) && cls.doorList.length ? cls.doorList : DOOR_DEFAULT;
+  const list = doorsFor(cls, null);
   const dd = busy.doorDay || today, dayList = (cls.doorDays || {})[dd];
   h += '<details style="margin-top:12px;"' + (busy.doorEdit ? " open" : "") + '><summary><b>\u270F\uFE0F Edit the doors</b></summary>' +
     '<div class="field" style="margin-top:10px;"><label for="doorList">Every day\u2019s doors (one per line, in order \u2014 start a line with ! to keep that door always open)</label><textarea id="doorList" rows="10">' + esc(list.join("\n")) + "</textarea></div>" +
-    '<div class="row" style="margin-top:8px;"><button class="btn small" data-act="saveDoorList">Save doors</button><button class="btn ghost small" data-act="resetDoorList">Back to the original 9</button></div>' +
+    '<div class="row" style="margin-top:8px;"><button class="btn small" data-act="saveDoorList">Save doors</button><button class="btn ghost small" data-act="resetDoorList">Back to the starting doors</button></div>' +
     '<div style="margin-top:14px;border-top:1px solid var(--line-2);padding-top:12px;"><b>Different doors for one day</b>' +
     '<div class="row" style="margin-top:8px;align-items:flex-end;"><div class="field"><label for="doorDay">Day</label><input id="doorDay" type="date" value="' + esc(dd) + '"></div>' +
     '<span class="muted small">' + (dayList ? "\u2705 This day has its own doors." : "This day uses the every-day doors.") + "</span></div>" +
     '<div class="field" style="margin-top:8px;"><label for="doorDayList">Doors for ' + esc(md(dd)) + '</label><textarea id="doorDayList" rows="8">' + esc((dayList || list).join("\n")) + "</textarea></div>" +
     '<div class="row" style="margin-top:8px;"><button class="btn small" data-act="saveDoorDay">Save for ' + esc(md(dd)) + '</button>' + (dayList ? '<button class="btn ghost small" data-act="clearDoorDay">Use the every-day doors</button>' : "") + "</div>" +
     '<p class="muted small" style="margin-top:6px;">Changing a day\u2019s doors after students have started can move their check marks to a different task, so it\u2019s best to set days ahead.</p></div></details>';
+  // Goal subjects: "your Goal Subject" in a door shows each student's own subject
+  const team = students.filter(x => x.companionId), unset = team.filter(x => !x.goalSubject).length;
+  h += '<details class="goalsubs" style="margin-top:14px;"' + (busy.goalOpen ? " open" : "") + '><summary data-act="goalOpen"><b>\u{1F3AF} Goal subjects</b> <span class="muted small">' + (unset ? unset + " not set yet" : "all set") + "</span></summary>" +
+    '<p class="muted small" style="margin:6px 0;">A door that says <b>your Goal Subject</b> shows each student\u2019s own subject (e.g. \u201cEarn 60 XP in Math\u201d).</p>' +
+    '<div class="row" style="margin-bottom:8px;gap:6px;align-items:center;"><span class="small">Set everyone to:</span><select id="goalAll"><option value="">Choose\u2026</option>' + GOAL_SUBJECTS.map(g => "<option>" + esc(g) + "</option>").join("") + '</select><span class="muted small">(only students with no subject yet)</span></div>' +
+    '<div class="goalgrid">' + team.map(x => '<label class="goalrow"><span>' + esc(x.name) + '</span><select data-goalsub="' + x.id + '"><option value="">\u2014</option>' +
+      GOAL_SUBJECTS.map(g => '<option' + (x.goalSubject === g ? " selected" : "") + ">" + esc(g) + "</option>").join("") + "</select></label>").join("") + "</div></details>";
   return h + "</div>";
 }
 async function setDoor(sid, date, i, st) {
@@ -1054,6 +1061,14 @@ document.addEventListener("input", ev => {
   if (ev.target.id === "pasteBox") { busy.pasteText = ev.target.value; clearTimeout(busy.pasteT); busy.pasteT = setTimeout(render, 250); }
 });
 document.addEventListener("change", async ev => {
+  if (ev.target.dataset && ev.target.dataset.goalsub) { busy.goalOpen = true; await patch(ev.target.dataset.goalsub, { goalSubject: ev.target.value || null }); return; }
+  if (ev.target.id === "goalAll" && ev.target.value) {
+    const g = ev.target.value, todo = students.filter(x => x.companionId && !x.goalSubject); busy.goalOpen = true;
+    if (!todo.length) { flash("Everyone already has a goal subject."); render(); return; }
+    const batch = writeBatch(db); todo.forEach(x => batch.update(studentRef(x.id), { goalSubject: g }));
+    try { await batch.commit(); flash("Set " + todo.length + " student" + (todo.length === 1 ? "" : "s") + " to " + g + "."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); }
+    return;
+  }
   if (ev.target.id === "doorDay") { busy.doorDay = ev.target.value || null; busy.doorEdit = true; render(); return; }
   const id = ev.target.id;
   if (id === "hauntBox") { await toggleHaunt(); return; }
@@ -1356,6 +1371,7 @@ document.addEventListener("click", async ev => {
   if (act === "saveRoomStart") { const v = document.getElementById("roomStart").value; if (!v) return; try { await updateDoc(classRef, { roomStart: v }); flash("Saved \u2014 Comfort Points count from " + v + "."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
   if (act === "saveCollStart") { try { await updateDoc(classRef, { collectorStart: document.getElementById("collStart").value || null }); flash("Saved the collector start date."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
   if (act === "rewardsFinished") { busy.rewardsFinished = !busy.rewardsFinished; render(); return; }
+  if (act === "goalOpen") { busy.goalOpen = !busy.goalOpen; return; }
   if (act === "shopAll") { busy.shopAll = !busy.shopAll; render(); return; }
   if (act === "prizeDone") { busy.prizeDone = !busy.prizeDone; render(); return; }
   if (act === "prizeUndo") {

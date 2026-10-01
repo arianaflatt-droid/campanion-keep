@@ -8,8 +8,8 @@
    Saved on the student: doors = { "YYYY-MM-DD": { "0": { st: "wait"|"ok"|"no"|"open", at, r }, g: { st: "open", r } } }
    plus lastDoor = "YYYY-MM-DD/<door>" (which door the last save touched; the save rules check it).
    Class: doorsOn (on/off), doorList (default list), doorDays = { "YYYY-MM-DD": [..] } (one-day lists). */
-import { azToday } from "./collect.js?v=20261001p";
-import { SEASON, eventMode, esc } from "./game.js?v=20261001p";
+import { azToday } from "./collect.js?v=20261001q";
+import { SEASON, eventMode, esc } from "./game.js?v=20261001q";
 
 // A door that starts with "!" is always open (not locked behind the first doors). The "!" isn't shown.
 export const DOOR_DEFAULT = [
@@ -18,15 +18,25 @@ export const DOOR_DEFAULT = [
   "Get 25 Reading XP",
   "Get 25 Language XP",
   "Close your Fast Math Ring",
-  "Close your Vocab Ring",
-  "Close your Science or Writing Ring",
-  "Earn 240 XP today",
-  "Close all Rings",
-  "Earn 25 extra XP in Math, Language or Reading (close ALL 3 first)"
+  "Earn 60 XP in your Goal Subject",
+  "Earn 75 XP in your Goal Subject",
+  "Earn 100 XP in your Goal Subject",
+  "Earn 125 XP in your Goal Subject",
+  "Earn 240 XP today"
 ];
+// Earlier default lists: a class still using one of these gets the new default automatically.
+const OLD_DEFAULTS = [
+  ["!Earn 25 XP Before School Starts", "Get 25 Math XP", "Get 25 Reading XP", "Get 25 Language XP", "Close your Fast Math Ring", "Close your Vocab Ring", "Close your Science or Writing Ring", "Earn 240 XP today", "Close all Rings", "Earn 25 extra XP in Math, Language or Reading (close ALL 3 first)"],
+  ["Get 25 Math XP", "Get 25 Reading XP", "Get 25 Language XP", "Close your Fast Math Ring", "Close your Vocab Ring", "Close your Science or Writing Ring", "Earn 240 XP today", "Close all Rings", "Earn 25 extra XP in Math, Language or Reading (close ALL 3 first)"]
+].map(l => JSON.stringify(l));
+// Each student's Goal Subject (set by the teacher). "your Goal Subject" in a door fills in with it.
+export const GOAL_SUBJECTS = ["Math", "Reading", "Language", "Science", "Writing", "Vocabulary", "Fast Math"];
 export const DOOR_GATE = 3;   // the first 3 doors that aren't always-open ones unlock the rest
 export const isFree = task => String(task || "").trim().startsWith("!");
-export const doorText = task => String(task || "").trim().replace(/^!\s*/, "");
+export const doorText = (task, st) => {
+  const t = String(task || "").trim().replace(/^!\s*/, ""), g = st && st.goalSubject;
+  return g ? t.replace(/\byour goal subject\b/gi, g).replace(/\bgoal subject\b/gi, g) : t;
+};
 export const DOOR_NAMES = { haunt: "Haunted Doors", gobble: "Harvest Doors", jingle: "Advent Calendar" };
 export const DOOR_ICON = { haunt: "\u{1F6AA}", gobble: "\u{1F6AA}", jingle: "\u{1F4C5}" };
 export const DOOR_ART = { haunt: "assets/doors/door-haunt.webp", gobble: "assets/doors/door-gobble.webp", jingle: "assets/doors/door-jingle.webp" };
@@ -36,7 +46,8 @@ export function doorsLive(cls) { return !!(cls && cls.doorsOn) && eventMode(cls)
 export function doorsFor(cls, date) {
   const d = cls && cls.doorDays && cls.doorDays[date];
   if (Array.isArray(d) && d.length) return d;
-  return Array.isArray(cls && cls.doorList) && cls.doorList.length ? cls.doorList : DOOR_DEFAULT;
+  const l = Array.isArray(cls && cls.doorList) && cls.doorList.length ? cls.doorList : null;
+  return l && !OLD_DEFAULTS.includes(JSON.stringify(l)) ? l : DOOR_DEFAULT;
 }
 export function dayDoors(st, date) { return ((st && st.doors) || {})[date] || {}; }
 export const doorState = (st, date, i) => (dayDoors(st, date)[String(i)] || {}).st || "";
@@ -112,7 +123,7 @@ export function waitingDoors(students, cls) {
   const out = [];
   students.forEach(s => Object.keys((s && s.doors) || {}).forEach(date => {
     const day = s.doors[date] || {};
-    Object.keys(day).forEach(k => { if (k !== "g" && (day[k] || {}).st === "wait") out.push({ s, date, i: Number(k), task: doorText(doorsFor(cls, date)[Number(k)] || "Door " + (Number(k) + 1)), at: day[k].at }); });
+    Object.keys(day).forEach(k => { if (k !== "g" && (day[k] || {}).st === "wait") out.push({ s, date, i: Number(k), task: doorText(doorsFor(cls, date)[Number(k)] || "Door " + (Number(k) + 1), s), at: day[k].at }); });
   }));
   return out.sort((a, b) => String(a.at).localeCompare(String(b.at)));
 }
