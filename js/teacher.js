@@ -1,19 +1,19 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261001f";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261001f";
-import { cpEarnedCalc } from "./room.js?v=20261001f";
-import { DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, waitingDoors, doorXPRows, REWARD_XP } from "./doors.js?v=20261001f";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261001f";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261001g";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261001g";
+import { cpEarnedCalc } from "./room.js?v=20261001g";
+import { DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, waitingDoors, doorXPRows, REWARD_XP } from "./doors.js?v=20261001g";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261001g";
 import {
   applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261001f";
-import { EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261001f";
+} from "./game.js?v=20261001g";
+import { EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261001g";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle
-} from "./db.js?v=20261001f";
+} from "./db.js?v=20261001g";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -613,14 +613,21 @@ async function setDoor(sid, date, i, st) {
   try { await updateDoc(studentRef(sid), { ["doors." + date + "." + i + ".st"]: st, ["doors." + date + "." + i + ".checked"]: new Date().toISOString() }); }
   catch (e) { flash("Couldn\u2019t save that \u2014 " + (e.code || e.message)); }
 }
+let prizeUndo = [];   // check-offs this session, newest last: the checkbox attribute + value to flip back
 function viewPrizes() {
   const rows = prizeRows();
   rows.sort((a, b) => (a.e.ordered ? 1 : 0) - (b.e.ordered ? 1 : 0) || String(b.e.at).localeCompare(String(a.e.at)));
-  const open = rows.filter(r => !r.e.ordered).length;
+  const open = rows.filter(r => !r.e.ordered).length, done = rows.length - open;
   let h = '<div class="card" id="prizeCard"><div class="card-head"><h2>\u{1F381} Prize winners</h2><span class="fact">' + (open ? "<b>" + open + "</b> to order or give" : "all done") + "</span></div>";
   if (!rows.length) return h + '<p class="lede">Nobody has won a prize yet. Prize! is a 5% slice on the ' + SEASON.wheel + ', and it opens the Prize Wheel.</p></div>';
+  // Checked-off prizes drop out of the list. Undo puts back the last one; "Show done" lists them all (untick to put one back).
+  if (prizeUndo.length || done) h += '<div class="row" style="margin-bottom:8px;gap:8px;">' +
+    (prizeUndo.length ? '<button class="btn small" data-act="prizeUndo">\u21A9\uFE0F Undo last check-off</button>' : "") +
+    (done ? '<button class="btn ghost small" data-act="prizeDone">' + (busy.prizeDone ? "Hide done" : "Show done (" + done + ")") + "</button>" : "") + "</div>";
+  const shown = rows.filter(r => !r.e.ordered || busy.prizeDone);
+  if (!shown.length) return h + '<p class="lede">All prizes are checked off. \u{1F389}</p></div>';
   h += '<div class="scroll-x"><table class="tbl"><thead><tr><th>Done</th><th>Student</th><th>Prize</th><th>Link</th><th>When</th></tr></thead><tbody>';
-  rows.forEach(r => {
+  shown.forEach(r => {
     const p = prizeInfo(r.e);
     const art = p.img ? '<img src="' + esc(p.img) + '" alt="" style="height:28px;vertical-align:middle;border-radius:6px;">' : p.icon;
     h += "<tr" + (r.e.ordered ? ' style="opacity:.55"' : "") + '><td><input type="checkbox" ' + (r.door ? 'data-doordone="' + r.s.id + ":" + r.door + '"' : 'data-ordered="' + r.s.id + ":" + r.idx + '"') + '' + (r.e.ordered ? " checked" : "") +
@@ -742,13 +749,16 @@ function viewShop() {
     '<p class="lede" style="font-size:13px;margin-bottom:10px;">In the shop now: ' + S.store.map(it => storeArt(it, "gimg") + " " + esc(it.name) + " (" + it.cost + ")").join(" \u00b7 ") + "</p>";
   if (!rows.length) return h + '<p class="lede">No purchases yet.</p></div>';
   h += '<div class="scroll-x"><table class="tbl"><thead><tr><th>When</th><th>Student</th><th>Item</th><th>Cost</th><th></th></tr></thead><tbody>';
-  rows.slice(0, 60).forEach(r => {
+  const SHOP_SHOW = 5, list = busy.shopAll ? rows.slice(0, 60) : rows.slice(0, SHOP_SHOW);
+  list.forEach(r => {
     const it = anyItem(r.p.id);
     const when = r.p.at ? new Date(r.p.at).toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" }) : "";
     h += "<tr><td>" + esc(when) + "</td><td>" + esc(r.s.name) + "</td><td>" + (it ? storeArt(it, "gimg") + " " + esc(it.name) : esc(r.p.id)) + "</td><td>" + (r.p.cost || 0) +
       '</td><td><button class="btn ghost small" data-refund="' + r.s.id + ":" + r.idx + '">Refund</button></td></tr>';
   });
-  return h + "</tbody></table></div></div>";
+  h += "</tbody></table></div>";
+  if (rows.length > SHOP_SHOW) h += '<div class="row" style="margin-top:8px;"><button class="btn ghost small" data-act="shopAll">' + (busy.shopAll ? "Show fewer" : "Show all " + rows.length + " purchases") + "</button></div>";
+  return h + "</div>";
 }
 
 function viewAssign() {
@@ -1169,12 +1179,14 @@ document.addEventListener("click", async ev => {
   if ((el = ev.target.closest("[data-doordone]"))) {
     const [sid, path] = el.dataset.doordone.split(":"); const [d, k] = path.split("/"); const s = sOf(sid);
     const cur = !!((((s.doors || {})[d] || {})[k]) || {}).ordered;
+    if (!cur && !el.dataset.undo) prizeUndo.push(["doordone", el.dataset.doordone]);
     return patch(sid, { ["doors." + d + "." + k + ".ordered"]: !cur });
   }
   if ((el = ev.target.closest("[data-ordered]"))) {
     const [sid, idx] = el.dataset.ordered.split(":"); const s = sOf(sid);
     const log = (s.spinLog || []).map(x => Object.assign({}, x)); if (!log[idx]) return;
     log[idx].ordered = !log[idx].ordered;
+    if (log[idx].ordered && !el.dataset.undo) prizeUndo.push(["ordered", el.dataset.ordered]);
     return patch(sid, { spinLog: log });
   }
   if ((el = ev.target.closest("[data-refund]"))) {
@@ -1307,6 +1319,14 @@ document.addEventListener("click", async ev => {
   if (act === "toggleDuck") { try { await updateDoc(classRef, { duckOff: !cls.duckOff }); flash("Saved \u2014 Duckarune event " + (cls.duckOff ? "on" : "off") + "."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
   if (act === "saveRoomStart") { const v = document.getElementById("roomStart").value; if (!v) return; try { await updateDoc(classRef, { roomStart: v }); flash("Saved \u2014 Comfort Points count from " + v + "."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
   if (act === "saveCollStart") { try { await updateDoc(classRef, { collectorStart: document.getElementById("collStart").value || null }); flash("Saved the collector start date."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
+  if (act === "shopAll") { busy.shopAll = !busy.shopAll; render(); return; }
+  if (act === "prizeDone") { busy.prizeDone = !busy.prizeDone; render(); return; }
+  if (act === "prizeUndo") {
+    const last = prizeUndo.pop(); if (!last) { render(); return; }
+    const [attr, val] = last, s2 = sOf(val.split(":")[0]); if (!s2) { render(); return; }
+    if (attr === "ordered") { const idx = Number(val.split(":")[1]), log = (s2.spinLog || []).map(x => Object.assign({}, x)); if (!log[idx]) return; log[idx].ordered = false; return patch(s2.id, { spinLog: log }); }
+    const [d, k] = val.split(":")[1].split("/"); return patch(s2.id, { ["doors." + d + "." + k + ".ordered"]: false });
+  }
   if (act === "rewardsAll") { busy.rewardsAll = !busy.rewardsAll; render(); return; }
   if (act === "finalize") { busy.finalize = day; render(); return; }
   if (act === "finalizeCancel") { busy.finalize = null; render(); return; }
