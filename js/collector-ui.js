@@ -4,12 +4,13 @@ import {
   formIndex, formOf, statsOf, seenSet, rollRarity, doPull, arenaOpen, arenaOpenFor, lunchHour, hitGoalToday, LUNCH_ARENA, ARENA_HOURS, fighterFrom, teamSize, alive, resolve, resolveRound, moveOk, MOVES, hitDamage,
   birthdayLeft, themeLeft, nextTheme, THEME_TYPES, THEME_EGG, WISH_FAM, spares, spareId, releaseXP, releaseProblem, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
   EVENTS, eventOpen, eventWindow, eventStreak, hasEvent, eventUnlocked, azToday, rollTeacherRarity, TEACHER_ODDS, LIVE, staleBattle
-} from "./collect.js?v=20261001n";
-import { newBattleRef, changeBattle as changeBattleRaw, setDoc } from "./db.js?v=20261001n";
+} from "./collect.js?v=20261001o";
+import { newBattleRef, changeBattle as changeBattleRaw, setDoc } from "./db.js?v=20261001o";
 // every change to a battle is stamped with the time (upd), so a battle nobody has touched in a while can be ended
+let locking = null;   // battle id while "Lock in team" is saving
 const changeBattle = (id, fn) => changeBattleRaw(id, bt => { const n = fn(bt); if (n) n.upd = new Date().toISOString(); return n; });
 
-import { tradeCard } from "./trade-ui.js?v=20261001n";
+import { tradeCard } from "./trade-ui.js?v=20261001o";
 
 const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const PER_PAGE = 20;
@@ -386,7 +387,7 @@ function battleOverlay() {
     const fams = sortedFams(ctx.me);
     return h + '<div class="bpanel"><h3>Choose your team: pick ' + bt.n + "</h3><div class=\"teamgrid\">" + fams.map(f => { const c = formOf(f, owned(ctx.me)[f].lvl || 1), on = picks.includes(f);
       return '<button class="tpick' + (on ? " on" : "") + '" data-cc="pickTeam" data-fam="' + f + '">' + (owned(ctx.me)[f].fav ? '<span class="tfav">\u2B50</span>' : "") + img(c, "", spOf(f)) + "<b>" + esc(owned(ctx.me)[f].nick || c.name) + "</b><small>Lv " + (owned(ctx.me)[f].lvl || 1) + "</small></button>"; }).join("") +
-      '</div><button class="btn big" data-cc="lockTeam"' + (picks.length === bt.n ? "" : " disabled") + ">Lock in team (" + picks.length + "/" + bt.n + ")</button></div></div>";
+      '</div><button class="btn big" data-cc="lockTeam"' + (picks.length === bt.n && locking !== bt.id ? "" : " disabled") + ">" + (locking === bt.id ? "Locking in\u2026" : "Lock in team (" + picks.length + "/" + bt.n + ")") + "</button></div></div>";
   }
   if (bt.status === "team") return h + '<div class="bpanel"><p>Team locked in! Waiting for ' + esc(thN) + " to choose…</p></div></div>";
   // field: animate only the event that was just revealed
@@ -624,11 +625,18 @@ export async function onClick(el, c) {
     return c.render(true);
   }
   if (a === "lockTeam") {
-    const team = picks.map(f => fighterFrom(s, f));
-    await changeBattle(battleOpen, bt => {
-      const me = sideOf(bt); if (bt.status !== "team" || bt.team[me]) return null;
-      bt.team[me] = team; if (bt.team.A && bt.team.B) bt.status = "lead"; return bt;
-    });
+    if (locking) return;
+    const team = JSON.parse(JSON.stringify(picks.map(f => fighterFrom(s, f)).filter(Boolean)));
+    const bt0 = (c.battles || []).find(b => b.id === battleOpen);
+    if (!bt0 || team.length !== bt0.n) { picks = picks.filter(f => owned(s)[f]); c.flash("One of those creatures isn\u2019t on your team anymore \u2014 pick again."); return c.render(true); }
+    locking = battleOpen; c.render(true);   // show "Locking in…" right away
+    try {
+      const r = await changeBattle(battleOpen, bt => {
+        const me = sideOf(bt); if (bt.status !== "team" || bt.team[me]) return null;
+        bt.team[me] = team; if (bt.team.A && bt.team.B) bt.status = "lead"; return bt;
+      });
+      if (!r) c.flash("That battle already moved on (or ended).");
+    } finally { locking = null; c.render(true); }
     return;
   }
   if (a === "lead") {

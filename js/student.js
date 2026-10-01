@@ -1,17 +1,17 @@
 import {
   checkVersion, applyDisplayNames, companionOf, petCreatures, pinnedBadgeHTML, DAYS, SHORT, ROSTER, GEAR, SIDEKICKS, BANNER, bannerFor, isHaunt, battleOn, candyOf, basketHTML, CANDY_FULL, bossState, attacksReady, bossBarHTML, GHOST_IMG, ghostUnlocked, turkeyUnlocked, grinchUnlocked, isJingle, eventMode, isGobble, setSeason, SEASON, seasonOf, STORE, candyLeft, candySpent, ownedCount, ownsItem, storeArt, nextAttack, dmgOf, HAT_BONUS, BREW_BONUS, teamHTML, WHEEL, pickSlice, wheelHTML, spinTo, PRIZES, prizeSlices, bucketState, bucketHTML, baseDamage, EAT_PER_DAY, dayEaten, dayXP, byId, esc, arr5, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, sidekickSVG, petHTML, itemArt
-} from "./game.js?v=20261001n";
-import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchBattles, watchTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20261001n";
-import { nudgeCard } from "./nudges.js?v=20261001n";
-import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261001n";
-import { teacherPlayer, hasStarter } from "./collect.js?v=20261001n";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261001n";
-import { doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked } from "./doors.js?v=20261001n";
-import { azToday } from "./collect.js?v=20261001n";
+} from "./game.js?v=20261001o";
+import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchBattles, watchTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20261001o";
+import { nudgeCard } from "./nudges.js?v=20261001o";
+import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261001o";
+import { teacherPlayer, hasStarter } from "./collect.js?v=20261001o";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261001o";
+import { doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked } from "./doors.js?v=20261001o";
+import { azToday } from "./collect.js?v=20261001o";
 import { roomHTML, FIT_SLOTS, slotKind, KIND_NAMES, KIND_ICON, EVERYDAY_PRICE, THEMED_PRICE, TROPHY_PRICE, TYPE_THEMES, SEASON_THEMES, THEME_NAMES, TROPHIES,
-  itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId } from "./room.js?v=20261001n";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261001n";
+  itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId } from "./room.js?v=20261001o";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261001o";
 
 let cls = null, students = [], battles = [], trades = [], loaded = { c: false, s: false };
 let tab = (() => { try { return localStorage.getItem("ck-tab") || "pet"; } catch (e) { return "pet"; } })();
@@ -35,9 +35,9 @@ else {
   onAuthStateChanged(auth, u => {
     if (!u) { anonSignIn().catch(e => { error = "Couldn’t connect (" + e.code + "). Try reloading."; render(); }); return; }
     watchClass(c => { cls = c; setSeason(c); loaded.c = true; if (!PREVIEW && checkVersion(c, false)) return; render(); }, e => { error = "Couldn’t load your class (" + e.code + ")."; render(); });
-    watchStudents(l => { students = applyDisplayNames(l); loaded.s = true; nameBattles(); const s = students.find(x => x.id === me); if (s && !PREVIEW && trades.length) settleTrades(collectorCtx(s)); render(); }, e => { error = "Couldn’t load your class (" + e.code + ")."; render(); });
-    watchBattles(l => { battles = l; nameBattles(); render(); }, () => {});
-    watchTrades(l => { trades = l; const s = students.find(x => x.id === me); if (s && !PREVIEW) settleTrades(collectorCtx(s)); render(); }, () => {});
+    watchStudents(l => { students = applyDisplayNames(l); loaded.s = true; nameBattles(); const s = students.find(x => x.id === me); if (s && !PREVIEW && trades.length) settleTrades(collectorCtx(s)); liveRender(); }, e => { error = "Couldn’t load your class (" + e.code + ")."; render(); });
+    watchBattles(l => { battles = l; nameBattles(); liveRender(); }, () => {});
+    watchTrades(l => { trades = l; const s = students.find(x => x.id === me); if (s && !PREVIEW) settleTrades(collectorCtx(s)); liveRender(); }, () => {});
     setInterval(() => render(), 60000);   // arena opens/closes on the clock
   });
 }
@@ -104,7 +104,17 @@ function collectorCtx(s) {
   const t = cls && cls.teacher ? teacherPlayer(cls) : null;
   return { cls, students: t && hasStarter(t) ? students.concat([t]) : students, battles, trades, me: s, patch, render, flash };
 }
+// While a finger/mouse is pressed, hold page redraws until it lifts. Otherwise a redraw from someone else's
+// update (25 kids playing at once) swaps the button out mid-click and the click is lost.
+let ptrDown = false, heldRender = null;
+addEventListener("pointerdown", () => { ptrDown = true; }, true);
+const ptrUp = () => setTimeout(() => { ptrDown = false; if (heldRender !== null) { const f = heldRender; heldRender = null; render(f); } }, 60);
+addEventListener("pointerup", ptrUp, true); addEventListener("pointercancel", ptrUp, true);
+// Live updates from the database are bundled into one redraw.
+let liveTimer = null;
+function liveRender() { if (liveTimer) return; liveTimer = setTimeout(() => { liveTimer = null; render(); }, 120); }
 function render(force) {
+  if (ptrDown) { heldRender = heldRender || !!force; return; }
   if (wheelBusy) return;          // don't redraw mid-spin; the spin calls render() when it stops
   if (!force && collectorBusy()) return;   // egg hatch / page flip animations call render(true) themselves
   const active = document.activeElement, keep = active && active.id && active.matches("input") ? { id: active.id, pos: active.selectionStart } : null;
