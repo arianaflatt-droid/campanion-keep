@@ -1,8 +1,8 @@
-import { formOf, sparkleImg, azNow } from "./collect.js?v=20261001j";
+import { formOf, sparkleImg, azNow } from "./collect.js?v=20261001k";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261001j";
+export const APP_V = "20261001k";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -191,6 +191,16 @@ export function arr5(a, fill) { const out = []; for (let i = 0; i < 5; i++) out.
 export function recordedDays(cls) { return arr5(cls && cls.recorded, false).map(Boolean); }
 export function goalXP(cls) { return (cls && Number(cls.goal)) || 120; }
 
+// Did the student reach the goal on day d? An excused day still counts as a hit when they reached the goal anyway
+// (so it keeps their streak going); an excused day below the goal is just skipped (no penalty).
+export function hitOn(st, d, cls) {
+  const v = arr5(st && st.status, "")[d];
+  if (v === "c") return true;
+  if (v !== "e") return false;
+  const g = goalXP(cls), xp = Number(arr5(st.xp, null)[d]) || 0, lx = Number(arr5(st.lunchXp, null)[d]) || 0;
+  return xp >= g || lx >= g || !!arr5(st.early, false)[d];
+}
+
 /* ---------- survival engine ----------
    Hit 120 = full health. Miss = half health. Two misses in a row = disappears.
    Excused / not-yet-counted days are skipped. A Hero Cape brings it back on the next 120 day.
@@ -207,10 +217,9 @@ export function simulate(st, cls) {
   for (let d = 0; d < 5; d++) {
     if (!rec[d]) continue;
     daysCounted++;
-    const v = status[d];
-    if (v === "e") continue;
+    const v = status[d], hit = hitOn(st, d, cls);
+    if (v === "e" && !hit) continue;   // excused and below the goal: skipped, no penalty
     ovCounted++;
-    const hit = v === "c";
     if (hit) { ovMet++; hitRun++; bestRun = Math.max(bestRun, hitRun); } else hitRun = 0;
 
     if (!alive) {
@@ -400,7 +409,7 @@ export function keepHTML(cls, students, popIds, shout) {
   const lunch = live.filter(r => sidekickToday(r.s, day)).length;
   let lastRec = -1; for (let d = 0; d < 5; d++) if (rec[d]) lastRec = d;
   let dayHit = 0, dayReq = 0;
-  if (lastRec >= 0) live.forEach(r => { const v = arr5(r.s.status, "")[lastRec]; if (v === "e") return; dayReq++; if (v === "c") dayHit++; });
+  if (lastRec >= 0) live.forEach(r => { const v = arr5(r.s.status, "")[lastRec], h = hitOn(r.s, lastRec, cls); if (v === "e" && !h) return; dayReq++; if (h) dayHit++; });
   const band = p => (p >= 80 ? "var(--good)" : p >= 50 ? "var(--warn)" : "var(--bad)");
   const pct = (a, b) => (b ? Math.round(a / b * 100) : 0);
 
@@ -444,15 +453,15 @@ export function bossState(cls, students) {
 }
 // What this student's next attack does, and what it uses up.
 export function nextAttack(st, cls) {
-  const days = attacksReady(st), extra = Math.max(0, Number(st.extraAttacks) || 0), brews = Math.max(0, Number(st.brews) || 0);
+  const days = attacksReady(st, cls), extra = Math.max(0, Number(st.extraAttacks) || 0), brews = Math.max(0, Number(st.brews) || 0);
   const hat = !!st[seasonOf(cls).hatFlag], brew = brews > 0;
   return { count: days.length + extra, day: days.length ? days[0] : null, useExtra: !days.length && extra > 0,
     hat, brew, damage: baseDamage(cls) + (hat ? HAT_BONUS : 0) + (brew ? BREW_BONUS : 0) };
 }
-export function attacksReady(st) {
-  const status = arr5(st.status, ""), used = arr5(st.attacks, false);
+export function attacksReady(st, cls) {
+  const used = arr5(st.attacks, false);
   const out = [];
-  for (let d = 0; d < 5; d++) if (status[d] === "c" && !used[d]) out.push(d);
+  for (let d = 0; d < 5; d++) if (hitOn(st, d, cls) && !used[d]) out.push(d);
   return out;
 }
 export function bossBarHTML(b) {

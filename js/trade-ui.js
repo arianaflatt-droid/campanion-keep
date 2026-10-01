@@ -8,9 +8,9 @@
 // (spares don't count), limited event creatures (Duckarune, Hexaduck) can't be traded, and not during a battle.
 // Trading follows the same schedule as the arena (its own switches in the teacher console), and a player has to
 // tick "I'm ready to trade" (tradeReady) before anyone can send them an offer.
-import { esc } from "./game.js?v=20261001j";
-import { owned, ownedFams, family, formOf, creature, RARITY_COLOR, hasStarter, spares, spareId, tradeOpen, tradeOpenFor, lunchHour, hitGoalToday, ARENA_HOURS, LUNCH_ARENA, LIVE, staleBattle } from "./collect.js?v=20261001j";
-import { newTradeRef, changeTrade, setDoc } from "./db.js?v=20261001j";
+import { esc } from "./game.js?v=20261001k";
+import { owned, ownedFams, family, formOf, creature, RARITY_COLOR, hasStarter, spares, spareId, tradeOpen, tradeOpenFor, lunchHour, hitGoalToday, ARENA_HOURS, LUNCH_ARENA, LIVE, staleBattle } from "./collect.js?v=20261001k";
+import { newTradeRef, changeTrade, setDoc } from "./db.js?v=20261001k";
 
 let pick = { who: "", theirs: "", mine: "" };
 let settling = {};

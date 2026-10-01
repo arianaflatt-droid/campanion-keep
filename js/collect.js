@@ -1,5 +1,5 @@
 // Creature Collector: pulls, XP bank, levels, evolutions, lorebook and arena battles.
-import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261001j";
+import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261001k";
 
 export const PULL_XP = 120;          // every 120 XP (all-time since the collector started) = 1 pull
 export const LEVEL_XP = 120;         // 120 banked XP = 1 level
@@ -227,7 +227,7 @@ export function rollTeacherRarity() {
 // What finalizing day d gives the teacher.
 export function teacherReward(students, d) {
   const arr = (a, i) => (Array.isArray(a) ? a[i] : undefined);
-  const team = students.filter(s => s.companionId), hit = team.filter(s => arr(s.status, d) === "c").length;
+  const team = students.filter(s => s.companionId), hit = team.filter(s => arr(s.status, d) === "c" || (arr(s.status, d) === "e" && ((Number(arr(s.xp, d)) || 0) >= 120 || (Number(arr(s.lunchXp, d)) || 0) >= 120))).length;
   const missed = team.filter(s => { const v = arr(s.status, d); return v !== "c" && v !== "e"; }).length;
   // a day when everyone hit 120 still gives the teacher one level's worth of XP
   return { eggs: hit, xp: missed > 0 ? missed * TEACHER_XP_PER_MISS : TEACHER_XP_PER_MISS, hit, missed };
