@@ -1,17 +1,17 @@
 import {
   checkVersion, applyDisplayNames, companionOf, petCreatures, pinnedBadgeHTML, DAYS, SHORT, ROSTER, GEAR, SIDEKICKS, BANNER, bannerFor, isHaunt, battleOn, candyOf, basketHTML, CANDY_FULL, bossState, attacksReady, bossBarHTML, GHOST_IMG, ghostUnlocked, turkeyUnlocked, grinchUnlocked, isJingle, eventMode, isGobble, setSeason, SEASON, seasonOf, STORE, candyLeft, candySpent, ownedCount, ownsItem, storeArt, nextAttack, dmgOf, HAT_BONUS, BREW_BONUS, teamHTML, WHEEL, pickSlice, wheelHTML, spinTo, PRIZES, prizeSlices, bucketState, bucketHTML, baseDamage, EAT_PER_DAY, dayEaten, dayXP, byId, esc, arr5, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, sidekickSVG, petHTML, itemArt
-} from "./game.js?v=20260930j";
-import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchBattles, watchTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20260930j";
-import { nudgeCard } from "./nudges.js?v=20260930j";
-import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20260930j";
-import { teacherPlayer, hasStarter } from "./collect.js?v=20260930j";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20260930j";
-import { doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked } from "./doors.js?v=20260930j";
-import { azToday } from "./collect.js?v=20260930j";
+} from "./game.js?v=20261001a";
+import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchBattles, watchTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20261001a";
+import { nudgeCard } from "./nudges.js?v=20261001a";
+import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261001a";
+import { teacherPlayer, hasStarter } from "./collect.js?v=20261001a";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261001a";
+import { doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked } from "./doors.js?v=20261001a";
+import { azToday } from "./collect.js?v=20261001a";
 import { roomHTML, FIT_SLOTS, slotKind, KIND_NAMES, KIND_ICON, EVERYDAY_PRICE, THEMED_PRICE, TROPHY_PRICE, TYPE_THEMES, SEASON_THEMES, THEME_NAMES, TROPHIES,
-  itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId } from "./room.js?v=20260930j";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20260930j";
+  itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId } from "./room.js?v=20261001a";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261001a";
 
 let cls = null, students = [], battles = [], trades = [], loaded = { c: false, s: false };
 let tab = (() => { try { return localStorage.getItem("ck-tab") || "pet"; } catch (e) { return "pet"; } })();
@@ -241,7 +241,8 @@ function rItemCard(id, opts) {
 function roomTab(s, c, worn) {
   const left = cpLeft(s, cls), have = roomOwned(s), fit = fitOf(s);
   let h = '<div class="card roomwrap"><div class="card-head"><h2>\u{1F6CF}\uFE0F ' + esc(s.petName || c.name) + "\u2019s Room</h2>" + '<span class="cpwallet">\u2B50 ' + left + " Comfort Points</span></div>" +
-    roomHTML(s, petHTML(c, worn)) +
+    roomHTML(s, petHTML(c, worn), { side: (() => { const k = sidekickToday(s, boardDay(cls, students)); return k ? { kind: k, html: sidekickSVG(k) } : null; })() }) +
+    (sidekickToday(s, boardDay(cls, students)) ? '<p class="muted small" style="margin-top:6px;">\u2600\uFE0F You were Lunch Hero today, so your ' + esc(SIDEKICKS[sidekickToday(s, boardDay(cls, students))]) + " came to play!</p>" : "") +
     '<p class="muted small" style="margin-top:8px;">Earn Comfort Points: <b>+10</b> every day your companion stays at full health \u00b7 <b>+5</b> on Lunch Hero days \u00b7 <b>+5</b> on 5-day streak days.</p></div>';
   h += '<div class="tabs" style="margin-bottom:10px;">' + [["decorate", "\u{1F3A8} Decorate"], ["everyday", "\u{1F6CD}\uFE0F Everyday shop"], ["themed", "\u2728 Themed sets"]].map(([k, l]) =>
     '<button class="tab' + (roomView === k ? " on" : "") + '" data-roomview="' + k + '">' + l + "</button>").join("") + "</div>";

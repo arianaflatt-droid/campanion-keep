@@ -5,8 +5,8 @@
    Saved on the student: cpEarned (teacher writes), cpSpent, roomOwned [item ids], roomFit { slot: id }, roomBuys [{ id, cost, at }].
    Item ids are "{kind}_{theme}" (e.g. bed_dragon); art is assets/room/{id}.webp. Trophies are trophy_{season}.
    The room picture is 1536x1024; everything below is placed in % of that. */
-import { azToday } from "./collect.js?v=20260930j";
-import { esc } from "./game.js?v=20260930j";
+import { azToday } from "./collect.js?v=20261001a";
+import { esc } from "./game.js?v=20261001a";
 
 // Themes that have art so far. Add a theme name here once its 9 pieces are in assets/room/.
 export const TYPE_THEMES = ["fire", "water", "nature", "rock", "sky", "electric", "ice", "light", "dark", "ghost", "poison", "steel", "arcane", "crystal", "dragon"];
@@ -107,6 +107,8 @@ export function roomHTML(st, petMarkup, opts) {
   if (f.chair) h += img(f.chair, "rchair", "left:65.95%;bottom:0.4%;width:16%;");
   if (f.plant) h += img(f.plant, "rplant", "left:82.5%;bottom:0.9%;width:10%;");
   h += '<div class="rpet">' + (petMarkup || "") + "</div>";
+  // Lunch Hero sidekick: on a day the student hit the goal by lunch, it runs (or floats, for the Ghost-olotl) around the room
+  if (o.side) h += '<div class="rside k-' + esc(o.side.kind) + '"><div class="rside-in">' + o.side.html + "</div></div>";
   return h + "</div>";
 }
 export { esc };
