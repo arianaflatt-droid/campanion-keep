@@ -1,19 +1,19 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261001h";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261001h";
-import { cpEarnedCalc } from "./room.js?v=20261001h";
-import { DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, waitingDoors, doorXPRows, REWARD_XP } from "./doors.js?v=20261001h";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261001h";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261001j";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261001j";
+import { cpEarnedCalc } from "./room.js?v=20261001j";
+import { DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, waitingDoors, doorXPRows, REWARD_XP } from "./doors.js?v=20261001j";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261001j";
 import {
   applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261001h";
-import { EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261001h";
+} from "./game.js?v=20261001j";
+import { EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261001j";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle
-} from "./db.js?v=20261001h";
+} from "./db.js?v=20261001j";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -692,26 +692,20 @@ function viewCollector() {
 }
 
 function viewRewards() {
-  const log = cls.rewardLog || [];
-  let h = '<div class="card"><div class="card-head"><h2>\u2B50 Full health \u2014 reward list</h2><span class="fact">from finalized days</span></div>';
-  if (!log.length) return h + '<p class="lede">When you finalize a day, everyone whose companion is still at full health shows up here so you can reward them.</p></div>';
-  const show = busy.rewardsAll ? log : log.slice(0, 3);
-  show.forEach((r, i) => {
-    const done = r.rewarded || [], left = r.students.filter(x => !done.includes(x.id)).length;
-    const when = new Date(r.date + "T12:00:00").toLocaleDateString([], { weekday: "long", month: "short", day: "numeric" });
-    h += '<div style="margin-top:' + (i ? 16 : 0) + 'px;"><div class="row" style="justify-content:space-between;align-items:center;margin-bottom:6px;">' +
-      "<h3>" + esc(when) + ' <span class="muted">\u00b7 ' + r.students.length + " at full health" + (r.students.length ? " \u00b7 " + left + " to reward" : "") + "</span></h3>" +
-      (r.students.length ? '<button class="btn ghost small" data-copyreward="' + i + '">Copy names</button>' : "") + "</div>";
-    if (!r.students.length) h += '<p class="lede" style="font-size:13.5px;">Nobody was at full health this day.</p>';
-    else h += '<div class="inv">' + r.students.slice().sort((a, b) => byAlpha(sOf(a.id) || a, sOf(b.id) || b)).map(x => {
-      const on = done.includes(x.id), st = sOf(x.id), c = st && companionOf(st);
-      return '<label style="display:inline-flex;align-items:center;gap:6px;background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:5px 10px;cursor:pointer;' + (on ? "opacity:.55;" : "") + '">' +
-        '<input type="checkbox" data-rewarded="' + i + ":" + x.id + '"' + (on ? " checked" : "") + ' style="width:18px;height:18px;">' +
-        (c ? c.glyph + " " : "") + "<b>" + esc(x.name) + "</b>" + (on ? ' <small class="muted">rewarded \u2713</small>' : "") + "</label>";
-    }).join("") + "</div>";
-    h += "</div>";
-  });
-  if (log.length > 3) h += '<div class="row" style="margin-top:12px;"><button class="btn ghost small" data-act="rewardsAll">' + (busy.rewardsAll ? "Show fewer days" : "Show all " + log.length + " days") + "</button></div>";
+  // Only today's finalized day shows, and it disappears once everyone is rewarded. Older days are hidden.
+  const today = azToday(), log = cls.rewardLog || [];
+  const i = log.findIndex(r => r.date === today && r.students.length && !r.students.every(x => (r.rewarded || []).includes(x.id)));
+  if (i < 0) return "";
+  const r = log[i], done = r.rewarded || [], left = r.students.filter(x => !done.includes(x.id)).length;
+  let h = '<div class="card"><div class="card-head"><h2>\u2B50 Full health today</h2><span class="fact">' + left + " to reward</span></div>" +
+    '<p class="lede" style="font-size:13px;margin-bottom:10px;">These companions were still at full health when you finalized today \u2014 give a small reward if you like. Tap <b>Reward all</b> (or tick each name) and this goes away.</p>' +
+    '<div class="row" style="margin-bottom:8px;gap:6px;"><button class="btn small" data-rewardall="' + i + '">\u2705 Reward all</button><button class="btn ghost small" data-copyreward="' + i + '">Copy names</button></div>';
+  h += '<div class="inv">' + r.students.slice().sort((a, b) => byAlpha(sOf(a.id) || a, sOf(b.id) || b)).map(x => {
+    const on = done.includes(x.id), st = sOf(x.id), c = st && companionOf(st);
+    return '<label style="display:inline-flex;align-items:center;gap:6px;background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:5px 10px;cursor:pointer;' + (on ? "opacity:.55;" : "") + '">' +
+      '<input type="checkbox" data-rewarded="' + i + ":" + x.id + '"' + (on ? " checked" : "") + ' style="width:18px;height:18px;">' +
+      (c ? c.glyph + " " : "") + "<b>" + esc(x.name) + "</b>" + (on ? ' <small class="muted">rewarded \u2713</small>' : "") + "</label>";
+  }).join("") + "</div>";
   return h + "</div>";
 }
 
@@ -1139,6 +1133,12 @@ document.addEventListener("click", async ev => {
     await patch(x.id, { bonusPulls: (Number(x.bonusPulls) || 0) - 1 });
     flash("Saved \u2014 took back one free egg from " + x.name + "."); return;
   }
+  if ((el = ev.target.closest("[data-rewardall]"))) {
+    const i = Number(el.dataset.rewardall), log = (cls.rewardLog || []).map(r => Object.assign({}, r, { rewarded: (r.rewarded || []).slice() }));
+    if (!log[i]) return; log[i].rewarded = log[i].students.map(x => x.id);
+    try { await updateDoc(classRef, { rewardLog: log }); flash("Everyone is rewarded for today."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); }
+    return;
+  }
   if ((el = ev.target.closest("[data-rewarded]"))) {
     const [i, sid] = el.dataset.rewarded.split(":");
     const log = (cls.rewardLog || []).map(r => Object.assign({}, r, { rewarded: (r.rewarded || []).slice() }));
@@ -1319,6 +1319,7 @@ document.addEventListener("click", async ev => {
   if (act === "toggleDuck") { try { await updateDoc(classRef, { duckOff: !cls.duckOff }); flash("Saved \u2014 Duckarune event " + (cls.duckOff ? "on" : "off") + "."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
   if (act === "saveRoomStart") { const v = document.getElementById("roomStart").value; if (!v) return; try { await updateDoc(classRef, { roomStart: v }); flash("Saved \u2014 Comfort Points count from " + v + "."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
   if (act === "saveCollStart") { try { await updateDoc(classRef, { collectorStart: document.getElementById("collStart").value || null }); flash("Saved the collector start date."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
+  if (act === "rewardsFinished") { busy.rewardsFinished = !busy.rewardsFinished; render(); return; }
   if (act === "shopAll") { busy.shopAll = !busy.shopAll; render(); return; }
   if (act === "prizeDone") { busy.prizeDone = !busy.prizeDone; render(); return; }
   if (act === "prizeUndo") {
