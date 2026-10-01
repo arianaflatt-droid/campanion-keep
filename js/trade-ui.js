@@ -8,9 +8,9 @@
 // (spares don't count), limited event creatures (Duckarune, Hexaduck) can't be traded, and not during a battle.
 // Trading follows the same schedule as the arena (its own switches in the teacher console), and a player has to
 // tick "I'm ready to trade" (tradeReady) before anyone can send them an offer.
-import { esc } from "./game.js?v=20261001k";
-import { owned, ownedFams, family, formOf, creature, RARITY_COLOR, hasStarter, spares, spareId, tradeOpen, tradeOpenFor, lunchHour, hitGoalToday, ARENA_HOURS, LUNCH_ARENA, LIVE, staleBattle } from "./collect.js?v=20261001k";
-import { newTradeRef, changeTrade, setDoc } from "./db.js?v=20261001k";
+import { esc } from "./game.js?v=20261001l";
+import { seenSet, owned, ownedFams, family, formOf, creature, RARITY_COLOR, hasStarter, spares, spareId, tradeOpen, tradeOpenFor, lunchHour, hitGoalToday, ARENA_HOURS, LUNCH_ARENA, LIVE, staleBattle } from "./collect.js?v=20261001l";
+import { newTradeRef, changeTrade, setDoc } from "./db.js?v=20261001l";
 
 let pick = { who: "", theirs: "", mine: "" };
 let settling = {};
@@ -39,6 +39,9 @@ function pic(t) {
   const src = t.sparkle ? c.img.replace("assets/creatures/", "assets/creatures/sparkle/") : c.img;
   return '<img class="trimg" src="' + src + '" alt="" style="--rc:' + RARITY_COLOR[c.rarity] + '">';
 }
+// Not in this player's lorebook yet (they've never had this form)
+function newFor(st, t) { const c = formOf(t.fam, t.lvl); return !!c && !seenSet(st).has(c.id); }
+const NEW_TAG = '<span class="trnew">\u{1F4D6} NEW</span>';
 function inBattle(ctx, id) { return (ctx.battles || []).some(b => LIVE.includes(b.status) && !staleBattle(b) && (b.a.id === id || b.b.id === id)); }
 
 const open = t => t.status === "offer";
@@ -55,13 +58,13 @@ export function tradeCard(ctx) {
   let h = '<div class="card tradecard"><div class="card-head"><h2>\u{1F504} Trading</h2><span class="fact ' + (isOpen ? "open" : "") + '">' + (isOpen ? "OPEN" : "closed") + "</span></div>";
 
   incoming.forEach(t => {
-    h += '<div class="trrow in"><div class="trside">' + pic(t.give) + "<small><b>" + esc(t.a.name) + "</b> gives<br>" + esc(label(t.give)) + "</small></div>" +
+    h += '<div class="trrow in"><div class="trside">' + pic(t.give) + "<small><b>" + esc(t.a.name) + "</b> gives<br>" + esc(label(t.give)) + (newFor(s, t.give) ? "<br>" + NEW_TAG : "") + "</small></div>" +
       '<span class="trarrow">⇄</span><div class="trside">' + pic(t.get) + "<small>for your<br>" + esc(label(t.get)) + "</small></div>" +
       '<div class="trbtns">' + (isOpen ? '<button class="btn small" data-tr="accept" data-t="' + t.id + '">Accept</button>' : '<span class="muted small">Accept when trading opens</span>') + '<button class="btn ghost small" data-tr="decline" data-t="' + t.id + '">No thanks</button></div></div>';
   });
   outgoing.forEach(t => {
     h += '<div class="trrow out"><div class="trside">' + pic(t.give) + "<small>Your<br>" + esc(label(t.give)) + "</small></div>" +
-      '<span class="trarrow">⇄</span><div class="trside">' + pic(t.get) + "<small><b>" + esc(t.b.name) + "’s</b><br>" + esc(label(t.get)) + "</small></div>" +
+      '<span class="trarrow">⇄</span><div class="trside">' + pic(t.get) + "<small><b>" + esc(t.b.name) + "’s</b><br>" + esc(label(t.get)) + (newFor(s, t.get) ? "<br>" + NEW_TAG : "") + "</small></div>" +
       '<div class="trbtns"><span class="muted small">Waiting for ' + esc(t.b.name) + "…</span>" +
       '<button class="btn ghost small" data-tr="cancel" data-t="' + t.id + '">Cancel</button></div></div>';
   });
@@ -94,7 +97,7 @@ export function tradeCard(ctx) {
   const mineMarked = offerable(s).filter(k => forTrade(s, k)).length;
   h += '<div class="trboard"><b>\u{1F504} Up for trade</b>' + (board.length
     ? board.map(r => '<div class="trbrow"><span class="trbwho">' + esc(r.x.name) + '</span><div class="trbitems">' +
-        r.keys.map(k => { const t = snap(r.x, k); return '<button class="trbitem' + (pick.who === r.x.id && pick.theirs === k ? " on" : "") + '" data-tr="want" data-who="' + r.x.id + '" data-key="' + esc(k) + '">' + pic(t) + "<small>" + esc(label(t)) + "</small></button>"; }).join("") + "</div></div>").join("")
+        r.keys.map(k => { const t = snap(r.x, k); return '<button class="trbitem' + (pick.who === r.x.id && pick.theirs === k ? " on" : "") + '" data-tr="want" data-who="' + r.x.id + '" data-key="' + esc(k) + '">' + pic(t) + "<small>" + esc(label(t)) + "</small>" + (newFor(s, t) ? NEW_TAG : "") + "</button>"; }).join("") + "</div></div>").join("")
     : '<p class="muted small" style="margin:4px 0;">Nobody has marked anything up for trade yet.</p>') +
     '<p class="muted small" style="margin-top:4px;">' + (mineMarked ? "You have <b>" + mineMarked + "</b> up for trade." : "Tap \u{1F504} on a creature in My creatures to put it up for trade.") + "</p></div>";
   const opt = (v, t, on) => '<option value="' + esc(v) + '"' + (on ? " selected" : "") + ">" + esc(t) + "</option>";
@@ -102,11 +105,11 @@ export function tradeCard(ctx) {
     '<div class="field"><label for="trWho">Trade with</label><select id="trWho" data-trsel="who">' + opt("", "Choose a player") +
       others.map(x => opt(x.id, x.name, x.id === pick.who)).join("") + "</select></div>" +
     '<div class="field"><label for="trTheirs">You want</label><select id="trTheirs" data-trsel="theirs"' + (who ? "" : " disabled") + ">" + opt("", who ? (theirsOk.length ? "Choose their creature" : "Nothing you don’t already have") : "Choose a player first") +
-      theirsOk.map(f => opt(f, (forTrade(who, f) ? "\u{1F504} " : "") + label(snap(who, f)), f === pick.theirs)).join("") + "</select></div>" +
+      theirsOk.map(f => opt(f, (forTrade(who, f) ? "\u{1F504} " : "") + label(snap(who, f)) + (newFor(s, snap(who, f)) ? "  \u{1F4D6} NEW for you" : ""), f === pick.theirs)).join("") + "</select></div>" +
     '<div class="field"><label for="trMine">You give</label><select id="trMine" data-trsel="mine">' + opt("", mineOk.length ? "Choose your creature" : "Nothing they don’t already have") +
-      mineOk.map(f => opt(f, (forTrade(s, f) ? "\u{1F504} " : "") + label(snap(s, f)), f === pick.mine)).join("") + "</select></div>" +
+      mineOk.map(f => opt(f, (forTrade(s, f) ? "\u{1F504} " : "") + label(snap(s, f)) + (who && newFor(who, snap(s, f)) ? "  \u{1F4D6} NEW for them" : ""), f === pick.mine)).join("") + "</select></div>" +
     '<button class="btn" data-tr="offer"' + (who && pick.theirs && pick.mine ? "" : " disabled") + ">\u{1F504} Send offer</button></div>" +
-    '<p class="muted small" style="margin-top:6px;">You both have to agree. You can’t trade your last creature, a \u2B50 favorite, or limited event Legendaries, and you can’t get a creature family you already have.</p></div>';
+    '<p class="muted small" style="margin-top:6px;">\u{1F4D6} NEW = not in your lorebook yet (or theirs). You both have to agree. You can’t trade your last creature, a \u2B50 favorite, or limited event Legendaries, and you can’t get a creature family you already have.</p></div>';
   return h + "</div>";
 }
 

@@ -930,3 +930,6 @@ td .emo, .ic .emo{ display:inline-block; vertical-align:middle; font-size:1.3em;
   @keyframes rsideFloat{ from{ transform:translateY(0) rotate(-4deg); } to{ transform:translateY(-2.5cqw) rotate(4deg); } }
   @keyframes rsideSwim{ from{ transform:translateY(0) rotate(-6deg); } to{ transform:translateY(-.8cqw) rotate(6deg); } }
   @media (prefers-reduced-motion: reduce){ .room .rside, .room .rside-in, .room .rside .side{ animation:none; } }
+  /* trade: creature not in the player's lorebook yet */
+  .trnew{ display:inline-block; margin-top:2px; padding:1px 6px; border-radius:999px; background:#FFE9A8; color:#7A4B00; font-size:10.5px; font-weight:800; letter-spacing:.02em; white-space:nowrap; }
+  .trbitem .trnew{ display:block; margin:3px auto 0; width:max-content; }
