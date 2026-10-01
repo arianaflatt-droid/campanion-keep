@@ -8,9 +8,9 @@
 // (spares don't count), limited event creatures (Duckarune, Hexaduck) can't be traded, and not during a battle.
 // Trading follows the same schedule as the arena (its own switches in the teacher console), and a player has to
 // tick "I'm ready to trade" (tradeReady) before anyone can send them an offer.
-import { esc } from "./game.js?v=20261001o";
-import { seenSet, owned, ownedFams, family, formOf, creature, RARITY_COLOR, hasStarter, spares, spareId, tradeOpen, tradeOpenFor, lunchHour, hitGoalToday, ARENA_HOURS, LUNCH_ARENA, LIVE, staleBattle } from "./collect.js?v=20261001o";
-import { newTradeRef, changeTrade, setDoc } from "./db.js?v=20261001o";
+import { esc } from "./game.js?v=20261001p";
+import { seenSet, owned, ownedFams, family, formOf, creature, RARITY_COLOR, hasStarter, spares, spareId, tradeOpen, tradeOpenFor, lunchHour, hitGoalToday, ARENA_HOURS, LUNCH_ARENA, LIVE, staleBattle } from "./collect.js?v=20261001p";
+import { newTradeRef, changeTrade, setDoc } from "./db.js?v=20261001p";
 
 let pick = { who: "", theirs: "", mine: "" };
 let settling = {};
@@ -141,7 +141,7 @@ export async function onTradeClick(el, ctx) {
     if (!tradeOpenFor(s, ctx.cls) || !tradeOpenFor(o, ctx.cls)) return ctx.flash("Trading isn\u2019t open for both of you right now.");
     if (!o.tradeReady) return ctx.flash(o.name + " isn\u2019t ready to trade right now.");
     if (mineOf(ctx, s).some(t => open(t) && t.a.id === s.id && t.b.id === o.id)) return ctx.flash("You already have an offer waiting for " + o.name + ".");
-    await setDoc(newTradeRef(), { a: { id: s.id, name: s.name }, b: { id: o.id, name: o.name }, give: g, get: w, status: "offer", created: new Date().toISOString() });
+    await setDoc(newTradeRef(), { a: { id: s.id, name: s.name }, b: { id: o.id, name: o.name }, ids: [s.id, o.id], give: g, get: w, status: "offer", created: new Date().toISOString() });
     pick = { who: "", theirs: "", mine: "" };
     ctx.flash("Offer sent to " + o.name + "!", true); return;
   }

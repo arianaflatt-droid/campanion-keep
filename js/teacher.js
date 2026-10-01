@@ -1,19 +1,19 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261001o";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261001o";
-import { cpEarnedCalc } from "./room.js?v=20261001o";
-import { DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, waitingDoors, doorXPRows, REWARD_XP } from "./doors.js?v=20261001o";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261001o";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261001p";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261001p";
+import { cpEarnedCalc } from "./room.js?v=20261001p";
+import { DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, waitingDoors, doorXPRows, REWARD_XP } from "./doors.js?v=20261001p";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261001p";
 import {
   applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261001o";
-import { EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261001o";
+} from "./game.js?v=20261001p";
+import { staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261001p";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
-  teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle
-} from "./db.js?v=20261001o";
+  teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef
+} from "./db.js?v=20261001p";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -122,8 +122,8 @@ else onAuthStateChanged(auth, u => {
     if (c && c.haunt && !c.hauntSince) updateDoc(classRef, { hauntSince: azToday() }).catch(() => {});   // Hexaduck streaks start today if the mode was already on
     if (c && !c.collectorStart) updateDoc(classRef, { collectorStart: (() => { const t = new Date(); return t.getFullYear() + "-" + String(t.getMonth() + 1).padStart(2, "0") + "-" + String(t.getDate()).padStart(2, "0"); })() }).catch(() => {}); if (!c) mode = "setup"; else if (mode === "boot" || mode === "setup") mode = "guide"; detectEvents(); render(); },
     e => flash("Couldn’t load the class — " + e.code)));
-  unsub.push(watchBattles(l => { battles = l; lockBadges(); if (ctab === "collector") render(); }, () => {}));
-  unsub.push(watchTrades(l => { trades = l; if (cls) settleTrades(tctx()); if (ctab === "collector") render(); }, () => {}));
+  unsub.push(watchBattles(l => { battles = l; addIds(l, battleRef); closeStale(l); lockBadges(); if (ctab === "collector") liveRender(); }, () => {}));
+  unsub.push(watchTrades(l => { trades = l; addIds(l, tradeRef); if (cls) settleTrades(tctx()); if (ctab === "collector") liveRender(); }, () => {}));
   unsub.push(watchStudents(list => { students = applyDisplayNames(list).sort(byAlpha); studentsLoaded = true; autoGobble(); detectEvents(); lockBadges(); render(); },
     e => flash("Couldn’t load students — " + e.code)));
 });
@@ -1086,6 +1086,25 @@ document.addEventListener("change", async ev => {
   } catch (e) { flash(e.message || "Couldn’t read that file."); }
   ev.target.value = "";
 });
+
+// Older battles/trades were saved without ids:[a,b]. Students' pages only load their own (by ids), so add them once.
+const idsDone = new Set();
+// Battles nobody touched for 15+ minutes are closed for good, so the "going on now" list students load stays small.
+const staleDone = new Set();
+async function closeStale(list) {
+  for (const b of list.filter(x => staleBattle(x) && !staleDone.has(x.id)).slice(0, 50)) {
+    staleDone.add(b.id);
+    try { await changeBattle(b.id, d => (staleBattle(d) ? Object.assign(d, { status: "ended", endedBy: "time", moves: { A: null, B: null }, ["seen_" + d.a.id]: true, ["seen_" + d.b.id]: true }) : null)); } catch (e) { console.error(e); }
+  }
+}
+async function addIds(list, ref) {
+  const todo = list.filter(d => !Array.isArray(d.ids) && d.a && d.b && !idsDone.has(d.id));
+  for (let i = 0; i < todo.length; i += 400) {
+    const batch = writeBatch(db);
+    todo.slice(i, i + 400).forEach(d => { idsDone.add(d.id); batch.update(ref(d.id), { ids: [d.a.id, d.b.id] }); });
+    try { await batch.commit(); } catch (e) { console.error(e); }
+  }
+}
 
 /* ================= clicks ================= */
 document.addEventListener("click", async ev => {

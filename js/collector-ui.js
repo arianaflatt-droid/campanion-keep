@@ -4,13 +4,13 @@ import {
   formIndex, formOf, statsOf, seenSet, rollRarity, doPull, arenaOpen, arenaOpenFor, lunchHour, hitGoalToday, LUNCH_ARENA, ARENA_HOURS, fighterFrom, teamSize, alive, resolve, resolveRound, moveOk, MOVES, hitDamage,
   birthdayLeft, themeLeft, nextTheme, THEME_TYPES, THEME_EGG, WISH_FAM, spares, spareId, releaseXP, releaseProblem, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
   EVENTS, eventOpen, eventWindow, eventStreak, hasEvent, eventUnlocked, azToday, rollTeacherRarity, TEACHER_ODDS, LIVE, staleBattle
-} from "./collect.js?v=20261001o";
-import { newBattleRef, changeBattle as changeBattleRaw, setDoc } from "./db.js?v=20261001o";
+} from "./collect.js?v=20261001p";
+import { newBattleRef, changeBattle as changeBattleRaw, setDoc } from "./db.js?v=20261001p";
 // every change to a battle is stamped with the time (upd), so a battle nobody has touched in a while can be ended
-let locking = null;   // battle id while "Lock in team" is saving
+let locking = null, leaving = null;   // battle id while "Lock in team" is saving
 const changeBattle = (id, fn) => changeBattleRaw(id, bt => { const n = fn(bt); if (n) n.upd = new Date().toISOString(); return n; });
 
-import { tradeCard } from "./trade-ui.js?v=20261001o";
+import { tradeCard } from "./trade-ui.js?v=20261001p";
 
 const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const PER_PAGE = 20;
@@ -381,7 +381,8 @@ function battleOverlay() {
   if (bt.status === "declined") return h + '<div class="bpanel"><p>The challenge was declined.</p></div></div>';
   if (bt.status === "ended") return h + '<div class="bpanel"><h3>Battle ended</h3><p>' + (bt.endedBy === "teacher" ? "Ms. Ariana ended this battle." : bt.endedBy === "time" ? "Nobody moved for a while, so the battle ended." : esc(bt.endedBy === ctx.me.id ? "You" : bt.endedName || thN) + " left the battle.") +
     ' It doesn\u2019t count for anyone.</p><button class="btn big" data-cc="closeBattle">Close</button></div></div>';
-  if (busyLeave && LIVE.includes(bt.status)) h += '<div class="bpanel small"><p>Leave now? The battle ends for both of you and doesn\u2019t count for anyone.</p><button class="btn ghost small" data-cc="leaveCancel">Keep battling</button></div>';
+  if (leaving === bt.id) h += '<div class="bpanel small"><p>Ending the battle\u2026</p></div>';
+  else if (busyLeave && LIVE.includes(bt.status)) h += '<div class="bpanel small"><p>Leave now? The battle ends for both of you and doesn\u2019t count for anyone.</p><div class="row" style="gap:8px;justify-content:center;"><button class="btn small danger" data-cc="leaveBattle">Yes, leave</button><button class="btn ghost small" data-cc="leaveCancel">Keep battling</button></div></div>';
   if (bt.status === "invite") return h + '<div class="bpanel"><p>Waiting for ' + esc(thN) + " to accept…</p></div></div>";
   if (bt.status === "team" && !(bt.team && bt.team[me])) {
     const fams = sortedFams(ctx.me);
@@ -589,7 +590,7 @@ export async function onClick(el, c) {
   if (a === "ready") return c.patch({ arenaReady: !s.arenaReady });
   if (a === "challenge") {
     const o = c.students.find(x => x.id === el.dataset.o); if (!o || busyIds().has(o.id) || busyIds().has(s.id)) return;
-    await setDoc(newBattleRef(), { a: { id: s.id, name: s.name }, b: { id: o.id, name: o.name }, status: "invite", created: new Date().toISOString(), log: [] });
+    await setDoc(newBattleRef(), { a: { id: s.id, name: s.name }, b: { id: o.id, name: o.name }, ids: [s.id, o.id], status: "invite", created: new Date().toISOString(), log: [] });
     return c.flash("Challenge sent to " + o.name + "!", true);
   }
   if (a === "accept") {
@@ -615,8 +616,13 @@ export async function onClick(el, c) {
     const bt = (c.battles || []).find(b => b.id === battleOpen);
     if (!bt || !LIVE.includes(bt.status)) { battleOpen = null; busyLeave = false; return c.render(true); }
     if (!busyLeave) { busyLeave = true; return c.render(true); }
-    busyLeave = false; const id = battleOpen; battleOpen = null;
-    await changeBattle(id, b => (LIVE.includes(b.status) ? Object.assign(b, { status: "ended", endedBy: s.id, endedName: s.name, ["seen_" + s.id]: true, moves: { A: null, B: null } }) : null));
+    if (leaving) return;
+    busyLeave = false; const id = battleOpen; leaving = id; c.render(true);
+    try {
+      await changeBattle(id, b => (LIVE.includes(b.status) ? Object.assign(b, { status: "ended", endedBy: s.id, endedName: s.name, ["seen_" + s.id]: true, moves: { A: null, B: null } }) : null));
+      battleOpen = null;
+    } catch (e) { c.flash("Couldn\u2019t end the battle \u2014 try again. (" + (e.code || e.message) + ")"); }
+    finally { leaving = null; }
     return c.render(true);
   }
   if (a === "pickTeam") {

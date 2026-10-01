@@ -1,12 +1,12 @@
 // Firebase setup shared by both pages.
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-  getFirestore, doc, collection, onSnapshot, setDoc as fbSetDoc, updateDoc as fbUpdateDoc, deleteDoc as fbDeleteDoc, writeBatch as fbWriteBatch, runTransaction
+  getFirestore, doc, collection, onSnapshot, query, where, setDoc as fbSetDoc, updateDoc as fbUpdateDoc, deleteDoc as fbDeleteDoc, writeBatch as fbWriteBatch, runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {
   getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, signInAnonymously
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { firebaseConfig, CLASS_ID, TEACHER_EMAILS } from "./firebase-config.js?v=20261001o";
+import { firebaseConfig, CLASS_ID, TEACHER_EMAILS } from "./firebase-config.js?v=20261001p";
 
 // Teacher preview (student.html?s=ID&preview=1): the page shows a student's view, but nothing is ever written.
 export const PREVIEW = typeof location !== "undefined" && new URLSearchParams(location.search).get("preview") === "1";
@@ -26,6 +26,24 @@ export const battleRef = id => doc(db, "classes", CLASS_ID, "battles", id);
 export const newBattleRef = () => doc(battlesCol);
 export function watchBattles(cb, onErr) {
   return onSnapshot(battlesCol, snap => cb(snap.docs.map(d => Object.assign({ id: d.id }, d.data()))), onErr);
+}
+// A student's page only listens to (1) their own battles (for badges and their arena card) and (2) battles going on
+// right now (to show who is busy). Old battles between other kids aren't downloaded at all. Battles carry ids:[a,b].
+const LIVE_STATUS = ["invite", "team", "lead", "fight"];
+function mergeWatch(queries, cb, onErr) {
+  const parts = queries.map(() => new Map());
+  const send = () => { const all = new Map(); parts.forEach(m => m.forEach((v, k) => all.set(k, v))); cb([...all.values()]); };
+  const offs = queries.map((q, i) => onSnapshot(q, snap => { parts[i] = new Map(snap.docs.map(d => [d.id, Object.assign({ id: d.id }, d.data())])); send(); }, onErr));
+  return () => offs.forEach(f => f());
+}
+export function watchMyBattles(me, cb, onErr) {
+  const qs = [query(battlesCol, where("status", "in", LIVE_STATUS))];
+  if (me) qs.push(query(battlesCol, where("ids", "array-contains", me)));
+  return mergeWatch(qs, cb, onErr);
+}
+export function watchMyTrades(me, cb, onErr) {
+  if (!me) { cb([]); return () => {}; }
+  return mergeWatch([query(tradesCol, where("ids", "array-contains", me))], cb, onErr);
 }
 // Trades between players (students and the teacher)
 export const tradesCol = db ? collection(db, "classes", CLASS_ID, "trades") : null;
