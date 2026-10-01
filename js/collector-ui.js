@@ -4,12 +4,12 @@ import {
   formIndex, formOf, statsOf, seenSet, rollRarity, doPull, arenaOpen, arenaOpenFor, lunchHour, hitGoalToday, LUNCH_ARENA, ARENA_HOURS, fighterFrom, teamSize, alive, resolve, resolveRound, moveOk, MOVES, hitDamage,
   birthdayLeft, themeLeft, nextTheme, THEME_TYPES, THEME_EGG, WISH_FAM, spares, spareId, releaseXP, releaseProblem, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
   EVENTS, eventOpen, eventWindow, eventStreak, hasEvent, eventUnlocked, azToday, rollTeacherRarity, TEACHER_ODDS, LIVE, staleBattle
-} from "./collect.js?v=20260930f";
-import { newBattleRef, changeBattle as changeBattleRaw, setDoc } from "./db.js?v=20260930f";
+} from "./collect.js?v=20261001d";
+import { newBattleRef, changeBattle as changeBattleRaw, setDoc } from "./db.js?v=20261001d";
 // every change to a battle is stamped with the time (upd), so a battle nobody has touched in a while can be ended
 const changeBattle = (id, fn) => changeBattleRaw(id, bt => { const n = fn(bt); if (n) n.upd = new Date().toISOString(); return n; });
 
-import { tradeCard } from "./trade-ui.js?v=20260930f";
+import { tradeCard } from "./trade-ui.js?v=20261001d";
 
 const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const PER_PAGE = 20;
@@ -149,6 +149,9 @@ function myCreatures(s, bank) {
 const IDEA_TYPES = ["Air", "Arcane", "Crystal", "Dark", "Dragon", "Earth", "Electric", "Fire", "Ghost", "Ice", "Light", "Nature", "Normal", "Poison", "Rock", "Steel", "Water"];
 let ideaOpen = false, ideaTypes = [], ideaKind = "creature", ideaSlot = "hat";
 const IDEA_SLOTS = { hat: "\u{1F3A9} On the head", eyes: "\u{1F576}\uFE0F On the eyes", snack: "\u{1F36A} A snack / held item", other: "\u2728 Something else" };
+const ROOM_SLOTS = { wallpaper: "\u{1F9F1} Wallpaper", flooring: "\u{1FAB5} Floor", rug: "\u{1F7EB} Rug", ceiling: "\u{1F4A1} Ceiling light", window: "\u{1FA9F} Window",
+  bed: "\u{1F6CF}\uFE0F Bed", chair: "\u{1FA91} Chair", plant: "\u{1FAB4} Plant", wall_art: "\u{1F5BC}\uFE0F Wall art", shelf: "\u{1F3C6} Shelf decor", other: "\u2728 Something else" };
+let roomSlot = "bed";
 const ideaKeep = ["ideaName", "ideaAnimal", "ideaLore"];
 function keepIdeaFields(fn) {
   const keep = ideaKeep.map(id => { const n = document.getElementById(id); return n ? n.value : null; });
@@ -157,12 +160,18 @@ function keepIdeaFields(fn) {
 function ideaCard(s, cls) {
   const today = azToday(), sent = (s.ideas || []).filter(x => x.date === today).length, ok = hitGoalToday(s, cls);
   let h = '<div class="card ideacard"><div class="card-head"><h2>\u{1F4A1} Invent something!</h2><span class="fact">' + (s.ideas || []).length + " sent</span></div>";
-  if (!ok) return h + '<p class="lede">Hit <b>' + ((cls && cls.goal) || 120) + " XP</b> today and you can send Ms. Ariana an idea for a brand-new creature or accessory!</p></div>";
+  if (!ok) return h + '<p class="lede">Hit <b>' + ((cls && cls.goal) || 120) + " XP</b> today and you can send Ms. Ariana an idea for a brand-new creature, accessory or room decoration!</p></div>";
   if (sent) return h + '<p class="lede">\u2705 Your idea for today is sent! Hit ' + ((cls && cls.goal) || 120) + " XP another day to send another one.</p>" + ideaList(s) + "</div>";
   if (!ideaOpen) return h + '<p class="lede">You hit ' + ((cls && cls.goal) || 120) + " XP today, so you can send one idea! Ms. Ariana might add it to the game.</p>" +
-    '<div class="row"><button class="btn" data-cc="ideaStart" data-k="creature">\u{1F43E} Invent a creature</button><button class="btn" data-cc="ideaStart" data-k="gear">\u{1F3A9} Invent an accessory</button></div>' + ideaList(s) + "</div>";
-  const tabs = '<div class="row" style="margin-bottom:10px;gap:6px;">' + [["creature", "\u{1F43E} Creature"], ["gear", "\u{1F3A9} Accessory"]].map(([k, l]) =>
+    '<div class="row"><button class="btn" data-cc="ideaStart" data-k="creature">\u{1F43E} Invent a creature</button><button class="btn" data-cc="ideaStart" data-k="gear">\u{1F3A9} Invent an accessory</button><button class="btn" data-cc="ideaStart" data-k="room">\u{1F6CF}\uFE0F Invent room decor</button></div>' + ideaList(s) + "</div>";
+  const tabs = '<div class="row" style="margin-bottom:10px;gap:6px;">' + [["creature", "\u{1F43E} Creature"], ["gear", "\u{1F3A9} Accessory"], ["room", "\u{1F6CF}\uFE0F Room decor"]].map(([k, l]) =>
     '<button class="tpill2' + (ideaKind === k ? " on" : "") + '" data-cc="ideaKind" data-k="' + k + '">' + l + "</button>").join("") + "</div>";
+  if (ideaKind === "room") return h + tabs +
+    '<div class="field"><label for="ideaName">Decoration name</label><input id="ideaName" type="text" maxlength="30" placeholder="e.g. Cloud Hammock"></div>' +
+    '<p class="muted small" style="margin:10px 0 6px;">Where does it go in your companion\u2019s room?</p><div class="typepick">' +
+    Object.keys(ROOM_SLOTS).map(k => '<button class="tpill2' + (roomSlot === k ? " on" : "") + '" data-cc="roomSlot" data-k="' + k + '">' + ROOM_SLOTS[k] + "</button>").join("") + "</div>" +
+    '<div class="field" style="margin-top:10px;"><label for="ideaLore">What does it look like? (optional)</label><textarea id="ideaLore" rows="3" maxlength="600" placeholder="e.g. A fluffy cloud bed that floats a little off the floor"></textarea></div>' +
+    '<div class="row" style="margin-top:10px;"><button class="btn" data-cc="ideaSend">Send my idea</button><button class="btn ghost" data-cc="ideaCancel">Cancel</button></div></div>';
   if (ideaKind === "gear") return h + tabs +
     '<div class="field"><label for="ideaName">Accessory name</label><input id="ideaName" type="text" maxlength="30" placeholder="e.g. Rainbow Scarf"></div>' +
     '<p class="muted small" style="margin:10px 0 6px;">Where does your companion wear it?</p><div class="typepick">' +
@@ -179,7 +188,7 @@ function ideaCard(s, cls) {
 }
 function ideaList(s) {
   const l = (s.ideas || []).slice().reverse().slice(0, 5); if (!l.length) return "";
-  return '<p class="muted small" style="margin:12px 0 4px;">Your ideas</p><div class="inv">' + l.map(x => "<span>" + (x.kind === "gear" ? "\u{1F3A9}" : "\u{1F43E}") + " <b>" + esc(x.name) + "</b>" + (x.kind === "gear" ? "" : " \u00b7 " + esc((x.types || []).join("/"))) + "</span>").join("") + "</div>";
+  return '<p class="muted small" style="margin:12px 0 4px;">Your ideas</p><div class="inv">' + l.map(x => "<span>" + (x.kind === "gear" ? "\u{1F3A9}" : x.kind === "room" ? "\u{1F6CF}\uFE0F" : "\u{1F43E}") + " <b>" + esc(x.name) + "</b>" + (x.kind === "gear" || x.kind === "room" ? "" : " \u00b7 " + esc((x.types || []).join("/"))) + "</span>").join("") + "</div>";
 }
 
 /* ================= arena ================= */
@@ -526,8 +535,9 @@ export async function onClick(el, c) {
     const coll = Object.assign({}, owned(s)); coll[f] = Object.assign({}, e); if (e.forTrade) delete coll[f].forTrade; else coll[f].forTrade = true;
     return c.patch({ coll });
   }
-  if (a === "ideaStart") { ideaOpen = true; ideaTypes = []; ideaKind = el.dataset.k || "creature"; ideaSlot = "hat"; return c.render(true); }
+  if (a === "ideaStart") { ideaOpen = true; ideaTypes = []; ideaKind = el.dataset.k || "creature"; ideaSlot = "hat"; roomSlot = "bed"; return c.render(true); }
   if (a === "ideaKind") { return keepIdeaFields(() => { ideaKind = el.dataset.k; c.render(true); }); }
+  if (a === "roomSlot") { return keepIdeaFields(() => { roomSlot = el.dataset.k; c.render(true); }); }
   if (a === "ideaSlot") { return keepIdeaFields(() => { ideaSlot = el.dataset.k; c.render(true); }); }
   if (a === "ideaCancel") { ideaOpen = false; return c.render(true); }
   if (a === "ideaType") {
@@ -537,13 +547,13 @@ export async function onClick(el, c) {
   if (a === "ideaSend") {
     const v = id => ((document.getElementById(id) || {}).value || "").replace(/\s+/g, " ").trim();
     const name = v("ideaName").slice(0, 30), animal = v("ideaAnimal").slice(0, 40), lore = ((document.getElementById("ideaLore") || {}).value || "").trim().slice(0, 600);
-    const gear = ideaKind === "gear";
-    if (!name) return c.flash(gear ? "Give your accessory a name!" : "Give your creature a name!");
-    if (!gear && !ideaTypes.length) return c.flash("Pick at least one type!");
+    const gear = ideaKind === "gear", room = ideaKind === "room";
+    if (!name) return c.flash(gear ? "Give your accessory a name!" : room ? "Give your decoration a name!" : "Give your creature a name!");
+    if (!gear && !room && !ideaTypes.length) return c.flash("Pick at least one type!");
     const today = azToday();
     if (!hitGoalToday(s, c.cls) || (s.ideas || []).some(x => x.date === today)) return;
-    const idea = gear ? { date: today, kind: "gear", name, slot: ideaSlot, at: new Date().toISOString() } : { date: today, kind: "creature", name, types: ideaTypes.slice(), at: new Date().toISOString() };
-    if (lore) idea.lore = lore; if (animal && !gear) idea.animal = animal;
+    const idea = room ? { date: today, kind: "room", name, slot: roomSlot, at: new Date().toISOString() } : gear ? { date: today, kind: "gear", name, slot: ideaSlot, at: new Date().toISOString() } : { date: today, kind: "creature", name, types: ideaTypes.slice(), at: new Date().toISOString() };
+    if (lore) idea.lore = lore; if (animal && !gear && !room) idea.animal = animal;
     ideaOpen = false; ideaTypes = [];
     await c.patch({ ideas: (s.ideas || []).concat([idea]) });
     return c.flash("\u{1F4A1} Idea sent to Ms. Ariana!", true);

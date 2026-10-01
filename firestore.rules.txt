@@ -216,6 +216,19 @@ service cloud.firestore {
             && now("xpSpent", 0) >= was("xpSpent", 0) && now("xpSpent", 0) <= was("xpSpent", 0) + 120;
         }
 
+        // ---- Companion Room ---- spend Comfort Points (cpEarned is saved by the teacher console) and place items.
+        function studentRoom() {
+          let b = request.resource.data.get("roomBuys", []);
+          return changed().hasOnly(["cpSpent", "roomOwned", "roomBuys", "roomFit"])
+            && now("roomFit", {}) is map && now("roomFit", {}).size() <= 12
+            && ((same("cpSpent", 0) && same("roomOwned", []) && same("roomBuys", []))
+                || (b.size() == was("roomBuys", []).size() + 1
+                    && (b[b.size() - 1].cost in [40, 50, 60, 75, 200, 600] || (b[b.size() - 1].cost is int && b[b.size() - 1].cost % 75 == 0 && b[b.size() - 1].cost <= 600 && b[b.size() - 1].cost > 0))
+                    && now("cpSpent", 0) == was("cpSpent", 0) + b[b.size() - 1].cost
+                    && now("cpSpent", 0) <= was("cpEarned", 0)
+                    && now("roomOwned", []).size() > was("roomOwned", []).size()
+                    && now("roomOwned", []).size() <= was("roomOwned", []).size() + 9));
+        }
         // ---- Creature ideas ---- one idea per day the student hit 120 XP (checked against their saved XP history).
         function studentIdea() {
           let n = request.resource.data.get("ideas", []);
@@ -227,6 +240,8 @@ service cloud.firestore {
             && e.name is string && e.name.size() >= 1 && e.name.size() <= 30
             && (e.get("kind", "creature") == "gear"
                   ? (e.get("slot", "") in ["hat", "eyes", "snack", "other"])
+                  : e.get("kind", "creature") == "room"
+                  ? (e.get("slot", "") in ["wallpaper", "flooring", "rug", "ceiling", "window", "bed", "chair", "plant", "wall_art", "shelf", "other"])
                   : (e.get("kind", "creature") == "creature" && e.types is list && e.types.size() >= 1 && e.types.size() <= 2))
             && e.get("lore", "") is string && e.get("lore", "").size() <= 600
             && e.get("animal", "") is string && e.get("animal", "").size() <= 40
@@ -247,7 +262,7 @@ service cloud.firestore {
                 || (now("petCreature", "") in ["L-26", "L-27", "L-28", "L-29", "L-30"] && was("coll", {}).keys().hasAny([now("petCreature", "")])));
         }
 
-        allow update: if isTeacher() || (request.auth != null && (studentLooks() || studentAttack() || studentBuy() || studentSpin() || studentDoor() || studentIdea() || studentCollect() || studentBadges() || studentPet()));
+        allow update: if isTeacher() || (request.auth != null && (studentLooks() || studentAttack() || studentBuy() || studentSpin() || studentDoor() || studentIdea() || studentRoom() || studentCollect() || studentBadges() || studentPet()));
       }
     }
   }

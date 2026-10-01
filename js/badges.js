@@ -1,9 +1,10 @@
-import { presentsOpened } from "./doors.js?v=20260930f";
+import { owned as roomOwned, fitOf as roomFit, FIT_SLOTS, setItems as roomSet } from "./room.js?v=20261001d";
+import { presentsOpened } from "./doors.js?v=20261001d";
 // Badges: worked out from each student's saved data, so nothing extra is stored and no rules change.
 // To add a badge: add an entry with a check(st) that returns how far along the student is,
 // and a goal. Put its picture in assets/badges/ (a transparent WEBP or PNG). Without a picture, the emoji shows.
-import { esc, goalXP, candyOf, ghostUnlocked } from "./game.js?v=20260930f";
-import { seenSet, ownedFams, owned, family, formIndex, formOf, STARTERS, CREATURES } from "./collect.js?v=20260930f";
+import { esc, goalXP, candyOf, ghostUnlocked } from "./game.js?v=20261001d";
+import { seenSet, ownedFams, owned, family, formIndex, formOf, STARTERS, CREATURES } from "./collect.js?v=20261001d";
 
 export const hatches = st => (Number(st.pullsUsed) || 0) + (Number(st.legendaryUsed) || 0);
 
@@ -119,6 +120,7 @@ export const BADGE_GROUPS = [
   { key: "gobble", title: "\u{1F983} Gobble-Palooza" },
   { key: "jingle", title: "\u{1F384} Jingle Jam" },
   { key: "doors", title: "\u{1F6AA} Daily Doors" },
+  { key: "room", title: "\u{1F3E0} Home Sweet Keep" },
 ];
 
 export const BADGES = [
@@ -199,6 +201,11 @@ export const BADGES = [
   { id: "door-100",  group: "doors", name: "Door Master",    desc: "Open 100 Daily Doors presents",       goal: 100, img: "assets/badges/door-100.webp", emoji: "\u{1F511}", check: st => presentsOpened(st).doors },
   { id: "golden-1",  group: "doors", name: "Golden Glow",    desc: "Open a Golden Present (finish every door in one day)", goal: 1, img: "assets/badges/golden-1.webp", emoji: "\u2728", check: st => presentsOpened(st).golden },
   { id: "golden-5",  group: "doors", name: "Golden Streak",  desc: "Open 5 Golden Presents",              goal: 5,   img: "assets/badges/golden-5.webp", emoji: "\u{1F31F}", check: st => presentsOpened(st).golden },
+  // Home Sweet Keep (the companion room). Art goes in assets/badges/<id>.webp; until then the emoji shows.
+  { id: "room-first",    group: "room", name: "First Decoration", desc: "Buy your first room item", goal: 1, img: null, emoji: "\u{1F6CB}\uFE0F", check: st => ((st.roomBuys || []).length ? 1 : 0) },
+  { id: "room-full",     group: "room", name: "Full Room", desc: "Fill every spot in your room at once", goal: 1, img: null, emoji: "\u{1F3E0}", check: st => (FIT_SLOTS.every(sl => roomFit(st)[sl]) ? 1 : 0) },
+  { id: "room-seasonal", group: "room", name: "Seasonal Collector", desc: "Own a whole Haunt-O-Ween, Gobble-Palooza or Jingle Jam room set", goal: 1, img: null, emoji: "\u{1F383}", check: st => (["haunt", "gobble", "jingle"].some(t => roomSet(t).every(id => roomOwned(st).includes(id))) ? 1 : 0) },
+  { id: "room-trophies", group: "room", name: "Trophy Case", desc: "Own all 3 boss trophies", goal: 3, img: null, emoji: "\u{1F3C6}", check: st => ["haunt", "gobble", "jingle"].filter(t => roomOwned(st).includes("trophy_" + t)).length },
   { id: "candy-thief", group: "haunt", name: "Candy Thief", desc: "Steal candy from Ms. Ariana", goal: 1, img: "assets/badges/candy-thief.webp", emoji: "\u{1F9B9}", check: steals },
 ];
 
