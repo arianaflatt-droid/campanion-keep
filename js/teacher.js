@@ -1,18 +1,18 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20260930b";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20260930b";
-import { DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, waitingDoors, doorXPRows, REWARD_XP } from "./doors.js?v=20260930b";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20260930b";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20260930f";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20260930f";
+import { DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, waitingDoors, doorXPRows, REWARD_XP } from "./doors.js?v=20260930f";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20260930f";
 import {
   applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
-  eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20260930b";
-import { EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20260930b";
+  checkVersion, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
+} from "./game.js?v=20260930f";
+import { EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20260930f";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
-  teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db
-} from "./db.js?v=20260930b";
+  teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle
+} from "./db.js?v=20260930f";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -32,6 +32,8 @@ function blankStudent(name, order) {
 // Every student list in the console is alphabetical by first name, then last name.
 function byAlpha(a, b) { return String(a.fullName || a.name).localeCompare(String(b.fullName || b.name), undefined, { sensitivity: "base" }); }
 function sOf(id) { return students.find(s => s.id === id); }
+// Any error while clicking in the Collector (battles, trades) shows on screen instead of failing silently.
+function showErr(e) { console.error(e); flash("Something went wrong \u2014 " + ((e && (e.code || e.message)) || e) + ". Tell Ms. Ariana!"); }
 function flash(msg) { flashMsg = msg; flashOk = /^(Saved|Roster saved|New week|Haunt|\u{1F983} Gobble|\u{1F384} Jingle|Added|Everyone in that file)/u.test(msg); render(); clearTimeout(flashTimer); flashTimer = setTimeout(() => { flashMsg = null; render(); }, 6000); }
 async function patch(id, data) {
   const s = sOf(id); if (s) Object.assign(s, data);
@@ -112,7 +114,7 @@ else onAuthStateChanged(auth, u => {
   if (!u || u.isAnonymous) { mode = "signin"; render(); return; }
   if (!isTeacherEmail(u.email)) { mode = "denied"; render(); return; }
   mode = "boot"; render();
-  unsub.push(watchClass(c => { cls = c; clsLoaded = true; setSeason(c); autoGobble(); lockBadges();
+  unsub.push(watchClass(c => { cls = c; clsLoaded = true; setSeason(c); if (c && checkVersion(c, true, v => updateDoc(classRef, { appVersion: v }).catch(() => {}))) return; autoGobble(); lockBadges();
     if (c && c.haunt && !c.hauntSince) updateDoc(classRef, { hauntSince: azToday() }).catch(() => {});   // Hexaduck streaks start today if the mode was already on
     if (c && !c.collectorStart) updateDoc(classRef, { collectorStart: (() => { const t = new Date(); return t.getFullYear() + "-" + String(t.getMonth() + 1).padStart(2, "0") + "-" + String(t.getDate()).padStart(2, "0"); })() }).catch(() => {}); if (!c) mode = "setup"; else if (mode === "boot" || mode === "setup") mode = "guide"; detectEvents(); render(); },
     e => flash("Couldn’t load the class — " + e.code)));
@@ -297,6 +299,22 @@ function ideaRows() {
   students.forEach(st => (st.ideas || []).forEach((x, i) => rows.push({ st, x, i })));
   return rows.sort((a, b) => (a.x.seen ? 1 : 0) - (b.x.seen ? 1 : 0) || String(b.x.at).localeCompare(String(a.x.at)));
 }
+/* ---------- Battles going on right now (end a stuck one) ---------- */
+function viewLiveBattles() {
+  const live = (battles || []).filter(b => ["invite", "team", "lead", "fight"].includes(b.status));
+  if (!live.length) return "";
+  const ago = b => { const m = Math.round((Date.now() - new Date(b.upd || b.created || 0).getTime()) / 60000); return m < 1 ? "just now" : m < 60 ? m + " min ago" : Math.round(m / 60) + " hr ago"; };
+  return '<div class="card"><div class="card-head"><h2>\u2694\uFE0F Battles going on</h2><span class="fact">' + live.length + "</span></div>" +
+    '<p class="lede" style="font-size:13px;">A battle nobody touches for 15 minutes stops holding anyone up. You can end one here any time \u2014 it doesn\u2019t count for anyone.</p>' +
+    live.map(b => '<div class="dcheck"><span class="what"><b>' + esc(b.a.name) + "</b> vs <b>" + esc(b.b.name) + '</b> <span class="muted small">' + esc(b.status === "invite" ? "challenge sent" : b.status === "team" ? "picking teams" : "battling") + " \u00b7 last move " + ago(b) +
+        ' <span style="opacity:.6">[' + esc(b.status) + " \u00b7 log " + ((b.log || []).length) + " \u00b7 out " + esc(String(b.active ? b.active.A : "-")) + "/" + esc(String(b.active ? b.active.B : "-")) + " \u00b7 moves " + (b.moves ? (b.moves.A ? "A" : "-") + (b.moves.B ? "B" : "-") : "none") + " \u00b7 " + esc(b.upd ? "new code" : "no stamp") + "]</span></span></span>" +
+      '<button class="btn ghost small" data-endbattle="' + b.id + '">End battle</button></div>').join("") +
+    (live.length > 1 ? '<div class="row" style="margin-top:8px;"><button class="btn small" data-act="endAllBattles">End all ' + live.length + "</button></div>" : "") + "</div>";
+}
+async function endBattle(id) {
+  try { await changeBattle(id, b => (["invite", "team", "lead", "fight"].includes(b.status) ? Object.assign(b, { status: "ended", endedBy: "teacher", upd: new Date().toISOString(), moves: { A: null, B: null } }) : null)); }
+  catch (e) { flash("Couldn\u2019t end that battle \u2014 " + (e.code || e.message)); }
+}
 function newIdeas() { return ideaRows().filter(r => !r.x.seen).length; }
 function viewIdeas() {
   const rows = ideaRows(), n = rows.filter(r => !r.x.seen).length;
@@ -349,7 +367,7 @@ function render(force) {
     h += '<div class="tabs ctabs" role="tablist">' + tabs.map(([k, l]) => '<button role="tab" class="tab' + (ctab === k ? " on" : "") + '" data-ctab="' + k + '" aria-selected="' + (ctab === k) + '">' + l + "</button>").join("") + "</div>";
     if (ctab === "daily") h += viewDaily() + viewRewards();
     else if (ctab === "students") h += viewStandings() + viewAssign() + viewLosses() + viewLinks();
-    else if (ctab === "collector") h += viewIdeas() + teacherCollectorCard() + viewCollector();
+    else if (ctab === "collector") h += viewLiveBattles() + viewIdeas() + teacherCollectorCard() + viewCollector();
     else if (ctab === "events") h += viewModes() + (eventMode(cls) || waitingDoors(students, cls).length ? viewDoors() : "") + duckAdmin() + (eventMode(cls) ? viewBucket() + viewPrizes() + viewShop() : prizeRows().length ? viewPrizes() : "");
     else h += viewClassSettings();
   }
@@ -1009,8 +1027,8 @@ document.addEventListener("change", async ev => {
 /* ================= clicks ================= */
 document.addEventListener("click", async ev => {
   let el;
-  if ((el = ev.target.closest("[data-tr]"))) { if (cls) await onTradeClick(el, tctx()); return; }
-  if ((el = ev.target.closest("[data-cc]"))) { if (cls) await collectorClick(el, tctx()); return; }
+  if ((el = ev.target.closest("[data-tr]"))) { if (cls) await onTradeClick(el, tctx()).catch(e => showErr(e)); return; }
+  if ((el = ev.target.closest("[data-cc]"))) { if (cls) await collectorClick(el, tctx()).catch(e => showErr(e)); return; }
   if ((el = ev.target.closest("[data-day]"))) { day = Number(el.dataset.day); render(); return; }
   if ((el = ev.target.closest("[data-ring]"))) {
     const s = sOf(el.dataset.ring), st = arr5(s.status, "");
@@ -1090,6 +1108,7 @@ document.addEventListener("click", async ev => {
     try { await updateDoc(classRef, { [f]: !cls[f] }); flash("Saved \u2014 " + nm + " is " + (cls[f] ? "on" : "off") + "."); } catch (e) { flash("Couldn\u2019t change that \u2014 " + e.code); }
     return;
   }
+  if ((el = ev.target.closest("[data-endbattle]"))) { await endBattle(el.dataset.endbattle); flash("Saved \u2014 battle ended."); return; }
   if ((el = ev.target.closest("[data-ideaseen]"))) {
     const [sid, i] = el.dataset.ideaseen.split(":"), st = sOf(sid); if (!st) return;
     const ideas = (st.ideas || []).map(x => Object.assign({}, x)); if (!ideas[i]) return;
@@ -1133,6 +1152,7 @@ document.addEventListener("click", async ev => {
 
   if (act === "signIn") { try { await teacherSignIn(); } catch (e) { flash("Sign-in didn’t finish — " + (e.code || e.message)); } return; }
   if (act === "goPrizes") { ctab = "events"; try { localStorage.setItem("ck-ctab", ctab); } catch (e) {} render(); const c = document.getElementById("prizeCard"); if (c) c.scrollIntoView({ behavior: "smooth", block: "start" }); return; }
+  if (act === "endAllBattles") { const ids = (battles || []).filter(b => ["invite", "team", "lead", "fight"].includes(b.status)).map(b => b.id); for (const id of ids) await endBattle(id); flash("Saved \u2014 ended " + ids.length + " battles."); return; }
   if (act === "allIdeas") { busy.allIdeas = !busy.allIdeas; render(); return; }
   if (act === "goDoors") { ctab = "events"; try { localStorage.setItem("ck-ctab", ctab); } catch (e) {} render(); const c = document.getElementById("doorCard"); if (c) c.scrollIntoView({ behavior: "smooth", block: "start" }); return; }
   if (act === "hideDoors") { doorHidden = waitingDoors(students, cls).length; render(); return; }

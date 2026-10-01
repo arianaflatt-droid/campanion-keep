@@ -3,10 +3,13 @@ import {
   CREATURES, FAMILIES, creature, family, xpTotal, pullsLeft, legendaryLeft, bankXP, xpToNextPull, owned, ownedFams, hasStarter,
   formIndex, formOf, statsOf, seenSet, rollRarity, doPull, arenaOpen, arenaOpenFor, lunchHour, hitGoalToday, LUNCH_ARENA, ARENA_HOURS, fighterFrom, teamSize, alive, resolve, resolveRound, moveOk, MOVES, hitDamage,
   birthdayLeft, themeLeft, nextTheme, THEME_TYPES, THEME_EGG, WISH_FAM, spares, spareId, releaseXP, releaseProblem, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
-  EVENTS, eventOpen, eventWindow, eventStreak, hasEvent, eventUnlocked, azToday, rollTeacherRarity, TEACHER_ODDS
-} from "./collect.js?v=20260930b";
-import { newBattleRef, changeBattle, setDoc } from "./db.js?v=20260930b";
-import { tradeCard } from "./trade-ui.js?v=20260930b";
+  EVENTS, eventOpen, eventWindow, eventStreak, hasEvent, eventUnlocked, azToday, rollTeacherRarity, TEACHER_ODDS, LIVE, staleBattle
+} from "./collect.js?v=20260930f";
+import { newBattleRef, changeBattle as changeBattleRaw, setDoc } from "./db.js?v=20260930f";
+// every change to a battle is stamped with the time (upd), so a battle nobody has touched in a while can be ended
+const changeBattle = (id, fn) => changeBattleRaw(id, bt => { const n = fn(bt); if (n) n.upd = new Date().toISOString(); return n; });
+
+import { tradeCard } from "./trade-ui.js?v=20260930f";
 
 const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const PER_PAGE = 20;
@@ -122,7 +125,7 @@ function myCreatures(s, bank) {
       '<small class="muted">❤ ' + st.hp + " · \u{1F6E1} " + st.df + " · ⚔ " + st.dmg + "</small>" +
       (next && evoAt ? '<small class="evo">Evolves at Lv ' + evoAt + "</small>" : "") +
       '<button class="btn small" data-cc="lvl" data-fam="' + f + '"' + (bank >= LEVEL_XP && !maxed ? "" : " disabled") + ">" + (maxed ? "Max level" : "⬆ Level up · " + LEVEL_XP + " XP") + "</button>" +
-      (fams.length > 1 && !family(f).event ? tradeBtn("m:" + f, e.forTrade) : "") +
+      (fams.length > 1 && !family(f).event ? (e.fav ? '<small class="muted" style="margin-top:4px;">\u2B50 Favorites can\u2019t be traded</small>' : tradeBtn("m:" + f, e.forTrade)) : "") +
       (fams.length > 1 && !family(f).event && s.starter !== f && s.petCreature !== f ? releaseRow("m:" + f, f, e.nick || c.name) : "") + "</div>";
   });
   h += "</div>";
@@ -182,12 +185,12 @@ function ideaList(s) {
 /* ================= arena ================= */
 function myBattle(s) {
   return (ctx.battles || []).filter(b => (b.a.id === s.id || b.b.id === s.id) &&
-    (["invite", "team", "lead", "fight"].includes(b.status) || (b.status === "done" && !b["seen_" + s.id])))
+    ((LIVE.includes(b.status) && !staleBattle(b)) || (["done", "ended"].includes(b.status) && !b["seen_" + s.id])))
     .sort((x, y) => String(y.created).localeCompare(String(x.created)))[0] || null;
 }
 function busyIds() {
   const ids = new Set();
-  (ctx.battles || []).forEach(b => { if (["invite", "team", "lead", "fight"].includes(b.status)) { ids.add(b.a.id); ids.add(b.b.id); } });
+  (ctx.battles || []).forEach(b => { if (LIVE.includes(b.status) && !staleBattle(b)) { ids.add(b.a.id); ids.add(b.b.id); } });
   return ids;
 }
 function arenaCard(s) {
@@ -201,7 +204,7 @@ function arenaCard(s) {
       '<div class="row" style="margin-top:10px;"><button class="btn" data-cc="accept" data-b="' + mine.id + '">Accept</button><button class="btn ghost" data-cc="decline" data-b="' + mine.id + '">Decline</button></div></div>';
     if (mine.status === "invite") return h + '<p class="lede">Waiting for <b>' + esc(them.name) + "</b> to accept your challenge…</p>" +
       '<div class="row" style="margin-top:10px;"><button class="btn ghost" data-cc="decline" data-b="' + mine.id + '">Cancel challenge</button></div></div>';
-    return h + '<p class="lede">You’re in a battle with <b>' + esc(them.name) + '</b>!</p><div class="row" style="margin-top:10px;"><button class="btn big" data-cc="enter" data-b="' + mine.id + '">⚔️ ' + (mine.status === "done" ? "See the result" : "Go to battle") + "</button></div></div>";
+    return h + '<p class="lede">' + (mine.status === "ended" ? "Your battle with <b>" + esc(them.name) + "</b> ended." : mine.status === "done" ? "Your battle with <b>" + esc(them.name) + "</b> is over!" : "You’re in a battle with <b>" + esc(them.name) + "</b>!") + '</p><div class="row" style="margin-top:10px;"><button class="btn big" data-cc="enter" data-b="' + mine.id + '">⚔️ ' + (mine.status === "done" ? "See the result" : mine.status === "ended" ? "See what happened" : "Go to battle") + "</button></div></div>";
   }
   // a battle already started can always be finished; new ones only while the arena is open
   if (!open) return h + '<p class="lede">The arena opens ' + esc(ARENA_HOURS) + ".</p>" +
@@ -225,7 +228,9 @@ function arenaCard(s) {
 /* ================= overlays ================= */
 export function overlays(c) {
   ctx = c;
-  return hatchOverlay() + bookOverlay() + battleOverlay();
+  let bo = "";
+  try { bo = battleOverlay(); } catch (e) { console.error(e); bo = '<div class="battleover"><div class="bpanel"><h3>Oops!</h3><p>The battle screen hit a problem: ' + esc(String(e && e.message || e)) + '</p><button class="btn" data-cc="leaveBattle">Close</button></div></div>'; }
+  return hatchOverlay() + bookOverlay() + bo;
 }
 
 function hatchOverlay() {
@@ -362,8 +367,11 @@ function battleOverlay() {
   const logLen = (bt.log || []).length, k = Math.min(shown[bt.id] || 0, logLen);
   if (k < logLen && !replayTimer) replayTimer = setTimeout(() => { replayTimer = null; shown[bt.id] = (shown[bt.id] || 0) + 1; ctx.render(true); }, k === 0 ? 400 : 1100);
   const caught = k >= logLen, v = viewState(bt, k);
-  let h = '<div class="battleover" style="background-image:url(assets/arena-bg.jpg)"><div class="bhead"><b>' + esc(meN) + "</b> vs <b>" + esc(thN) + '</b><button class="btn ghost small" data-cc="mute" aria-label="Sound">' + (muted() ? "\u{1F507}" : "\u{1F50A}") + '</button><button class="btn ghost small" data-cc="leaveBattle">Leave</button></div>';
+  let h = '<div class="battleover" style="background-image:url(assets/arena-bg.jpg)"><div class="bhead"><b>' + esc(meN) + "</b> vs <b>" + esc(thN) + '</b><button class="btn ghost small" data-cc="mute" aria-label="Sound">' + (muted() ? "\u{1F507}" : "\u{1F50A}") + '</button><button class="btn ghost small" data-cc="leaveBattle">' + (LIVE.includes(bt.status) ? (busyLeave ? "Yes, end the battle" : "Leave") : "Close") + "</button></div>";
   if (bt.status === "declined") return h + '<div class="bpanel"><p>The challenge was declined.</p></div></div>';
+  if (bt.status === "ended") return h + '<div class="bpanel"><h3>Battle ended</h3><p>' + (bt.endedBy === "teacher" ? "Ms. Ariana ended this battle." : bt.endedBy === "time" ? "Nobody moved for a while, so the battle ended." : esc(bt.endedBy === ctx.me.id ? "You" : bt.endedName || thN) + " left the battle.") +
+    ' It doesn\u2019t count for anyone.</p><button class="btn big" data-cc="closeBattle">Close</button></div></div>';
+  if (busyLeave && LIVE.includes(bt.status)) h += '<div class="bpanel small"><p>Leave now? The battle ends for both of you and doesn\u2019t count for anyone.</p><button class="btn ghost small" data-cc="leaveCancel">Keep battling</button></div>';
   if (bt.status === "invite") return h + '<div class="bpanel"><p>Waiting for ' + esc(thN) + " to accept…</p></div></div>";
   if (bt.status === "team" && !(bt.team && bt.team[me])) {
     const fams = sortedFams(ctx.me);
@@ -431,9 +439,9 @@ function movePanel(bt, me, them, thN) {
       bench.map(r => { const w = hitDamage(o, r.x, false).weak, g = hitDamage(r.x, o, false).weak;
         return '<button class="tpick" data-cc="move" data-m="swap" data-to="' + r.i + '">' + img(r.x, "", r.x.sparkle) + "<b>" + esc(r.x.name) + "</b><small>\u2764 " + r.x.cur + "/" + r.x.hp + "</small>" +
           (g ? '<small class="good">\u2B50 strong vs them</small>' : w ? '<small class="bad">\u26A0\uFE0F weak to them</small>' : "") + "</button>"; }).join("") + "</div>" : "") +
-    '<button class="btn ghost small" data-cc="forfeit" style="margin-top:10px;">' + (busyForfeit ? "Yes, give up this battle" : "Give up") + "</button></div>";
+    "</div>";
 }
-let busyForfeit = false;
+let busyForfeit = false, busyLeave = false;
 
 /* ================= clicks ================= */
 export async function onClick(el, c) {
@@ -542,7 +550,7 @@ export async function onClick(el, c) {
   }
   if (a === "fav") {
     const f = el.dataset.fam, e = owned(s)[f]; if (!e) return;
-    const coll = Object.assign({}, owned(s)); coll[f] = Object.assign({}, e); if (e.fav) delete coll[f].fav; else coll[f].fav = true;
+    const coll = Object.assign({}, owned(s)); coll[f] = Object.assign({}, e); if (e.fav) delete coll[f].fav; else { coll[f].fav = true; delete coll[f].forTrade; }
     return c.patch({ coll });
   }
   if (a === "nickCancel") { naming = null; return c.render(true); }
@@ -585,9 +593,17 @@ export async function onClick(el, c) {
     battleOpen = id; picks = []; return c.render(true);
   }
   if (a === "decline") { await changeBattle(el.dataset.b, bt => (bt.status === "invite" ? Object.assign(bt, { status: "declined" }) : null)); return; }
-  if (a === "enter") { battleOpen = el.dataset.b; picks = []; return c.render(true); }
+  if (a === "enter") { battleOpen = el.dataset.b; picks = []; busyLeave = false; return c.render(true); }
   if (a === "mute") { try { localStorage.setItem("ck-mute", muted() ? "0" : "1"); } catch (e) {} if (!muted()) tone(660, 0.1, "square", 0.06); return c.render(true); }
-  if (a === "leaveBattle") { battleOpen = null; return c.render(true); }
+  if (a === "leaveCancel") { busyLeave = false; return c.render(true); }
+  if (a === "leaveBattle") {
+    const bt = (c.battles || []).find(b => b.id === battleOpen);
+    if (!bt || !LIVE.includes(bt.status)) { battleOpen = null; busyLeave = false; return c.render(true); }
+    if (!busyLeave) { busyLeave = true; return c.render(true); }
+    busyLeave = false; const id = battleOpen; battleOpen = null;
+    await changeBattle(id, b => (LIVE.includes(b.status) ? Object.assign(b, { status: "ended", endedBy: s.id, endedName: s.name, ["seen_" + s.id]: true, moves: { A: null, B: null } }) : null));
+    return c.render(true);
+  }
   if (a === "pickTeam") {
     const bt = c.battles.find(b => b.id === battleOpen), f = el.dataset.fam;
     picks = picks.includes(f) ? picks.filter(x => x !== f) : picks.length < bt.n ? picks.concat([f]) : picks;

@@ -8,9 +8,9 @@
 // (spares don't count), limited event creatures (Duckarune, Hexaduck) can't be traded, and not during a battle.
 // Trading follows the same schedule as the arena (its own switches in the teacher console), and a player has to
 // tick "I'm ready to trade" (tradeReady) before anyone can send them an offer.
-import { esc } from "./game.js?v=20260930b";
-import { owned, ownedFams, family, formOf, creature, RARITY_COLOR, hasStarter, spares, spareId, tradeOpen, tradeOpenFor, lunchHour, hitGoalToday, ARENA_HOURS, LUNCH_ARENA } from "./collect.js?v=20260930b";
-import { newTradeRef, changeTrade, setDoc } from "./db.js?v=20260930b";
+import { esc } from "./game.js?v=20260930f";
+import { owned, ownedFams, family, formOf, creature, RARITY_COLOR, hasStarter, spares, spareId, tradeOpen, tradeOpenFor, lunchHour, hitGoalToday, ARENA_HOURS, LUNCH_ARENA, LIVE, staleBattle } from "./collect.js?v=20260930f";
+import { newTradeRef, changeTrade, setDoc } from "./db.js?v=20260930f";
 
 let pick = { who: "", theirs: "", mine: "" };
 let settling = {};
@@ -29,7 +29,7 @@ export function forTrade(st, key) {
   return !!(entry(st, String(key).replace(/^m:/, "")) || {}).forTrade;
 }
 function offerable(st) {   // everything this player could give (the ones up for trade first)
-  const mains = ownedFams(st).filter(f => !isEvent(f)).map(f => "m:" + f);
+  const mains = ownedFams(st).filter(f => !isEvent(f) && !(entry(st, f) || {}).fav).map(f => "m:" + f);   // favorites can't be traded
   const all = (ownedFams(st).length > 1 ? mains : []).concat(spares(st).filter(x => !isEvent(x.fam)).map(x => "s:" + x.id));
   return all.filter(k => forTrade(st, k)).concat(all.filter(k => !forTrade(st, k)));
 }
@@ -39,7 +39,7 @@ function pic(t) {
   const src = t.sparkle ? c.img.replace("assets/creatures/", "assets/creatures/sparkle/") : c.img;
   return '<img class="trimg" src="' + src + '" alt="" style="--rc:' + RARITY_COLOR[c.rarity] + '">';
 }
-function inBattle(ctx, id) { return (ctx.battles || []).some(b => ["invite", "team", "lead", "fight"].includes(b.status) && (b.a.id === id || b.b.id === id)); }
+function inBattle(ctx, id) { return (ctx.battles || []).some(b => LIVE.includes(b.status) && !staleBattle(b) && (b.a.id === id || b.b.id === id)); }
 
 const open = t => t.status === "offer";
 const mineOf = (ctx, s) => (ctx.trades || []).filter(t => t.a && t.b && (t.a.id === s.id || t.b.id === s.id));
@@ -106,7 +106,7 @@ export function tradeCard(ctx) {
     '<div class="field"><label for="trMine">You give</label><select id="trMine" data-trsel="mine">' + opt("", mineOk.length ? "Choose your creature" : "Nothing they don’t already have") +
       mineOk.map(f => opt(f, (forTrade(s, f) ? "\u{1F504} " : "") + label(snap(s, f)), f === pick.mine)).join("") + "</select></div>" +
     '<button class="btn" data-tr="offer"' + (who && pick.theirs && pick.mine ? "" : " disabled") + ">\u{1F504} Send offer</button></div>" +
-    '<p class="muted small" style="margin-top:6px;">You both have to agree. You can’t trade your last creature or limited event Legendaries, and you can’t get a creature family you already have.</p></div>';
+    '<p class="muted small" style="margin-top:6px;">You both have to agree. You can’t trade your last creature, a \u2B50 favorite, or limited event Legendaries, and you can’t get a creature family you already have.</p></div>';
   return h + "</div>";
 }
 
@@ -123,6 +123,7 @@ function problem(ctx, giver, g, taker, w) {
   if (!g.fam || !has(giver, g)) return giver.name + " doesn\u2019t have that creature anymore.";
   if (!w.fam || !has(taker, w)) return taker.name + " doesn\u2019t have that creature anymore.";
   if (isEvent(g.fam) || isEvent(w.fam)) return "Limited event Legendaries can\u2019t be traded.";
+  if ((!g.spare && (entry(giver, g.fam) || {}).fav) || (!w.spare && (entry(taker, w.fam) || {}).fav)) return "Favorite creatures can\u2019t be traded. Take the \u2B50 off first.";
   if ((!g.spare && ownedFams(giver).length < 2) || (!w.spare && ownedFams(taker).length < 2)) return "You can\u2019t trade away your last creature.";
   if (inBattle(ctx, giver.id) || inBattle(ctx, taker.id)) return "Finish your battle first!";
   return null;

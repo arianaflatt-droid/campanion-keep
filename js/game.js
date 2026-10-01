@@ -1,5 +1,17 @@
-import { formOf, sparkleImg, azNow } from "./collect.js?v=20260930b";
+import { formOf, sparkleImg, azNow } from "./collect.js?v=20260930f";
 // Shared rules + drawing for the teacher console and the student page.
+// The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
+// any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
+export const APP_V = "20260930f";
+export function checkVersion(cls, isTeacher, save) {
+  const live = (cls && cls.appVersion) || "";
+  if (isTeacher && APP_V > live && save) save(APP_V);
+  if (live > APP_V) {
+    let tried = ""; try { tried = sessionStorage.getItem("ck-reload") || ""; } catch (e) {}
+    if (tried !== live) { try { sessionStorage.setItem("ck-reload", live); } catch (e) {} location.reload(); return true; }
+  }
+  return false;
+}
 
 export const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 export const SHORT = ["Mon", "Tue", "Wed", "Thu", "Fri"];

@@ -1,5 +1,5 @@
 // Creature Collector: pulls, XP bank, levels, evolutions, lorebook and arena battles.
-import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20260930b";
+import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20260930f";
 
 export const PULL_XP = 120;          // every 120 XP (all-time since the collector started) = 1 pull
 export const LEVEL_XP = 120;         // 120 banked XP = 1 level
@@ -101,7 +101,7 @@ export function releaseProblem(st, key, battles, trades) {
   }
   // only a battle started in the last hour counts (old challenges nobody answered don't block releasing)
   const recent = b => !b.created || Date.now() - new Date(b.created).getTime() < 3600e3;
-  if ((battles || []).some(b => ["invite", "team", "lead", "fight"].includes(b.status) && recent(b) && ((b.a && b.a.id === st.id) || (b.b && b.b.id === st.id)))) return "Finish your battle first!";
+  if ((battles || []).some(b => LIVE.includes(b.status) && !staleBattle(b) && ((b.a && b.a.id === st.id) || (b.b && b.b.id === st.id)))) return "Finish your battle first!";
   const inTrade = (trades || []).some(t => t.status === "offer" && [t.give, t.get].some(x => x && (isSpare ? x.spare === sp.id : !x.spare && x.fam === fam)) && ((t.a && t.a.id === st.id) || (t.b && t.b.id === st.id)));
   if (inTrade) return "That creature is in a trade offer. Cancel the offer first.";
   return null;
@@ -337,6 +337,10 @@ export function hitDamage(att, def, crit) {
   if (crit) d *= CRIT_MULT;
   return { dmg: Math.max(1, Math.round(d)), weak };
 }
+/* A battle in progress. 15 minutes with no moves (upd = last change) and it no longer holds anyone up. */
+export const LIVE = ["invite", "team", "lead", "fight"];
+export const STALE_MS = 15 * 60 * 1000;
+export const staleBattle = b => LIVE.includes(b.status) && Date.now() - new Date(b.upd || b.created || 0).getTime() > STALE_MS;
 /* ---------- battle moves (both players pick, then the round plays out) ----------
    attack = normal hit · power = 1.5x damage but 75% to hit · guard = take half damage this round
    heal = +35% HP (once per creature) · swap = switch to another creature on your team (uses your turn) */
