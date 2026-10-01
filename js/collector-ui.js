@@ -4,12 +4,12 @@ import {
   formIndex, formOf, statsOf, seenSet, rollRarity, doPull, arenaOpen, arenaOpenFor, lunchHour, hitGoalToday, LUNCH_ARENA, ARENA_HOURS, fighterFrom, teamSize, alive, resolve, resolveRound, moveOk, MOVES, hitDamage,
   birthdayLeft, themeLeft, nextTheme, THEME_TYPES, THEME_EGG, WISH_FAM, spares, spareId, releaseXP, releaseProblem, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
   EVENTS, eventOpen, eventWindow, eventStreak, hasEvent, eventUnlocked, azToday, rollTeacherRarity, TEACHER_ODDS, LIVE, staleBattle
-} from "./collect.js?v=20261001l";
-import { newBattleRef, changeBattle as changeBattleRaw, setDoc } from "./db.js?v=20261001l";
+} from "./collect.js?v=20261001n";
+import { newBattleRef, changeBattle as changeBattleRaw, setDoc } from "./db.js?v=20261001n";
 // every change to a battle is stamped with the time (upd), so a battle nobody has touched in a while can be ended
 const changeBattle = (id, fn) => changeBattleRaw(id, bt => { const n = fn(bt); if (n) n.upd = new Date().toISOString(); return n; });
 
-import { tradeCard } from "./trade-ui.js?v=20261001l";
+import { tradeCard } from "./trade-ui.js?v=20261001n";
 
 const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const PER_PAGE = 20;
@@ -602,7 +602,11 @@ export async function onClick(el, c) {
     });
     battleOpen = id; picks = []; return c.render(true);
   }
-  if (a === "decline") { await changeBattle(el.dataset.b, bt => (bt.status === "invite" ? Object.assign(bt, { status: "declined" }) : null)); return; }
+  if (a === "decline") {
+    const r = await changeBattle(el.dataset.b, bt => (bt.status === "invite" ? Object.assign(bt, { status: "declined", ["seen_" + s.id]: true }) : null));
+    if (!r) c.flash("That challenge already started or was cancelled.");
+    return c.render(true);
+  }
   if (a === "enter") { battleOpen = el.dataset.b; picks = []; busyLeave = false; return c.render(true); }
   if (a === "mute") { try { localStorage.setItem("ck-mute", muted() ? "0" : "1"); } catch (e) {} if (!muted()) tone(660, 0.1, "square", 0.06); return c.render(true); }
   if (a === "leaveCancel") { busyLeave = false; return c.render(true); }

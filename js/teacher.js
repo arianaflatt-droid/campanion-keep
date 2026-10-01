@@ -1,19 +1,19 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261001l";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261001l";
-import { cpEarnedCalc } from "./room.js?v=20261001l";
-import { DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, waitingDoors, doorXPRows, REWARD_XP } from "./doors.js?v=20261001l";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261001l";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261001n";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261001n";
+import { cpEarnedCalc } from "./room.js?v=20261001n";
+import { DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, waitingDoors, doorXPRows, REWARD_XP } from "./doors.js?v=20261001n";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261001n";
 import {
   applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261001l";
-import { EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261001l";
+} from "./game.js?v=20261001n";
+import { EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261001n";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle
-} from "./db.js?v=20261001l";
+} from "./db.js?v=20261001n";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -415,7 +415,14 @@ function viewSetup() {
 function finalizeBox() {
   if (busy.finalize !== day) return "";
   const f = finalizePreview(cls, students, day);
+  // No end-of-day XP uploaded yet: everyone would count as missed (and fill the bucket), so warn first.
+  const team = students.filter(x => x.companionId), noData = team.filter(x => arr5(x.xp, null)[day] == null && arr5(x.status, "")[day] !== "c" && arr5(x.status, "")[day] !== "e");
+  if (team.length && noData.length === team.length && busy.finalizeAnyway !== day)
+    return '<div class="banner warn" style="margin-bottom:12px;"><b>\u26A0\uFE0F ' + DAYS[day] + "\u2019s end-of-day XP isn\u2019t uploaded yet.</b> If you finalize now, every student counts as missing " + goalXP(cls) + " XP" +
+      (eventMode(cls) ? " and the " + esc(SEASON.bucket) + " would get <b>+" + f.candy + "</b> " + SEASON.cur : "") + ". Upload the day\u2019s XP first, then finalize." +
+      '<div class="row" style="margin-top:8px;"><button class="btn ghost small" data-act="finalizeCancel">OK, I\u2019ll upload first</button><button class="btn ghost small" data-act="finalizeAnyway">Finalize anyway</button></div></div>';
   return '<div class="banner warn" style="margin-bottom:12px;"><b>Finalize ' + DAYS[day] + "?</b> This locks in the day and counts it toward health." +
+    (noData.length ? "<br>\u26A0\uFE0F No end-of-day XP yet for: " + noData.map(x => esc(x.name)).join(", ") + " (they count as missed)." : "") +
     "<br>" + f.missed.length + " student" + (f.missed.length === 1 ? "" : "s") + " missed " + goalXP(cls) + " XP" + (f.missed.length ? ": " + f.missed.map(x => esc(x.name)).join(", ") : "") + "." +
     (eventMode(cls) ? "<br>" + SEASON.coin + " " + SEASON.bucket + " gets <b>+" + f.candy + "</b> " + SEASON.cur + "." : "") +
     "<br>\u2B50 Full health: <b>" + f.full.length + "</b> student" + (f.full.length === 1 ? "" : "s") + " (they go on your reward list)." +
@@ -1330,10 +1337,12 @@ document.addEventListener("click", async ev => {
   }
   if (act === "rewardsAll") { busy.rewardsAll = !busy.rewardsAll; render(); return; }
   if (act === "finalize") { busy.finalize = day; render(); return; }
-  if (act === "finalizeCancel") { busy.finalize = null; render(); return; }
+  if (act === "finalizeCancel") { busy.finalize = null; busy.finalizeAnyway = null; render(); return; }
+  if (act === "finalizeAnyway") { busy.finalizeAnyway = day; render(); return; }
   if (act === "finalizeOk") {
     const d = day, f = finalizePreview(cls, students, d);
-    busy.finalize = null;
+    busy.finalize = null; busy.finalizeAnyway = null;
+    if (arr5(cls.finalized, false)[d]) return flash(DAYS[d] + " is already finalized.");   // never add the bucket candy twice
     const rec = recordedDays(cls); rec[d] = true;
     const fin = arr5(cls.finalized, false); fin[d] = true;
     const amt = arr5(cls.finalAmt, 0); amt[d] = f.candy;

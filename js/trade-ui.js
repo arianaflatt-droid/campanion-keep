@@ -8,9 +8,9 @@
 // (spares don't count), limited event creatures (Duckarune, Hexaduck) can't be traded, and not during a battle.
 // Trading follows the same schedule as the arena (its own switches in the teacher console), and a player has to
 // tick "I'm ready to trade" (tradeReady) before anyone can send them an offer.
-import { esc } from "./game.js?v=20261001l";
-import { seenSet, owned, ownedFams, family, formOf, creature, RARITY_COLOR, hasStarter, spares, spareId, tradeOpen, tradeOpenFor, lunchHour, hitGoalToday, ARENA_HOURS, LUNCH_ARENA, LIVE, staleBattle } from "./collect.js?v=20261001l";
-import { newTradeRef, changeTrade, setDoc } from "./db.js?v=20261001l";
+import { esc } from "./game.js?v=20261001n";
+import { seenSet, owned, ownedFams, family, formOf, creature, RARITY_COLOR, hasStarter, spares, spareId, tradeOpen, tradeOpenFor, lunchHour, hitGoalToday, ARENA_HOURS, LUNCH_ARENA, LIVE, staleBattle } from "./collect.js?v=20261001n";
+import { newTradeRef, changeTrade, setDoc } from "./db.js?v=20261001n";
 
 let pick = { who: "", theirs: "", mine: "" };
 let settling = {};
@@ -148,7 +148,8 @@ export async function onTradeClick(el, ctx) {
   if (a === "want") { pick = { who: el.dataset.who, theirs: el.dataset.key, mine: "" }; return ctx.render(true); }
   const id = el.dataset.t, t = (ctx.trades || []).find(x => x.id === id); if (!t) return;
   if (a === "cancel" || a === "decline") {
-    await changeTrade(id, d => (d.status === "offer" ? Object.assign(d, { status: a === "cancel" ? "cancelled" : "declined" }) : null));
+    const r = await changeTrade(id, d => (d.status === "offer" ? Object.assign(d, { status: a === "cancel" ? "cancelled" : "declined" }) : null));
+    if (!r) ctx.flash("That offer isn\u2019t waiting anymore.");
     return ctx.render(true);
   }
   if (a === "accept") {
@@ -159,6 +160,7 @@ export async function onTradeClick(el, ctx) {
     if (why) { await changeTrade(id, d => (d.status === "offer" ? Object.assign(d, { status: "declined", why }) : null)); return ctx.flash(why); }
     // lock in the creatures as they are right now
     const done = await changeTrade(id, d => (d.status === "offer" ? Object.assign(d, { status: "accepted", give: g, get: w, at: new Date().toISOString() }) : null));
+    if (!done) return ctx.flash("That offer isn\u2019t waiting anymore (it was cancelled or already answered).");
     if (done) { await settleTrades(Object.assign({}, ctx, { trades: [Object.assign({ id }, done)] })); ctx.flash("Trade complete! Say hi to your new " + label(done.give).replace(/ \(Lv.*/, "") + "!", true); }
   }
 }

@@ -1,17 +1,17 @@
 import {
   checkVersion, applyDisplayNames, companionOf, petCreatures, pinnedBadgeHTML, DAYS, SHORT, ROSTER, GEAR, SIDEKICKS, BANNER, bannerFor, isHaunt, battleOn, candyOf, basketHTML, CANDY_FULL, bossState, attacksReady, bossBarHTML, GHOST_IMG, ghostUnlocked, turkeyUnlocked, grinchUnlocked, isJingle, eventMode, isGobble, setSeason, SEASON, seasonOf, STORE, candyLeft, candySpent, ownedCount, ownsItem, storeArt, nextAttack, dmgOf, HAT_BONUS, BREW_BONUS, teamHTML, WHEEL, pickSlice, wheelHTML, spinTo, PRIZES, prizeSlices, bucketState, bucketHTML, baseDamage, EAT_PER_DAY, dayEaten, dayXP, byId, esc, arr5, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, sidekickSVG, petHTML, itemArt
-} from "./game.js?v=20261001l";
-import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchBattles, watchTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20261001l";
-import { nudgeCard } from "./nudges.js?v=20261001l";
-import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261001l";
-import { teacherPlayer, hasStarter } from "./collect.js?v=20261001l";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261001l";
-import { doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked } from "./doors.js?v=20261001l";
-import { azToday } from "./collect.js?v=20261001l";
+} from "./game.js?v=20261001n";
+import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchBattles, watchTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20261001n";
+import { nudgeCard } from "./nudges.js?v=20261001n";
+import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261001n";
+import { teacherPlayer, hasStarter } from "./collect.js?v=20261001n";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261001n";
+import { doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked } from "./doors.js?v=20261001n";
+import { azToday } from "./collect.js?v=20261001n";
 import { roomHTML, FIT_SLOTS, slotKind, KIND_NAMES, KIND_ICON, EVERYDAY_PRICE, THEMED_PRICE, TROPHY_PRICE, TYPE_THEMES, SEASON_THEMES, THEME_NAMES, TROPHIES,
-  itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId } from "./room.js?v=20261001l";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261001l";
+  itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId } from "./room.js?v=20261001n";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261001n";
 
 let cls = null, students = [], battles = [], trades = [], loaded = { c: false, s: false };
 let tab = (() => { try { return localStorage.getItem("ck-tab") || "pet"; } catch (e) { return "pet"; } })();
@@ -507,6 +507,8 @@ document.addEventListener("click", async ev => {
   if ((el = ev.target.closest("[data-pinbadge]"))) { const id = el.dataset.pinbadge || null; await patch({ pinnedBadge: id }); if (id) flash("Pinned! It\u2019s on your companion in The Keep.", true); return; }
   if ((el = ev.target.closest("[data-petcr]"))) { await patch({ petCreature: el.dataset.petcr || null }); return; }
   if ((el = ev.target.closest("[data-tab]"))) { tab = el.dataset.tab; try { localStorage.setItem("ck-tab", tab); } catch (e) {} render(true); scrollTo({ top: 0 }); return; }
+  // Teacher preview can't save anything, so say so instead of doing nothing.
+  if (PREVIEW && (ev.target.closest("[data-tr]") || ev.target.closest('[data-cc="decline"],[data-cc="accept"],[data-cc="challenge"],[data-cc="move"],[data-cc="leaveBattle"]'))) { flash("This is a teacher preview \u2014 battles and trades only work on the student\u2019s own page (or in your teacher console)."); return; }
   if ((el = ev.target.closest("[data-tr]"))) { const s = students.find(x => x.id === me); if (s && !PREVIEW) await onTradeClick(el, collectorCtx(s)).catch(e => showErr(e)); return; }
   if ((el = ev.target.closest("[data-cc]"))) { const s = students.find(x => x.id === me); if (s) await collectorClick(el, collectorCtx(s)).catch(e => showErr(e)); return; }
   if ((el = ev.target.closest("[data-me]"))) { me = el.dataset.me; save(me); picking = null; draftName = ""; render(); scrollTo({ top: 0 }); return; }
