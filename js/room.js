@@ -5,8 +5,8 @@
    Saved on the student: cpEarned (teacher writes), cpSpent, roomOwned [item ids], roomFit { slot: id }, roomBuys [{ id, cost, at }].
    Item ids are "{kind}_{theme}" (e.g. bed_dragon); art is assets/room/{id}.webp. Trophies are trophy_{season}.
    The room picture is 1536x1024; everything below is placed in % of that. */
-import { azToday } from "./collect.js?v=20261001e";
-import { esc } from "./game.js?v=20261001e";
+import { azToday } from "./collect.js?v=20261001f";
+import { esc } from "./game.js?v=20261001f";
 
 // Themes that have art so far. Add a theme name here once its 9 pieces are in assets/room/.
 export const TYPE_THEMES = ["fire", "water", "nature", "rock", "sky", "electric", "ice", "light", "dark", "ghost", "poison", "steel", "arcane", "crystal", "dragon"];
@@ -91,12 +91,12 @@ export function roomHTML(st, petMarkup, opts) {
   const tile = (id, big) => 'background-image:url(' + itemArt(id) + ");" + (parseItem(id).theme.includes("-") ? "background-size:" + big + "cqw auto;" : "");
   const wp = f.wallpaper ? tile(f.wallpaper, 40) : "", fl = f.flooring ? tile(f.flooring, 32) : "";
   // base room (ceiling, plain walls, wood floor, window); wallpaper and flooring cover the wall and floor, then the trim and window go on top
-  let h = '<div class="room' + (o.small ? " small" : "") + '"><img class="rbase" src="assets/room/_room_base.webp" alt="">' +
+  let h = '<div class="room' + (o.small ? " small" : "") + '"><img class="rbase" src="assets/room/room-base.webp" alt="">' +
     (wp ? '<div class="rwall" style="' + wp + '"></div>' : "") + (fl ? '<div class="rfloor" style="' + fl + '"></div>' : "") +
-    '<img class="rtrim crown" src="assets/room/_room_crown.webp" alt=""><img class="rtrim base" src="assets/room/_room_baseboard.webp" alt="">' +
-    '<img class="rwin" src="assets/room/_room_window.webp" alt="" style="' + P(778, 195) + 'width:36.6%;">';
+    '<img class="rtrim crown" src="assets/room/room-crown.webp" alt=""><img class="rtrim base" src="assets/room/room-baseboard.webp" alt="">' +
+    '<img class="rwin" src="assets/room/room-window.webp" alt="" style="' + P(778, 195) + 'width:36.6%;">';
   // two shelves on the left wall
-  h += '<img class="rplank" src="assets/room/_shelf_plank.webp" alt="" style="' + P(480, 328) + 'width:18%;"><img class="rplank" src="assets/room/_shelf_plank.webp" alt="" style="' + P(480, 558) + 'width:18%;">';
+  h += '<img class="rplank" src="assets/room/shelf-plank.webp" alt="" style="' + P(480, 328) + 'width:18%;"><img class="rplank" src="assets/room/shelf-plank.webp" alt="" style="' + P(480, 558) + 'width:18%;">';
   const shelf = (slot, y) => { const id = f[slot]; if (!id) return ""; const st2 = "left:" + (533 / 15.36).toFixed(2) + "%;bottom:" + ((1024 - y) / 10.24).toFixed(2) + "%;width:11%;max-height:19%;object-fit:contain;object-position:bottom;";
     return parseItem(id).kind === "trophy" ? trophyHTML(id, st2) : img(id, "rshelf", st2); };
   h += shelf("shelf_upper", 336) + shelf("shelf_lower", 566);
