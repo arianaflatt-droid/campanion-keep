@@ -902,7 +902,7 @@ td .emo, .ic .emo{ display:inline-block; vertical-align:middle; font-size:1.3em;
   /* the companion always sits on the bed, same spot and size for every companion */
   .room .rpet{ position:absolute; left:23%; bottom:19%; transform:translateX(-50%); font-size:16.5cqw; line-height:1; z-index:3; }
   .room .rpet .petwrap{ margin:0; font-size:1em; }
-  .room .rpet .tglyph{ font-size:1em; } .room .rpet .crpet{ width:1.6em; height:auto; }
+  .room .rpet .tglyph{ font-size:1em; } .room .rpet .crpet{ width:1.35em; height:auto; margin-bottom:-.06em; }
   /* room tab */
   .roomwrap{ margin-bottom:16px; }
   .cpwallet{ font-weight:800; color:#8A5A00; background:#FFF3C4; padding:4px 12px; border-radius:99px; }
