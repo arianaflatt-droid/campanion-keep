@@ -5,8 +5,8 @@
    Saved on the student: cpEarned (teacher writes), cpSpent, roomOwned [item ids], roomFit { slot: id }, roomBuys [{ id, cost, at }].
    Item ids are "{kind}_{theme}" (e.g. bed_dragon); art is assets/room/{id}.webp. Trophies are trophy_{season}.
    The room picture is 1536x1024; everything below is placed in % of that. */
-import { azToday } from "./collect.js?v=20261001c";
-import { esc } from "./game.js?v=20261001c";
+import { azToday } from "./collect.js?v=20261001d";
+import { esc } from "./game.js?v=20261001d";
 
 // Themes that have art so far. Add a theme name here once its 9 pieces are in assets/room/.
 export const TYPE_THEMES = ["fire", "water", "nature", "rock", "sky", "electric", "ice", "light", "dark", "ghost", "poison", "steel", "arcane", "crystal", "dragon"];
@@ -104,8 +104,8 @@ export function roomHTML(st, petMarkup, opts) {
   if (f.ceiling) h += img(f.ceiling, "rceil", "left:34%;top:0;height:25.4%;transform:translateX(-50%);");
   if (f.rug) h += img(f.rug, "rrug", "left:56.4%;top:89%;width:28%;height:15%;transform:translate(-50%,-50%);");
   if (f.bed) h += img(f.bed, "rbed", "left:3%;bottom:1.4%;width:40%;");
-  if (f.chair) h += img(f.chair, "rchair", "left:57.5%;bottom:17%;width:15.5%;");
-  if (f.plant) h += img(f.plant, "rplant", "left:77%;bottom:17.5%;width:10.5%;");
+  if (f.chair) h += img(f.chair, "rchair", "left:54%;bottom:15.5%;width:21%;");
+  if (f.plant) h += img(f.plant, "rplant", "left:78.5%;bottom:17%;width:11%;");
   h += '<div class="rpet">' + (petMarkup || "") + "</div>";
   // Lunch Hero sidekick: on a day the student hit the goal by lunch, it runs (or floats, for the Ghost-olotl) around the room
   if (o.side) h += '<div class="rside k-' + esc(o.side.kind) + '"><div class="rside-in">' + o.side.html + "</div></div>";
