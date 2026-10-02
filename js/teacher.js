@@ -1,19 +1,19 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261002a";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261002a";
-import { cpEarnedCalc } from "./room.js?v=20261002a";
-import { GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, waitingDoors, doorXPRows, REWARD_XP } from "./doors.js?v=20261002a";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261002a";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261002b";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261002b";
+import { cpEarnedCalc } from "./room.js?v=20261002b";
+import { GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, waitingDoors, doorXPRows, REWARD_XP } from "./doors.js?v=20261002b";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261002b";
 import {
   applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261002a";
-import { staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261002a";
+} from "./game.js?v=20261002b";
+import { staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261002b";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef
-} from "./db.js?v=20261002a";
+} from "./db.js?v=20261002b";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -169,8 +169,21 @@ async function syncComfort() {
   if (!n) return;
   cpWriting = true; try { await batch.commit(); } catch (e) {} finally { cpWriting = false; }
 }
+// Excused days this week that were marked before the XP history remembered them: add the flag once.
+let excusedSynced = false;
+async function syncExcused() {
+  if (excusedSynced || !cls || !studentsLoaded || !students.length) return;
+  excusedSynced = true;
+  const batch = writeBatch(db); let n = 0;
+  students.forEach(s => {
+    const st = arr5(s.status, ""), upd = {};
+    st.forEach((v, d) => { const date = dateOfDay(d), x = (s.xpHist || {})[date] || {}; if (v === "e" && !x.e) upd["xpHist." + date + ".e"] = true; });
+    if (Object.keys(upd).length) { batch.update(studentRef(s.id), upd); n++; }
+  });
+  if (n) try { await batch.commit(); } catch (e) { console.error(e); }
+}
 async function lockBadges() {
-  fixHealthBadges(); syncComfort();
+  fixHealthBadges(); syncComfort(); syncExcused();
   if (badgeWriting || !cls || !students.length) return;
   const batch = writeBatch(db), at = new Date().toISOString(); let n = 0;
   students.forEach(s => {
@@ -1145,7 +1158,11 @@ document.addEventListener("click", async ev => {
   if ((el = ev.target.closest("[data-excuse]"))) {
     const s = sOf(el.dataset.excuse), st = arr5(s.status, "");
     st[day] = st[day] === "e" ? "" : "e";
-    return patch(s.id, { status: st });
+    // remember it in the XP history too, so longer streaks (badges, event Legendaries, Comfort Points) skip it
+    const date = dateOfDay(day), hist = Object.assign({}, s.xpHist || {}), hd = Object.assign({}, hist[date] || {});
+    if (st[day] === "e") hd.e = true; else delete hd.e;
+    if (Object.keys(hd).length) hist[date] = hd; else delete hist[date];
+    return patch(s.id, { status: st, xpHist: hist });
   }
   if ((el = ev.target.closest("[data-equip]"))) {
     const [sid, gid] = el.dataset.equip.split(":"); const s = sOf(sid);

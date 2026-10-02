@@ -5,8 +5,8 @@
    Saved on the student: cpEarned (teacher writes), cpSpent, roomOwned [item ids], roomFit { slot: id }, roomBuys [{ id, cost, at }].
    Item ids are "{kind}_{theme}" (e.g. bed_dragon); art is assets/room/{id}.webp. Trophies are trophy_{season}.
    The room picture is 1536x1024; everything below is placed in % of that. */
-import { azToday } from "./collect.js?v=20261002a";
-import { esc } from "./game.js?v=20261002a";
+import { azToday } from "./collect.js?v=20261002b";
+import { esc } from "./game.js?v=20261002b";
 
 // Themes that have art so far. Add a theme name here once its 9 pieces are in assets/room/.
 export const TYPE_THEMES = ["fire", "water", "nature", "rock", "sky", "electric", "ice", "light", "dark", "ghost", "poison", "steel", "arcane", "crystal", "dragon"];
@@ -46,6 +46,7 @@ export function cpEarnedCalc(st, cls) {
   let cp = 0, run = 0;
   Object.keys(h).sort().forEach(date => {
     const x = h[date] || {}, v = Number(x.d != null ? x.d : x.l) || 0, hit = v >= goal;
+    if (x.e && !hit) return;   // excused day: no Comfort Points, but the streak isn't broken
     run = hit ? run + 1 : 0;
     if (date < start || !hit) return;
     cp += 10;

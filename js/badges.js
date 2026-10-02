@@ -1,10 +1,10 @@
-import { owned as roomOwned, fitOf as roomFit, FIT_SLOTS, setItems as roomSet } from "./room.js?v=20261002a";
-import { presentsOpened } from "./doors.js?v=20261002a";
+import { owned as roomOwned, fitOf as roomFit, FIT_SLOTS, setItems as roomSet } from "./room.js?v=20261002b";
+import { presentsOpened } from "./doors.js?v=20261002b";
 // Badges: worked out from each student's saved data, so nothing extra is stored and no rules change.
 // To add a badge: add an entry with a check(st) that returns how far along the student is,
 // and a goal. Put its picture in assets/badges/ (a transparent WEBP or PNG). Without a picture, the emoji shows.
-import { esc, goalXP, candyOf, ghostUnlocked } from "./game.js?v=20261002a";
-import { seenSet, ownedFams, owned, family, formIndex, formOf, STARTERS, CREATURES } from "./collect.js?v=20261002a";
+import { esc, goalXP, candyOf, ghostUnlocked } from "./game.js?v=20261002b";
+import { seenSet, ownedFams, owned, family, formIndex, formOf, STARTERS, CREATURES } from "./collect.js?v=20261002b";
 
 export const hatches = st => (Number(st.pullsUsed) || 0) + (Number(st.legendaryUsed) || 0);
 
@@ -55,13 +55,14 @@ export const typeFinishes = (st, bt) => finished(st, bt).filter(b => {
 function days(st) {
   const h = st.xpHist || {};
   return Object.keys(h).sort().map(date => { const x = h[date] || {}, d = x.d != null ? x.d : x.l;
-    return { date, xp: Math.max(0, Number(d) || 0), lunch: x.l != null ? Math.max(0, Number(x.l) || 0) : null }; });
+    return { date, xp: Math.max(0, Number(d) || 0), lunch: x.l != null ? Math.max(0, Number(x.l) || 0) : null, e: !!x.e }; });
 }
 const goal = cls => goalXP(cls);
 export const bestDay = st => Math.max(0, ...days(st).map(d => d.xp));
 export const hitDays = (st, bt, cls) => days(st).filter(d => d.xp >= goal(cls)).length;
 // best run of school days in a row at the goal (days with no upload are skipped)
-export const bestRun = (st, bt, cls) => { let best = 0, run = 0; days(st).forEach(d => { run = d.xp >= goal(cls) ? run + 1 : 0; best = Math.max(best, run); }); return best; };
+// an excused day below the goal is skipped (the streak keeps going); an excused day at the goal still counts
+export const bestRun = (st, bt, cls) => { let best = 0, run = 0; days(st).forEach(d => { if (d.e && d.xp < goal(cls)) return; run = d.xp >= goal(cls) ? run + 1 : 0; best = Math.max(best, run); }); return best; };
 export const lunchHits = (st, bt, cls) => days(st).filter(d => d.lunch != null && d.lunch >= goal(cls)).length;
 // Monday of a date's week, so days can be grouped Mon-Fri
 function weekOf(date) { const t = new Date(date + "T12:00:00"); t.setDate(t.getDate() - ((t.getDay() + 6) % 7)); return t.toISOString().slice(0, 10); }

@@ -1,5 +1,5 @@
 // Creature Collector: pulls, XP bank, levels, evolutions, lorebook and arena battles.
-import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261002a";
+import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261002b";
 
 export const PULL_XP = 120;          // every 120 XP (all-time since the collector started) = 1 pull
 export const LEVEL_XP = 120;         // 120 banked XP = 1 level
@@ -185,7 +185,7 @@ export const duckOpen = (cls, date) => eventOpen(DUCK, cls, date);
 export function streaks(st, cls, since) {
   const goal = (cls && Number(cls.goal)) || 120, h = st.xpHist || {};
   let best = 0, run = 0;
-  Object.keys(h).sort().forEach(date => { if (since && date < since) return; const x = h[date] || {}, v = Number(x.d != null ? x.d : x.l) || 0; run = v >= goal ? run + 1 : 0; best = Math.max(best, run); });
+  Object.keys(h).sort().forEach(date => { if (since && date < since) return; const x = h[date] || {}, v = Number(x.d != null ? x.d : x.l) || 0; if (x.e && v < goal) return; run = v >= goal ? run + 1 : 0; best = Math.max(best, run); });
   return { best, current: run };
 }
 export const eventStreak = (ev, st, cls) => streaks(st, cls, ev.haunt || ev.from ? eventWindow(ev, cls).start : null);
