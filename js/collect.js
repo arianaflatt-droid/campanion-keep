@@ -1,5 +1,5 @@
 // Creature Collector: pulls, XP bank, levels, evolutions, lorebook and arena battles.
-import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261002d";
+import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261002g";
 
 export const PULL_XP = 120;          // every 120 XP (all-time since the collector started) = 1 pull
 export const LEVEL_XP = 120;         // 120 banked XP = 1 level
@@ -332,7 +332,7 @@ export function arenaOpenFor(st, cls, date) {
 export function fighterFrom(st, fam) {
   const e = owned(st)[fam]; if (!e) return null;
   const c = formOf(fam, e.lvl || 1), s = statsOf(c, e.lvl || 1);
-  return { fam, id: c.id, lvl: e.lvl || 1, name: e.nick || c.name, species: c.name, img: e.sparkle ? sparkleImg(c) : c.img, sparkle: !!e.sparkle, face: c.face || "R", type: c.types[0], types: c.types, weak: c.weak, attack: c.attack, hp: s.hp, df: s.df, dmg: s.dmg, cur: s.hp };
+  return { fam, id: c.id, lvl: e.lvl || 1, name: e.nick || c.name, species: c.name, img: e.sparkle ? sparkleImg(c) : c.img, sparkle: !!e.sparkle, face: c.face || "R", type: c.types[0], types: c.types, weak: c.weak, attack: c.attack, hp: s.hp, df: s.df, dmg: s.dmg, cur: s.hp, dodge: c.dodge || 0 };
 }
 export function teamSize(a, b) { return Math.max(0, Math.min(TEAM_MAX, ownedFams(a).length, ownedFams(b).length)); }
 export function hitDamage(att, def, crit) {
@@ -383,13 +383,14 @@ export function resolveRound(bt) {
     const m = mv[s], o = other(s); if (!m || (m.m !== "attack" && m.m !== "power")) continue;
     const att = bt.team[s][bt.active[s]], def = bt.team[o][bt.active[o]];
     if (!att || !def || att.cur <= 0 || def.cur <= 0) continue;
-    const power = m.m === "power", miss = power && Math.random() >= MOVES.power.hit, crit = !miss && Math.random() < CRIT_CHANCE;
+    const pmiss = m.m === "power" && Math.random() >= MOVES.power.hit, dodged = !pmiss && !!def.dodge && Math.random() < def.dodge;   // speedy creatures (Jett) dodge some hits
+    const power = m.m === "power", miss = pmiss || dodged, crit = !miss && Math.random() < CRIT_CHANCE;
     let { dmg, weak } = hitDamage(att, def, crit);
     if (power) dmg = Math.round(dmg * MOVES.power.mult);
     if (guard[o]) dmg = Math.max(1, Math.round(dmg / 2));
     if (miss) dmg = 0;
     def.cur = Math.max(0, def.cur - dmg);
-    bt.log.push({ k: "hit", s, ai: bt.active[s], di: bt.active[o], a: att.name, atk: power ? att.attack + " (Power)" : att.attack, d: def.name, dmg, crit, weak: weak && !miss, miss, power, guarded: !!guard[o], left: def.cur, max: def.hp });
+    bt.log.push({ k: "hit", s, ai: bt.active[s], di: bt.active[o], a: att.name, atk: power ? att.attack + " (Power)" : att.attack, d: def.name, dmg, crit, weak: weak && !miss, miss, dodged, power, guarded: !!guard[o], left: def.cur, max: def.hp });
     if (def.cur <= 0) {
       bt.log.push({ k: "faint", s: o, i: bt.active[o], n: def.name });
       bt.active[o] = null;

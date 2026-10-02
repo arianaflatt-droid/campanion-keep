@@ -942,3 +942,20 @@ td .emo, .ic .emo{ display:inline-block; vertical-align:middle; font-size:1.3em;
   .presentbox.goalp{ box-shadow:0 0 0 4px #3D7FE0, 0 0 40px rgba(61,127,224,.55); }
   /* excused day where the student still hit the goal: green with a purple ring */
   .dot3.eh, .weekdots i.eh{ box-shadow:0 0 0 2px var(--excuse); }
+  /* Jett (Super Rare, Air): play bow, tail-wag whirlwind, then chases it (companion card, room, The Keep, battles) */
+  img[src*="creatures/s36-1"], img[src*="sparkle/s36-1"]{ transform-origin:50% 90%; animation:jettIdle 5s ease-in-out infinite; }
+  .pick img[src*="s36-1"], .dex img[src*="s36-1"], .dchain img[src*="s36-1"]{ animation:none; }
+  @keyframes jettIdle{
+    0%,12%{ transform:translateY(0) rotate(0); filter:drop-shadow(0 0 0 rgba(120,180,255,0)); }
+    6%{ transform:translateY(-6%) rotate(-3deg); }
+    18%,30%{ transform:translateY(4%) scale(1.04,.9) rotate(6deg); }                       /* play bow */
+    22%,26%{ transform:translateY(4%) scale(1.04,.9) rotate(9deg); }
+    36%,48%{ transform:rotate(-4deg); filter:drop-shadow(0 0 10px rgba(120,180,255,.95)); } /* tail whirlwind */
+    40%,44%{ transform:rotate(4deg); filter:drop-shadow(-6px 0 14px rgba(150,200,255,1)); }
+    58%{ transform:scaleX(-1) translateY(-4%); }                                            /* chase it! */
+    66%{ transform:scaleX(1) translateY(-4%); }
+    74%{ transform:scaleX(-1) translateY(-4%); }
+    82%{ transform:scaleX(1) translateY(0); filter:drop-shadow(0 0 4px rgba(120,180,255,.5)); }
+    100%{ transform:translateY(0) rotate(0); filter:drop-shadow(0 0 0 rgba(120,180,255,0)); }
+  }
+  @media (prefers-reduced-motion: reduce){ img[src*="s36-1"]{ animation:none; } }

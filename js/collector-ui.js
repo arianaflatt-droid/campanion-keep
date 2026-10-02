@@ -4,13 +4,13 @@ import {
   formIndex, formOf, statsOf, seenSet, rollRarity, doPull, arenaOpen, arenaOpenFor, lunchHour, hitGoalToday, LUNCH_ARENA, ARENA_HOURS, fighterFrom, teamSize, alive, resolve, resolveRound, moveOk, MOVES, hitDamage,
   birthdayLeft, goalLeft, nextGoal, rollRareUp, themeLeft, nextTheme, THEME_TYPES, THEME_EGG, WISH_FAM, spares, spareId, releaseXP, releaseProblem, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
   EVENTS, eventOpen, eventWindow, eventStreak, hasEvent, eventUnlocked, azToday, rollTeacherRarity, TEACHER_ODDS, LIVE, staleBattle
-} from "./collect.js?v=20261002d";
-import { newBattleRef, changeBattle as changeBattleRaw, setDoc, liveBattlesNow } from "./db.js?v=20261002d";
+} from "./collect.js?v=20261002g";
+import { newBattleRef, changeBattle as changeBattleRaw, setDoc, liveBattlesNow } from "./db.js?v=20261002g";
 // every change to a battle is stamped with the time (upd), so a battle nobody has touched in a while can be ended
 let locking = null, leaving = null;   // battle id while "Lock in team" is saving
 const changeBattle = (id, fn) => changeBattleRaw(id, bt => { const n = fn(bt); if (n) n.upd = new Date().toISOString(); return n; });
 
-import { tradeCard } from "./trade-ui.js?v=20261002d";
+import { tradeCard } from "./trade-ui.js?v=20261002g";
 
 const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const PER_PAGE = 20;
@@ -310,7 +310,8 @@ function detailPage(c, seen) {
     '<div class="dhead">' + img(c, "dimg") + "<div><h2>" + esc(c.name) + "</h2>" + (e && e.nick && cur ? '<p class="dline">Your <b>' + esc(e.nick) + "</b></p>" : "") + rarityPill(c.rarity) + " " + typePills(c) +
     '<p class="dline"><b>Weak to:</b> ' + esc(c.weak.join(", ")) + " (takes double damage)</p>" +
     (c.title ? '<p class="dline"><i>' + esc(c.title) + "</i>" + (c.event ? ' <span class="rpill" style="background:#2B6FD6">\u{1F986} Limited event</span>' : "") + "</p>" : "") +
-    '<p class="dline"><b>' + (c.move ? "Signature move" : "Attack") + ":</b> " + esc(c.attack) + "</p>" + (c.move ? '<p class="dline muted">' + esc(c.move) + "</p>" : "") + "</div></div>" +
+    '<p class="dline"><b>' + (c.move ? "Signature move" : "Attack") + ":</b> " + esc(c.attack) + "</p>" + (c.move ? '<p class="dline muted">' + esc(c.move) + "</p>" : "") +
+    (c.dodge ? '<p class="dline"><b>\u{1F4A8} Speedy:</b> dodges ' + Math.round(c.dodge * 100) + "% of attacks in battle</p>" : "") + "</div></div>" +
     '<div class="dstats"><span>❤ HP <b>' + st.hp + "</b></span><span>\u{1F6E1} Defense <b>" + st.df + "</b></span><span>⚔ Damage <b>" + st.dmg + "</b></span><span>Lv <b>" + (cur ? lvl : 1) + "</b></span></div>" +
     '<p class="muted" style="text-align:center;margin:2px 0 8px;">' + (cur ? "Your creature’s stats at level " + lvl : "Stats at level 1") + " · grows +" + c.ghp + " HP, +" + c.gdf + " DEF, +" + c.gdmg + " DMG per level</p>";
   if (fam.forms.length > 1) h += '<div class="dchain">' + fam.forms.map((id, i) => { const f = creature(id), got = seen.has(id);
@@ -332,7 +333,7 @@ function viewState(bt, k) {
     if (e.k === "coin") st.line = "\u{1FA99} Coin flip: " + esc(e.s === "A" ? bt.a.name : bt.b.name) + " goes first!";
     if (e.k === "send") { st[e.s].i = e.i; st.line = esc(e.who) + " sends out <b>" + esc(e.n) + "</b>!"; }
     if (e.k === "hit") { const o = e.s === "A" ? "B" : "A"; st[o].hp[e.di] = e.left; st[e.s].i = e.ai; st[o].i = e.di; st.last = e;
-      st.line = "<b>" + esc(e.a) + "</b> used " + esc(e.atk) + "! " + (e.miss ? "It missed!" : (e.crit ? "\u{1F4A5} Critical hit! " : "") + (e.weak ? "It’s super effective! " : "") + (e.guarded ? "\u{1F6E1}\uFE0F Guarded! " : "") + e.dmg + " damage."); }
+      st.line = "<b>" + esc(e.a) + "</b> used " + esc(e.atk) + "! " + (e.dodged ? "\u{1F4A8} " + esc(e.d) + " zoomed out of the way!" : e.miss ? "It missed!" : (e.crit ? "\u{1F4A5} Critical hit! " : "") + (e.weak ? "It’s super effective! " : "") + (e.guarded ? "\u{1F6E1}\uFE0F Guarded! " : "") + e.dmg + " damage."); }
     if (e.k === "swap") { st[e.s].i = e.i; st.line = "\u{1F504} " + esc(e.who) + " swaps " + esc(e.from) + " for <b>" + esc(e.n) + "</b>!"; }
     if (e.k === "heal") { st[e.s].hp[e.i] = e.left; st[e.s].i = e.i; st.line = "\u{1F49A} <b>" + esc(e.n) + "</b> healed " + e.amt + " HP!"; }
     if (e.k === "guard") { st[e.s].i = e.i; st.line = "\u{1F6E1}\uFE0F <b>" + esc(e.n) + "</b> is guarding!"; }

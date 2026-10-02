@@ -1,19 +1,19 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261002d";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261002d";
-import { cpEarnedCalc } from "./room.js?v=20261002d";
-import { GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, waitingDoors, doorXPRows, REWARD_XP } from "./doors.js?v=20261002d";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261002d";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261002g";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261002g";
+import { cpEarnedCalc } from "./room.js?v=20261002g";
+import { GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, waitingDoors, doorXPRows, REWARD_XP } from "./doors.js?v=20261002g";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261002g";
 import {
   applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, hitOn, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261002d";
-import { staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261002d";
+} from "./game.js?v=20261002g";
+import { staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261002g";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef
-} from "./db.js?v=20261002d";
+} from "./db.js?v=20261002g";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -521,6 +521,12 @@ function viewDaily() {
 }
 
 /* ---------- standings ---------- */
+// Hover text for a day dot: what the game has saved for that day (helps check excused / streak questions).
+function dotTip(s, d, v, eh) {
+  const xp = arr5(s.xp, null)[d], lx = arr5(s.lunchXp, null)[d];
+  return DAYS[d] + ": " + (xp != null ? xp + " XP" : "no end-of-day XP") + (lx != null ? " (lunch " + lx + ")" : "") +
+    (eh ? " \u2014 excused, but hit " + goalXP(cls) + " (counts!)" : v === "e" ? " \u2014 excused (skipped)" : v === "c" ? " \u2014 hit" : "");
+}
 function viewStandings() {
   const rec = recordedDays(cls);
   let h = '<div class="card"><div class="card-head"><h2>Full standings</h2><span class="fact"><b>two 120 XP misses in a row → disappears</b></span></div>';
@@ -536,7 +542,7 @@ function viewStandings() {
     if (!sim) { h += '<td colspan="' + (eventMode(cls) ? 6 : 5) + '" class="muted">waiting for this student to choose</td></tr>'; return; }
     h += '<td><span class="dots">' + [0, 1, 2, 3, 4].map(d => {
       const v = arr5(s.status, "")[d], eh = v === "e" && hitOn(s, d, cls), k = v === "c" ? "c" : eh ? "c eh" : v === "e" ? "e" : rec[d] ? "m" : "";
-      return '<span class="dcol"><span class="dot3 ' + k + '" title="' + DAYS[d] + (eh ? " \u2014 excused, but hit " + goalXP(cls) + " (counts!)" : v === "e" ? " \u2014 excused" : "") + '"></span>' + (arr5(s.early, false)[d] ? '<span style="font-size:10px;line-height:1;">☀️</span>' : "") + "</span>";
+      return '<span class="dcol"><span class="dot3 ' + k + '" title="' + esc(dotTip(s, d, v, eh)) + '"></span>' + (arr5(s.early, false)[d] ? '<span style="font-size:10px;line-height:1;">☀️</span>' : "") + "</span>";
     }).join("") + "</span></td>";
     h += '<td><span class="ovtag ' + (!sim.alive ? "bad" : sim.atRisk ? "warn" : "good") + '">' + sim.ovMet + " / " + sim.ovCounted + "</span>" +
       (sim.atRisk ? '<span class="pet">miss tomorrow = gone</span>' : "") + "</td>";

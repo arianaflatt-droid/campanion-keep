@@ -1,8 +1,8 @@
-import { formOf, sparkleImg, azNow } from "./collect.js?v=20261002d";
+import { formOf, sparkleImg, azNow } from "./collect.js?v=20261002g";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261002d";
+export const APP_V = "20261002g";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -215,7 +215,9 @@ export function simulate(st, cls) {
   let hitRun = 0, bestRun = 0, ovMet = 0, ovCounted = 0, daysCounted = 0;
 
   for (let d = 0; d < 5; d++) {
-    if (!rec[d]) continue;
+    // A day counts once it's recorded (end-of-day upload). A day that isn't recorded yet still counts if the student
+    // already hit the goal (e.g. a Lunch Hero today): a hit can't turn into a miss, so the streak shows it right away.
+    if (!rec[d] && !hitOn(st, d, cls)) continue;
     daysCounted++;
     const v = status[d], hit = hitOn(st, d, cls);
     if (v === "e" && !hit) continue;   // excused and below the goal: skipped, no penalty
