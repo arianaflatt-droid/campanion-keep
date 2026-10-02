@@ -1,12 +1,12 @@
 // Firebase setup shared by both pages.
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-  getFirestore, doc, collection, onSnapshot, query, where, setDoc as fbSetDoc, updateDoc as fbUpdateDoc, deleteDoc as fbDeleteDoc, writeBatch as fbWriteBatch, runTransaction
+  initializeFirestore, persistentLocalCache, persistentMultipleTabManager, getDocs, getFirestore, doc, collection, onSnapshot, query, where, setDoc as fbSetDoc, updateDoc as fbUpdateDoc, deleteDoc as fbDeleteDoc, writeBatch as fbWriteBatch, runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {
   getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, signInAnonymously
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { firebaseConfig, CLASS_ID, TEACHER_EMAILS } from "./firebase-config.js?v=20261001q";
+import { firebaseConfig, CLASS_ID, TEACHER_EMAILS } from "./firebase-config.js?v=20261001t";
 
 // Teacher preview (student.html?s=ID&preview=1): the page shows a student's view, but nothing is ever written.
 export const PREVIEW = typeof location !== "undefined" && new URLSearchParams(location.search).get("preview") === "1";
@@ -14,7 +14,12 @@ const none = async () => null;
 
 export const configured = !String(firebaseConfig.apiKey).includes("PASTE_ME");
 export const app = configured ? initializeApp(firebaseConfig) : null;
-export const db = app ? getFirestore(app) : null;
+// Keep a saved copy on the computer, so reopening the page doesn't download the whole class again.
+function makeDb() {
+  try { return initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) }); }
+  catch (e) { console.warn("No offline cache:", e); return getFirestore(app); }
+}
+export const db = app ? makeDb() : null;
 export const auth = app ? getAuth(app) : null;
 
 export const classRef = db ? doc(db, "classes", CLASS_ID) : null;
@@ -36,10 +41,15 @@ function mergeWatch(queries, cb, onErr) {
   const offs = queries.map((q, i) => onSnapshot(q, snap => { parts[i] = new Map(snap.docs.map(d => [d.id, Object.assign({ id: d.id }, d.data())])); send(); }, onErr));
   return () => offs.forEach(f => f());
 }
+// Only this student's own battles. Other kids' battle moves are never sent to this page.
 export function watchMyBattles(me, cb, onErr) {
-  const qs = [query(battlesCol, where("status", "in", LIVE_STATUS))];
-  if (me) qs.push(query(battlesCol, where("ids", "array-contains", me)));
-  return mergeWatch(qs, cb, onErr);
+  if (!me) { cb([]); return () => {}; }
+  return mergeWatch([query(battlesCol, where("ids", "array-contains", me))], cb, onErr);
+}
+// One quick look at the battles going on right now (used when someone sends a challenge).
+export async function liveBattlesNow() {
+  const snap = await getDocs(query(battlesCol, where("status", "in", LIVE_STATUS)));
+  return snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
 }
 export function watchMyTrades(me, cb, onErr) {
   if (!me) { cb([]); return () => {}; }
