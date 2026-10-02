@@ -1,17 +1,17 @@
 import {
-  checkVersion, applyDisplayNames, companionOf, petCreatures, pinnedBadgeHTML, DAYS, SHORT, ROSTER, GEAR, SIDEKICKS, BANNER, bannerFor, isHaunt, battleOn, candyOf, basketHTML, CANDY_FULL, bossState, attacksReady, bossBarHTML, GHOST_IMG, ghostUnlocked, turkeyUnlocked, grinchUnlocked, isJingle, eventMode, isGobble, setSeason, SEASON, seasonOf, STORE, candyLeft, candySpent, ownedCount, ownsItem, storeArt, nextAttack, dmgOf, HAT_BONUS, BREW_BONUS, teamHTML, WHEEL, pickSlice, wheelHTML, spinTo, PRIZES, prizeSlices, bucketState, bucketHTML, baseDamage, EAT_PER_DAY, dayEaten, dayXP, byId, esc, arr5, recordedDays, goalXP,
+  checkVersion, hitOn, applyDisplayNames, companionOf, petCreatures, pinnedBadgeHTML, DAYS, SHORT, ROSTER, GEAR, SIDEKICKS, BANNER, bannerFor, isHaunt, battleOn, candyOf, basketHTML, CANDY_FULL, bossState, attacksReady, bossBarHTML, GHOST_IMG, ghostUnlocked, turkeyUnlocked, grinchUnlocked, isJingle, eventMode, isGobble, setSeason, SEASON, seasonOf, STORE, candyLeft, candySpent, ownedCount, ownsItem, storeArt, nextAttack, dmgOf, HAT_BONUS, BREW_BONUS, teamHTML, WHEEL, pickSlice, wheelHTML, spinTo, PRIZES, prizeSlices, bucketState, bucketHTML, baseDamage, EAT_PER_DAY, dayEaten, dayXP, byId, esc, arr5, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, sidekickSVG, petHTML, itemArt
-} from "./game.js?v=20261002b";
-import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20261002b";
-import { nudgeCard } from "./nudges.js?v=20261002b";
-import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261002b";
-import { teacherPlayer, hasStarter } from "./collect.js?v=20261002b";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261002b";
-import { goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked } from "./doors.js?v=20261002b";
-import { azToday } from "./collect.js?v=20261002b";
+} from "./game.js?v=20261002d";
+import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20261002d";
+import { nudgeCard } from "./nudges.js?v=20261002d";
+import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261002d";
+import { teacherPlayer, hasStarter } from "./collect.js?v=20261002d";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261002d";
+import { goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked } from "./doors.js?v=20261002d";
+import { azToday } from "./collect.js?v=20261002d";
 import { roomHTML, FIT_SLOTS, slotKind, KIND_NAMES, KIND_ICON, EVERYDAY_PRICE, THEMED_PRICE, TROPHY_PRICE, TYPE_THEMES, SEASON_THEMES, THEME_NAMES, TROPHIES,
-  itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId } from "./room.js?v=20261002b";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261002b";
+  itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId } from "./room.js?v=20261002d";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261002d";
 
 let cls = null, students = [], battles = [], trades = [], loaded = { c: false, s: false };
 let tab = (() => { try { return localStorage.getItem("ck-tab") || "pet"; } catch (e) { return "pet"; } })();
@@ -42,7 +42,7 @@ else {
       if (document.hidden) { clearTimeout(hideTimer); hideTimer = setTimeout(stopWatch, 120000); }
       else { clearTimeout(hideTimer); if (!watching) startWatch(); }
     });
-    setInterval(() => render(), 60000);   // arena opens/closes on the clock
+    setInterval(() => liveRender(), 60000);   // arena opens/closes on the clock
   });
 }
 
@@ -50,7 +50,7 @@ let watching = false, started = false, unsubMain = [];
 function startWatch() {
   watching = true;
   unsubMain = [
-    watchClass(c => { cls = c; setSeason(c); loaded.c = true; if (!PREVIEW && checkVersion(c, false)) return; render(); }, e => { error = "Couldn’t load your class (" + e.code + ")."; render(); }),
+    watchClass(c => { cls = c; setSeason(c); loaded.c = true; if (!PREVIEW && checkVersion(c, false)) return; liveRender(); }, e => { error = "Couldn’t load your class (" + e.code + ")."; render(); }),
     watchStudents(l => { students = applyDisplayNames(l); loaded.s = true; nameBattles(); const s = students.find(x => x.id === me); if (s && !PREVIEW && trades.length) settleTrades(collectorCtx(s)); liveRender(); }, e => { error = "Couldn’t load your class (" + e.code + ")."; render(); }),
   ];
   subFor = undefined; subMine();
@@ -140,7 +140,25 @@ const ptrUp = () => setTimeout(() => { ptrDown = false; if (heldRender !== null)
 addEventListener("pointerup", ptrUp, true); addEventListener("pointercancel", ptrUp, true);
 // Live updates from the database are bundled into one redraw.
 let liveTimer = null;
-function liveRender() { if (liveTimer) return; liveTimer = setTimeout(() => { liveTimer = null; render(); }, 120); }
+let liveNow = false;   // true while redrawing for a database update (typed text is kept)
+function liveRender() { if (liveTimer) return; liveTimer = setTimeout(() => { liveTimer = null; liveNow = true; try { render(); } finally { liveNow = false; } }, 120); }
+// Keep what the user typed (and where the cursor is) when the page redraws for someone else's update.
+function saveFields(root) {
+  const out = {}, act = document.activeElement;
+  root.querySelectorAll("input[id], textarea[id], select[id]").forEach(el => {
+    if (el.type === "file" || el.type === "checkbox" || el.type === "radio") return;
+    const changed = el.tagName === "SELECT" ? [...el.options].some(o => o.selected !== o.defaultSelected) : el.value !== el.defaultValue;
+    if (changed || el === act) out[el.id] = { v: el.value, focus: el === act, s: el.selectionStart, e: el.selectionEnd };
+  });
+  return out;
+}
+function restoreFields(saved) {
+  Object.entries(saved).forEach(([id, f]) => {
+    const el = document.getElementById(id); if (!el) return;
+    el.value = f.v;
+    if (f.focus) { el.focus(); try { el.setSelectionRange(f.s, f.e); } catch (e) {} }
+  });
+}
 function render(force) {
   if (ptrDown) { heldRender = heldRender || !!force; return; }
   if (watching && loaded.c && subFor !== me) subMine();
@@ -161,10 +179,12 @@ function render(force) {
   if (cur && cur.companionId && cls) lockBadges(cur);
   const bday = !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() ? birthdayParty(cur) : "";
   const party = !bday && !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() ? badgeParty(cur) : "";
+  const fields = liveNow ? saveFields(app) : {};
   app.innerHTML = h + presentOverlay() + prizeOverlay() + (cur && cur.companionId && cls ? collectorOverlays(collectorCtx(cur)) : "") + party + bday;
+  restoreFields(fields);
   if (bday && !bdayChimed) { bdayChimed = true; birthdayTune(); }
   if (party) { const key = unseenBadges(cur).join(","); if (key !== partyKey) { partyKey = key; badgeChime(); } }
-  if (keep) { const n = document.getElementById(keep.id); if (n) { if (keep.id === "nickIn") n.value = keep.v; n.focus(); try { n.setSelectionRange(keep.pos, keep.pos); } catch (e) {} } }
+  if (keep) { const n = document.getElementById(keep.id); if (n) { n.focus(); try { n.setSelectionRange(keep.pos, keep.pos); } catch (e) {} } }
 }
 
 function viewNames() {
@@ -226,8 +246,8 @@ function viewMine(s) {
     '<p class="lede" style="margin-top:10px;">' + msg + "</p>" +
     (side ? '<p style="margin-top:6px;color:var(--warn);font-weight:700;">☀️ You hit ' + goal + " by lunch — your " + SIDEKICKS[side].toLowerCase() + " came to hang out!</p>" : "") +
     '<div class="weekdots">' + DAYS.map((d, i) => {
-      const v = status[i], k = v === "c" ? "c" : v === "e" ? "e" : rec[i] ? "m" : "";
-      return "<span><i class=\"" + k + '">' + (v === "c" ? "✓" : v === "e" ? "–" : rec[i] ? "✕" : "") + "</i>" + SHORT[i] + (early[i] ? " ☀️" : "") + "</span>";
+      const v = status[i], eh = v === "e" && hitOn(s, i, cls), k = v === "c" || eh ? "c" + (eh ? " eh" : "") : v === "e" ? "e" : rec[i] ? "m" : "";
+      return "<span><i class=\"" + k + '">' + (v === "c" || eh ? "✓" : v === "e" ? "–" : rec[i] ? "✕" : "") + "</i>" + SHORT[i] + (early[i] ? " ☀️" : "") + "</span>";
     }).join("") + "</div>" +
     (haunt ? '<p style="margin-top:8px;color:#E8740C;font-weight:700;">' + S.icon + " " + candy.toLocaleString() + (S.key === "jingle" ? " present" + (candy === 1 ? "" : "s") : " piece" + (candy === 1 ? "" : "s") + " of " + S.cur) + " to spend" +
       (candy >= CANDY_FULL ? " \u2014 your " + S.basket + " is FULL!" : " \u00b7 " + (CANDY_FULL - candy).toLocaleString() + " more to fill your " + S.basket) + "</p>" : "") +

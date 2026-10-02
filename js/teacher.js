@@ -1,19 +1,19 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261002b";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261002b";
-import { cpEarnedCalc } from "./room.js?v=20261002b";
-import { GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, waitingDoors, doorXPRows, REWARD_XP } from "./doors.js?v=20261002b";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261002b";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261002d";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261002d";
+import { cpEarnedCalc } from "./room.js?v=20261002d";
+import { GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, waitingDoors, doorXPRows, REWARD_XP } from "./doors.js?v=20261002d";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261002d";
 import {
   applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
-  checkVersion, APP_V, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261002b";
-import { staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261002b";
+  checkVersion, APP_V, hitOn, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
+} from "./game.js?v=20261002d";
+import { staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261002d";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef
-} from "./db.js?v=20261002b";
+} from "./db.js?v=20261002d";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -120,11 +120,11 @@ else onAuthStateChanged(auth, u => {
   mode = "boot"; render();
   unsub.push(watchClass(c => { cls = c; clsLoaded = true; setSeason(c); if (c && checkVersion(c, true, v => updateDoc(classRef, { appVersion: v }).catch(() => {}))) return; autoGobble(); lockBadges();
     if (c && c.haunt && !c.hauntSince) updateDoc(classRef, { hauntSince: azToday() }).catch(() => {});   // Hexaduck streaks start today if the mode was already on
-    if (c && !c.collectorStart) updateDoc(classRef, { collectorStart: (() => { const t = new Date(); return t.getFullYear() + "-" + String(t.getMonth() + 1).padStart(2, "0") + "-" + String(t.getDate()).padStart(2, "0"); })() }).catch(() => {}); if (!c) mode = "setup"; else if (mode === "boot" || mode === "setup") mode = "guide"; detectEvents(); render(); },
+    if (c && !c.collectorStart) updateDoc(classRef, { collectorStart: (() => { const t = new Date(); return t.getFullYear() + "-" + String(t.getMonth() + 1).padStart(2, "0") + "-" + String(t.getDate()).padStart(2, "0"); })() }).catch(() => {}); if (!c) mode = "setup"; else if (mode === "boot" || mode === "setup") mode = "guide"; detectEvents(); liveRender(); },
     e => flash("Couldn’t load the class — " + e.code)));
   unsub.push(watchBattles(l => { battles = l; addIds(l, battleRef); closeStale(l); lockBadges(); if (ctab === "collector") liveRender(); }, () => {}));
   unsub.push(watchTrades(l => { trades = l; addIds(l, tradeRef); if (cls) settleTrades(tctx()); if (ctab === "collector") liveRender(); }, () => {}));
-  unsub.push(watchStudents(list => { students = applyDisplayNames(list).sort(byAlpha); studentsLoaded = true; autoGobble(); detectEvents(); lockBadges(); render(); },
+  unsub.push(watchStudents(list => { students = applyDisplayNames(list).sort(byAlpha); studentsLoaded = true; autoGobble(); detectEvents(); lockBadges(); liveRender(); },
     e => flash("Couldn’t load students — " + e.code)));
 });
 
@@ -370,7 +370,25 @@ const ptrUp = () => setTimeout(() => { ptrDown = false; if (heldRender !== null)
 addEventListener("pointerup", ptrUp, true); addEventListener("pointercancel", ptrUp, true);
 // Live updates from the database are bundled into one redraw.
 let liveTimer = null;
-function liveRender() { if (liveTimer) return; liveTimer = setTimeout(() => { liveTimer = null; render(); }, 120); }
+let liveNow = false;   // true while redrawing for a database update (typed text is kept)
+function liveRender() { if (liveTimer) return; liveTimer = setTimeout(() => { liveTimer = null; liveNow = true; try { render(); } finally { liveNow = false; } }, 120); }
+// Keep what the user typed (and where the cursor is) when the page redraws for someone else's update.
+function saveFields(root) {
+  const out = {}, act = document.activeElement;
+  root.querySelectorAll("input[id], textarea[id], select[id]").forEach(el => {
+    if (el.type === "file" || el.type === "checkbox" || el.type === "radio") return;
+    const changed = el.tagName === "SELECT" ? [...el.options].some(o => o.selected !== o.defaultSelected) : el.value !== el.defaultValue;
+    if (changed || el === act) out[el.id] = { v: el.value, focus: el === act, s: el.selectionStart, e: el.selectionEnd };
+  });
+  return out;
+}
+function restoreFields(saved) {
+  Object.entries(saved).forEach(([id, f]) => {
+    const el = document.getElementById(id); if (!el) return;
+    el.value = f.v;
+    if (f.focus) { el.focus(); try { el.setSelectionRange(f.s, f.e); } catch (e) {} }
+  });
+}
 function render(force) {
   if (ptrDown) { heldRender = heldRender || !!force; return; }
   if (!force && mode === "guide" && ctab === "collector" && collectorBusy()) return;   // don't redraw mid egg-hatch or page flip
@@ -411,7 +429,9 @@ function render(force) {
   }
 
   const active = document.activeElement, keep = active && active.id && active.matches("input, textarea") ? { id: active.id, v: active.value, pos: active.selectionStart } : null;
+  const fields = liveNow ? saveFields(app) : {};
   app.innerHTML = h + (mode === "guide" ? '<p class="muted small" style="text-align:center;margin:18px 0 6px;opacity:.6;">Version ' + APP_V + "</p>" : "") + (mode === "guide" && ctab === "collector" && cls ? collectorOverlays(tctx()) : "");
+  restoreFields(fields);
   if (keep) { const n = document.getElementById(keep.id); if (n) { n.value = keep.v; n.focus(); try { n.setSelectionRange(keep.pos, keep.pos); } catch (e) {} } }
   renderRules();
   if (!baseTitle) baseTitle = document.title;
@@ -515,8 +535,8 @@ function viewStandings() {
       ' <button class="btn ghost small" data-assign="' + s.id + '" style="margin-left:6px;">' + (c ? "Change" : "Set") + "</button></td>";
     if (!sim) { h += '<td colspan="' + (eventMode(cls) ? 6 : 5) + '" class="muted">waiting for this student to choose</td></tr>'; return; }
     h += '<td><span class="dots">' + [0, 1, 2, 3, 4].map(d => {
-      const v = arr5(s.status, "")[d], k = v === "c" ? "c" : v === "e" ? "e" : rec[d] ? "m" : "";
-      return '<span class="dcol"><span class="dot3 ' + k + '" title="' + DAYS[d] + '"></span>' + (arr5(s.early, false)[d] ? '<span style="font-size:10px;line-height:1;">☀️</span>' : "") + "</span>";
+      const v = arr5(s.status, "")[d], eh = v === "e" && hitOn(s, d, cls), k = v === "c" ? "c" : eh ? "c eh" : v === "e" ? "e" : rec[d] ? "m" : "";
+      return '<span class="dcol"><span class="dot3 ' + k + '" title="' + DAYS[d] + (eh ? " \u2014 excused, but hit " + goalXP(cls) + " (counts!)" : v === "e" ? " \u2014 excused" : "") + '"></span>' + (arr5(s.early, false)[d] ? '<span style="font-size:10px;line-height:1;">☀️</span>' : "") + "</span>";
     }).join("") + "</span></td>";
     h += '<td><span class="ovtag ' + (!sim.alive ? "bad" : sim.atRisk ? "warn" : "good") + '">' + sim.ovMet + " / " + sim.ovCounted + "</span>" +
       (sim.atRisk ? '<span class="pet">miss tomorrow = gone</span>' : "") + "</td>";

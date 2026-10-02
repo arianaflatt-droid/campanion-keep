@@ -940,3 +940,5 @@ td .emo, .ic .emo{ display:inline-block; vertical-align:middle; font-size:1.3em;
   .goalrow select{ max-width:120px; }
   /* Goal Present (Goal Subject doors) */
   .presentbox.goalp{ box-shadow:0 0 0 4px #3D7FE0, 0 0 40px rgba(61,127,224,.55); }
+  /* excused day where the student still hit the goal: green with a purple ring */
+  .dot3.eh, .weekdots i.eh{ box-shadow:0 0 0 2px var(--excuse); }
