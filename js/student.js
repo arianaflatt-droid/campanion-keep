@@ -1,17 +1,17 @@
 import {
   checkVersion, applyDisplayNames, companionOf, petCreatures, pinnedBadgeHTML, DAYS, SHORT, ROSTER, GEAR, SIDEKICKS, BANNER, bannerFor, isHaunt, battleOn, candyOf, basketHTML, CANDY_FULL, bossState, attacksReady, bossBarHTML, GHOST_IMG, ghostUnlocked, turkeyUnlocked, grinchUnlocked, isJingle, eventMode, isGobble, setSeason, SEASON, seasonOf, STORE, candyLeft, candySpent, ownedCount, ownsItem, storeArt, nextAttack, dmgOf, HAT_BONUS, BREW_BONUS, teamHTML, WHEEL, pickSlice, wheelHTML, spinTo, PRIZES, prizeSlices, bucketState, bucketHTML, baseDamage, EAT_PER_DAY, dayEaten, dayXP, byId, esc, arr5, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, sidekickSVG, petHTML, itemArt
-} from "./game.js?v=20261001t";
-import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20261001t";
-import { nudgeCard } from "./nudges.js?v=20261001t";
-import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261001t";
-import { teacherPlayer, hasStarter } from "./collect.js?v=20261001t";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261001t";
-import { goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked } from "./doors.js?v=20261001t";
-import { azToday } from "./collect.js?v=20261001t";
+} from "./game.js?v=20261001r";
+import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20261001r";
+import { nudgeCard } from "./nudges.js?v=20261001r";
+import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261001r";
+import { teacherPlayer, hasStarter } from "./collect.js?v=20261001r";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261001r";
+import { doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked } from "./doors.js?v=20261001r";
+import { azToday } from "./collect.js?v=20261001r";
 import { roomHTML, FIT_SLOTS, slotKind, KIND_NAMES, KIND_ICON, EVERYDAY_PRICE, THEMED_PRICE, TROPHY_PRICE, TYPE_THEMES, SEASON_THEMES, THEME_NAMES, TROPHIES,
-  itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId } from "./room.js?v=20261001t";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261001t";
+  itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId } from "./room.js?v=20261001r";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261001r";
 
 let cls = null, students = [], battles = [], trades = [], loaded = { c: false, s: false };
 let tab = (() => { try { return localStorage.getItem("ck-tab") || "pet"; } catch (e) { return "pet"; } })();
@@ -380,8 +380,8 @@ function doorsCard(s) {
 function presentOverlay() {
   if (!present) return "";
   const t = rewardText(present.r, SEASON);
-  return '<div class="prizeover" role="dialog" aria-label="Present"><div class="prizebox presentbox' + (present.golden ? " golden" : present.goal ? " golden goalp" : "") + '">' +
-    "<h2>" + (present.golden ? "\u2728 GOLDEN PRESENT \u2728" : present.goal ? "\u{1F3AF} GOAL PRESENT! \u{1F3AF}" : "\u{1F381} A PRESENT! \u{1F381}") + "</h2>" +
+  return '<div class="prizeover" role="dialog" aria-label="Present"><div class="prizebox presentbox' + (present.golden ? " golden" : "") + '">' +
+    "<h2>" + (present.golden ? "\u2728 GOLDEN PRESENT \u2728" : "\u{1F381} A PRESENT! \u{1F381}") + "</h2>" +
     (present.phase === "shake"
       ? '<div class="giftbox shake">\u{1F381}</div><p class="arena-foot" style="font-size:14px;">Unwrapping\u2026</p>'
       : '<div class="prizewon"><span style="font-size:72px;line-height:1;">' + t.icon + "</span><b>" + esc(t.big) + '</b><span class="arena-foot">' + esc(t.sub) + "</span>" +
@@ -401,8 +401,7 @@ async function openPresent(date, k) {
   const s = students.find(x => x.id === me), S = SEASON; if (!s || present) return;
   const golden = k === "g";
   if (golden ? !goldenReady(s, cls, date) : doorState(s, date, k) !== "ok") return;
-  const tier = golden ? 0 : goalTier(doorsFor(cls, date)[Number(k)]);
-  const r = rollPresent(golden, tier);
+  const r = rollPresent(golden);
   const doors = JSON.parse(JSON.stringify(s.doors || {}));
   doors[date] = doors[date] || {};
   doors[date][k] = Object.assign({}, doors[date][k] || {}, { st: "open", r, openedAt: new Date().toISOString() });
@@ -414,11 +413,6 @@ async function openPresent(date, k) {
   if (r.id === "attack") data.extraAttacks = (Number(s.extraAttacks) || 0) + 1;
   if (r.id === "egg") data.doorEggs = (Number(s.doorEggs) || 0) + 1;
   if (r.id === "tegg") data.themeEggs = (s.themeEggs || []).concat([S.key]);
-  // Goal Presents (guaranteed)
-  if (GOAL_CANDY[r.id]) data.candyBonus = (Number(s.candyBonus) || 0) + GOAL_CANDY[r.id];
-  if (r.id === "g2") data.brews = (Number(s.brews) || 0) + 1;
-  if (r.id === "g3") { data.extraAttacks = (Number(s.extraAttacks) || 0) + 1; data.doorEggs = (Number(s.doorEggs) || 0) + 1; }
-  if (r.id === "g4") data.goalEggs = (s.goalEggs || []).concat([r.leg ? (SEASON_LEGENDARY[S.key] || "rare") : "rare"]);
   if (r.id === "prize") {
     prize = pickSlice(prizeSlices());
     const entry = { id: "prize", src: "door", at: new Date().toISOString(), prize, prizeName: S.prizes[prize].name };
@@ -427,7 +421,7 @@ async function openPresent(date, k) {
     if (pxp) { entry.xp = pxp; data.xpPrize = (Number(s.xpPrize) || 0) + pxp; }
     data.spinLog = (s.spinLog || []).concat([entry]);
   }
-  present = { date, k, r, phase: "shake", golden, prize, goal: tier };
+  present = { date, k, r, phase: "shake", golden, prize };
   render(true);
   const saving = updateDoc(studentRef(me), data).then(() => Object.assign(s, data)).catch(e => { present = null; flash("That present didn\u2019t open \u2014 ask Ms. Ariana. (" + (e.code || e.message) + ")"); });
   setTimeout(async () => { await saving; if (present) { present.phase = "open"; render(true); } }, 1600);

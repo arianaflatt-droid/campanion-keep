@@ -1,8 +1,8 @@
-import { formOf, sparkleImg, azNow } from "./collect.js?v=20261001t";
+import { formOf, sparkleImg, azNow } from "./collect.js?v=20261001r";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261001t";
+export const APP_V = "20261001r";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);

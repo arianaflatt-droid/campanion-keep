@@ -166,13 +166,11 @@ service cloud.firestore {
         function doorReward(r, golden) {
           let add = {"xp25": 25, "xp50": 50, "xp500": 500}.get(r, 0);
           let log = request.resource.data.get("spinLog", []);
-          // g1–g4 = Goal Presents (Goal Subject doors): g1 +75 candy · g2 snack +25 candy · g3 attack + egg · g4 a Goal egg
-          return (golden ? r in ["xp500", "egg", "tegg", "prize"] : r in ["xp25", "xp50", "cur20", "brew", "attack", "egg", "prize", "g1", "g2", "g3", "g4"])
+          return (golden ? r in ["xp500", "egg", "tegg", "prize"] : r in ["xp25", "xp50", "cur20", "brew", "attack", "egg", "prize"])
             && now("doorXP", 0) == was("doorXP", 0) + add
-            && now("candyBonus", 0) == was("candyBonus", 0) + {"cur20": 20, "g1": 75, "g2": 25}.get(r, 0)
-            && plusOneIf("brews", r == "brew" || r == "g2") && plusOneIf("extraAttacks", r == "attack" || r == "g3") && plusOneIf("doorEggs", r == "egg" || r == "g3")
+            && now("candyBonus", 0) == was("candyBonus", 0) + (r == "cur20" ? 20 : 0)
+            && plusOneIf("brews", r == "brew") && plusOneIf("extraAttacks", r == "attack") && plusOneIf("doorEggs", r == "egg")
             && (r == "tegg" ? now("themeEggs", []).size() == was("themeEggs", []).size() + 1 : same("themeEggs", []))
-            && (r == "g4" ? now("goalEggs", []).size() == was("goalEggs", []).size() + 1 : same("goalEggs", []))
             && (r == "prize"
                   ? (log.size() == was("spinLog", []).size() + 1
                      && log[log.size() - 1].id == "prize" && log[log.size() - 1].get("src", "") == "door"
@@ -184,7 +182,7 @@ service cloud.firestore {
         }
         function doorNoReward() {
           return same("doorXP", 0) && same("candyBonus", 0) && same("brews", 0) && same("extraAttacks", 0) && same("doorEggs", 0)
-            && same("themeEggs", []) && same("goalEggs", []) && same("spinLog", []) && same("xpPrize", 0);
+            && same("themeEggs", []) && same("spinLog", []) && same("xpPrize", 0);
         }
         function studentDoor() {
           let parts = now("lastDoor", "").split("/");
@@ -198,7 +196,7 @@ service cloud.firestore {
           let ne = nday.get(di, {"st": "none"});
           return klass().get("doorsOn", false) == true && battleMode()
             && parts.size() == 2
-            && changed().hasOnly(["doors", "lastDoor", "doorXP", "candyBonus", "brews", "extraAttacks", "doorEggs", "themeEggs", "goalEggs", "spinLog", "xpPrize"])
+            && changed().hasOnly(["doors", "lastDoor", "doorXP", "candyBonus", "brews", "extraAttacks", "doorEggs", "themeEggs", "spinLog", "xpPrize"])
             && nd.diff(od).affectedKeys().hasOnly([dk])
             && nday.diff(oday).affectedKeys().hasOnly([di])
             && ne.get("ordered", false) == false
@@ -209,10 +207,8 @@ service cloud.firestore {
 
         // ---- Creature Collector ---- hatching, levelling, releasing, and the arena and trading "ready" switches.
         function studentCollect() {
-          return changed().hasOnly(["coll", "starter", "pullsUsed", "legendaryUsed", "birthdayUsed", "xpSpent", "xpReleased", "arenaReady", "tradeReady", "dex", "spares", "themeUsed", "goalUsed"])
+          return changed().hasOnly(["coll", "starter", "pullsUsed", "legendaryUsed", "birthdayUsed", "xpSpent", "xpReleased", "arenaReady", "tradeReady", "dex", "spares", "themeUsed"])
             && now("themeUsed", 0) >= was("themeUsed", 0) && now("themeUsed", 0) <= was("themeUsed", 0) + 1
-            && now("goalUsed", 0) >= was("goalUsed", 0) && now("goalUsed", 0) <= was("goalUsed", 0) + 1
-            && now("goalUsed", 0) <= was("goalEggs", []).size()
             && now("themeUsed", 0) <= was("themeEggs", []).size()
             // releasing a creature: up to 300 XP back, and only when a creature or a spare is actually removed
             && now("xpReleased", 0) >= was("xpReleased", 0) && now("xpReleased", 0) <= was("xpReleased", 0) + 300

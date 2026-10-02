@@ -626,7 +626,7 @@
 /* pinned badge + badge pop-up + level-100 companions */
 .tile .pinbadge{ position:absolute; top:4px; left:4px; width:46px; height:46px; object-fit:contain; z-index:3; filter:drop-shadow(0 2px 3px rgba(0,0,0,.25)); }
 .mypet{ position:relative; }
-.pinbadge.mine{ position:absolute; top:8px; left:8px; width:64px; height:64px; object-fit:contain; z-index:3; filter:drop-shadow(0 2px 4px rgba(0,0,0,.25)); }
+.pinbadge.mine{ position:absolute; top:8px; right:8px; width:64px; height:64px; object-fit:contain; z-index:3; filter:drop-shadow(0 2px 4px rgba(0,0,0,.25)); }
 .crpet{ width:1em; height:1em; object-fit:contain; display:inline-block; vertical-align:bottom; margin:0 .125em; }
 .pick .crg .crpet{ width:64px; height:64px; margin:0; }
 .bdg{ position:relative; }
@@ -938,5 +938,3 @@ td .emo, .ic .emo{ display:inline-block; vertical-align:middle; font-size:1.3em;
   .goalgrid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:6px 12px; }
   .goalrow{ display:flex; align-items:center; justify-content:space-between; gap:8px; background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:4px 8px; font-size:13.5px; }
   .goalrow select{ max-width:120px; }
-  /* Goal Present (Goal Subject doors) */
-  .presentbox.goalp{ box-shadow:0 0 0 4px #3D7FE0, 0 0 40px rgba(61,127,224,.55); }
