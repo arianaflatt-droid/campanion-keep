@@ -1,19 +1,19 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261001t";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261001t";
-import { cpEarnedCalc } from "./room.js?v=20261001t";
-import { GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, waitingDoors, doorXPRows, REWARD_XP } from "./doors.js?v=20261001t";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261001t";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261002a";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261002a";
+import { cpEarnedCalc } from "./room.js?v=20261002a";
+import { GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, waitingDoors, doorXPRows, REWARD_XP } from "./doors.js?v=20261002a";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261002a";
 import {
   applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261001t";
-import { staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261001t";
+} from "./game.js?v=20261002a";
+import { staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261002a";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef
-} from "./db.js?v=20261001t";
+} from "./db.js?v=20261002a";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -627,7 +627,7 @@ function viewDoors() {
   // Goal subjects: "your Goal Subject" in a door shows each student's own subject
   const team = students.filter(x => x.companionId), unset = team.filter(x => !x.goalSubject).length;
   h += '<details class="goalsubs" style="margin-top:14px;"' + (busy.goalOpen ? " open" : "") + '><summary data-act="goalOpen"><b>\u{1F3AF} Goal subjects</b> <span class="muted small">' + (unset ? unset + " not set yet" : "all set") + "</span></summary>" +
-    '<p class="muted small" style="margin:6px 0;">A door that says <b>your Goal Subject</b> shows each student\u2019s own subject (e.g. \u201cEarn 60 XP in Math\u201d).</p>' +
+    '<p class="muted small" style="margin:6px 0;">A door that says <b>your Goal Subject</b> shows each student\u2019s own subject (e.g. \u201cEarn 50 XP in Math\u201d).</p>' +
     '<div class="row" style="margin-bottom:8px;gap:6px;align-items:center;"><span class="small">Set everyone to:</span><select id="goalAll"><option value="">Choose\u2026</option>' + GOAL_SUBJECTS.map(g => "<option>" + esc(g) + "</option>").join("") + '</select><span class="muted small">(only students with no subject yet)</span></div>' +
     '<div class="goalgrid">' + team.map(x => '<label class="goalrow"><span>' + esc(x.name) + '</span><select data-goalsub="' + x.id + '"><option value="">\u2014</option>' +
       GOAL_SUBJECTS.map(g => '<option' + (x.goalSubject === g ? " selected" : "") + ">" + esc(g) + "</option>").join("") + "</select></label>").join("") + "</div></details>";

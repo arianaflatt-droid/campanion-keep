@@ -8,8 +8,8 @@
    Saved on the student: doors = { "YYYY-MM-DD": { "0": { st: "wait"|"ok"|"no"|"open", at, r }, g: { st: "open", r } } }
    plus lastDoor = "YYYY-MM-DD/<door>" (which door the last save touched; the save rules check it).
    Class: doorsOn (on/off), doorList (default list), doorDays = { "YYYY-MM-DD": [..] } (one-day lists). */
-import { azToday } from "./collect.js?v=20261001t";
-import { SEASON, eventMode, esc } from "./game.js?v=20261001t";
+import { azToday } from "./collect.js?v=20261002a";
+import { SEASON, eventMode, esc } from "./game.js?v=20261002a";
 
 // A door that starts with "!" is always open (not locked behind the first doors). The "!" isn't shown.
 export const DOOR_DEFAULT = [
@@ -18,7 +18,7 @@ export const DOOR_DEFAULT = [
   "Get 25 Reading XP",
   "Get 25 Language XP",
   "Close your Fast Math Ring",
-  "Earn 60 XP in your Goal Subject",
+  "Earn 50 XP in your Goal Subject",
   "Earn 75 XP in your Goal Subject",
   "Earn 100 XP in your Goal Subject",
   "Earn 125 XP in your Goal Subject",
@@ -26,6 +26,7 @@ export const DOOR_DEFAULT = [
 ];
 // Earlier default lists: a class still using one of these gets the new default automatically.
 const OLD_DEFAULTS = [
+  ["!Earn 25 XP Before School Starts", "Get 25 Math XP", "Get 25 Reading XP", "Get 25 Language XP", "Close your Fast Math Ring", "Earn 60 XP in your Goal Subject", "Earn 75 XP in your Goal Subject", "Earn 100 XP in your Goal Subject", "Earn 125 XP in your Goal Subject", "Earn 240 XP today"],
   ["!Earn 25 XP Before School Starts", "Get 25 Math XP", "Get 25 Reading XP", "Get 25 Language XP", "Close your Fast Math Ring", "Close your Vocab Ring", "Close your Science or Writing Ring", "Earn 240 XP today", "Close all Rings", "Earn 25 extra XP in Math, Language or Reading (close ALL 3 first)"],
   ["Get 25 Math XP", "Get 25 Reading XP", "Get 25 Language XP", "Close your Fast Math Ring", "Close your Vocab Ring", "Close your Science or Writing Ring", "Earn 240 XP today", "Close all Rings", "Earn 25 extra XP in Math, Language or Reading (close ALL 3 first)"]
 ].map(l => JSON.stringify(l));
@@ -93,7 +94,7 @@ export const GOLDEN_ODDS = [
 ];
 export const THEME_EGG_CHANCE = 0.2;
 /* Goal Subject doors: a guaranteed "Goal Present" instead of a random one. The tier comes from the XP in the door's text
-   ("Earn 60 XP in your Goal Subject" = tier 1 ... 125 = tier 4).
+   ("Earn 50 XP in your Goal Subject" = tier 1 ... 125 = tier 4).
    g1: +75 candy, +20 CP · g2: event snack, +25 candy, +20 CP · g3: extra boss attack, an egg, +20 CP
    g4: a Rare-or-better egg (1% chance it's the season's event Legendary instead), +40 CP */
 export function goalTier(task) {
