@@ -61,7 +61,8 @@ service cloud.firestore {
                 || (now("equipped", null) == "pilgrim" && (turkeyBeaten() || was("pilgrimHat", false) == true))
                 || (now("equipped", null) == "piesnack" && turkeyBeaten())
                 || (now("equipped", null) == "antlers" && (grinchBeaten() || was("antlersHat", false) == true))
-                || (now("equipped", null) == "cocoasnack" && grinchBeaten()))
+                || (now("equipped", null) == "cocoasnack" && grinchBeaten())
+                || (now("equipped", null) == "xmashat" && request.time.month() in [12, 1]))   // Aurora's Christmas Hat: December & January
             && (now("sidekick", "axolotl") in ["axolotl", "duck"]
                 || (now("sidekick", "axolotl") == "ghost" && ghostBeaten())
                 || (now("sidekick", "axolotl") == "turkey" && turkeyBeaten())

@@ -1,5 +1,5 @@
 // Creature Collector: pulls, XP bank, levels, evolutions, lorebook and arena battles.
-import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261002h";
+import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261002j";
 
 export const PULL_XP = 120;          // every 120 XP (all-time since the collector started) = 1 pull
 export const LEVEL_XP = 120;         // 120 banked XP = 1 level
@@ -214,10 +214,11 @@ function rollEvent(st, cls) {
 /* ---------- the teacher's own collection ----------
    Saved on the class doc (cls.teacher). Each finalized day gives the teacher 1 egg for every student who hit 120 XP,
    and TEACHER_XP_PER_MISS banked XP for every student who didn't (excused days don't count).
-   Her eggs can also hatch Legendaries (0.05%). She shows up in the arena as "Ms. Ariana" and can battle students. */
+   Her eggs hatch a Legendary 25% of the time. She shows up in the arena as "Ms. Ariana" and can battle students. */
 export const TEACHER_ID = "teacher";
 export const TEACHER_XP_PER_MISS = 120;   // one level per student who missed 120
-export const TEACHER_ODDS = [["Common", 0.6995], ["Uncommon", 0.20], ["Rare", 0.08], ["Super Rare", 0.02], ["Legendary", 0.0005]];
+// The teacher's eggs: a 25% chance at a Legendary (the rest keeps the normal 70:20:8:2 split).
+export const TEACHER_ODDS = [["Common", 0.525], ["Uncommon", 0.15], ["Rare", 0.06], ["Super Rare", 0.015], ["Legendary", 0.25]];
 export function teacherPlayer(cls, name) {
   const t = (cls && cls.teacher) || {};
   return { id: TEACHER_ID, isTeacher: true, name: name || t.name || "Ms. Ariana", companionId: "teacher", coll: t.coll || {},
