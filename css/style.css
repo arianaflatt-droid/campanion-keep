@@ -626,7 +626,7 @@
 /* pinned badge + badge pop-up + level-100 companions */
 .tile .pinbadge{ position:absolute; top:4px; left:4px; width:46px; height:46px; object-fit:contain; z-index:3; filter:drop-shadow(0 2px 3px rgba(0,0,0,.25)); }
 .mypet{ position:relative; }
-.pinbadge.mine{ position:absolute; top:8px; right:8px; width:64px; height:64px; object-fit:contain; z-index:3; filter:drop-shadow(0 2px 4px rgba(0,0,0,.25)); }
+.pinbadge.mine{ position:absolute; top:8px; left:8px; width:64px; height:64px; object-fit:contain; z-index:3; filter:drop-shadow(0 2px 4px rgba(0,0,0,.25)); }
 .crpet{ width:1em; height:1em; object-fit:contain; display:inline-block; vertical-align:bottom; margin:0 .125em; }
 .pick .crg .crpet{ width:64px; height:64px; margin:0; }
 .bdg{ position:relative; }
