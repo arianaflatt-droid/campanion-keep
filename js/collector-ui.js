@@ -2,15 +2,15 @@
 import {
   CREATURES, FAMILIES, creature, family, xpTotal, pullsLeft, legendaryLeft, bankXP, xpToNextPull, owned, ownedFams, hasStarter,
   formIndex, formOf, statsOf, seenSet, rollRarity, doPull, arenaOpen, arenaOpenFor, lunchHour, hitGoalToday, LUNCH_ARENA, ARENA_HOURS, fighterFrom, teamSize, alive, resolve, resolveRound, moveOk, MOVES, hitDamage,
-  birthdayLeft, themeLeft, nextTheme, THEME_TYPES, THEME_EGG, WISH_FAM, spares, spareId, releaseXP, releaseProblem, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
+  birthdayLeft, goalLeft, nextGoal, rollRareUp, themeLeft, nextTheme, THEME_TYPES, THEME_EGG, WISH_FAM, spares, spareId, releaseXP, releaseProblem, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
   EVENTS, eventOpen, eventWindow, eventStreak, hasEvent, eventUnlocked, azToday, rollTeacherRarity, TEACHER_ODDS, LIVE, staleBattle
-} from "./collect.js?v=20261001s";
-import { newBattleRef, changeBattle as changeBattleRaw, setDoc, liveBattlesNow } from "./db.js?v=20261001s";
+} from "./collect.js?v=20261001t";
+import { newBattleRef, changeBattle as changeBattleRaw, setDoc, liveBattlesNow } from "./db.js?v=20261001t";
 // every change to a battle is stamped with the time (upd), so a battle nobody has touched in a while can be ended
 let locking = null, leaving = null;   // battle id while "Lock in team" is saving
 const changeBattle = (id, fn) => changeBattleRaw(id, bt => { const n = fn(bt); if (n) n.upd = new Date().toISOString(); return n; });
 
-import { tradeCard } from "./trade-ui.js?v=20261001s";
+import { tradeCard } from "./trade-ui.js?v=20261001t";
 
 const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const PER_PAGE = 20;
@@ -44,6 +44,7 @@ export function collectorTab(c) {
     (leg ? stat("\u{1F31F}", leg, "legendary egg" + (leg === 1 ? "" : "s")) : "") +
     (birthdayLeft(s) ? stat("\u{1F382}", birthdayLeft(s), "birthday egg" + (birthdayLeft(s) === 1 ? "" : "s")) : "") +
     (themeLeft(s) ? stat("\u2728", themeLeft(s), "event egg" + (themeLeft(s) === 1 ? "" : "s")) : "") +
+    (goalLeft(s) ? stat("\u{1F3AF}", goalLeft(s), "Goal egg" + (goalLeft(s) === 1 ? "" : "s") + " (Rare+)") : "") +
     stat("⭐", bank.toLocaleString(), "XP in your bank") +
     stat("\u{1F4D6}", seen.size + " / " + CREATURES.length, "in your lorebook") + "</div>" +
     (s.isTeacher
@@ -52,6 +53,7 @@ export function collectorTab(c) {
     '<div class="row"><button class="btn big" data-cc="hatch"' + (pulls ? "" : " disabled") + ">\u{1F95A} Hatch an egg</button>" +
     (leg ? '<button class="btn big gold" data-cc="hatchLeg">\u{1F31F} Hatch a legendary egg</button>' : "") +
     (birthdayLeft(s) ? '<button class="btn big bday" data-cc="hatchBday">\u{1F382} Hatch your birthday egg!</button>' : "") +
+    (goalLeft(s) ? '<button class="btn big gold" data-cc="hatchGoal">\u{1F3AF} Hatch a Goal egg' + (goalLeft(s) > 1 ? " (" + goalLeft(s) + ")" : "") + "</button>" : "") +
     (themeLeft(s) ? '<button class="btn big gold" data-cc="hatchTheme"><img src="assets/egg-' + nextTheme(s) + '.webp" alt="" style="height:1.5em;vertical-align:middle;margin:-4px 4px -4px 0;">Hatch your ' + THEME_EGG[nextTheme(s)] + "!</button>" : "") +
     '<button class="btn ghost big" data-cc="book">\u{1F4D6} Open lorebook</button></div>' +
     '<p class="muted" style="margin-top:8px;">Egg odds: ' + (s.isTeacher ? TEACHER_ODDS : ODDS).map(([r, p]) => r + " " + (p < 0.01 ? (p * 100).toFixed(2) : Math.round(p * 100)) + "%").join(" · ") + "</p></div>";
@@ -459,6 +461,16 @@ export async function onClick(el, c) {
   ctx = c;
   const a = el.dataset.cc, s = c.me;
   if (a === "starter") { if (hasStarter(s)) return; return c.patch({ coll: { [el.dataset.fam]: { lvl: 1, at: new Date().toISOString() } }, starter: el.dataset.fam }); }
+  if (a === "hatchGoal") {
+    const key = nextGoal(s); if (!goalLeft(s) || !key) return;
+    const res = key === "rare" ? doPull(s, rollRareUp(), c.cls) : doPull(s, "Legendary", c.cls, { force: key });
+    hatch = { phase: "shake", res, legendary: key !== "rare" };
+    hold(3200); c.render(true);
+    c.patch({ coll: res.coll, goalUsed: (Number(s.goalUsed) || 0) + 1 }, true);
+    later(1900, () => { hatch.phase = "crack"; hold(1400); });
+    later(2800, () => { hatch.phase = "reveal"; busyUntil = 0; });
+    return;
+  }
   if (a === "hatchTheme") {
     const key = nextTheme(s); if (!themeLeft(s) || !key) return;
     const res = doPull(s, rollRarity(), c.cls, { types: THEME_TYPES[key] || [] });

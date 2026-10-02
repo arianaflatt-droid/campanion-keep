@@ -1,5 +1,5 @@
 // Creature Collector: pulls, XP bank, levels, evolutions, lorebook and arena battles.
-import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261001s";
+import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261001t";
 
 export const PULL_XP = 120;          // every 120 XP (all-time since the collector started) = 1 pull
 export const LEVEL_XP = 120;         // 120 banked XP = 1 level
@@ -80,6 +80,11 @@ export function bankXP(st, cls) { return Math.max(0, xpTotal(st, cls) + (Number(
 // Each one hatches a creature of that event's types (normal rarity odds).
 export const THEME_TYPES = { haunt: ["Ghost"], gobble: ["Nature"], jingle: ["Ice", "Light"] };
 export const THEME_EGG = { haunt: "Haunt-O-Ween egg", gobble: "Gobble-Palooza egg", jingle: "Jingle egg" };
+// Goal eggs (from a 125 XP Goal Subject door): st.goalEggs = ["rare" | event Legendary family id], st.goalUsed = hatched.
+export function goalLeft(st) { return Math.max(0, ((st && st.goalEggs) || []).length - (Number(st && st.goalUsed) || 0)); }
+export function nextGoal(st) { return ((st && st.goalEggs) || [])[Number(st && st.goalUsed) || 0] || null; }
+// Rare or better: Rare 80%, Super Rare 20% (the same 8:2 split as normal eggs).
+export function rollRareUp() { return Math.random() < 0.8 ? "Rare" : "Super Rare"; }
 export function themeLeft(st) { return Math.max(0, ((st && st.themeEggs) || []).length - (Number(st && st.themeUsed) || 0)); }
 export function nextTheme(st) { return ((st && st.themeEggs) || [])[Number(st && st.themeUsed) || 0] || null; }
 /* ---------- releasing ----------

@@ -8,8 +8,8 @@
    Saved on the student: doors = { "YYYY-MM-DD": { "0": { st: "wait"|"ok"|"no"|"open", at, r }, g: { st: "open", r } } }
    plus lastDoor = "YYYY-MM-DD/<door>" (which door the last save touched; the save rules check it).
    Class: doorsOn (on/off), doorList (default list), doorDays = { "YYYY-MM-DD": [..] } (one-day lists). */
-import { azToday } from "./collect.js?v=20261001s";
-import { SEASON, eventMode, esc } from "./game.js?v=20261001s";
+import { azToday } from "./collect.js?v=20261001t";
+import { SEASON, eventMode, esc } from "./game.js?v=20261001t";
 
 // A door that starts with "!" is always open (not locked behind the first doors). The "!" isn't shown.
 export const DOOR_DEFAULT = [
@@ -92,8 +92,29 @@ export const GOLDEN_ODDS = [
   { id: "prize", p: 1 / 3 }
 ];
 export const THEME_EGG_CHANCE = 0.2;
+/* Goal Subject doors: a guaranteed "Goal Present" instead of a random one. The tier comes from the XP in the door's text
+   ("Earn 60 XP in your Goal Subject" = tier 1 ... 125 = tier 4).
+   g1: +75 candy, +20 CP · g2: event snack, +25 candy, +20 CP · g3: extra boss attack, an egg, +20 CP
+   g4: a Rare-or-better egg (1% chance it's the season's event Legendary instead), +40 CP */
+export function goalTier(task) {
+  const m = /(\d+)\s*XP\s+in\s+your\s+goal\s+subject/i.exec(String(task || ""));
+  if (!m) return 0;
+  const n = Number(m[1]);
+  return n >= 125 ? 4 : n >= 100 ? 3 : n >= 75 ? 2 : 1;
+}
+export const GOAL_CP = { g1: 20, g2: 20, g3: 20, g4: 40 };
+export const GOAL_CANDY = { g1: 75, g2: 25 };
+export const GOAL_LEG_CHANCE = 0.01;
+export const SEASON_LEGENDARY = { haunt: "L-27", gobble: "L-29", jingle: "L-30" };
+// Comfort Points from opened Goal Presents (added to Comfort Points by the teacher console).
+export function goalCP(st) {
+  let n = 0;
+  Object.values((st && st.doors) || {}).forEach(day => Object.values(day || {}).forEach(e => { if (e && e.st === "open" && e.r && GOAL_CP[e.r.id]) n += GOAL_CP[e.r.id]; }));
+  return n;
+}
 function roll(list) { let r = Math.random(); for (const x of list) { if (r < x.p) return x; r -= x.p; } return list[list.length - 1]; }
-export function rollPresent(golden) {
+export function rollPresent(golden, tier) {
+  if (!golden && tier) return tier === 4 ? { id: "g4", leg: Math.random() < GOAL_LEG_CHANCE } : { id: "g" + tier };
   const x = roll(golden ? GOLDEN_ODDS : PRESENT_ODDS);
   if (x.id === "gegg") return { id: Math.random() < THEME_EGG_CHANCE ? "tegg" : "egg" };
   return { id: x.id };
@@ -109,6 +130,12 @@ export function rewardText(r, S) {
     case "egg": return { icon: "\u{1F95A}", big: "A creature egg!", sub: "Hatch it in the Creature Collector." };
     case "tegg": return { icon: "✨", big: "An event egg!", sub: "Hatch it in the Creature Collector — it’s a special " + S.name + " creature!" };
     case "prize": return { icon: "\u{1F3C6}", big: "A Prize Wheel spin!", sub: "Spinning the Prize Wheel…" };
+    case "g1": return { icon: S.coin, big: "+75 " + S.Cur + " & +20 Comfort Points", sub: "Candy is in your " + S.basket + ". Comfort Points are for your room!" };
+    case "g2": return { icon: S.brewIcon, big: S.brewName + ", +25 " + S.Cur + " & +20 Comfort Points", sub: "Your next attack does +10 damage. Comfort Points are for your room!" };
+    case "g3": return { icon: "⚔️", big: "Extra attack, an egg & +20 Comfort Points", sub: "One more attack on the " + S.boss + " and an egg to hatch in the Creature Collector!" };
+    case "g4": return r.leg
+      ? { icon: "\u{1F31F}", big: "A LEGENDARY egg!!", sub: "WOW \u2014 1 in 100! It hatches the " + S.name + " Legendary early. +40 Comfort Points too!" }
+      : { icon: "\u{1F3AF}", big: "A Rare-or-better egg & +40 Comfort Points", sub: "Hatch your Goal egg in the Creature Collector \u2014 it\u2019s at least Rare!" };
     default: return { icon: "\u{1F381}", big: "A present", sub: "" };
   }
 }
