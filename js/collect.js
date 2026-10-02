@@ -1,5 +1,5 @@
 // Creature Collector: pulls, XP bank, levels, evolutions, lorebook and arena battles.
-import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261002g";
+import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261002h";
 
 export const PULL_XP = 120;          // every 120 XP (all-time since the collector started) = 1 pull
 export const LEVEL_XP = 120;         // 120 banked XP = 1 level
@@ -332,7 +332,8 @@ export function arenaOpenFor(st, cls, date) {
 export function fighterFrom(st, fam) {
   const e = owned(st)[fam]; if (!e) return null;
   const c = formOf(fam, e.lvl || 1), s = statsOf(c, e.lvl || 1);
-  return { fam, id: c.id, lvl: e.lvl || 1, name: e.nick || c.name, species: c.name, img: e.sparkle ? sparkleImg(c) : c.img, sparkle: !!e.sparkle, face: c.face || "R", type: c.types[0], types: c.types, weak: c.weak, attack: c.attack, hp: s.hp, df: s.df, dmg: s.dmg, cur: s.hp, dodge: c.dodge || 0 };
+  return { fam, id: c.id, lvl: e.lvl || 1, name: e.nick || c.name, species: c.name, img: e.sparkle ? sparkleImg(c) : c.img, sparkle: !!e.sparkle, face: c.face || "R", type: c.types[0], types: c.types, weak: c.weak, attack: c.attack, hp: s.hp, df: s.df, dmg: s.dmg, cur: s.hp, dodge: c.dodge || 0,
+    daze: c.daze || 0, dazePct: c.dazePct || 0, alt: c.alt ? { name: c.alt.name, mult: c.alt.mult, heal: c.alt.heal } : null };
 }
 export function teamSize(a, b) { return Math.max(0, Math.min(TEAM_MAX, ownedFams(a).length, ownedFams(b).length)); }
 export function hitDamage(att, def, crit) {
@@ -354,12 +355,14 @@ export const MOVES = {
   power:  { icon: "\u{1F4A5}", name: "Power Move", mult: 1.5, hit: 0.75 },
   guard:  { icon: "\u{1F6E1}\uFE0F", name: "Guard" },
   heal:   { icon: "\u{1F49A}", name: "Heal", pct: 0.35 },
-  swap:   { icon: "\u{1F504}", name: "Swap" }
+  swap:   { icon: "\u{1F504}", name: "Swap" },
+  alt:    { icon: "\u2728", name: "Special" }   // a creature's own second attack (e.g. Cinnamon's Sugar Rush)
 };
 export function moveOk(bt, side, mv) {
   const team = bt.team && bt.team[side], cur = team && team[bt.active[side]];
   if (!mv || !MOVES[mv.m] || !cur || cur.cur <= 0) return false;
   if (mv.m === "heal") return !cur.healed && cur.cur < cur.hp;
+  if (mv.m === "alt") return !!cur.alt;
   if (mv.m === "swap") return Number.isInteger(mv.to) && mv.to !== bt.active[side] && team[mv.to] && team[mv.to].cur > 0;
   return true;
 }
@@ -380,17 +383,25 @@ export function resolveRound(bt) {
     if (m.m === "guard") { guard[s] = true; bt.log.push({ k: "guard", s, i: bt.active[s], n: f.name }); } });
   // 3. attacks, in order; a creature that faints first doesn't get to hit
   for (const s of order) {
-    const m = mv[s], o = other(s); if (!m || (m.m !== "attack" && m.m !== "power")) continue;
+    const m = mv[s], o = other(s); if (!m || (m.m !== "attack" && m.m !== "power" && m.m !== "alt")) continue;
     const att = bt.team[s][bt.active[s]], def = bt.team[o][bt.active[o]];
     if (!att || !def || att.cur <= 0 || def.cur <= 0) continue;
     const pmiss = m.m === "power" && Math.random() >= MOVES.power.hit, dodged = !pmiss && !!def.dodge && Math.random() < def.dodge;   // speedy creatures (Jett) dodge some hits
     const power = m.m === "power", miss = pmiss || dodged, crit = !miss && Math.random() < CRIT_CHANCE;
     let { dmg, weak } = hitDamage(att, def, crit);
     if (power) dmg = Math.round(dmg * MOVES.power.mult);
+    const alt = m.m === "alt" && att.alt;
+    if (alt) dmg = Math.max(1, Math.round(dmg * (att.alt.mult || 1)));
+    const wasDazed = !!att.dazed;
+    if (wasDazed) { dmg = Math.max(1, Math.round(dmg * (1 - (att.dazed || 0)))); att.dazed = 0; }   // dazzled last round: weaker hit
     if (guard[o]) dmg = Math.max(1, Math.round(dmg / 2));
     if (miss) dmg = 0;
     def.cur = Math.max(0, def.cur - dmg);
-    bt.log.push({ k: "hit", s, ai: bt.active[s], di: bt.active[o], a: att.name, atk: power ? att.attack + " (Power)" : att.attack, d: def.name, dmg, crit, weak: weak && !miss, miss, dodged, power, guarded: !!guard[o], left: def.cur, max: def.hp });
+    bt.log.push({ k: "hit", s, ai: bt.active[s], di: bt.active[o], a: att.name, atk: power ? att.attack + " (Power)" : alt ? att.alt.name : att.attack, d: def.name, dmg, crit, weak: weak && !miss, miss, dodged, power, dazedHit: wasDazed, guarded: !!guard[o], left: def.cur, max: def.hp });
+    // Cinnamon Swirl: a chance to dazzle the target so its next attack is weaker
+    if (!miss && m.m === "attack" && att.daze && def.cur > 0 && Math.random() < att.daze) { def.dazed = att.dazePct || 0.15; bt.log.push({ k: "daze", s, d: def.name, pct: Math.round((att.dazePct || 0.15) * 100) }); }
+    // Sugar Rush: heals the attacker a little
+    if (alt && att.alt.heal && att.cur < att.hp) { const amt = Math.min(att.hp - att.cur, Math.round(att.hp * att.alt.heal)); att.cur += amt; bt.log.push({ k: "heal", s, i: bt.active[s], n: att.name, amt, left: att.cur, max: att.hp, alt: true }); }
     if (def.cur <= 0) {
       bt.log.push({ k: "faint", s: o, i: bt.active[o], n: def.name });
       bt.active[o] = null;

@@ -4,13 +4,13 @@ import {
   formIndex, formOf, statsOf, seenSet, rollRarity, doPull, arenaOpen, arenaOpenFor, lunchHour, hitGoalToday, LUNCH_ARENA, ARENA_HOURS, fighterFrom, teamSize, alive, resolve, resolveRound, moveOk, MOVES, hitDamage,
   birthdayLeft, goalLeft, nextGoal, rollRareUp, themeLeft, nextTheme, THEME_TYPES, THEME_EGG, WISH_FAM, spares, spareId, releaseXP, releaseProblem, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
   EVENTS, eventOpen, eventWindow, eventStreak, hasEvent, eventUnlocked, azToday, rollTeacherRarity, TEACHER_ODDS, LIVE, staleBattle
-} from "./collect.js?v=20261002g";
-import { newBattleRef, changeBattle as changeBattleRaw, setDoc, liveBattlesNow } from "./db.js?v=20261002g";
+} from "./collect.js?v=20261002h";
+import { newBattleRef, changeBattle as changeBattleRaw, setDoc, liveBattlesNow } from "./db.js?v=20261002h";
 // every change to a battle is stamped with the time (upd), so a battle nobody has touched in a while can be ended
 let locking = null, leaving = null;   // battle id while "Lock in team" is saving
 const changeBattle = (id, fn) => changeBattleRaw(id, bt => { const n = fn(bt); if (n) n.upd = new Date().toISOString(); return n; });
 
-import { tradeCard } from "./trade-ui.js?v=20261002g";
+import { tradeCard } from "./trade-ui.js?v=20261002h";
 
 const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const PER_PAGE = 20;
@@ -311,7 +311,9 @@ function detailPage(c, seen) {
     '<p class="dline"><b>Weak to:</b> ' + esc(c.weak.join(", ")) + " (takes double damage)</p>" +
     (c.title ? '<p class="dline"><i>' + esc(c.title) + "</i>" + (c.event ? ' <span class="rpill" style="background:#2B6FD6">\u{1F986} Limited event</span>' : "") + "</p>" : "") +
     '<p class="dline"><b>' + (c.move ? "Signature move" : "Attack") + ":</b> " + esc(c.attack) + "</p>" + (c.move ? '<p class="dline muted">' + esc(c.move) + "</p>" : "") +
-    (c.dodge ? '<p class="dline"><b>\u{1F4A8} Speedy:</b> dodges ' + Math.round(c.dodge * 100) + "% of attacks in battle</p>" : "") + "</div></div>" +
+    (c.dodge ? '<p class="dline"><b>\u{1F4A8} Speedy:</b> dodges ' + Math.round(c.dodge * 100) + "% of attacks in battle</p>" : "") +
+    (c.daze ? '<p class="dline"><b>\u2728 Dazzle:</b> ' + Math.round(c.daze * 100) + "% chance to make the opponent\u2019s next attack " + Math.round((c.dazePct || 0) * 100) + "% weaker</p>" : "") +
+    (c.alt ? '<p class="dline"><b>Second attack:</b> ' + esc(c.alt.name) + " \u2014 a bit less damage, and heals " + Math.round((c.alt.heal || 0) * 100) + "% of her HP</p>" + (c.alt.desc ? '<p class="dline muted">' + esc(c.alt.desc) + "</p>" : "") : "") + "</div></div>" +
     '<div class="dstats"><span>❤ HP <b>' + st.hp + "</b></span><span>\u{1F6E1} Defense <b>" + st.df + "</b></span><span>⚔ Damage <b>" + st.dmg + "</b></span><span>Lv <b>" + (cur ? lvl : 1) + "</b></span></div>" +
     '<p class="muted" style="text-align:center;margin:2px 0 8px;">' + (cur ? "Your creature’s stats at level " + lvl : "Stats at level 1") + " · grows +" + c.ghp + " HP, +" + c.gdf + " DEF, +" + c.gdmg + " DMG per level</p>";
   if (fam.forms.length > 1) h += '<div class="dchain">' + fam.forms.map((id, i) => { const f = creature(id), got = seen.has(id);
@@ -333,10 +335,11 @@ function viewState(bt, k) {
     if (e.k === "coin") st.line = "\u{1FA99} Coin flip: " + esc(e.s === "A" ? bt.a.name : bt.b.name) + " goes first!";
     if (e.k === "send") { st[e.s].i = e.i; st.line = esc(e.who) + " sends out <b>" + esc(e.n) + "</b>!"; }
     if (e.k === "hit") { const o = e.s === "A" ? "B" : "A"; st[o].hp[e.di] = e.left; st[e.s].i = e.ai; st[o].i = e.di; st.last = e;
-      st.line = "<b>" + esc(e.a) + "</b> used " + esc(e.atk) + "! " + (e.dodged ? "\u{1F4A8} " + esc(e.d) + " zoomed out of the way!" : e.miss ? "It missed!" : (e.crit ? "\u{1F4A5} Critical hit! " : "") + (e.weak ? "It’s super effective! " : "") + (e.guarded ? "\u{1F6E1}\uFE0F Guarded! " : "") + e.dmg + " damage."); }
+      st.line = "<b>" + esc(e.a) + "</b> used " + esc(e.atk) + "! " + (e.dodged ? "\u{1F4A8} " + esc(e.d) + " zoomed out of the way!" : e.miss ? "It missed!" : (e.crit ? "\u{1F4A5} Critical hit! " : "") + (e.weak ? "It’s super effective! " : "") + (e.guarded ? "\u{1F6E1}\uFE0F Guarded! " : "") + (e.dazedHit ? "(Still dazzled \u2014 weaker!) " : "") + e.dmg + " damage."); }
     if (e.k === "swap") { st[e.s].i = e.i; st.line = "\u{1F504} " + esc(e.who) + " swaps " + esc(e.from) + " for <b>" + esc(e.n) + "</b>!"; }
     if (e.k === "heal") { st[e.s].hp[e.i] = e.left; st[e.s].i = e.i; st.line = "\u{1F49A} <b>" + esc(e.n) + "</b> healed " + e.amt + " HP!"; }
     if (e.k === "guard") { st[e.s].i = e.i; st.line = "\u{1F6E1}\uFE0F <b>" + esc(e.n) + "</b> is guarding!"; }
+    if (e.k === "daze") st.line = "\u2728 <b>" + esc(e.d) + "</b> is dazzled! Its next attack does " + e.pct + "% less damage.";
     if (e.k === "faint") st.line = "<b>" + esc(e.n) + "</b> fainted!";
     if (e.k === "forfeit") st.line = "\u{1F3F3}\uFE0F " + esc(e.who) + " gave up.";
     if (e.k === "win") st.line = "\u{1F3C6} <b>" + esc(e.s === "A" ? bt.a.name : bt.b.name) + "</b> wins the battle!";
@@ -432,7 +435,7 @@ function battleOverlay() {
 // Pick a move: attack, power move, guard, heal, or swap. Both players pick, then the round plays out.
 function movePanel(bt, me, them, thN) {
   const mine = bt.moves && bt.moves[me], theirs = bt.moves && bt.moves[them];
-  if (mine) return '<div class="bpanel small"><p>' + MOVES[mine.m].icon + " You picked <b>" + (mine.m === "swap" ? "Swap to " + esc(bt.team[me][mine.to].name) : MOVES[mine.m].name) + "</b>. Waiting for " + esc(thN) + "\u2026</p>" +
+  if (mine) return '<div class="bpanel small"><p>' + MOVES[mine.m].icon + " You picked <b>" + (mine.m === "swap" ? "Swap to " + esc(bt.team[me][mine.to].name) : mine.m === "alt" ? esc((bt.team[me][bt.active[me]].alt || {}).name || "Special") : MOVES[mine.m].name) + "</b>. Waiting for " + esc(thN) + "\u2026</p>" +
     '<button class="btn ghost small" data-cc="undoMove">Change my move</button></div>';
   const f = bt.team[me][bt.active[me]], o = bt.team[them][bt.active[them]];
   const dmg = hitDamage(f, o, false), back = hitDamage(o, f, false);
@@ -444,7 +447,8 @@ function movePanel(bt, me, them, thN) {
   return '<div class="bpanel"><h3>What will ' + esc(f.name) + " do?</h3>" + (theirs ? '<p class="muted small" style="margin:-4px 0 8px;color:#CFC3E6;">' + esc(thN) + " has picked a move!</p>" : "") +
     (hint ? '<div class="bhints">' + hint + "</div>" : "") +
     '<div class="mvgrid">' +
-      btn("attack", esc(f.attack), "about " + dmg.dmg + " damage", true) +
+      btn("attack", esc(f.attack), "about " + dmg.dmg + " damage" + (f.daze ? " \u00b7 " + Math.round(f.daze * 100) + "% chance to dazzle" : ""), true) +
+      (f.alt ? btn("alt", esc(f.alt.name), "about " + Math.max(1, Math.round(dmg.dmg * (f.alt.mult || 1))) + " damage" + (f.alt.heal ? " \u00b7 heals +" + Math.round(f.hp * f.alt.heal) + " HP" : ""), true) : "") +
       btn("power", "Power Move", "about " + Math.round(dmg.dmg * MOVES.power.mult) + " damage \u00b7 75% to hit", true) +
       btn("guard", "Guard", "take half damage this round", true) +
       btn("heal", "Heal", f.healed ? "already used" : f.cur >= f.hp ? "already full health" : "+" + Math.min(f.hp - f.cur, Math.round(f.hp * MOVES.heal.pct)) + " HP \u00b7 once", !f.healed && f.cur < f.hp) +
