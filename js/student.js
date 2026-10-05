@@ -1,19 +1,19 @@
 import {
   checkVersion, hitOn, gearInSeason, applyDisplayNames, companionOf, petCreatures, pinnedBadgeHTML, DAYS, SHORT, ROSTER, GEAR, SIDEKICKS, BANNER, bannerFor, isHaunt, battleOn, candyOf, basketHTML, CANDY_FULL, bossState, attacksReady, bossBarHTML, GHOST_IMG, ghostUnlocked, turkeyUnlocked, grinchUnlocked, isJingle, eventMode, isGobble, setSeason, SEASON, seasonOf, STORE, candyLeft, candySpent, ownedCount, ownsItem, storeArt, nextAttack, dmgOf, HAT_BONUS, BREW_BONUS, teamHTML, WHEEL, pickSlice, wheelHTML, spinTo, PRIZES, prizeSlices, bucketState, bucketHTML, baseDamage, EAT_PER_DAY, dayEaten, dayXP, byId, esc, arr5, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, sidekickSVG, petHTML, itemArt
-} from "./game.js?v=20261005c";
-import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=20261005c";
-import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261005c";
-import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20261005c";
-import { nudgeCard } from "./nudges.js?v=20261005c";
-import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261005c";
-import { teacherPlayer, hasStarter } from "./collect.js?v=20261005c";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261005c";
-import { goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked } from "./doors.js?v=20261005c";
-import { azToday } from "./collect.js?v=20261005c";
+} from "./game.js?v=20261005d";
+import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=20261005d";
+import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261005d";
+import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20261005d";
+import { nudgeCard } from "./nudges.js?v=20261005d";
+import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261005d";
+import { teacherPlayer, hasStarter } from "./collect.js?v=20261005d";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261005d";
+import { goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked } from "./doors.js?v=20261005d";
+import { azToday } from "./collect.js?v=20261005d";
 import { roomHTML, FIT_SLOTS, slotKind, KIND_NAMES, KIND_ICON, EVERYDAY_PRICE, THEMED_PRICE, TROPHY_PRICE, TYPE_THEMES, SEASON_THEMES, THEME_NAMES, TROPHIES,
-  itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId } from "./room.js?v=20261005c";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261005c";
+  itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId } from "./room.js?v=20261005d";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261005d";
 
 let cls = null, students = [], battles = [], trades = [], loaded = { c: false, s: false };
 let tab = (() => { try { return localStorage.getItem("ck-tab") || "pet"; } catch (e) { return "pet"; } })();
@@ -272,7 +272,7 @@ function viewMine(s) {
   if (legends.length) {
     const base = byId(ROSTER, s.companionId), curId = s.petCreature && legends.some(x => x.fam === s.petCreature) ? s.petCreature : "";
     h += '<div class="card"><div class="card-head"><h2>\u{1F31F} Creature companions</h2><span class="fact">unlocked</span></div>' +
-      '<p class="lede" style="margin-bottom:12px;">Event Legendaries and creatures you got to level 100 can be your companion! Your gear, name and health stay the same.</p>' +
+      '<p class="lede" style="margin-bottom:12px;">Any Legendary you own, and any creature you got to level 100, can be your companion! Your gear, name and health stay the same.</p>' +
       '<div class="pickgrid">' +
       '<button class="pick' + (curId ? "" : " on") + '" data-petcr=""><span class="g">' + base.glyph + '</span><span class="n">' + esc(base.name) + "</span></button>" +
       legends.map(x => '<button class="pick' + (curId === x.fam ? " on" : "") + '" data-petcr="' + x.fam + '"><span class="g crg">' + x.glyph + '</span><span class="n">' + (x.sparkle ? "\u2728 " : "") + esc(x.name) + "</span></button>").join("") +

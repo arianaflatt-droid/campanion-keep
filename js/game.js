@@ -1,9 +1,9 @@
-import { formOf, sparkleImg, azNow } from "./collect.js?v=20261005c";
-import { heldWeapon } from "./quest.js?v=20261005c";
+import { formOf, sparkleImg, azNow } from "./collect.js?v=20261005d";
+import { heldWeapon } from "./quest.js?v=20261005d";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261005c";
+export const APP_V = "20261005d";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -378,7 +378,7 @@ export function creatureCompanion(st, fam) {
   const e = ((st && st.coll) || {})[fam];
   if (!e) return null;
   const c = formOf(fam, e.lvl || 1); if (!c) return null;
-  if ((Number(e.lvl) || 1) < PET_LEVEL && !c.event) return null;
+  if ((Number(e.lvl) || 1) < PET_LEVEL && !c.event && c.rarity !== "Legendary") return null;   // every Legendary can be a companion right away
   const img = e.sparkle ? sparkleImg(c) : c.img;
   return { id: "cr:" + fam, fam, name: c.name, creature: true, sparkle: !!e.sparkle,
     glyph: '<img class="crpet" src="' + img + '" alt="">',

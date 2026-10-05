@@ -1,20 +1,20 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261005c";
-import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261005c";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261005c";
-import { cpEarnedCalc } from "./room.js?v=20261005c";
-import { GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, waitingDoors, doorXPRows, REWARD_XP } from "./doors.js?v=20261005c";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261005c";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261005d";
+import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261005d";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261005d";
+import { cpEarnedCalc } from "./room.js?v=20261005d";
+import { GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, waitingDoors, doorXPRows, REWARD_XP } from "./doors.js?v=20261005d";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261005d";
 import {
   applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261005c";
-import { pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261005c";
+} from "./game.js?v=20261005d";
+import { pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261005d";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef
-} from "./db.js?v=20261005c";
+} from "./db.js?v=20261005d";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -586,9 +586,9 @@ function viewBucket() {
 let prizeHidden = 0;   // "Hide" on the banner hides it until another prize comes in
 function prizeRows() {
   const rows = [];
-  students.forEach(s => (s.spinLog || []).forEach((e, idx) => { if (e.id === "prize") rows.push({ s, e, idx }); }));
-  // XP from Daily Doors presents (already added to their XP)
-  doorXPRows(students).forEach(r => rows.push({ s: r.s, door: r.date + "/" + r.k, e: { ordered: !!r.e.ordered, at: r.e.openedAt || r.e.at, xp: REWARD_XP[r.e.r.id], prizeName: "+" + REWARD_XP[r.e.r.id] + " XP (" + (r.k === "g" ? "Golden Present" : "door " + (Number(r.k) + 1)) + ")", doorXP: true } }));
+  students.forEach(s => (s.spinLog || []).forEach((e, idx) => { if (e.id === "prize" && !(Number(e.xp) > 0)) rows.push({ s, e, idx }); }));   // XP prizes go straight into their XP: nothing to order
+  // XP from Daily Doors presents is already in their XP, so it isn't listed either
+  if (false) doorXPRows(students).forEach(r => rows.push({ s: r.s, door: r.date + "/" + r.k, e: { ordered: !!r.e.ordered, at: r.e.openedAt || r.e.at, xp: REWARD_XP[r.e.r.id], prizeName: "+" + REWARD_XP[r.e.r.id] + " XP (" + (r.k === "g" ? "Golden Present" : "door " + (Number(r.k) + 1)) + ")", doorXP: true } }));
   return rows;
 }
 function prizesOpen() { return prizeRows().filter(r => !r.e.ordered).length; }
