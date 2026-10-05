@@ -1,14 +1,14 @@
 /* ---------- Grade Level Quest ----------
-   A road of 9 checkpoints (K–8th). Each grade has 3 tests: Math, Reading, Science.
+   A road of 9 checkpoints (K–8th). Each grade has 3 tests: Math, Reading, Language.
    Saved on the student:
      questStart: number of grades already finished before the quest (0 = starts at K). Those grades give weapons only.
-     questPass:  { "3-m": "2026-10-03", ... }  tests the teacher marked passed (grade index 0–8, subject m/r/s)
+     questPass:  { "3-m": "2026-10-03", ... }  tests the teacher marked passed (grade index 0–8, subject m/r/l)
      questDone:  { "3-m": { n: 1, at }, ... }  tests the student battled + claimed (n = 1st/2nd/3rd test done at that grade)
      questXP:    XP earned from the quest (goes into the collector XP bank)
      held:       the weapon the companion is holding (id like "3-sword")
    A passed test can be battled once every grade below it is finished (all 3 tests claimed, or below questStart).
    Passed tests above that are "saved and waiting". */
-export const SUBJECTS = [["m", "Math", "\u{1F522}"], ["r", "Reading", "\u{1F4D6}"], ["s", "Science", "\u{1F52C}"]];
+export const SUBJECTS = [["m", "Math", "\u{1F522}"], ["r", "Reading", "\u{1F4D6}"], ["l", "Language", "\u270F\uFE0F"]];
 export const GRADES = [
   { key: "k", name: "Kindergarten", short: "K", area: "Sprout Meadow", guardians: ["L-24", "L-19", "L-10"] },
   { key: "1", name: "1st Grade", short: "1st", area: "Mushroom Woods", guardians: ["L-13", "L-04", "L-09"] },
