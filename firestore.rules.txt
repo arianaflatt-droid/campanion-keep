@@ -210,10 +210,12 @@ service cloud.firestore {
 
         // ---- Creature Collector ---- hatching, levelling, releasing, and the arena and trading "ready" switches.
         function studentCollect() {
-          return changed().hasOnly(["coll", "starter", "pullsUsed", "legendaryUsed", "birthdayUsed", "xpSpent", "xpReleased", "arenaReady", "tradeReady", "dex", "spares", "themeUsed", "goalUsed"])
+          return changed().hasOnly(["coll", "starter", "pullsUsed", "legendaryUsed", "birthdayUsed", "xpSpent", "xpReleased", "arenaReady", "tradeReady", "dex", "spares", "themeUsed", "goalUsed", "pickleUsed"])
             && now("themeUsed", 0) >= was("themeUsed", 0) && now("themeUsed", 0) <= was("themeUsed", 0) + 1
             && now("goalUsed", 0) >= was("goalUsed", 0) && now("goalUsed", 0) <= was("goalUsed", 0) + 1
             && now("goalUsed", 0) <= was("goalEggs", []).size()
+            && now("pickleUsed", 0) >= was("pickleUsed", 0) && now("pickleUsed", 0) <= was("pickleUsed", 0) + 1
+            && now("pickleUsed", 0) <= was("pickleEggs", 0)
             && now("themeUsed", 0) <= was("themeEggs", []).size()
             // releasing a creature: up to 300 XP back, and only when a creature or a spare is actually removed
             && now("xpReleased", 0) >= was("xpReleased", 0) && now("xpReleased", 0) <= was("xpReleased", 0) + 300

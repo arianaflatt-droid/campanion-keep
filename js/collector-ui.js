@@ -2,15 +2,15 @@
 import {
   CREATURES, FAMILIES, creature, family, xpTotal, pullsLeft, legendaryLeft, bankXP, xpToNextPull, owned, ownedFams, hasStarter,
   formIndex, formOf, statsOf, seenSet, rollRarity, doPull, arenaOpen, arenaOpenFor, lunchHour, hitGoalToday, LUNCH_ARENA, ARENA_HOURS, fighterFrom, teamSize, alive, resolve, resolveRound, moveOk, MOVES, hitDamage,
-  birthdayLeft, goalLeft, nextGoal, rollRareUp, themeLeft, nextTheme, THEME_TYPES, THEME_EGG, WISH_FAM, spares, spareId, releaseXP, releaseProblem, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
+  birthdayLeft, pickleLeft, PICKLE_FAM, goalLeft, nextGoal, rollRareUp, themeLeft, nextTheme, THEME_TYPES, THEME_EGG, WISH_FAM, spares, spareId, releaseXP, releaseProblem, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
   EVENTS, eventOpen, eventWindow, eventStreak, hasEvent, eventUnlocked, azToday, rollTeacherRarity, TEACHER_ODDS, LIVE, staleBattle
-} from "./collect.js?v=20261003a";
-import { newBattleRef, changeBattle as changeBattleRaw, setDoc, liveBattlesNow } from "./db.js?v=20261003a";
+} from "./collect.js?v=20261003b";
+import { newBattleRef, changeBattle as changeBattleRaw, setDoc, liveBattlesNow } from "./db.js?v=20261003b";
 // every change to a battle is stamped with the time (upd), so a battle nobody has touched in a while can be ended
 let locking = null, leaving = null;   // battle id while "Lock in team" is saving
 const changeBattle = (id, fn) => changeBattleRaw(id, bt => { const n = fn(bt); if (n) n.upd = new Date().toISOString(); return n; });
 
-import { tradeCard } from "./trade-ui.js?v=20261003a";
+import { tradeCard } from "./trade-ui.js?v=20261003b";
 
 const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const PER_PAGE = 20;
@@ -43,6 +43,7 @@ export function collectorTab(c) {
     stat("\u{1F95A}", pulls, "egg" + (pulls === 1 ? "" : "s") + " to hatch") +
     (leg ? stat("\u{1F31F}", leg, "legendary egg" + (leg === 1 ? "" : "s")) : "") +
     (birthdayLeft(s) ? stat("\u{1F382}", birthdayLeft(s), "birthday egg" + (birthdayLeft(s) === 1 ? "" : "s")) : "") +
+    (pickleLeft(s) ? stat("\u{1F952}", pickleLeft(s), "Cluckledill egg" + (pickleLeft(s) === 1 ? "" : "s")) : "") +
     (themeLeft(s) ? stat("\u2728", themeLeft(s), "event egg" + (themeLeft(s) === 1 ? "" : "s")) : "") +
     (goalLeft(s) ? stat("\u{1F3AF}", goalLeft(s), "Goal egg" + (goalLeft(s) === 1 ? "" : "s") + " (Rare+)") : "") +
     stat("⭐", bank.toLocaleString(), "XP in your bank") +
@@ -53,6 +54,7 @@ export function collectorTab(c) {
     '<div class="row"><button class="btn big" data-cc="hatch"' + (pulls ? "" : " disabled") + ">\u{1F95A} Hatch an egg</button>" +
     (leg ? '<button class="btn big gold" data-cc="hatchLeg">\u{1F31F} Hatch a legendary egg</button>' : "") +
     (birthdayLeft(s) ? '<button class="btn big bday" data-cc="hatchBday">\u{1F382} Hatch your birthday egg!</button>' : "") +
+    (pickleLeft(s) ? '<button class="btn big gold" data-cc="hatchPickle">\u{1F952} Hatch your special event egg!</button>' : "") +
     (goalLeft(s) ? '<button class="btn big gold" data-cc="hatchGoal">\u{1F3AF} Hatch a Goal egg' + (goalLeft(s) > 1 ? " (" + goalLeft(s) + ")" : "") + "</button>" : "") +
     (themeLeft(s) ? '<button class="btn big gold" data-cc="hatchTheme"><img src="assets/egg-' + nextTheme(s) + '.webp" alt="" style="height:1.5em;vertical-align:middle;margin:-4px 4px -4px 0;">Hatch your ' + THEME_EGG[nextTheme(s)] + "!</button>" : "") +
     '<button class="btn ghost big" data-cc="book">\u{1F4D6} Open lorebook</button></div>' +
@@ -267,7 +269,7 @@ function hatchOverlay() {
     h += '<div class="reveal" style="--rc:' + RARITY_COLOR[c.rarity] + '"><span class="rays"></span>' + img(c, "revimg", r.sparkle) + "</div>" +
       '<div class="revtxt">' + rarityPill(c.rarity) + (r.sparkle ? ' <span class="rpill" style="background:linear-gradient(90deg,#ff7ad9,#ffd84d,#7ae7ff)">\u2728 SPARKLE</span>' : "") + "<h2>" + (r.sparkle ? "\u2728 " : "") + esc(c.name) + "</h2>" +
       (r.event === "bday" ? '<p class="eventmsg ev-bday">\u{1F382} HAPPY BIRTHDAY! ' + (r.dupe ? "Another Wisholotl came to celebrate!" : "<b>Wisholotl, " + esc(c.title || "") + "</b>, came to make your wish come true!") + "</p>" : "") +
-      (r.event && r.event !== "bday" ? '<p class="eventmsg ev-' + r.event + '">' + (r.event === "hex" ? "\u{1F383}" : r.event === "thanks" ? "\u{1F983}" : r.event === "jingle" ? "\u{1F384}" : "\u{1F986}") + " LIMITED EVENT LEGENDARY! " + (r.dupe ? "Another " + esc(c.name) + "!" : "You caught <b>" + esc(c.name) + ", " + esc(c.title || "") + "</b>! It\u2019s yours forever.") + "</p>" : "") +
+      (r.event && r.event !== "bday" ? '<p class="eventmsg ev-' + r.event + '">' + (r.event === "hex" ? "\u{1F383}" : r.event === "thanks" ? "\u{1F983}" : r.event === "jingle" ? "\u{1F384}" : r.event === "pickle" ? "\u{1F952}" : "\u{1F986}") + (r.event === "pickle" ? " EXCLUSIVE EVENT LEGENDARY! " : " LIMITED EVENT LEGENDARY! ") + (r.dupe ? "Another " + esc(c.name) + "!" : "You caught <b>" + esc(c.name) + ", " + esc(c.title || "") + "</b>! It\u2019s yours forever.") + "</p>" : "") +
       (r.newSparkle ? '<p class="sparkmsg">WOW! A 1-in-2,000 Sparkle! Your ' + esc(c.name) + " family is now Sparkle forever.</p>" : "") +
       (r.dupe && r.kept ? "<p>\u{1F504} Kept as a <b>spare for trading</b>. Find it under My creatures.</p>"
         : r.dupe ? '<p>You already had this family — <b>free level up! Now Lv ' + r.lvl + "</b>" + (r.evolved ? " and it <b>evolved!</b>" : "") + "</p>" +
@@ -313,7 +315,8 @@ function detailPage(c, seen) {
     '<p class="dline"><b>' + (c.move ? "Signature move" : "Attack") + ":</b> " + esc(c.attack) + "</p>" + (c.move ? '<p class="dline muted">' + esc(c.move) + "</p>" : "") +
     (c.dodge ? '<p class="dline"><b>\u{1F4A8} Speedy:</b> dodges ' + Math.round(c.dodge * 100) + "% of attacks in battle</p>" : "") +
     (c.daze ? '<p class="dline"><b>\u2728 Dazzle:</b> ' + Math.round(c.daze * 100) + "% chance to make the opponent\u2019s next attack " + Math.round((c.dazePct || 0) * 100) + "% weaker</p>" : "") +
-    (c.alt ? '<p class="dline"><b>Second attack:</b> ' + esc(c.alt.name) + " \u2014 a bit less damage, and heals " + Math.round((c.alt.heal || 0) * 100) + "% of her HP</p>" + (c.alt.desc ? '<p class="dline muted">' + esc(c.alt.desc) + "</p>" : "") : "") + "</div></div>" +
+    (c.poison ? '<p class="dline"><b>\u{1F922} Poison:</b> ' + Math.round(c.poison * 100) + "% chance its attack poisons the opponent (loses a little HP for 3 rounds)</p>" : "") +
+    (c.alt ? '<p class="dline"><b>Second attack:</b> ' + esc(c.alt.name) + (c.alt.type ? " (" + esc(c.alt.type) + ")" : "") + " \u2014 a bit less damage" + (c.alt.heal ? ", and heals " + Math.round(c.alt.heal * 100) + "% of its HP" : "") + (c.alt.defDown ? ", " + Math.round(c.alt.defDown * 100) + "% chance to lower the opponent\u2019s defense" : "") + "</p>" + (c.alt.desc ? '<p class="dline muted">' + esc(c.alt.desc) + "</p>" : "") : "") + "</div></div>" +
     '<div class="dstats"><span>❤ HP <b>' + st.hp + "</b></span><span>\u{1F6E1} Defense <b>" + st.df + "</b></span><span>⚔ Damage <b>" + st.dmg + "</b></span><span>Lv <b>" + (cur ? lvl : 1) + "</b></span></div>" +
     '<p class="muted" style="text-align:center;margin:2px 0 8px;">' + (cur ? "Your creature’s stats at level " + lvl : "Stats at level 1") + " · grows +" + c.ghp + " HP, +" + c.gdf + " DEF, +" + c.gdmg + " DMG per level</p>";
   if (fam.forms.length > 1) h += '<div class="dchain">' + fam.forms.map((id, i) => { const f = creature(id), got = seen.has(id);
@@ -339,6 +342,9 @@ function viewState(bt, k) {
     if (e.k === "swap") { st[e.s].i = e.i; st.line = "\u{1F504} " + esc(e.who) + " swaps " + esc(e.from) + " for <b>" + esc(e.n) + "</b>!"; }
     if (e.k === "heal") { st[e.s].hp[e.i] = e.left; st[e.s].i = e.i; st.line = "\u{1F49A} <b>" + esc(e.n) + "</b> healed " + e.amt + " HP!"; }
     if (e.k === "guard") { st[e.s].i = e.i; st.line = "\u{1F6E1}\uFE0F <b>" + esc(e.n) + "</b> is guarding!"; }
+    if (e.k === "poison") st.line = "\u{1F952} <b>" + esc(e.d) + "</b> was poisoned!";
+    if (e.k === "defdown") st.line = "\u{1F4A7} Brine soaked <b>" + esc(e.d) + "</b>! Its defense dropped " + e.pct + "%.";
+    if (e.k === "psn") { st[e.s].hp[e.i] = e.left; st[e.s].i = e.i; st.line = "\u{1F922} <b>" + esc(e.n) + "</b> is hurt by poison (-" + e.amt + ")."; }
     if (e.k === "daze") st.line = "\u2728 <b>" + esc(e.d) + "</b> is dazzled! Its next attack does " + e.pct + "% less damage.";
     if (e.k === "faint") st.line = "<b>" + esc(e.n) + "</b> fainted!";
     if (e.k === "forfeit") st.line = "\u{1F3F3}\uFE0F " + esc(e.who) + " gave up.";
@@ -447,8 +453,9 @@ function movePanel(bt, me, them, thN) {
   return '<div class="bpanel"><h3>What will ' + esc(f.name) + " do?</h3>" + (theirs ? '<p class="muted small" style="margin:-4px 0 8px;color:#CFC3E6;">' + esc(thN) + " has picked a move!</p>" : "") +
     (hint ? '<div class="bhints">' + hint + "</div>" : "") +
     '<div class="mvgrid">' +
-      btn("attack", esc(f.attack), "about " + dmg.dmg + " damage" + (f.daze ? " \u00b7 " + Math.round(f.daze * 100) + "% chance to dazzle" : ""), true) +
-      (f.alt ? btn("alt", esc(f.alt.name), "about " + Math.max(1, Math.round(dmg.dmg * (f.alt.mult || 1))) + " damage" + (f.alt.heal ? " \u00b7 heals +" + Math.round(f.hp * f.alt.heal) + " HP" : ""), true) : "") +
+      btn("attack", esc(f.attack), "about " + dmg.dmg + " damage" + (f.daze ? " \u00b7 " + Math.round(f.daze * 100) + "% chance to dazzle" : "") + (f.poison ? " \u00b7 " + Math.round(f.poison * 100) + "% chance to poison" : ""), true) +
+      (f.alt ? (() => { const ad = hitDamage(f.alt.type ? Object.assign({}, f, { type: f.alt.type }) : f, o, false);
+        return btn("alt", esc(f.alt.name), "about " + Math.max(1, Math.round(ad.dmg * (f.alt.mult || 1))) + " damage" + (ad.weak ? " \u2B50" : "") + (f.alt.heal ? " \u00b7 heals +" + Math.round(f.hp * f.alt.heal) + " HP" : "") + (f.alt.defDown ? " \u00b7 " + Math.round(f.alt.defDown * 100) + "% chance to lower defense" : ""), true); })() : "") +
       btn("power", "Power Move", "about " + Math.round(dmg.dmg * MOVES.power.mult) + " damage \u00b7 75% to hit", true) +
       btn("guard", "Guard", "take half damage this round", true) +
       btn("heal", "Heal", f.healed ? "already used" : f.cur >= f.hp ? "already full health" : "+" + Math.min(f.hp - f.cur, Math.round(f.hp * MOVES.heal.pct)) + " HP \u00b7 once", !f.healed && f.cur < f.hp) +
@@ -466,6 +473,16 @@ export async function onClick(el, c) {
   ctx = c;
   const a = el.dataset.cc, s = c.me;
   if (a === "starter") { if (hasStarter(s)) return; return c.patch({ coll: { [el.dataset.fam]: { lvl: 1, at: new Date().toISOString() } }, starter: el.dataset.fam }); }
+  if (a === "hatchPickle") {
+    if (!pickleLeft(s)) return;
+    const res = doPull(s, "Legendary", c.cls, { force: PICKLE_FAM });
+    hatch = { phase: "shake", res, legendary: true };
+    hold(3200); c.render(true);
+    c.patch({ coll: res.coll, pickleUsed: (Number(s.pickleUsed) || 0) + 1 }, true);
+    later(1900, () => { hatch.phase = "crack"; hold(1400); });
+    later(2800, () => { hatch.phase = "reveal"; busyUntil = 0; });
+    return;
+  }
   if (a === "hatchGoal") {
     const key = nextGoal(s); if (!goalLeft(s) || !key) return;
     const res = key === "rare" ? doPull(s, rollRareUp(), c.cls) : doPull(s, "Legendary", c.cls, { force: key });

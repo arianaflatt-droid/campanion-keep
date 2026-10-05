@@ -1,5 +1,5 @@
 // Creature Collector: pulls, XP bank, levels, evolutions, lorebook and arena battles.
-import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261003a";
+import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261003b";
 
 export const PULL_XP = 120;          // every 120 XP (all-time since the collector started) = 1 pull
 export const LEVEL_XP = 120;         // 120 banked XP = 1 level
@@ -73,6 +73,10 @@ export function todayXP(st, cls) {
 export function pullsLeft(st, cls) { return Math.max(0, pullsEarned(st, cls) - (Number(st.pullsUsed) || 0)); }
 // Birthday eggs: the teacher sends one on a student's birthday; it always hatches Wisholotl.
 export const WISH_FAM = "L-28";
+// Cluckledill (exclusive event Legendary): the teacher gives an egg to students who came to the real-life event.
+// Once a student has Cluckledill, it can also hatch from their Legendary eggs. Students who never got one can't hatch it.
+export const PICKLE_FAM = "L-31";
+export function pickleLeft(st) { return Math.max(0, (Number(st && st.pickleEggs) || 0) - (Number(st && st.pickleUsed) || 0)); }
 export function birthdayLeft(st) { return Math.max(0, (Number(st.birthdayEggs) || 0) - (Number(st.birthdayUsed) || 0)); }
 export function legendaryLeft(st) { return Math.max(0, (Number(st.legendaryPulls) || 0) - (Number(st.legendaryUsed) || 0)); }
 export function bankXP(st, cls) { return Math.max(0, xpTotal(st, cls) + (Number(st.bonusXP) || 0) + (Number(st.xpReleased) || 0) + (Number(st.xpPrize) || 0) + (Number(st.doorXP) || 0) - (Number(st.xpSpent) || 0)); }
@@ -251,7 +255,8 @@ export function rollRarity() {
 // Wisholotl is also in the pool for teacher-sent legendary eggs.
 export function doPull(st, rarity, cls, opts) {
   opts = opts || {};
-  let pool = FAMILIES.filter(f => f.rarity === rarity && (!f.event || (opts.legendaryEgg && f.id === WISH_FAM && cls && cls.wishInPool)));   // event creatures never come from normal eggs
+  let pool = FAMILIES.filter(f => f.rarity === rarity && (!f.event || (opts.legendaryEgg && f.id === WISH_FAM && cls && cls.wishInPool)
+    || (f.id === PICKLE_FAM && owned(st)[PICKLE_FAM])));   // Cluckledill: only for students who already have one   // event creatures never come from normal eggs
   if (opts.types) {   // an event egg: only creatures of those types (falls back to the whole pool if none at that rarity)
     const typed = pool.filter(f => { const c0 = CREATURES.find(c => c.id === f.forms[0]); return c0 && c0.types.some(t => opts.types.includes(t)); });
     if (typed.length) pool = typed;
@@ -334,7 +339,8 @@ export function fighterFrom(st, fam) {
   const e = owned(st)[fam]; if (!e) return null;
   const c = formOf(fam, e.lvl || 1), s = statsOf(c, e.lvl || 1);
   return { fam, id: c.id, lvl: e.lvl || 1, name: e.nick || c.name, species: c.name, img: e.sparkle ? sparkleImg(c) : c.img, sparkle: !!e.sparkle, face: c.face || "R", type: c.types[0], types: c.types, weak: c.weak, attack: c.attack, hp: s.hp, df: s.df, dmg: s.dmg, cur: s.hp, dodge: c.dodge || 0,
-    daze: c.daze || 0, dazePct: c.dazePct || 0, alt: c.alt ? { name: c.alt.name, mult: c.alt.mult, heal: c.alt.heal } : null };
+    daze: c.daze || 0, dazePct: c.dazePct || 0, poison: c.poison || 0,
+    alt: c.alt ? { name: c.alt.name, mult: c.alt.mult || 1, heal: c.alt.heal || 0, type: c.alt.type || "", defDown: c.alt.defDown || 0, defPct: c.alt.defPct || 0 } : null };
 }
 export function teamSize(a, b) { return Math.max(0, Math.min(TEAM_MAX, ownedFams(a).length, ownedFams(b).length)); }
 export function hitDamage(att, def, crit) {
@@ -389,9 +395,9 @@ export function resolveRound(bt) {
     if (!att || !def || att.cur <= 0 || def.cur <= 0) continue;
     const pmiss = m.m === "power" && Math.random() >= MOVES.power.hit, dodged = !pmiss && !!def.dodge && Math.random() < def.dodge;   // speedy creatures (Jett) dodge some hits
     const power = m.m === "power", miss = pmiss || dodged, crit = !miss && Math.random() < CRIT_CHANCE;
-    let { dmg, weak } = hitDamage(att, def, crit);
-    if (power) dmg = Math.round(dmg * MOVES.power.mult);
     const alt = m.m === "alt" && att.alt;
+    let { dmg, weak } = hitDamage(alt && att.alt.type ? Object.assign({}, att, { type: att.alt.type }) : att, def, crit);   // a second attack can have its own type
+    if (power) dmg = Math.round(dmg * MOVES.power.mult);
     if (alt) dmg = Math.max(1, Math.round(dmg * (att.alt.mult || 1)));
     const wasDazed = !!att.dazed;
     if (wasDazed) { dmg = Math.max(1, Math.round(dmg * (1 - (att.dazed || 0)))); att.dazed = 0; }   // dazzled last round: weaker hit
@@ -401,6 +407,10 @@ export function resolveRound(bt) {
     bt.log.push({ k: "hit", s, ai: bt.active[s], di: bt.active[o], a: att.name, atk: power ? att.attack + " (Power)" : alt ? att.alt.name : att.attack, d: def.name, dmg, crit, weak: weak && !miss, miss, dodged, power, dazedHit: wasDazed, guarded: !!guard[o], left: def.cur, max: def.hp });
     // Cinnamon Swirl: a chance to dazzle the target so its next attack is weaker
     if (!miss && m.m === "attack" && att.daze && def.cur > 0 && Math.random() < att.daze) { def.dazed = att.dazePct || 0.15; bt.log.push({ k: "daze", s, d: def.name, pct: Math.round((att.dazePct || 0.15) * 100) }); }
+    // Pickle Peckle: a chance to poison (loses a little HP at the end of each of the next 3 rounds; poison never knocks out)
+    if (!miss && m.m === "attack" && att.poison && def.cur > 0 && !def.psn && Math.random() < att.poison) { def.psn = 3; bt.log.push({ k: "poison", s, d: def.name }); }
+    // Brine Bomb: a chance to lower the target's defense for the rest of the battle
+    if (!miss && alt && att.alt.defDown && def.cur > 0 && Math.random() < att.alt.defDown) { def.df = Math.max(1, Math.round(def.df * (1 - (att.alt.defPct || 0.2)))); bt.log.push({ k: "defdown", s, d: def.name, pct: Math.round((att.alt.defPct || 0.2) * 100) }); }
     // Sugar Rush: heals the attacker a little
     if (alt && att.alt.heal && att.cur < att.hp) { const amt = Math.min(att.hp - att.cur, Math.round(att.hp * att.alt.heal)); att.cur += amt; bt.log.push({ k: "heal", s, i: bt.active[s], n: att.name, amt, left: att.cur, max: att.hp, alt: true }); }
     if (def.cur <= 0) {
@@ -409,6 +419,10 @@ export function resolveRound(bt) {
       if (!alive(bt.team[o])) { bt.status = "done"; bt.winner = s; bt.log.push({ k: "win", s }); bt.moves = { A: null, B: null }; return bt; }
     }
   }
+  // 4. poison ticks (6% of max HP, at least 1 HP is always left)
+  order.forEach(s => { const f = bt.team[s][bt.active[s]]; if (!f || !(f.psn > 0) || f.cur <= 1) { if (f && f.cur <= 1) f.psn = 0; return; }
+    const amt = Math.min(f.cur - 1, Math.max(1, Math.round(f.hp * 0.06))); f.cur -= amt; f.psn -= 1;
+    bt.log.push({ k: "psn", s, i: bt.active[s], n: f.name, amt, left: f.cur, max: f.hp }); });
   bt.moves = { A: null, B: null };
   bt.turn = other(first);   // the other player goes first next round
   bt.status = bt.active.A != null && bt.active.B != null ? "fight" : "lead";

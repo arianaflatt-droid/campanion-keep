@@ -1,19 +1,19 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261003a";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261003a";
-import { cpEarnedCalc } from "./room.js?v=20261003a";
-import { GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, waitingDoors, doorXPRows, REWARD_XP } from "./doors.js?v=20261003a";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261003a";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261003b";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261003b";
+import { cpEarnedCalc } from "./room.js?v=20261003b";
+import { GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, waitingDoors, doorXPRows, REWARD_XP } from "./doors.js?v=20261003b";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261003b";
 import {
   applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, hitOn, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261003a";
-import { staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261003a";
+} from "./game.js?v=20261003b";
+import { pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261003b";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef
-} from "./db.js?v=20261003a";
+} from "./db.js?v=20261003b";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -749,6 +749,8 @@ function viewCollector() {
       '<button class="btn small" data-legend="' + x.id + '" style="background:#E9A91C;color:#3a2500;">\u{1F31F} Send legendary egg</button>' +
       '<button class="btn small" data-bonuspull="' + x.id + '">\u{1F95A} Send free egg</button>' +
       '<button class="btn small bday" data-bday="' + x.id + '" title="Sends a birthday egg that always hatches Wisholotl">\u{1F382} Birthday egg</button>' +
+      '<button class="btn small ghost" data-pickle="' + x.id + '" title="For students who came to the real-life event: an egg that always hatches Cluckledill">\u{1F952} Cluckledill egg' + ((Number(x.pickleEggs) || 0) ? " (" + x.pickleEggs + " given)" : "") + "</button>" +
+      (pickleLeft(x) ? '<button class="btn ghost small" data-unpickle="' + x.id + '" title="Take back a Cluckledill egg that hasn\u2019t been hatched">\u21A9</button>' : "") +
       ((Number(x.bonusPulls) || 0) > 0 && pullsLeft(x, cls) > 0 ? '<button class="btn ghost small" data-unbonus="' + x.id + '" title="Take back a free egg that hasn\u2019t been hatched">\u21A9 Take one back</button>' : "") + "</div></td></tr>";
   });
   return h + "</tbody></table></div></div>";
@@ -1213,6 +1215,16 @@ document.addEventListener("click", async ev => {
   if ((el = ev.target.closest("[data-bonuspull]"))) {
     const x = sOf(el.dataset.bonuspull); await patch(x.id, { bonusPulls: (Number(x.bonusPulls) || 0) + 1 });
     flash("Saved \u2014 sent " + x.name + " a free egg!"); return;
+  }
+  if ((el = ev.target.closest("[data-pickle]"))) {
+    const x = sOf(el.dataset.pickle); if (!x) return;
+    try { await updateDoc(studentRef(x.id), { pickleEggs: (Number(x.pickleEggs) || 0) + 1 }); flash("Saved \u2014 sent " + x.name + " a Cluckledill egg! \u{1F952}"); } catch (e) { flash("Couldn\u2019t send it \u2014 " + e.code); }
+    return;
+  }
+  if ((el = ev.target.closest("[data-unpickle]"))) {
+    const x = sOf(el.dataset.unpickle); if (!x || !pickleLeft(x)) return;
+    try { await updateDoc(studentRef(x.id), { pickleEggs: Math.max(0, (Number(x.pickleEggs) || 0) - 1) }); flash("Saved \u2014 took back an unhatched Cluckledill egg from " + x.name + "."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); }
+    return;
   }
   if ((el = ev.target.closest("[data-bday]"))) {
     const x = sOf(el.dataset.bday); if (!x) return;
