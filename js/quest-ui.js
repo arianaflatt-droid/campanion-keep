@@ -1,8 +1,8 @@
 // Grade Level Quest screens: the student's road + guardian battles, and the teacher's tracker.
-import { esc } from "./game.js?v=20261004b";
-import { owned, ownedFams, fighterFrom, formOf, resolveRound, hitDamage, alive, MOVES, RARITY_COLOR } from "./collect.js?v=20261004b";
+import { esc } from "./game.js?v=20261005a";
+import { owned, ownedFams, fighterFrom, formOf, resolveRound, hitDamage, alive, MOVES, RARITY_COLOR } from "./collect.js?v=20261005a";
 import { SUBJECTS, GRADES, ROAD_SPOTS, roadArt, battleArt, QUEST_XP, QUEST_CP, WEAPON_KINDS, weapon, weaponId, qKey, startOf, passOf, doneOf,
-  testState, currentGrade, doneCount, readyTests, weaponsOwned, heldWeapon } from "./quest.js?v=20261004b";
+  testState, currentGrade, doneCount, readyTests, weaponsOwned, heldWeapon } from "./quest.js?v=20261005a";
 
 const SUBJ = Object.fromEntries(SUBJECTS.map(([k, n, i]) => [k, { n, i }]));
 let qb = null;   // the guardian battle in progress (only on this page; nothing is saved until the student wins)
@@ -11,7 +11,8 @@ export const questBusy = () => !!qb;
 /* ---------- student: the road ---------- */
 export function questTab(s, petMarkup) {
   const cur = currentGrade(s), ready = readyTests(s), held = heldWeapon(s);
-  let h = '<div class="card questintro"><div class="card-head"><h2>\u{1F5FA}️ Grade Level Quest</h2><span class="fact">' +
+  let h = '<div class="qtell">\u{1F4E3} Go Tell Your Teacher You Have a Test!</div>' +
+    '<div class="card questintro"><div class="card-head"><h2>\u{1F5FA}️ Grade Level Quest</h2><span class="fact">' +
     (cur >= 9 ? "\u{1F3C6} Road complete!" : "\u{1F4CD} " + esc(GRADES[cur].name)) + "</span></div>" +
     '<p class="lede" style="font-size:13.5px;">Pass a Math, Reading or Language test and Ms. Ariana unlocks a <b>guardian battle</b>. Win it for a <b>Legendary egg</b>, XP, Comfort Points and a new weapon! ' +
     "Finish all 3 tests at a grade to go through the portal to the next area.</p>";

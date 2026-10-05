@@ -1012,3 +1012,5 @@ td .emo, .ic .emo{ display:inline-block; vertical-align:middle; font-size:1.3em;
   .qtrack .qb{ width:28px; height:26px; margin:1px; border-radius:7px; border:1px solid var(--line); background:var(--panel-2); cursor:pointer; font:700 12px var(--mono, monospace); padding:0; }
   .qtrack .qb.battle{ background:#FFF0C2; border-color:#E9A91C; } .qtrack .qb.done{ background:#E3F6EA; border-color:#2E9E5B; cursor:default; } .qtrack .qb.wait{ background:#FFF4D6; border-color:#E9A91C; }
   .qtrack .qall{ opacity:.6; }
+  .qtell{ margin:0 0 12px; padding:14px 16px; border-radius:16px; text-align:center; font-weight:800; font-size:clamp(18px,3.6vw,26px); color:#5A3A00;
+    background:linear-gradient(135deg,#FFE27A,#FFC93C); border:3px solid #E9A91C; box-shadow:0 4px 0 #C98A0C; animation:qglow 1.6s ease-in-out infinite alternate; }
