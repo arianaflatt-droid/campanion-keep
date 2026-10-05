@@ -1,17 +1,17 @@
 import {
   checkVersion, hitOn, gearInSeason, applyDisplayNames, companionOf, petCreatures, pinnedBadgeHTML, DAYS, SHORT, ROSTER, GEAR, SIDEKICKS, BANNER, bannerFor, isHaunt, battleOn, candyOf, basketHTML, CANDY_FULL, bossState, attacksReady, bossBarHTML, GHOST_IMG, ghostUnlocked, turkeyUnlocked, grinchUnlocked, isJingle, eventMode, isGobble, setSeason, SEASON, seasonOf, STORE, candyLeft, candySpent, ownedCount, ownsItem, storeArt, nextAttack, dmgOf, HAT_BONUS, BREW_BONUS, teamHTML, WHEEL, pickSlice, wheelHTML, spinTo, PRIZES, prizeSlices, bucketState, bucketHTML, baseDamage, EAT_PER_DAY, dayEaten, dayXP, byId, esc, arr5, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, sidekickSVG, petHTML, itemArt
-} from "./game.js?v=20261002j";
-import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20261002j";
-import { nudgeCard } from "./nudges.js?v=20261002j";
-import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261002j";
-import { teacherPlayer, hasStarter } from "./collect.js?v=20261002j";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261002j";
-import { goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked } from "./doors.js?v=20261002j";
-import { azToday } from "./collect.js?v=20261002j";
+} from "./game.js?v=20261003a";
+import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20261003a";
+import { nudgeCard } from "./nudges.js?v=20261003a";
+import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261003a";
+import { teacherPlayer, hasStarter } from "./collect.js?v=20261003a";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261003a";
+import { goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked } from "./doors.js?v=20261003a";
+import { azToday } from "./collect.js?v=20261003a";
 import { roomHTML, FIT_SLOTS, slotKind, KIND_NAMES, KIND_ICON, EVERYDAY_PRICE, THEMED_PRICE, TROPHY_PRICE, TYPE_THEMES, SEASON_THEMES, THEME_NAMES, TROPHIES,
-  itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId } from "./room.js?v=20261002j";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261002j";
+  itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId } from "./room.js?v=20261003a";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261003a";
 
 let cls = null, students = [], battles = [], trades = [], loaded = { c: false, s: false };
 let tab = (() => { try { return localStorage.getItem("ck-tab") || "pet"; } catch (e) { return "pet"; } })();
@@ -251,7 +251,7 @@ function viewMine(s) {
     }).join("") + "</div>" +
     (haunt ? '<p style="margin-top:8px;color:#E8740C;font-weight:700;">' + S.icon + " " + candy.toLocaleString() + (S.key === "jingle" ? " present" + (candy === 1 ? "" : "s") : " piece" + (candy === 1 ? "" : "s") + " of " + S.cur) + " to spend" +
       (candy >= CANDY_FULL ? " \u2014 your " + S.basket + " is FULL!" : " \u00b7 " + (CANDY_FULL - candy).toLocaleString() + " more to fill your " + S.basket) + "</p>" : "") +
-    '<p class="muted" style="margin-top:8px;">Streak: ' + sim.hitRun + " day" + (sim.hitRun === 1 ? "" : "s") + " · best this week: " + sim.bestRun + "</p></div></div>";
+    '<p class="muted" style="margin-top:8px;">Streak: ' + sim.hitRun + " day" + (sim.hitRun === 1 ? "" : "s") + " · best: " + sim.bestRun + "</p></div></div>";
 
   h += '<div class="card"><div class="card-head"><h2>Gear</h2><span class="fact">one at a time</span></div><div class="gearpick">';
   GEAR.filter(g => gearInSeason(g)).forEach(g => {

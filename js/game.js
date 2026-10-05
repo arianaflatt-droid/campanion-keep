@@ -1,8 +1,8 @@
-import { formOf, sparkleImg, azNow } from "./collect.js?v=20261002j";
+import { formOf, sparkleImg, azNow } from "./collect.js?v=20261003a";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261002j";
+export const APP_V = "20261003a";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -210,6 +210,19 @@ export function hitOn(st, d, cls) {
    Hit 120 = full health. Miss = half health. Two misses in a row = disappears.
    Excused / not-yet-counted days are skipped. A Hero Cape brings it back on the next 120 day.
    Gear unlocks from the best run of 120 days this week and stays unlocked. */
+// The streak of goal days going into this week (from the XP history, before this Monday).
+// Excused days under the goal are skipped; days with no upload are skipped.
+export function carryRun(st, cls) {
+  const mon = dateOfDay(0), goal = goalXP(cls), h = (st && st.xpHist) || {};
+  let run = 0;
+  Object.keys(h).filter(d => d < mon).sort().forEach(date => {
+    const x = h[date] || {}, v = Number(x.d != null ? x.d : x.l) || 0;
+    if (x.e && v < goal) return;
+    if (x.d == null && x.l == null && !x.lh) return;   // nothing uploaded that day
+    run = v >= goal || x.lh ? run + 1 : 0;
+  });
+  return run;
+}
 export function simulate(st, cls) {
   const status = arr5(st.status, "");
   const items = st.items || [];
@@ -217,7 +230,9 @@ export function simulate(st, cls) {
   const capesOwned = items.filter(it => it.id === "cape").length;
   let capesUsed = 0;
   let health = MAX_HP, alive = true, missRun = 0, capeReady = false, capeSaved = false;
-  let hitRun = 0, bestRun = 0, ovMet = 0, ovCounted = 0, daysCounted = 0;
+  // Streaks carry over from earlier weeks: start this week from the run of goal days that ended last week.
+  const carry = carryRun(st, cls);
+  let hitRun = carry, bestRun = carry, ovMet = 0, ovCounted = 0, daysCounted = 0;
 
   for (let d = 0; d < 5; d++) {
     // A day counts once it's recorded (end-of-day upload). A day that isn't recorded yet still counts if the student
@@ -245,7 +260,7 @@ export function simulate(st, cls) {
   }
   const unlocked = GEAR.filter(g => (bestRun >= g.streak && bossGearOk(g, cls)) || (g.id === "witch" && st.witchHat) || (g.id === "pilgrim" && st.pilgrimHat) || (g.id === "antlers" && st.antlersHat)).map(g => g.id);
   return {
-    health, max: MAX_HP, alive, capeReady, capeSaved, hitRun, bestRun, unlocked,
+    health, max: MAX_HP, alive, capeReady, capeSaved, hitRun, bestRun, carry, unlocked,
     atRisk: alive && daysCounted > 0 && missRun === 1,
     ovMet, ovCounted, daysCounted, started: daysCounted > 0
   };
