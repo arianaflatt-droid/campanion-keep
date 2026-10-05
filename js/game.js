@@ -1,9 +1,9 @@
-import { formOf, sparkleImg, azNow } from "./collect.js?v=20261003d";
-import { heldWeapon } from "./quest.js?v=20261003d";
+import { formOf, sparkleImg, azNow } from "./collect.js?v=20261004a";
+import { heldWeapon } from "./quest.js?v=20261004a";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261003d";
+export const APP_V = "20261004a";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -214,7 +214,9 @@ export function hitOn(st, d, cls) {
 // The streak of goal days going into this week (from the XP history, before this Monday).
 // Excused days under the goal are skipped; days with no upload are skipped.
 export function carryRun(st, cls) {
-  const mon = dateOfDay(0), goal = goalXP(cls), h = (st && st.xpHist) || {};
+  // After "Start a new week" (often done on the weekend) the cut-off is the Monday that new week starts,
+  // so last week's days still count toward the streak.
+  const mon = cls && cls.weekStart && cls.weekStart > dateOfDay(0) ? cls.weekStart : dateOfDay(0), goal = goalXP(cls), h = (st && st.xpHist) || {};
   let run = 0;
   Object.keys(h).filter(d => d < mon).sort().forEach(date => {
     const x = h[date] || {}, v = Number(x.d != null ? x.d : x.l) || 0;

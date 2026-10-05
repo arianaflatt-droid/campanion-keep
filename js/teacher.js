@@ -1,20 +1,20 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261003d";
-import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261003d";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261003d";
-import { cpEarnedCalc } from "./room.js?v=20261003d";
-import { GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, waitingDoors, doorXPRows, REWARD_XP } from "./doors.js?v=20261003d";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261003d";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261004a";
+import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261004a";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261004a";
+import { cpEarnedCalc } from "./room.js?v=20261004a";
+import { GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, waitingDoors, doorXPRows, REWARD_XP } from "./doors.js?v=20261004a";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261004a";
 import {
   applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, hitOn, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261003d";
-import { pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261003d";
+} from "./game.js?v=20261004a";
+import { pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261004a";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef
-} from "./db.js?v=20261003d";
+} from "./db.js?v=20261004a";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -1537,7 +1537,9 @@ document.addEventListener("click", async ev => {
     if (!busy.confirmNewWeek) { busy.confirmNewWeek = true; render(); return; }
     busy.confirmNewWeek = false; busy.upReport = null;
     const batch = writeBatch(db);
-    batch.update(classRef, { recorded: five(false), finalized: five(false), finalAmt: five(0), finalDied: five("") });
+    // the Monday the new week starts (today if it's Monday; otherwise the coming Monday), so streaks carry over
+    const t = new Date(azToday() + "T12:00:00Z"), wd = t.getUTCDay(); t.setUTCDate(t.getUTCDate() + (wd === 1 ? 0 : (8 - wd) % 7));
+    batch.update(classRef, { recorded: five(false), finalized: five(false), finalAmt: five(0), finalDied: five(""), weekStart: t.toISOString().slice(0, 10) });
     const haunt = isHaunt(cls);
     students.forEach(s => batch.update(studentRef(s.id), { status: five(""), xp: five(null), lunchXp: five(null), early: five(false), items: [], equipped: null,
       attacks: five(false), candyBank: (Number(s.candyBank) || 0) + (eventMode(cls) ? weekCandy(s) : 0) }));
