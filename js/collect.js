@@ -1,5 +1,5 @@
 // Creature Collector: pulls, XP bank, levels, evolutions, lorebook and arena battles.
-import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261005a";
+import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261005c";
 
 export const PULL_XP = 120;          // every 120 XP (all-time since the collector started) = 1 pull
 export const LEVEL_XP = 120;         // 120 banked XP = 1 level
@@ -339,8 +339,8 @@ export function fighterFrom(st, fam) {
   const e = owned(st)[fam]; if (!e) return null;
   const c = formOf(fam, e.lvl || 1), s = statsOf(c, e.lvl || 1);
   return { fam, id: c.id, lvl: e.lvl || 1, name: e.nick || c.name, species: c.name, img: e.sparkle ? sparkleImg(c) : c.img, sparkle: !!e.sparkle, face: c.face || "R", type: c.types[0], types: c.types, weak: c.weak, attack: c.attack, hp: s.hp, df: s.df, dmg: s.dmg, cur: s.hp, dodge: c.dodge || 0,
-    daze: c.daze || 0, dazePct: c.dazePct || 0, poison: c.poison || 0,
-    alt: c.alt ? { name: c.alt.name, mult: c.alt.mult || 1, heal: c.alt.heal || 0, type: c.alt.type || "", defDown: c.alt.defDown || 0, defPct: c.alt.defPct || 0 } : null };
+    daze: c.daze || 0, dazePct: c.dazePct || 0, poison: c.poison || 0, atkHeal: c.atkHeal || 0,
+    alt: c.alt ? { name: c.alt.name, mult: c.alt.mult || 1, heal: c.alt.heal || 0, type: c.alt.type || "", defDown: c.alt.defDown || 0, defPct: c.alt.defPct || 0, defTemp: !!c.alt.defTemp } : null };
 }
 export function teamSize(a, b) { return Math.max(0, Math.min(TEAM_MAX, ownedFams(a).length, ownedFams(b).length)); }
 export function hitDamage(att, def, crit) {
@@ -410,7 +410,11 @@ export function resolveRound(bt) {
     // Pickle Peckle: a chance to poison (loses a little HP at the end of each of the next 3 rounds; poison never knocks out)
     if (!miss && m.m === "attack" && att.poison && def.cur > 0 && !def.psn && Math.random() < att.poison) { def.psn = 3; bt.log.push({ k: "poison", s, d: def.name }); }
     // Brine Bomb: a chance to lower the target's defense for the rest of the battle
-    if (!miss && alt && att.alt.defDown && def.cur > 0 && Math.random() < att.alt.defDown) { def.df = Math.max(1, Math.round(def.df * (1 - (att.alt.defPct || 0.2)))); bt.log.push({ k: "defdown", s, d: def.name, pct: Math.round((att.alt.defPct || 0.2) * 100) }); }
+    if (!miss && alt && att.alt.defDown && def.cur > 0 && !(def.dfT > 0) && Math.random() < att.alt.defDown) {
+      if (att.alt.defTemp) { def.dfOrig = def.df; def.dfT = 2; }   // Blossom Barrage: only until the end of the next round
+      def.df = Math.max(1, Math.round(def.df * (1 - (att.alt.defPct || 0.2)))); bt.log.push({ k: "defdown", s, d: def.name, pct: Math.round((att.alt.defPct || 0.2) * 100), temp: !!att.alt.defTemp }); }
+    // Orchard Burst: the attacker heals a little after hitting
+    if (!miss && m.m === "attack" && att.atkHeal && att.cur < att.hp) { const amt = Math.min(att.hp - att.cur, Math.round(att.hp * att.atkHeal)); att.cur += amt; bt.log.push({ k: "heal", s, i: bt.active[s], n: att.name, amt, left: att.cur, max: att.hp, alt: true }); }
     // Sugar Rush: heals the attacker a little
     if (alt && att.alt.heal && att.cur < att.hp) { const amt = Math.min(att.hp - att.cur, Math.round(att.hp * att.alt.heal)); att.cur += amt; bt.log.push({ k: "heal", s, i: bt.active[s], n: att.name, amt, left: att.cur, max: att.hp, alt: true }); }
     if (def.cur <= 0) {
@@ -419,6 +423,8 @@ export function resolveRound(bt) {
       if (!alive(bt.team[o])) { bt.status = "done"; bt.winner = s; bt.log.push({ k: "win", s }); bt.moves = { A: null, B: null }; return bt; }
     }
   }
+  // a temporary defense drop wears off
+  ["A", "B"].forEach(s => (bt.team[s] || []).forEach(f => { if (f && f.dfT > 0) { f.dfT -= 1; if (!f.dfT) { f.df = f.dfOrig || f.df; delete f.dfOrig; } } }));
   // 4. poison ticks (6% of max HP, at least 1 HP is always left)
   order.forEach(s => { const f = bt.team[s][bt.active[s]]; if (!f || !(f.psn > 0) || f.cur <= 1) { if (f && f.cur <= 1) f.psn = 0; return; }
     const amt = Math.min(f.cur - 1, Math.max(1, Math.round(f.hp * 0.06))); f.cur -= amt; f.psn -= 1;

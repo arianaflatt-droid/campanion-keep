@@ -1,9 +1,9 @@
-import { formOf, sparkleImg, azNow } from "./collect.js?v=20261005a";
-import { heldWeapon } from "./quest.js?v=20261005a";
+import { formOf, sparkleImg, azNow } from "./collect.js?v=20261005c";
+import { heldWeapon } from "./quest.js?v=20261005c";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261005a";
+export const APP_V = "20261005c";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -371,6 +371,7 @@ const CREATURE_FIT = {
   "L-29": { hat: [0.37, 0.39, 0.24, -4], cap: [0.37, 0.42, 0.26, -4], eyes: [0.345, 0.465, 0.2, -6], snack: [1.1, 0.95] }, // Thanksolotl
   "L-30": { hat: [0.86, 0.36, 0.24, 4], cap: [0.86, 0.39, 0.26, 4], eyes: [0.88, 0.53, 0.22, 0], snack: [1.1, 0.95] },   // Jinglotl
   "S-36": { hat: [0.87, 0.35, 0.24, 10], cap: [0.87, 0.38, 0.26, 10], eyes: [0.9, 0.41, 0.2, 8], snack: [1.1, 0.95] },      // Jett
+  "L-31": { hat: [0.62, 0.12, 0.3, 0], cap: [0.62, 0.16, 0.32, 0], eyes: [0.66, 0.3, 0.24, 0], snack: [1.1, 0.95] },        // Cluckledill
   "S-37": { hat: [0.83, 0.2, 0.26, 8], cap: [0.83, 0.24, 0.28, 8], eyes: [0.86, 0.35, 0.2, 6], snack: [1.1, 0.95] }       // Cinnamon
 };
 export function creatureCompanion(st, fam) {

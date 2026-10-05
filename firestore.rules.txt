@@ -289,7 +289,7 @@ service cloud.firestore {
           return changed().hasOnly(["petCreature"])
             && (now("petCreature", null) == null
                 || was("coll", {}).get(now("petCreature", ""), {}).get("lvl", 0) >= 100
-                || (now("petCreature", "") in ["L-26", "L-27", "L-28", "L-29", "L-30"] && was("coll", {}).keys().hasAny([now("petCreature", "")])));
+                || (now("petCreature", "") in ["L-26", "L-27", "L-28", "L-29", "L-30", "L-31"] && was("coll", {}).keys().hasAny([now("petCreature", "")])));
         }
 
         allow update: if isTeacher() || (request.auth != null && (studentLooks() || studentAttack() || studentBuy() || studentSpin() || studentDoor() || studentIdea() || studentRoom() || studentCollect() || studentBadges() || studentPet() || studentQuest() || studentHeld()));
