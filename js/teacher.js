@@ -1,20 +1,20 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261004a";
-import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261004a";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261004a";
-import { cpEarnedCalc } from "./room.js?v=20261004a";
-import { GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, waitingDoors, doorXPRows, REWARD_XP } from "./doors.js?v=20261004a";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261004a";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261004b";
+import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261004b";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261004b";
+import { cpEarnedCalc } from "./room.js?v=20261004b";
+import { GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, waitingDoors, doorXPRows, REWARD_XP } from "./doors.js?v=20261004b";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261004b";
 import {
   applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
-  checkVersion, APP_V, hitOn, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261004a";
-import { pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261004a";
+  checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
+} from "./game.js?v=20261004b";
+import { pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261004b";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef
-} from "./db.js?v=20261004a";
+} from "./db.js?v=20261004b";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -558,7 +558,7 @@ function viewStandings() {
       const ok = sim.unlocked.includes(g.id);
       return '<button class="eq' + (worn && worn.id === g.id ? " on" : "") + '" data-equip="' + s.id + ":" + g.id + '"' + (ok ? "" : " disabled") +
         ' title="' + esc(g.name) + (ok ? "" : " — unlocks at a " + g.streak + "-day streak") + '">' + itemArt(g, "gimg") + "</button>";
-    }).join("") + '</div><span class="pet">streak ' + sim.hitRun + " · best " + sim.bestRun + "</span>";
+    }).join("") + '</div><span class="pet">streak ' + sim.hitRun + " · best " + sim.bestRun + ' <button class="linkbtn" data-setstreak="' + s.id + '" title="Fix this student\u2019s streak">\u270F\uFE0F</button></span>';
     (s.items || []).forEach((it, idx) => { const d4 = byId(ITEMS, it.id); if (d4) h += '<button class="x" title="Remove ' + esc(d4.name) + '" data-unaward="' + s.id + ":" + idx + '">' + d4.glyph + "</button>"; });
     h += "</td></tr>";
   });
@@ -1171,10 +1171,23 @@ document.addEventListener("click", async ev => {
   if ((el = ev.target.closest("[data-tr]"))) { if (cls) await onTradeClick(el, tctx()).catch(e => showErr(e)); return; }
   if ((el = ev.target.closest("[data-cc]"))) { if (cls) await collectorClick(el, tctx()).catch(e => showErr(e)); return; }
   if ((el = ev.target.closest("[data-day]"))) { day = Number(el.dataset.day); render(); return; }
+  if ((el = ev.target.closest("[data-setstreak]"))) {
+    const s = sOf(el.dataset.setstreak); if (!s) return;
+    const cur = carryRun(s, cls), v = prompt("How many 120 XP days in a row did " + s.name + " have going into this week?", String(cur));
+    if (v == null) return;
+    const n = Math.max(0, Math.min(200, Math.floor(Number(v)) || 0));
+    await patch(s.id, { streakCarry: n, streakWeek: weekCut(cls) }); flash("Saved \u2014 " + s.name + "\u2019s streak going into this week is " + n + ".");
+    return;
+  }
   if ((el = ev.target.closest("[data-ring]"))) {
     const s = sOf(el.dataset.ring), st = arr5(s.status, "");
     st[day] = st[day] === "" ? "c" : st[day] === "c" ? "e" : "";
-    return patch(s.id, { status: st });
+    // remember hand-marked hits / excused days in the XP history too, so streaks carry over to next week
+    const date = dateOfDay(day), hist = Object.assign({}, s.xpHist || {}), hd = Object.assign({}, hist[date] || {});
+    if (st[day] === "c") hd.h = true; else delete hd.h;
+    if (st[day] === "e") hd.e = true; else delete hd.e;
+    if (Object.keys(hd).length) hist[date] = hd; else delete hist[date];
+    return patch(s.id, { status: st, xpHist: hist });
   }
   if ((el = ev.target.closest("[data-lunch]"))) {
     const s = sOf(el.dataset.lunch), early = arr5(s.early, false), st = arr5(s.status, "");
@@ -1541,7 +1554,9 @@ document.addEventListener("click", async ev => {
     const t = new Date(azToday() + "T12:00:00Z"), wd = t.getUTCDay(); t.setUTCDate(t.getUTCDate() + (wd === 1 ? 0 : (8 - wd) % 7));
     batch.update(classRef, { recorded: five(false), finalized: five(false), finalAmt: five(0), finalDied: five(""), weekStart: t.toISOString().slice(0, 10) });
     const haunt = isHaunt(cls);
-    students.forEach(s => batch.update(studentRef(s.id), { status: five(""), xp: five(null), lunchXp: five(null), early: five(false), items: [], equipped: null,
+    const wk = t.toISOString().slice(0, 10);
+    students.forEach(s => batch.update(studentRef(s.id), { streakCarry: simulate(s, cls).hitRun, streakWeek: wk,   // keep the streak going into next week
+      status: five(""), xp: five(null), lunchXp: five(null), early: five(false), items: [], equipped: null,
       attacks: five(false), candyBank: (Number(s.candyBank) || 0) + (eventMode(cls) ? weekCandy(s) : 0) }));
     try { await batch.commit(); flash("New week started."); } catch (e) { flash("Couldn’t reset — " + e.code); }
     return;

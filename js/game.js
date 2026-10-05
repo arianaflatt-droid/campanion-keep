@@ -1,9 +1,9 @@
-import { formOf, sparkleImg, azNow } from "./collect.js?v=20261004a";
-import { heldWeapon } from "./quest.js?v=20261004a";
+import { formOf, sparkleImg, azNow } from "./collect.js?v=20261004b";
+import { heldWeapon } from "./quest.js?v=20261004b";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261004a";
+export const APP_V = "20261004b";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -213,16 +213,22 @@ export function hitOn(st, d, cls) {
    Gear unlocks from the best run of 120 days this week and stays unlocked. */
 // The streak of goal days going into this week (from the XP history, before this Monday).
 // Excused days under the goal are skipped; days with no upload are skipped.
+// After "Start a new week" (often done on the weekend) the cut-off is the Monday that new week starts,
+// so last week's days still count toward the streak.
+export function weekCut(cls) { return cls && cls.weekStart && cls.weekStart > dateOfDay(0) ? cls.weekStart : dateOfDay(0); }
 export function carryRun(st, cls) {
-  // After "Start a new week" (often done on the weekend) the cut-off is the Monday that new week starts,
-  // so last week's days still count toward the streak.
-  const mon = cls && cls.weekStart && cls.weekStart > dateOfDay(0) ? cls.weekStart : dateOfDay(0), goal = goalXP(cls), h = (st && st.xpHist) || {};
+  // A streak saved when the week was cleared (or set by the teacher) for this week wins if it's longer.
+  const mon = weekCut(cls), saved = st && st.streakWeek === mon ? Number(st.streakCarry) || 0 : 0;
+  return Math.max(saved, histRun(st, cls, mon));
+}
+function histRun(st, cls, mon) {
+  const goal = goalXP(cls), h = (st && st.xpHist) || {};
   let run = 0;
   Object.keys(h).filter(d => d < mon).sort().forEach(date => {
     const x = h[date] || {}, v = Number(x.d != null ? x.d : x.l) || 0;
     if (x.e && v < goal) return;
-    if (x.d == null && x.l == null && !x.lh) return;   // nothing uploaded that day
-    run = v >= goal || x.lh ? run + 1 : 0;
+    if (x.d == null && x.l == null && !x.lh && !x.h) return;   // nothing uploaded that day
+    run = v >= goal || x.lh || x.h ? run + 1 : 0;   // h = the teacher marked the day as hit by hand
   });
   return run;
 }
