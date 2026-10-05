@@ -5,8 +5,9 @@
    Saved on the student: cpEarned (teacher writes), cpSpent, roomOwned [item ids], roomFit { slot: id }, roomBuys [{ id, cost, at }].
    Item ids are "{kind}_{theme}" (e.g. bed_dragon); art is assets/room/{id}.webp. Trophies are trophy_{season}.
    The room picture is 1536x1024; everything below is placed in % of that. */
-import { azToday } from "./collect.js?v=20261003b";
-import { esc } from "./game.js?v=20261003b";
+import { azToday } from "./collect.js?v=20261003c";
+import { questCP } from "./quest.js?v=20261003c";
+import { esc } from "./game.js?v=20261003c";
 
 // Themes that have art so far. Add a theme name here once its 9 pieces are in assets/room/.
 export const TYPE_THEMES = ["fire", "water", "nature", "rock", "sky", "electric", "ice", "light", "dark", "ghost", "poison", "steel", "arcane", "crystal", "dragon"];
@@ -53,6 +54,7 @@ export function cpEarnedCalc(st, cls) {
     if (x.lh || (x.l != null && Number(x.l) >= goal)) cp += 5;
     if (run >= 5) cp += 5;
   });
+  cp += questCP(st);   // Grade Level Quest battles
   // Comfort Points from Goal Presents (Daily Doors)
   const GOAL = { g1: 20, g2: 20, g3: 20, g4: 40 };
   Object.values((st && st.doors) || {}).forEach(day => Object.values(day || {}).forEach(e => { if (e && e.st === "open" && e.r && GOAL[e.r.id]) cp += GOAL[e.r.id]; }));

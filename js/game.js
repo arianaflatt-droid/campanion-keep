@@ -1,8 +1,9 @@
-import { formOf, sparkleImg, azNow } from "./collect.js?v=20261003b";
+import { formOf, sparkleImg, azNow } from "./collect.js?v=20261003c";
+import { heldWeapon } from "./quest.js?v=20261003c";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261003b";
+export const APP_V = "20261003c";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -385,9 +386,10 @@ export function pinnedBadgeHTML(st, cls) {
   if (!id || !(st.badges || {})[id]) return "";
   return '<img class="pinbadge' + (cls ? " " + cls : "") + '" src="assets/badges/' + esc(id) + '.webp" alt="" title="Pinned badge" onerror="this.remove()">';
 }
-export function petHTML(c, worn) {
+export function petHTML(c, worn, held) {
   return '<span class="petwrap"><span class="tglyph">' + (c.creature ? c.glyph : emojiImg("pet-" + c.id)) + "</span>" +
-    (worn ? '<span class="gear" style="' + gearStyle(c, worn) + '">' + itemArt(worn, "gimg") + "</span>" : "") + "</span>";
+    (worn ? '<span class="gear" style="' + gearStyle(c, worn) + '">' + itemArt(worn, "gimg") + "</span>" : "") +
+    (held ? '<span class="held held-' + held.n + '"><img src="' + held.img + '" alt="' + esc(held.name) + '"></span>' : "") + "</span>";
 }
 
 // One tile on The Keep (class board): the companion's name with the student's display name under it.
@@ -401,7 +403,7 @@ export function tileHTML(st, sim, rank, day, popped, haunt) {
     '<span class="rank">' + rank + "</span>" + pinnedBadgeHTML(st) +
     (haunt ? basketHTML(candyLeft(st), "corner") : "") +
     (side ? '<span class="lunch">LUNCH HERO</span>' : "") +
-    '<div class="stage" aria-hidden="true">' + petHTML(c, worn) + (side ? sidekickSVG(side) : "") + "</div>" +
+    '<div class="stage" aria-hidden="true">' + petHTML(c, worn, heldWeapon(st)) + (side ? sidekickSVG(side) : "") + "</div>" +
     '<div class="tname2">' + esc(st.petName || c.name) + "</div>" +
     '<div class="towner">' + esc(st.name || "") + "</div>" +
     '<div class="tspec">' + esc(c.name) + "</div>" +

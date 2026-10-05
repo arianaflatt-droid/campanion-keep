@@ -230,6 +230,22 @@ service cloud.firestore {
             && now("xpSpent", 0) >= was("xpSpent", 0) && now("xpSpent", 0) <= was("xpSpent", 0) + 120;
         }
 
+        // ---- Grade Level Quest ---- claim one guardian battle for a test the teacher marked passed:
+        // +1 Legendary egg and up to 250 quest XP. Holding a weapon is only for looks.
+        function studentQuest() {
+          let nq = request.resource.data.get("questDone", {});
+          let oq = resource.data.get("questDone", {});
+          let d = nq.diff(oq);
+          return changed().hasOnly(["questDone", "questXP", "legendaryPulls", "held"])
+            && d.affectedKeys().size() == 1 && d.addedKeys().size() == 1
+            && d.addedKeys().hasOnly(resource.data.get("questPass", {}).keys())
+            && now("legendaryPulls", 0) == was("legendaryPulls", 0) + 1
+            && now("questXP", 0) > was("questXP", 0) && now("questXP", 0) <= was("questXP", 0) + 250;
+        }
+        function studentHeld() {
+          return changed().hasOnly(["held"]) && (now("held", null) == null || (now("held", "") is string && now("held", "").size() <= 20));
+        }
+
         // ---- Companion Room ---- spend Comfort Points (cpEarned is saved by the teacher console) and place items.
         function studentRoom() {
           let b = request.resource.data.get("roomBuys", []);
@@ -276,7 +292,7 @@ service cloud.firestore {
                 || (now("petCreature", "") in ["L-26", "L-27", "L-28", "L-29", "L-30"] && was("coll", {}).keys().hasAny([now("petCreature", "")])));
         }
 
-        allow update: if isTeacher() || (request.auth != null && (studentLooks() || studentAttack() || studentBuy() || studentSpin() || studentDoor() || studentIdea() || studentRoom() || studentCollect() || studentBadges() || studentPet()));
+        allow update: if isTeacher() || (request.auth != null && (studentLooks() || studentAttack() || studentBuy() || studentSpin() || studentDoor() || studentIdea() || studentRoom() || studentCollect() || studentBadges() || studentPet() || studentQuest() || studentHeld()));
       }
     }
   }

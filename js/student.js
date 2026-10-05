@@ -1,17 +1,19 @@
 import {
   checkVersion, hitOn, gearInSeason, applyDisplayNames, companionOf, petCreatures, pinnedBadgeHTML, DAYS, SHORT, ROSTER, GEAR, SIDEKICKS, BANNER, bannerFor, isHaunt, battleOn, candyOf, basketHTML, CANDY_FULL, bossState, attacksReady, bossBarHTML, GHOST_IMG, ghostUnlocked, turkeyUnlocked, grinchUnlocked, isJingle, eventMode, isGobble, setSeason, SEASON, seasonOf, STORE, candyLeft, candySpent, ownedCount, ownsItem, storeArt, nextAttack, dmgOf, HAT_BONUS, BREW_BONUS, teamHTML, WHEEL, pickSlice, wheelHTML, spinTo, PRIZES, prizeSlices, bucketState, bucketHTML, baseDamage, EAT_PER_DAY, dayEaten, dayXP, byId, esc, arr5, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, sidekickSVG, petHTML, itemArt
-} from "./game.js?v=20261003b";
-import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20261003b";
-import { nudgeCard } from "./nudges.js?v=20261003b";
-import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261003b";
-import { teacherPlayer, hasStarter } from "./collect.js?v=20261003b";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261003b";
-import { goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked } from "./doors.js?v=20261003b";
-import { azToday } from "./collect.js?v=20261003b";
+} from "./game.js?v=20261003c";
+import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=20261003c";
+import { readyTests, heldWeapon } from "./quest.js?v=20261003c";
+import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20261003c";
+import { nudgeCard } from "./nudges.js?v=20261003c";
+import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261003c";
+import { teacherPlayer, hasStarter } from "./collect.js?v=20261003c";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261003c";
+import { goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked } from "./doors.js?v=20261003c";
+import { azToday } from "./collect.js?v=20261003c";
 import { roomHTML, FIT_SLOTS, slotKind, KIND_NAMES, KIND_ICON, EVERYDAY_PRICE, THEMED_PRICE, TROPHY_PRICE, TYPE_THEMES, SEASON_THEMES, THEME_NAMES, TROPHIES,
-  itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId } from "./room.js?v=20261003b";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261003b";
+  itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId } from "./room.js?v=20261003c";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261003c";
 
 let cls = null, students = [], battles = [], trades = [], loaded = { c: false, s: false };
 let tab = (() => { try { return localStorage.getItem("ck-tab") || "pet"; } catch (e) { return "pet"; } })();
@@ -177,10 +179,10 @@ function render(force) {
   }
   const cur = students.find(x => x.id === me);
   if (cur && cur.companionId && cls) lockBadges(cur);
-  const bday = !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() ? birthdayParty(cur) : "";
-  const party = !bday && !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() ? badgeParty(cur) : "";
+  const bday = !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() && !questBusy() ? birthdayParty(cur) : "";
+  const party = !bday && !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() && !questBusy() ? badgeParty(cur) : "";
   const fields = liveNow ? saveFields(app) : {};
-  app.innerHTML = h + presentOverlay() + prizeOverlay() + (cur && cur.companionId && cls ? collectorOverlays(collectorCtx(cur)) : "") + party + bday;
+  app.innerHTML = h + presentOverlay() + prizeOverlay() + (cur && cur.companionId && cls ? collectorOverlays(collectorCtx(cur)) + questOverlay(cur) : "") + party + bday;
   restoreFields(fields);
   if (bday && !bdayChimed) { bdayChimed = true; birthdayTune(); }
   if (party) { const key = unseenBadges(cur).join(","); if (key !== partyKey) { partyKey = key; badgeChime(); } }
@@ -228,17 +230,18 @@ function viewMine(s) {
   const doorsOn = doorsLive(cls);
   if (tab === "doors" && !doorsOn) tab = "pet";
   let h = notYou(s) + '<div class="tabs" role="tablist">' +
-    [["pet", "\u{1F43E} My Companion"], ["collect", "\u{1F95A} Creature Collector"], ["badges", "\u{1F3C5} Badges"]].concat(haunt ? [["haunt", S.icon + " " + S.name]] : []).concat(doorsOn ? [["doors", "\u{1F6AA} " + doorName() + doorBadge(s)]] : []).concat([["room", "\u{1F6CF}\uFE0F My Room"]])
+    [["pet", "\u{1F43E} My Companion"], ["collect", "\u{1F95A} Creature Collector"], ["badges", "\u{1F3C5} Badges"]].concat(haunt ? [["haunt", S.icon + " " + S.name]] : []).concat(doorsOn ? [["doors", "\u{1F6AA} " + doorName() + doorBadge(s)]] : []).concat([["room", "\u{1F6CF}\uFE0F My Room"], ["quest", "\u{1F5FA}\uFE0F Quest" + (readyTests(s).length ? ' <span class="tbadge">' + readyTests(s).length + "</span>" : "")]])
       .map(([k, t]) => '<button role="tab" class="tab' + (tab === k ? " on" : "") + '" data-tab="' + k + '" aria-selected="' + (tab === k) + '">' + t + "</button>").join("") + "</div>";
   if (tab === "collect") return h + collectorTab(collectorCtx(s));
   if (tab === "badges") return h + badgesTab(s, battles, cls);
   if (tab === "haunt") return h + (battleOn(cls) ? battleCard(s, c) : "") + wheelCard(s) + shopCard(s);
   if (tab === "doors") return h + doorsCard(s);
+  if (tab === "quest") return h + questTab(s, petHTML(c, worn, heldWeapon(s)));
   if (tab === "room") return h + roomTab(s, c, worn);
   h += nudgeCard(s, cls, battles, students);
   h += '<div class="card"><div class="mypet t-' + t.key + '">' + pinnedBadgeHTML(s, "mine") +
     (haunt ? basketHTML(candy, "big") : "") +
-    '<div class="stage" aria-hidden="true">' + petHTML(c, worn) + (side ? sidekickSVG(side, true) : "") + "</div>" +
+    '<div class="stage" aria-hidden="true">' + petHTML(c, worn, heldWeapon(s)) + (side ? sidekickSVG(side, true) : "") + "</div>" +
     '<div class="bigname">' + esc(s.petName || c.name) + "</div>" +
     '<div class="tspec" style="font-family:var(--mono);font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);">' + esc(c.name) + "</div>" +
     '<span class="tbar"><span style="width:' + Math.max(0, Math.min(100, sim.health / sim.max * 100)) + '%"></span></span>' +
@@ -300,7 +303,7 @@ function rItemCard(id, opts) {
 function roomTab(s, c, worn) {
   const left = cpLeft(s, cls), have = roomOwned(s), fit = fitOf(s);
   let h = '<div class="card roomwrap"><div class="card-head"><h2>\u{1F6CF}\uFE0F ' + esc(s.petName || c.name) + "\u2019s Room</h2>" + '<span class="cpwallet">\u2B50 ' + left + " Comfort Points</span></div>" +
-    roomHTML(s, petHTML(c, worn), { side: (() => { const k = sidekickToday(s, boardDay(cls, students)); return k ? { kind: k, html: sidekickSVG(k) } : null; })() }) +
+    roomHTML(s, petHTML(c, worn, heldWeapon(s)), { side: (() => { const k = sidekickToday(s, boardDay(cls, students)); return k ? { kind: k, html: sidekickSVG(k) } : null; })() }) +
     (sidekickToday(s, boardDay(cls, students)) ? '<p class="muted small" style="margin-top:6px;">\u2600\uFE0F You were Lunch Hero today, so your ' + esc(SIDEKICKS[sidekickToday(s, boardDay(cls, students))]) + " came to play!</p>" : "") +
     '<p class="muted small" style="margin-top:8px;">Earn Comfort Points: <b>+10</b> every day your companion stays at full health \u00b7 <b>+5</b> on Lunch Hero days \u00b7 <b>+5</b> on 5-day streak days.</p></div>';
   h += '<div class="tabs" style="margin-bottom:10px;">' + [["decorate", "\u{1F3A8} Decorate"], ["everyday", "\u{1F6CD}\uFE0F Everyday shop"], ["themed", "\u2728 Themed sets"]].map(([k, l]) =>
@@ -575,6 +578,7 @@ document.addEventListener("click", async ev => {
   // Teacher preview can't save anything, so say so instead of doing nothing.
   if (PREVIEW && (ev.target.closest("[data-tr]") || ev.target.closest('[data-cc="decline"],[data-cc="accept"],[data-cc="challenge"],[data-cc="move"],[data-cc="leaveBattle"]'))) { flash("This is a teacher preview \u2014 battles and trades only work on the student\u2019s own page (or in your teacher console)."); return; }
   if ((el = ev.target.closest("[data-tr]"))) { const s = students.find(x => x.id === me); if (s && !PREVIEW) await onTradeClick(el, collectorCtx(s)).catch(e => showErr(e)); return; }
+  if ((el = ev.target.closest("[data-qfight],[data-qhold],[data-qpick],[data-qmove],[data-qact]"))) { const s = students.find(x => x.id === me); if (s && !PREVIEW) await questClick(el, collectorCtx(s)).catch(e => showErr(e)); return; }
   if ((el = ev.target.closest("[data-cc]"))) { const s = students.find(x => x.id === me); if (s) await collectorClick(el, collectorCtx(s)).catch(e => showErr(e)); return; }
   if ((el = ev.target.closest("[data-me]"))) { me = el.dataset.me; save(me); picking = null; draftName = ""; render(); scrollTo({ top: 0 }); return; }
   if ((el = ev.target.closest("[data-pick]"))) { picking = el.dataset.pick; render(); return; }

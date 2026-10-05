@@ -959,3 +959,56 @@ td .emo, .ic .emo{ display:inline-block; vertical-align:middle; font-size:1.3em;
     100%{ transform:translateY(0) rotate(0); filter:drop-shadow(0 0 0 rgba(120,180,255,0)); }
   }
   @media (prefers-reduced-motion: reduce){ img[src*="s36-1"]{ animation:none; } }
+  /* ---------- Grade Level Quest ---------- */
+  .petwrap .held{ position:absolute; left:78%; top:38%; width:.55em; height:.55em; transform:translate(-50%,0) rotate(18deg); pointer-events:none; z-index:2; }
+  .petwrap .held img{ width:100%; height:100%; object-fit:contain; filter:drop-shadow(0 2px 2px rgba(0,0,0,.3)); }
+  .petwrap .held.held-0{ left:80%; top:45%; width:.5em; height:.5em; transform:translate(-50%,0) rotate(0); }   /* shields sit in front */
+  .qready{ display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; }
+  .qbattle{ display:flex; align-items:center; gap:10px; padding:8px 14px 8px 8px; border-radius:14px; border:2px solid #E9A91C; background:linear-gradient(135deg,#FFF6D8,#FFE7A8); cursor:pointer; font:inherit; text-align:left; animation:qglow 1.6s ease-in-out infinite alternate; }
+  .qbattle img{ width:58px; height:58px; object-fit:contain; }
+  .qbattle b{ display:block; font-size:15px; } .qbattle small{ color:#7A5A12; }
+  @keyframes qglow{ from{ box-shadow:0 0 0 rgba(233,169,28,0); } to{ box-shadow:0 0 18px rgba(233,169,28,.7); } }
+  .qweapons{ display:grid; grid-template-columns:repeat(auto-fill,minmax(86px,1fr)); gap:8px; }
+  .qw{ display:flex; flex-direction:column; align-items:center; gap:2px; padding:6px; border-radius:12px; border:2px solid var(--line); background:var(--panel-2); cursor:pointer; font:inherit; }
+  .qw img{ width:56px; height:56px; object-fit:contain; } .qw small{ font-size:11px; text-align:center; line-height:1.15; }
+  .qw.on{ border-color:var(--good); box-shadow:0 0 0 3px rgba(46,158,91,.25); }
+  .qroad{ margin:0 0 14px; border-radius:16px; overflow:hidden; background:var(--panel); border:1px solid var(--line); }
+  .qroad.small{ padding:10px 14px; }
+  .qroad.here{ border:3px solid #E9A91C; }
+  .qroad.later .qbg{ filter:saturate(.55) brightness(.85); }
+  .qmap{ position:relative; container-type:inline-size; }
+  .qbg{ display:block; width:100%; height:auto; }
+  .qspot{ position:absolute; transform:translate(-50%,-50%); width:9cqw; height:9cqw; border-radius:50%; display:grid; place-items:center; font-size:4.4cqw; }
+  .qspot.ok{ background:rgba(255,255,255,.85); box-shadow:0 0 0 .5cqw #2E9E5B, 0 .6cqw 1.2cqw rgba(0,0,0,.35); }
+  .qspot i{ position:absolute; right:-.6cqw; bottom:-.6cqw; font-style:normal; font-size:2.6cqw; background:#2E9E5B; color:#fff; border-radius:50%; width:3.6cqw; height:3.6cqw; display:grid; place-items:center; }
+  .qme{ position:absolute; transform:translate(-50%,-88%); font-size:20cqw; line-height:1; z-index:2; }
+  .qme-in{ display:inline-block; animation:bob 2.4s ease-in-out infinite; }
+  .qme .crpet{ width:1em; height:1em; }
+  .qlock{ position:absolute; left:50%; bottom:6%; transform:translateX(-50%); background:rgba(20,16,40,.75); color:#fff; padding:4px 12px; border-radius:99px; font-size:clamp(11px,2.4cqw,15px); font-weight:700; white-space:nowrap; }
+  .qchips{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; padding:10px; }
+  .qchip{ display:inline-flex; align-items:center; gap:6px; padding:5px 10px; border-radius:99px; border:1px solid var(--line); background:var(--panel-2); font-weight:700; font-size:13.5px; }
+  .qchip.done{ background:#E3F6EA; border-color:#2E9E5B; } .qchip.wait{ background:#FFF4D6; border-color:#E9A91C; }
+  .qchip.battle{ background:#FFF0C2; border-color:#E9A91C; }
+  /* guardian battle */
+  .qbover{ position:fixed; inset:0; z-index:60; background-size:cover; background-position:center; display:flex; flex-direction:column; align-items:center; overflow:auto; padding:12px; }
+  .qbtop{ width:min(760px,100%); display:flex; justify-content:space-between; align-items:center; gap:10px; background:rgba(20,16,40,.72); color:#fff; padding:8px 14px; border-radius:12px; }
+  .qbpanel{ width:min(760px,100%); margin-top:10px; background:rgba(20,16,40,.82); color:#fff; padding:14px; border-radius:14px; text-align:center; }
+  .qbpanel.small p{ margin:0; min-height:1.3em; }
+  .qbpanel h3{ margin:0 0 10px; }
+  .qbpick{ display:grid; grid-template-columns:repeat(auto-fill,minmax(100px,1fr)); gap:8px; margin-bottom:12px; max-height:46vh; overflow:auto; }
+  .qbpick .tpick img{ width:64px; height:64px; object-fit:contain; }
+  .qbfield{ width:min(760px,100%); flex:1; min-height:300px; display:flex; flex-direction:column; justify-content:space-between; margin-top:8px; }
+  .qbside{ display:flex; align-items:flex-end; gap:12px; } .qbside.them{ justify-content:flex-end; align-items:flex-start; } .qbside.mine{ justify-content:flex-start; }
+  .qbside img{ width:min(34vw,210px); height:min(34vw,210px); object-fit:contain; filter:drop-shadow(0 8px 10px rgba(0,0,0,.45)); }
+  .qbside.them img{ animation:bob 2.6s ease-in-out infinite; } .qbside.mine img{ transform:scaleX(-1); }
+  .qbbar{ background:rgba(20,16,40,.78); color:#fff; padding:6px 10px; border-radius:10px; min-width:170px; font-size:13px; }
+  .qhp{ display:block; height:9px; border-radius:99px; background:rgba(255,255,255,.2); overflow:hidden; margin:4px 0 2px; } .qhp span{ display:block; height:100%; background:#47D17A; transition:width .5s; }
+  .qbpanel.win{ border:2px solid #E9A91C; }
+  .qrewards{ display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin:6px 0 12px; }
+  .qrewards span{ display:flex; flex-direction:column; align-items:center; gap:4px; background:rgba(255,255,255,.12); border-radius:12px; padding:8px 12px; font-size:26px; }
+  .qrewards b{ font-size:13px; } .qrewards img{ width:44px; height:44px; object-fit:contain; }
+  /* teacher tracker */
+  .qtrack td{ white-space:nowrap; } .qtrack td.qcur{ background:rgba(233,169,28,.12); }
+  .qtrack .qb{ width:28px; height:26px; margin:1px; border-radius:7px; border:1px solid var(--line); background:var(--panel-2); cursor:pointer; font:700 12px var(--mono, monospace); padding:0; }
+  .qtrack .qb.battle{ background:#FFF0C2; border-color:#E9A91C; } .qtrack .qb.done{ background:#E3F6EA; border-color:#2E9E5B; cursor:default; } .qtrack .qb.wait{ background:#FFF4D6; border-color:#E9A91C; }
+  .qtrack .qall{ opacity:.6; }
