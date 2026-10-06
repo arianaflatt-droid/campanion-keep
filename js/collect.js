@@ -1,5 +1,5 @@
 // Creature Collector: pulls, XP bank, levels, evolutions, lorebook and arena battles.
-import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261006c";
+import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261006f";
 
 export const PULL_XP = 120;          // every 120 XP (all-time since the collector started) = 1 pull
 export const LEVEL_XP = 120;         // 120 banked XP = 1 level
@@ -76,6 +76,8 @@ export const WISH_FAM = "L-28";
 // Cluckledill (exclusive event Legendary): the teacher gives an egg to students who came to the real-life event.
 // Once a student has Cluckledill, it can also hatch from their Legendary eggs. Students who never got one can't hatch it.
 export const PICKLE_FAM = "L-31";
+export const BREW_FAM = "L-33";   // Brewraith: the top Potion Brewing Team's special egg
+export function brewLegLeft(st) { return Math.max(0, (Number(st && st.potionLegEggs) || 0) - (Number(st && st.potionLegUsed) || 0)); }
 export function pickleLeft(st) { return Math.max(0, (Number(st && st.pickleEggs) || 0) - (Number(st && st.pickleUsed) || 0)); }
 export function birthdayLeft(st) { return Math.max(0, (Number(st.birthdayEggs) || 0) - (Number(st.birthdayUsed) || 0)); }
 export function legendaryLeft(st) { return Math.max(0, (Number(st.legendaryPulls) || 0) - (Number(st.legendaryUsed) || 0)); }
@@ -339,7 +341,7 @@ export function fighterFrom(st, fam) {
   const e = owned(st)[fam]; if (!e) return null;
   const c = formOf(fam, e.lvl || 1), s = statsOf(c, e.lvl || 1);
   return { fam, id: c.id, lvl: e.lvl || 1, name: e.nick || c.name, species: c.name, img: e.sparkle ? sparkleImg(c) : c.img, sparkle: !!e.sparkle, face: c.face || "R", type: c.types[0], types: c.types, weak: c.weak, attack: c.attack, hp: s.hp, df: s.df, dmg: s.dmg, cur: s.hp, dodge: c.dodge || 0,
-    daze: c.daze || 0, dazePct: c.dazePct || 0, poison: c.poison || 0, atkHeal: c.atkHeal || 0,
+    daze: c.daze || 0, dazePct: c.dazePct || 0, poison: c.poison || 0, atkHeal: c.atkHeal || 0, brewFx: !!c.brewFx,
     alt: c.alt ? { name: c.alt.name, mult: c.alt.mult || 1, heal: c.alt.heal || 0, type: c.alt.type || "", defDown: c.alt.defDown || 0, defPct: c.alt.defPct || 0, defTemp: !!c.alt.defTemp } : null };
 }
 export function teamSize(a, b) { return Math.max(0, Math.min(TEAM_MAX, ownedFams(a).length, ownedFams(b).length)); }
@@ -414,6 +416,14 @@ export function resolveRound(bt) {
       if (att.alt.defTemp) { def.dfOrig = def.df; def.dfT = 2; }   // Blossom Barrage: only until the end of the next round
       def.df = Math.max(1, Math.round(def.df * (1 - (att.alt.defPct || 0.2)))); bt.log.push({ k: "defdown", s, d: def.name, pct: Math.round((att.alt.defPct || 0.2) * 100), temp: !!att.alt.defTemp }); }
     // Orchard Burst: the attacker heals a little after hitting
+    // Witch's Brew (Brewraith): every hit that lands does one random thing: poison, a short Defense drop, or a small heal
+    if (!miss && m.m === "attack" && att.brewFx && def.cur > 0) {
+      const opts = []; if (!def.psn) opts.push("psn"); if (!(def.dfT > 0)) opts.push("def"); if (att.cur < att.hp) opts.push("heal");
+      const pick = opts[Math.floor(Math.random() * opts.length)];
+      if (pick === "psn") { def.psn = 3; bt.log.push({ k: "poison", s, d: def.name }); }
+      else if (pick === "def") { def.dfOrig = def.df; def.dfT = 2; def.df = Math.max(1, Math.round(def.df * 0.8)); bt.log.push({ k: "defdown", s, d: def.name, pct: 20, temp: true }); }
+      else if (pick === "heal") { const amt = Math.min(att.hp - att.cur, Math.round(att.hp * 0.08)); att.cur += amt; bt.log.push({ k: "heal", s, i: bt.active[s], n: att.name, amt, left: att.cur, max: att.hp, alt: true }); }
+    }
     if (!miss && m.m === "attack" && att.atkHeal && att.cur < att.hp) { const amt = Math.min(att.hp - att.cur, Math.round(att.hp * att.atkHeal)); att.cur += amt; bt.log.push({ k: "heal", s, i: bt.active[s], n: att.name, amt, left: att.cur, max: att.hp, alt: true }); }
     // Sugar Rush: heals the attacker a little
     if (alt && att.alt.heal && att.cur < att.hp) { const amt = Math.min(att.hp - att.cur, Math.round(att.hp * att.alt.heal)); att.cur += amt; bt.log.push({ k: "heal", s, i: bt.active[s], n: att.name, amt, left: att.cur, max: att.hp, alt: true }); }

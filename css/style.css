@@ -1014,3 +1014,48 @@ td .emo, .ic .emo{ display:inline-block; vertical-align:middle; font-size:1.3em;
   .qtrack .qall{ opacity:.6; }
   .qtell{ margin:0 0 12px; padding:14px 16px; border-radius:16px; text-align:center; font-weight:800; font-size:clamp(18px,3.6vw,26px); color:#5A3A00;
     background:linear-gradient(135deg,#FFE27A,#FFC93C); border:3px solid #E9A91C; box-shadow:0 4px 0 #C98A0C; animation:qglow 1.6s ease-in-out infinite alternate; }
+
+  /* ---------- Potion Brewing Teams ---------- */
+  .pfx-glow{ --pfx:#B266FF; } .pfx-shadow{ --pfx:#2B1640; } .pfx-pumpkin{ --pfx:#FF8A1F; } .pfx-slime{ --pfx:#3FD15A; } .pfx-frost{ --pfx:#6FD3FF; }
+  .petwrap.pfx, .stage.pfx > .petwrap{ filter:drop-shadow(0 0 5px var(--pfx)) drop-shadow(0 0 12px var(--pfx)); animation:pfxPulse 2.6s ease-in-out infinite; }
+  .petwrap.pfx::after, .stage.pfx > .petwrap::after{ content:"\2728"; position:absolute; right:-.15em; top:-.2em; font-size:.32em; animation:pfxTwinkle 1.8s ease-in-out infinite; pointer-events:none; }
+  @keyframes pfxPulse{ 0%,100%{ filter:drop-shadow(0 0 4px var(--pfx)) drop-shadow(0 0 9px var(--pfx)); } 50%{ filter:drop-shadow(0 0 8px var(--pfx)) drop-shadow(0 0 18px var(--pfx)); } }
+  @keyframes pfxTwinkle{ 0%,100%{ opacity:.3; transform:scale(.8); } 50%{ opacity:1; transform:scale(1.15); } }
+  /* the cauldron: a CSS pot (or assets/potion/cauldron.webp when it's added) with a swirling liquid and the ingredients floating in it.
+     --lx/--ly/--lw/--lh = where the liquid sits (center x, center y, width, height in % of the box) so it lines up with the art. */
+  .potion .cauldron{ position:relative; width:min(300px,80vw); aspect-ratio:13/11; margin:4px auto 0; --lx:50%; --ly:31%; --lw:70%; --lh:19%; --liq:#4CD964; --liq2:#1E9E4A; }
+  .potion .cauldron.brewed{ --liq:#C77DFF; --liq2:#7B3FC4; }
+  .potion .cauldron .caul-art{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; z-index:1; pointer-events:none; }
+  .potion .cauldron .bowl{ position:absolute; left:12%; right:12%; top:30%; bottom:4%; border-radius:18% 18% 50% 50% / 14% 14% 60% 60%; background:radial-gradient(circle at 35% 30%, #4a4458, #1d1a24 70%); box-shadow:inset 0 -10px 0 rgba(0,0,0,.35), 0 7px 0 #14121a; z-index:1; }
+  .potion .cauldron .bowl::before{ content:""; position:absolute; left:-6%; right:-6%; top:-5%; height:12%; border-radius:999px; background:#2c2836; box-shadow:inset 0 3px 0 rgba(255,255,255,.12); }
+  .potion .cauldron .bowl::after{ content:""; position:absolute; left:18%; bottom:-9%; width:64%; height:10%; border-radius:0 0 40% 40%; background:#14121a; }
+  .potion .cauldron.has-art{ aspect-ratio:720/710; --lx:50%; --ly:32%; --lw:62%; --lh:14%; }
+  .potion .cauldron.has-art .bowl, .potion .cauldron.has-art .steam{ display:none; }
+  .potion .cauldron.has-art .liquid{ background:transparent; box-shadow:none; mix-blend-mode:screen; opacity:.45; z-index:2; }
+  .potion .cauldron.has-art .swirl{ background:conic-gradient(from 0deg, transparent, var(--liq) 12%, transparent 30%, var(--liq) 55%, transparent 70%, var(--liq) 88%, transparent); animation-duration:9s; }
+  .potion .cauldron .liquid{ position:absolute; left:calc(var(--lx) - var(--lw) / 2); top:calc(var(--ly) - var(--lh) / 2); width:var(--lw); height:var(--lh); border-radius:50%; overflow:hidden; z-index:2;
+    background:var(--liq2); box-shadow:0 0 22px var(--liq), inset 0 -4px 10px rgba(0,0,0,.35); }
+  .potion .cauldron .swirl{ position:absolute; left:-25%; top:-150%; width:150%; height:400%; border-radius:50%;
+    background:conic-gradient(from 0deg, var(--liq), var(--liq2) 25%, var(--liq) 50%, var(--liq2) 75%, var(--liq)); animation:pswirl 7s linear infinite; opacity:.95; }
+  .potion .cauldron .shine{ position:absolute; left:14%; top:16%; width:30%; height:26%; border-radius:50%; background:rgba(255,255,255,.35); filter:blur(3px); }
+  .potion .cauldron .floaty{ position:absolute; z-index:3; left:calc(var(--lx) + var(--u) * var(--lw) / 2); top:calc(var(--ly) + var(--v) * var(--lh) / 2); font-size:clamp(16px,5.4vw,24px); line-height:1; transform:translate(-50%,-60%); animation:pbob 2.6s ease-in-out infinite; filter:drop-shadow(0 2px 1px rgba(0,0,0,.35)); }
+  .potion .cauldron .floaty.new{ animation:pdrop .9s cubic-bezier(.3,1.4,.6,1) both, pbob 2.6s ease-in-out .9s infinite; }
+  .potion .cauldron .bub{ position:absolute; top:calc(var(--ly) - 4%); width:5%; aspect-ratio:1; border-radius:50%; background:var(--liq); opacity:0; z-index:3; animation:pbub 2.4s ease-in infinite; box-shadow:inset -2px -2px 0 rgba(0,0,0,.15), inset 2px 2px 0 rgba(255,255,255,.4); }
+  .potion .cauldron .b1{ left:36%; } .potion .cauldron .b2{ left:52%; animation-delay:.8s; width:3.6%; } .potion .cauldron .b3{ left:63%; animation-delay:1.6s; }
+  .potion .cauldron .steam{ position:absolute; top:calc(var(--ly) - 26%); width:16%; height:20%; border-radius:50%; background:radial-gradient(var(--liq), transparent 70%); opacity:0; z-index:0; animation:psteam 3.4s ease-out infinite; }
+  .potion .cauldron .s1{ left:30%; } .potion .cauldron .s2{ left:54%; animation-delay:1.7s; }
+  @keyframes pswirl{ to{ transform:rotate(360deg); } }
+  @keyframes pbob{ 0%,100%{ margin-top:0; rotate:-8deg; } 50%{ margin-top:-4px; rotate:8deg; } }
+  @keyframes pdrop{ 0%{ margin-top:-60px; opacity:0; } 60%{ opacity:1; } 100%{ margin-top:0; } }
+  @keyframes psteam{ 0%{ transform:translateY(20%) scale(.6); opacity:0; } 30%{ opacity:.35; } 100%{ transform:translateY(-60%) scale(1.3); opacity:0; } }
+  @keyframes pbub{ 0%{ transform:translateY(0) scale(.6); opacity:0; } 20%{ opacity:.9; } 100%{ transform:translateY(-44px) scale(1.1); opacity:0; } }
+  .potion .recipe{ display:grid; gap:8px; margin-top:6px; }
+  .potion .pring{ display:grid; grid-template-columns:34px 1fr auto; grid-template-areas:"ic nm n" "ic bar bar"; align-items:center; column-gap:10px; row-gap:4px; padding:8px 10px; border:1px solid var(--line-2); border-radius:12px; background:var(--panel-2); }
+  .potion .ri-ic{ grid-area:ic; font-size:26px; text-align:center; } .potion .ri-nm{ grid-area:nm; font-weight:700; } .potion .ri-n{ grid-area:n; } .potion .pbar{ grid-area:bar; }
+  .pbar{ display:block; height:10px; border-radius:6px; background:var(--line-2); overflow:hidden; } .pbar > span{ display:block; height:100%; background:linear-gradient(90deg,#7B3FC4,#C77DFF); border-radius:6px; }
+  .pteam{ display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; } .pteam > span{ padding:5px 10px; border-radius:999px; border:1px solid var(--line-2); background:var(--panel-2); font-size:14px; }
+  .pteam > span.me{ border-color:#7B3FC4; font-weight:700; }
+  .pstand{ margin:6px 0 4px 22px; } .pstand li.me{ font-weight:800; color:#7B3FC4; }
+  .ptgrid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:6px 12px; margin-top:8px; } .ptgrid label{ display:flex; justify-content:space-between; gap:8px; align-items:center; }
+  .pteamrow{ border:1px solid var(--line-2); border-radius:12px; padding:10px 12px; margin-top:8px; background:var(--panel-2); }
+  .pteamrow .pneed input{ width:56px; }

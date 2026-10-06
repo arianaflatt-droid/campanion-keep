@@ -1,8 +1,8 @@
 // Nudge messages: short, friendly "you're close!" notes at the top of a student's page.
 // Each rule returns a nudge or null; the most useful few are shown (lower pri = shown first).
-import { seasonOf, dayXP, simulate, GEAR, goalXP, arr5, esc, isHaunt, battleOn, nextAttack, companionOf, bossState } from "./game.js?v=20261006c";
-import { pickleLeft, birthdayLeft, EVENTS, eventOpen, eventUnlocked, hasEvent, eventStreak, creature, family, azNow, pullsLeft, legendaryLeft, bankXP, LEVEL_XP, PULL_XP, hasStarter, owned, MAX_LEVEL } from "./collect.js?v=20261006c";
-import { badgeState } from "./badges.js?v=20261006c";
+import { seasonOf, dayXP, simulate, GEAR, goalXP, arr5, esc, isHaunt, battleOn, nextAttack, companionOf, bossState } from "./game.js?v=20261006f";
+import { brewLegLeft, pickleLeft, birthdayLeft, EVENTS, eventOpen, eventUnlocked, hasEvent, eventStreak, creature, family, azNow, pullsLeft, legendaryLeft, bankXP, LEVEL_XP, PULL_XP, hasStarter, owned, MAX_LEVEL } from "./collect.js?v=20261006f";
+import { badgeState } from "./badges.js?v=20261006f";
 
 const MAX_SHOWN = 3;
 const WEEKDAY = { Mon: 0, Tue: 1, Wed: 2, Thu: 3, Fri: 4 };
@@ -42,6 +42,7 @@ export function nudges(st, cls, battles, students) {
   // ---- Creature Collector ----
   if (hasStarter(st)) {
     if (birthdayLeft(st)) add(0, "\u{1F382}", "<b>Happy birthday!</b> Ms. Ariana sent you a birthday egg. Go hatch it!", "collect");
+    if (brewLegLeft(st)) add(0, "\u{1F9EA}", "<b>Your Potion Team won Haunt-O-Ween!</b> You got a special Brewraith egg. Go hatch it!", "collect");
     if (pickleLeft(st)) add(0, "\u{1F952}", "<b>Thanks for coming to the event!</b> Ms. Ariana sent you a special egg. Go hatch it!", "collect");
     const eggs = pullsLeft(st, cls) + legendaryLeft(st);
     if (eggs) add(2, "\u{1F95A}", "You have <b>" + plural(eggs, "egg") + "</b> waiting to hatch!", "collect");

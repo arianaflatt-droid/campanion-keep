@@ -1,9 +1,9 @@
-import { formOf, sparkleImg, azNow } from "./collect.js?v=20261006c";
-import { heldWeapon } from "./quest.js?v=20261006c";
+import { formOf, sparkleImg, azNow, azToday } from "./collect.js?v=20261006f";
+import { heldWeapon } from "./quest.js?v=20261006f";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261006c";
+export const APP_V = "20261006f";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -164,6 +164,8 @@ export const ITEMS = [
   { id: "brewsnack", name: "Witch\u2019s Brew", glyph: "\u{1F9EA}", streak: 3, ghost: true, slot: "snack", img: "assets/gear/witchs-brew.webp" },
   // Only in December and January (Arizona time): a 5-day streak hat.
   { id: "xmashat", name: "Aurora\u2019s Christmas Hat", glyph: "\u{1F385}", streak: 5, months: [12, 1], img: "assets/gear/aurora-christmas-hat.webp" },
+  // A 5-day streak hat, any time of year.
+  { id: "hat67", name: "67 Wizard Hat", glyph: "\u{1F9D9}", streak: 5, img: "assets/gear/wizard-67-hat.webp" },
   { id: "cape",   name: "Hero Cape",   glyph: "\u{1F9B8}", revive: true }
 ];
 // To use a picture instead of an emoji, drop a transparent PNG in assets/gear/ and set img, e.g. img: "assets/gear/cap.png"
@@ -319,9 +321,9 @@ export function sidekickSVG(kind, big) {
 }
 
 // Hats sit on the head (anchored at their bottom-centre); shades centre on the eyes.
-const HAT_SCALE = { cap: 1, hat: 1.05, crown: 0.95, witch: 1.25, pilgrim: 1.2, antlers: 1.35, xmashat: 1.35 };
+const HAT_SCALE = { cap: 1, hat: 1.05, crown: 0.95, witch: 1.25, pilgrim: 1.2, antlers: 1.35, xmashat: 1.35, hat67: 1.3 };
 // How far up each hat is lifted from its anchor point (the cap emoji has empty space under its brim, so it sits lower).
-const HAT_LIFT = { cap: 72, hat: 88, crown: 88, witch: 88, pilgrim: 88, antlers: 70, xmashat: 78 };
+const HAT_LIFT = { cap: 72, hat: 88, crown: 88, witch: 88, pilgrim: 88, antlers: 70, xmashat: 78, hat67: 76 };
 const GLYPH_W = 1.25;   // emoji box is 1.25em wide x 1em tall
 const pos = (x, y) => "left:" + (x / GLYPH_W * 100).toFixed(1) + "%;top:" + (y * 100).toFixed(1) + "%;";
 export function gearStyle(c, worn) {
@@ -372,6 +374,7 @@ const CREATURE_FIT = {
   "L-30": { hat: [0.86, 0.36, 0.24, 4], cap: [0.86, 0.39, 0.26, 4], eyes: [0.88, 0.53, 0.22, 0], snack: [1.1, 0.95] },   // Jinglotl
   "S-36": { hat: [0.87, 0.35, 0.24, 10], cap: [0.87, 0.38, 0.26, 10], eyes: [0.9, 0.41, 0.2, 8], snack: [1.1, 0.95] },      // Jett
   "L-31": { hat: [0.62, 0.12, 0.3, 0], cap: [0.62, 0.16, 0.32, 0], eyes: [0.66, 0.3, 0.24, 0], snack: [1.1, 0.95] },        // Cluckledill
+  "L-33": { hat: [0.71, 0.2, 0.3, 4], cap: [0.71, 0.24, 0.32, 4], eyes: [0.74, 0.41, 0.26, 0], snack: [1.1, 0.95] },      // Brewraith
   "S-37": { hat: [0.83, 0.2, 0.26, 8], cap: [0.83, 0.24, 0.28, 8], eyes: [0.86, 0.35, 0.2, 6], snack: [1.1, 0.95] }       // Cinnamon
 };
 export function creatureCompanion(st, fam) {
@@ -395,6 +398,8 @@ export function pinnedBadgeHTML(st, cls) {
   if (!id || !(st.badges || {})[id]) return "";
   return '<img class="pinbadge' + (cls ? " " + cls : "") + '" src="assets/badges/' + esc(id) + '.webp" alt="" title="Pinned badge" onerror="this.remove()">';
 }
+// Potion Brewing Teams: the companion glows the color of today's potion.
+export function potionFx(st) { const d = ((st && st.potionDays) || {})[azToday()]; return d && d.fx ? " pfx pfx-" + String(d.fx).replace(/[^a-z]/g, "") : ""; }
 export function petHTML(c, worn, held) {
   return '<span class="petwrap"><span class="tglyph">' + (c.creature ? c.glyph : emojiImg("pet-" + c.id)) + "</span>" +
     (worn ? '<span class="gear" style="' + gearStyle(c, worn) + '">' + itemArt(worn, "gimg") + "</span>" : "") +
@@ -412,7 +417,7 @@ export function tileHTML(st, sim, rank, day, popped, haunt) {
     '<span class="rank">' + rank + "</span>" + pinnedBadgeHTML(st) +
     (haunt ? basketHTML(candyLeft(st), "corner") : "") +
     (side ? '<span class="lunch">LUNCH HERO</span>' : "") +
-    '<div class="stage" aria-hidden="true">' + petHTML(c, worn, heldWeapon(st)) + (side ? sidekickSVG(side) : "") + "</div>" +
+    '<div class="stage' + potionFx(st) + '" aria-hidden="true">' + petHTML(c, worn, heldWeapon(st)) + (side ? sidekickSVG(side) : "") + "</div>" +
     '<div class="tname2">' + esc(st.petName || c.name) + "</div>" +
     '<div class="towner">' + esc(st.name || "") + "</div>" +
     '<div class="tspec">' + esc(c.name) + "</div>" +

@@ -1,20 +1,23 @@
 import {
   checkVersion, hitOn, gearInSeason, applyDisplayNames, companionOf, petCreatures, pinnedBadgeHTML, DAYS, SHORT, ROSTER, GEAR, SIDEKICKS, BANNER, bannerFor, isHaunt, battleOn, candyOf, basketHTML, CANDY_FULL, bossState, attacksReady, bossBarHTML, GHOST_IMG, ghostUnlocked, turkeyUnlocked, grinchUnlocked, isJingle, eventMode, isGobble, setSeason, SEASON, seasonOf, STORE, candyLeft, candySpent, ownedCount, ownsItem, storeArt, nextAttack, dmgOf, HAT_BONUS, BREW_BONUS, teamHTML, WHEEL, pickSlice, wheelHTML, spinTo, PRIZES, prizeSlices, bucketState, bucketHTML, baseDamage, EAT_PER_DAY, dayEaten, dayXP, byId, esc, arr5, recordedDays, goalXP,
-  simulate, wornItem, tier, boardDay, sidekickToday, sidekickSVG, petHTML, itemArt
-} from "./game.js?v=20261006c";
-import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=20261006c";
-import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261006c";
-import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20261006c";
-import { nudgeCard } from "./nudges.js?v=20261006c";
-import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261006c";
-import { teacherPlayer, hasStarter } from "./collect.js?v=20261006c";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261006c";
-import { goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked } from "./doors.js?v=20261006c";
-import { azToday } from "./collect.js?v=20261006c";
+  simulate, wornItem, tier, boardDay, sidekickToday, sidekickSVG, petHTML as petBase, itemArt, potionFx
+} from "./game.js?v=20261006f";
+import { potionOn, potionCard, teamOf } from "./potion.js?v=20261006f";
+import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=20261006f";
+import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261006f";
+import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20261006f";
+import { nudgeCard } from "./nudges.js?v=20261006f";
+import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261006f";
+import { teacherPlayer, hasStarter } from "./collect.js?v=20261006f";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261006f";
+import { goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked } from "./doors.js?v=20261006f";
+import { azToday } from "./collect.js?v=20261006f";
 import { roomHTML, FIT_SLOTS, slotKind, KIND_NAMES, KIND_ICON, EVERYDAY_PRICE, THEMED_PRICE, TROPHY_PRICE, TYPE_THEMES, SEASON_THEMES, THEME_NAMES, TROPHIES,
-  itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId } from "./room.js?v=20261006c";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261006c";
+  itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId } from "./room.js?v=20261006f";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261006f";
 
+let fxFor = null;   // the student whose companion is being drawn (for the potion glow)
+const petHTML = (c, worn, held) => { const h = petBase(c, worn, held), fx = fxFor ? potionFx(fxFor) : ""; return fx ? h.replace('class="petwrap', 'class="petwrap' + fx) : h; };
 let cls = null, students = [], battles = [], trades = [], loaded = { c: false, s: false };
 let tab = (() => { try { return localStorage.getItem("ck-tab") || "pet"; } catch (e) { return "pet"; } })();
 let me = new URLSearchParams(location.search).get("s") || load();
@@ -216,6 +219,7 @@ function viewChoose(s) {
 }
 
 function viewMine(s) {
+  fxFor = s;
   const c = companionOf(s), sim = simulate(s, cls), t = tier(sim), worn = wornItem(s, sim);
   const bd = boardDay(cls, students), side = sidekickToday(s, bd), rec = recordedDays(cls), goal = goalXP(cls);
   const status = arr5(s.status, ""), early = arr5(s.early, false);
@@ -229,13 +233,16 @@ function viewMine(s) {
   if (tab === "haunt" && !haunt) tab = "pet";
   const doorsOn = doorsLive(cls);
   if (tab === "doors" && !doorsOn) tab = "pet";
+  const potOn = potionOn(cls) && !!teamOf(cls, s.id);
+  if (tab === "potion" && !potOn) tab = "pet";
   let h = notYou(s) + '<div class="tabs" role="tablist">' +
-    [["pet", "\u{1F43E} My Companion"], ["collect", "\u{1F95A} Creature Collector"], ["badges", "\u{1F3C5} Badges"]].concat(haunt ? [["haunt", S.icon + " " + S.name]] : []).concat(doorsOn ? [["doors", "\u{1F6AA} " + doorName() + doorBadge(s)]] : []).concat([["room", "\u{1F6CF}\uFE0F My Room"], ["quest", "\u{1F5FA}\uFE0F Quest" + (readyTests(s).length ? ' <span class="tbadge">' + readyTests(s).length + "</span>" : "")]])
+    [["pet", "\u{1F43E} My Companion"], ["collect", "\u{1F95A} Creature Collector"], ["badges", "\u{1F3C5} Badges"]].concat(haunt ? [["haunt", S.icon + " " + S.name]] : []).concat(doorsOn ? [["doors", "\u{1F6AA} " + doorName() + doorBadge(s)]] : []).concat(potOn ? [["potion", "\u{1F9EA} Potions"]] : []).concat([["room", "\u{1F6CF}\uFE0F My Room"], ["quest", "\u{1F5FA}\uFE0F Quest" + (readyTests(s).length ? ' <span class="tbadge">' + readyTests(s).length + "</span>" : "")]])
       .map(([k, t]) => '<button role="tab" class="tab' + (tab === k ? " on" : "") + '" data-tab="' + k + '" aria-selected="' + (tab === k) + '">' + t + "</button>").join("") + "</div>";
   if (tab === "collect") return h + collectorTab(collectorCtx(s));
   if (tab === "badges") return h + badgesTab(s, battles, cls);
   if (tab === "haunt") return h + (battleOn(cls) ? battleCard(s, c) : "") + wheelCard(s) + shopCard(s);
   if (tab === "doors") return h + doorsCard(s);
+  if (tab === "potion") return h + potionCard(s, cls, students);
   if (tab === "quest") return h + questTab(s, petHTML(c, worn, heldWeapon(s)));
   if (tab === "room") return h + roomTab(s, c, worn);
   h += nudgeCard(s, cls, battles, students);

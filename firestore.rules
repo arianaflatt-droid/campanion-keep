@@ -55,7 +55,7 @@ service cloud.firestore {
             && now("companionId", null) in [null, "otter", "raccoon", "fox", "sloth", "badger", "octopus",
                  "dragon", "unicorn", "griffin", "sprite", "pixie", "golem"]
             && now("petName", "") is string && now("petName", "").size() <= 22
-            && (now("equipped", null) in [null, "", "cap", "shades", "snack", "hat", "crown"]
+            && (now("equipped", null) in [null, "", "cap", "shades", "snack", "hat", "crown", "hat67"]
                 || (now("equipped", null) == "witch" && (ghostBeaten() || was("witchHat", false) == true))
                 || (now("equipped", null) == "brewsnack" && ghostBeaten())
                 || (now("equipped", null) == "pilgrim" && (turkeyBeaten() || was("pilgrimHat", false) == true))
@@ -210,12 +210,14 @@ service cloud.firestore {
 
         // ---- Creature Collector ---- hatching, levelling, releasing, and the arena and trading "ready" switches.
         function studentCollect() {
-          return changed().hasOnly(["coll", "starter", "pullsUsed", "legendaryUsed", "birthdayUsed", "xpSpent", "xpReleased", "arenaReady", "tradeReady", "dex", "spares", "themeUsed", "goalUsed", "pickleUsed"])
+          return changed().hasOnly(["coll", "starter", "pullsUsed", "legendaryUsed", "birthdayUsed", "xpSpent", "xpReleased", "arenaReady", "tradeReady", "dex", "spares", "themeUsed", "goalUsed", "pickleUsed", "potionLegUsed"])
             && now("themeUsed", 0) >= was("themeUsed", 0) && now("themeUsed", 0) <= was("themeUsed", 0) + 1
             && now("goalUsed", 0) >= was("goalUsed", 0) && now("goalUsed", 0) <= was("goalUsed", 0) + 1
             && now("goalUsed", 0) <= was("goalEggs", []).size()
             && now("pickleUsed", 0) >= was("pickleUsed", 0) && now("pickleUsed", 0) <= was("pickleUsed", 0) + 1
             && now("pickleUsed", 0) <= was("pickleEggs", 0)
+            && now("potionLegUsed", 0) >= was("potionLegUsed", 0) && now("potionLegUsed", 0) <= was("potionLegUsed", 0) + 1
+            && now("potionLegUsed", 0) <= was("potionLegEggs", 0)
             && now("themeUsed", 0) <= was("themeEggs", []).size()
             // releasing a creature: up to 300 XP back, and only when a creature or a spare is actually removed
             && now("xpReleased", 0) >= was("xpReleased", 0) && now("xpReleased", 0) <= was("xpReleased", 0) + 300

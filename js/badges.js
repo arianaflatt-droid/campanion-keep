@@ -1,10 +1,10 @@
-import { owned as roomOwned, fitOf as roomFit, FIT_SLOTS, setItems as roomSet } from "./room.js?v=20261006c";
-import { presentsOpened } from "./doors.js?v=20261006c";
+import { owned as roomOwned, fitOf as roomFit, FIT_SLOTS, setItems as roomSet } from "./room.js?v=20261006f";
+import { presentsOpened } from "./doors.js?v=20261006f";
 // Badges: worked out from each student's saved data, so nothing extra is stored and no rules change.
 // To add a badge: add an entry with a check(st) that returns how far along the student is,
 // and a goal. Put its picture in assets/badges/ (a transparent WEBP or PNG). Without a picture, the emoji shows.
-import { esc, goalXP, candyOf, ghostUnlocked } from "./game.js?v=20261006c";
-import { seenSet, ownedFams, owned, family, formIndex, formOf, STARTERS, CREATURES } from "./collect.js?v=20261006c";
+import { esc, goalXP, candyOf, ghostUnlocked } from "./game.js?v=20261006f";
+import { seenSet, ownedFams, owned, family, formIndex, formOf, STARTERS, CREATURES } from "./collect.js?v=20261006f";
 
 export const hatches = st => (Number(st.pullsUsed) || 0) + (Number(st.legendaryUsed) || 0);
 
@@ -181,6 +181,7 @@ export const BADGES = [
   { id: "never-lost", group: "care", name: "Never Lost", desc: "30 school days in a row without your companion disappearing", goal: 30, img: "assets/badges/never-lost.webp", emoji: "\u{1F6E1}\uFE0F", check: bestSafeRun },
   { id: "ghost-1",  group: "haunt", name: "Ghost Buster",    desc: "Help defeat the Ghost-olotl", goal: 1, img: "assets/badges/ghost-1.webp", emoji: "\u{1F47B}", check: helpedDefeat },
   { id: "ghost-10", group: "haunt", name: "Ghost Buster 10", desc: "Attack the Ghost-olotl 10 times", goal: 10, img: "assets/badges/ghost-10.webp", emoji: "\u{1F47B}", check: attacks },
+  { id: "master-brewer", group: "haunt", name: "Master Brewer", desc: "Brew 3 potions with your Potion Team", goal: 3, img: null, emoji: "\u{1F9EA}", check: st => Object.keys(st.potionDays || {}).length },
   { id: "sweet-tooth", group: "haunt", name: "Sweet Tooth", desc: "Earn 1,000 candy", goal: 1000, img: "assets/badges/sweet-tooth.webp", emoji: "\u{1F36C}", check: candyEarned },
   { id: "big-spender", group: "haunt", name: "Big Spender", desc: "Spend 500 candy at the shop", goal: 500, img: "assets/badges/big-spender.webp", emoji: "\u{1F6CD}\uFE0F", check: candySpentBest },
   { id: "witchy",      group: "haunt", name: "Witchy",      desc: "Buy the Witch\u2019s Hat", goal: 1, img: "assets/badges/witchy.webp", emoji: "\u{1F9D9}", check: st => (st.witchHat ? 1 : 0) },

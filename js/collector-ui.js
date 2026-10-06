@@ -2,15 +2,15 @@
 import {
   CREATURES, FAMILIES, creature, family, xpTotal, pullsLeft, legendaryLeft, bankXP, xpToNextPull, owned, ownedFams, hasStarter,
   formIndex, formOf, statsOf, seenSet, rollRarity, doPull, arenaOpen, arenaOpenFor, lunchHour, hitGoalToday, LUNCH_ARENA, ARENA_HOURS, fighterFrom, teamSize, alive, resolve, resolveRound, moveOk, MOVES, hitDamage,
-  birthdayLeft, pickleLeft, PICKLE_FAM, goalLeft, nextGoal, rollRareUp, themeLeft, nextTheme, THEME_TYPES, THEME_EGG, WISH_FAM, spares, spareId, releaseXP, releaseProblem, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
+  birthdayLeft, pickleLeft, PICKLE_FAM, brewLegLeft, BREW_FAM, goalLeft, nextGoal, rollRareUp, themeLeft, nextTheme, THEME_TYPES, THEME_EGG, WISH_FAM, spares, spareId, releaseXP, releaseProblem, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
   EVENTS, eventOpen, eventWindow, eventStreak, hasEvent, eventUnlocked, azToday, rollTeacherRarity, TEACHER_ODDS, LIVE, staleBattle
-} from "./collect.js?v=20261006c";
-import { newBattleRef, changeBattle as changeBattleRaw, setDoc, liveBattlesNow } from "./db.js?v=20261006c";
+} from "./collect.js?v=20261006f";
+import { newBattleRef, changeBattle as changeBattleRaw, setDoc, liveBattlesNow } from "./db.js?v=20261006f";
 // every change to a battle is stamped with the time (upd), so a battle nobody has touched in a while can be ended
 let locking = null, leaving = null;   // battle id while "Lock in team" is saving
 const changeBattle = (id, fn) => changeBattleRaw(id, bt => { const n = fn(bt); if (n) n.upd = new Date().toISOString(); return n; });
 
-import { tradeCard } from "./trade-ui.js?v=20261006c";
+import { tradeCard } from "./trade-ui.js?v=20261006f";
 
 const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const PER_PAGE = 20;
@@ -44,6 +44,7 @@ export function collectorTab(c) {
     (leg ? stat("\u{1F31F}", leg, "legendary egg" + (leg === 1 ? "" : "s")) : "") +
     (birthdayLeft(s) ? stat("\u{1F382}", birthdayLeft(s), "birthday egg" + (birthdayLeft(s) === 1 ? "" : "s")) : "") +
     (pickleLeft(s) ? stat("\u{1F952}", pickleLeft(s), "Cluckledill egg" + (pickleLeft(s) === 1 ? "" : "s")) : "") +
+    (brewLegLeft(s) ? stat("\u{1F9EA}", brewLegLeft(s), "Brewraith egg" + (brewLegLeft(s) === 1 ? "" : "s")) : "") +
     (themeLeft(s) ? stat("\u2728", themeLeft(s), "event egg" + (themeLeft(s) === 1 ? "" : "s")) : "") +
     (goalLeft(s) ? stat("\u{1F3AF}", goalLeft(s), "Goal egg" + (goalLeft(s) === 1 ? "" : "s") + " (Rare+)") : "") +
     stat("⭐", bank.toLocaleString(), "XP in your bank") +
@@ -55,6 +56,7 @@ export function collectorTab(c) {
     (leg ? '<button class="btn big gold" data-cc="hatchLeg">\u{1F31F} Hatch a legendary egg</button>' : "") +
     (birthdayLeft(s) ? '<button class="btn big bday" data-cc="hatchBday">\u{1F382} Hatch your birthday egg!</button>' : "") +
     (pickleLeft(s) ? '<button class="btn big gold" data-cc="hatchPickle">\u{1F952} Hatch your special event egg!</button>' : "") +
+    (brewLegLeft(s) ? '<button class="btn big gold" data-cc="hatchBrew">\u{1F9EA} Hatch your Top Brewers egg!</button>' : "") +
     (goalLeft(s) ? '<button class="btn big gold" data-cc="hatchGoal">\u{1F3AF} Hatch a Goal egg' + (goalLeft(s) > 1 ? " (" + goalLeft(s) + ")" : "") + "</button>" : "") +
     (themeLeft(s) ? '<button class="btn big gold" data-cc="hatchTheme"><img src="assets/egg-' + nextTheme(s) + '.webp" alt="" style="height:1.5em;vertical-align:middle;margin:-4px 4px -4px 0;">Hatch your ' + THEME_EGG[nextTheme(s)] + "!</button>" : "") +
     '<button class="btn ghost big" data-cc="book">\u{1F4D6} Open lorebook</button></div>' +
@@ -269,7 +271,7 @@ function hatchOverlay() {
     h += '<div class="reveal" style="--rc:' + RARITY_COLOR[c.rarity] + '"><span class="rays"></span>' + img(c, "revimg", r.sparkle) + "</div>" +
       '<div class="revtxt">' + rarityPill(c.rarity) + (r.sparkle ? ' <span class="rpill" style="background:linear-gradient(90deg,#ff7ad9,#ffd84d,#7ae7ff)">\u2728 SPARKLE</span>' : "") + "<h2>" + (r.sparkle ? "\u2728 " : "") + esc(c.name) + "</h2>" +
       (r.event === "bday" ? '<p class="eventmsg ev-bday">\u{1F382} HAPPY BIRTHDAY! ' + (r.dupe ? "Another Wisholotl came to celebrate!" : "<b>Wisholotl, " + esc(c.title || "") + "</b>, came to make your wish come true!") + "</p>" : "") +
-      (r.event && r.event !== "bday" ? '<p class="eventmsg ev-' + r.event + '">' + (r.event === "hex" ? "\u{1F383}" : r.event === "thanks" ? "\u{1F983}" : r.event === "jingle" ? "\u{1F384}" : r.event === "pickle" ? "\u{1F952}" : "\u{1F986}") + (r.event === "pickle" ? " EXCLUSIVE EVENT LEGENDARY! " : " LIMITED EVENT LEGENDARY! ") + (r.dupe ? "Another " + esc(c.name) + "!" : "You caught <b>" + esc(c.name) + ", " + esc(c.title || "") + "</b>! It\u2019s yours forever.") + "</p>" : "") +
+      (r.event && r.event !== "bday" ? '<p class="eventmsg ev-' + r.event + '">' + (r.event === "hex" ? "\u{1F383}" : r.event === "thanks" ? "\u{1F983}" : r.event === "jingle" ? "\u{1F384}" : r.event === "pickle" ? "\u{1F952}" : r.event === "brew" ? "\u{1F9EA}" : "\u{1F986}") + (r.event === "pickle" || r.event === "brew" ? " EXCLUSIVE EVENT LEGENDARY! " : " LIMITED EVENT LEGENDARY! ") + (r.dupe ? "Another " + esc(c.name) + "!" : "You caught <b>" + esc(c.name) + ", " + esc(c.title || "") + "</b>! It\u2019s yours forever.") + "</p>" : "") +
       (r.newSparkle ? '<p class="sparkmsg">WOW! A 1-in-2,000 Sparkle! Your ' + esc(c.name) + " family is now Sparkle forever.</p>" : "") +
       (r.dupe && r.kept ? "<p>\u{1F504} Kept as a <b>spare for trading</b>. Find it under My creatures.</p>"
         : r.dupe ? '<p>You already had this family — <b>free level up! Now Lv ' + r.lvl + "</b>" + (r.evolved ? " and it <b>evolved!</b>" : "") + "</p>" +
@@ -316,6 +318,7 @@ function detailPage(c, seen) {
     (c.dodge ? '<p class="dline"><b>\u{1F4A8} Speedy:</b> dodges ' + Math.round(c.dodge * 100) + "% of attacks in battle</p>" : "") +
     (c.daze ? '<p class="dline"><b>\u2728 Dazzle:</b> ' + Math.round(c.daze * 100) + "% chance to make the opponent\u2019s next attack " + Math.round((c.dazePct || 0) * 100) + "% weaker</p>" : "") +
     (c.atkHeal ? '<p class="dline"><b>\u{1F49A} Recovery:</b> heals ' + Math.round(c.atkHeal * 100) + "% of its HP after every " + esc(c.attack) + "</p>" : "") +
+    (c.brewFx ? '<p class="dline"><b>\u{1F9EA} Witch\u2019s Brew:</b> every hit does one surprise thing \u2014 poisons the opponent, lowers its Defense for a round, or heals Brewraith a little</p>' : "") +
     (c.poison ? '<p class="dline"><b>\u{1F922} Poison:</b> ' + Math.round(c.poison * 100) + "% chance its attack poisons the opponent (loses a little HP for 3 rounds)</p>" : "") +
     (c.alt ? '<p class="dline"><b>Second attack:</b> ' + esc(c.alt.name) + (c.alt.type ? " (" + esc(c.alt.type) + ")" : "") + " \u2014 a bit less damage" + (c.alt.heal ? ", and heals " + Math.round(c.alt.heal * 100) + "% of its HP" : "") + (c.alt.defDown ? ", " + Math.round(c.alt.defDown * 100) + "% chance to lower the opponent\u2019s defense" + (c.alt.defTemp ? " for its next turn" : "") : "") + "</p>" + (c.alt.desc ? '<p class="dline muted">' + esc(c.alt.desc) + "</p>" : "") : "") + "</div></div>" +
     '<div class="dstats"><span>❤ HP <b>' + st.hp + "</b></span><span>\u{1F6E1} Defense <b>" + st.df + "</b></span><span>⚔ Damage <b>" + st.dmg + "</b></span><span>Lv <b>" + (cur ? lvl : 1) + "</b></span></div>" +
@@ -454,7 +457,7 @@ function movePanel(bt, me, them, thN) {
   return '<div class="bpanel"><h3>What will ' + esc(f.name) + " do?</h3>" + (theirs ? '<p class="muted small" style="margin:-4px 0 8px;color:#CFC3E6;">' + esc(thN) + " has picked a move!</p>" : "") +
     (hint ? '<div class="bhints">' + hint + "</div>" : "") +
     '<div class="mvgrid">' +
-      btn("attack", esc(f.attack), "about " + dmg.dmg + " damage" + (f.daze ? " \u00b7 " + Math.round(f.daze * 100) + "% chance to dazzle" : "") + (f.poison ? " \u00b7 " + Math.round(f.poison * 100) + "% chance to poison" : "") + (f.atkHeal ? " \u00b7 heals +" + Math.round(f.hp * f.atkHeal) + " HP" : ""), true) +
+      btn("attack", esc(f.attack), "about " + dmg.dmg + " damage" + (f.daze ? " \u00b7 " + Math.round(f.daze * 100) + "% chance to dazzle" : "") + (f.poison ? " \u00b7 " + Math.round(f.poison * 100) + "% chance to poison" : "") + (f.atkHeal ? " \u00b7 heals +" + Math.round(f.hp * f.atkHeal) + " HP" : "") + (f.brewFx ? " \u00b7 surprise: poison, Defense down or heal" : ""), true) +
       (f.alt ? (() => { const ad = hitDamage(f.alt.type ? Object.assign({}, f, { type: f.alt.type }) : f, o, false);
         return btn("alt", esc(f.alt.name), "about " + Math.max(1, Math.round(ad.dmg * (f.alt.mult || 1))) + " damage" + (ad.weak ? " \u2B50" : "") + (f.alt.heal ? " \u00b7 heals +" + Math.round(f.hp * f.alt.heal) + " HP" : "") + (f.alt.defDown ? " \u00b7 " + Math.round(f.alt.defDown * 100) + "% chance to lower defense" : ""), true); })() : "") +
       btn("power", "Power Move", "about " + Math.round(dmg.dmg * MOVES.power.mult) + " damage \u00b7 75% to hit", true) +
@@ -480,6 +483,16 @@ export async function onClick(el, c) {
     hatch = { phase: "shake", res, legendary: true };
     hold(3200); c.render(true);
     c.patch({ coll: res.coll, pickleUsed: (Number(s.pickleUsed) || 0) + 1 }, true);
+    later(1900, () => { hatch.phase = "crack"; hold(1400); });
+    later(2800, () => { hatch.phase = "reveal"; busyUntil = 0; });
+    return;
+  }
+  if (a === "hatchBrew") {
+    if (!brewLegLeft(s)) return;
+    const res = doPull(s, "Legendary", c.cls, { force: BREW_FAM });
+    hatch = { phase: "shake", res, legendary: true };
+    hold(3200); c.render(true);
+    c.patch({ coll: res.coll, potionLegUsed: (Number(s.potionLegUsed) || 0) + 1 }, true);
     later(1900, () => { hatch.phase = "crack"; hold(1400); });
     later(2800, () => { hatch.phase = "reveal"; busyUntil = 0; });
     return;

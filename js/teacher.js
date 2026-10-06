@@ -1,20 +1,21 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261006c";
-import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261006c";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261006c";
-import { cpEarnedCalc } from "./room.js?v=20261006c";
-import { GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP } from "./doors.js?v=20261006c";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261006c";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261006f";
+import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261006f";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261006f";
+import { cpEarnedCalc } from "./room.js?v=20261006f";
+import { INGREDIENTS, PER_XP, POTION_CANDY, POTION_XP, POTION_LEGENDARY, MASTER_BREWS, potionOn, teams as potTeams, teamOf as potTeamOf, cauldron, recipeChanged, brewRewards, standings as potStandings, topTeams, brewCount } from "./potion.js?v=20261006f";
+import { GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP } from "./doors.js?v=20261006f";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261006f";
 import {
   applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261006c";
-import { pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261006c";
+} from "./game.js?v=20261006f";
+import { pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261006f";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef
-} from "./db.js?v=20261006c";
+} from "./db.js?v=20261006f";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -426,7 +427,7 @@ function render(force) {
     else if (ctab === "students") h += viewStandings() + viewAssign() + viewLosses() + viewLinks();
     else if (ctab === "collector") h += viewLiveBattles() + viewIdeas() + teacherCollectorCard() + viewCollector();
     else if (ctab === "quest") h += questTracker(students);
-    else if (ctab === "events") h += viewModes() + viewBossHits() + (eventMode(cls) || waitingDoors(students, cls).length ? viewDoors() : "") + duckAdmin() + (eventMode(cls) ? viewBucket() + viewPrizes() + viewShop() : prizeRows().length ? viewPrizes() : "");
+    else if (ctab === "events") h += viewModes() + viewBossHits() + (eventMode(cls) || waitingDoors(students, cls).length ? viewDoors() : "") + (isHaunt(cls) || potTeams(cls).length ? viewPotions() : "") + duckAdmin() + (eventMode(cls) ? viewBucket() + viewPrizes() + viewShop() : prizeRows().length ? viewPrizes() : "");
     else h += viewClassSettings();
   }
 
@@ -675,6 +676,51 @@ function viewDoors() {
     '<div class="goalgrid">' + team.map(x => '<label class="goalrow"><span>' + esc(x.name) + '</span><select data-goalsub="' + x.id + '"><option value="">\u2014</option>' +
       GOAL_SUBJECTS.map(g => '<option' + (x.goalSubject === g ? " selected" : "") + ">" + esc(g) + "</option>").join("") + "</select></label>").join("") + "</div></details>";
   return h + "</div>";
+}
+/* ---------- Potion Brewing Teams ---------- */
+function viewPotions() {
+  const on = potionOn(cls), list = potTeams(cls), today = azToday(), kids = students.filter(x => x.companionId);
+  let h = '<div class="card" id="potionCard"><div class="card-head"><h2>\u{1F9EA} Potion Brewing Teams</h2><span class="fact">' + (on ? "<b>ON</b>" : "off") + " · " + list.length + " team" + (list.length === 1 ? "" : "s") + "</span></div>" +
+    '<p class="lede" style="font-size:13.5px;">Teams fill a cauldron every day. Every ' + PER_XP + " XP in a subject = 1 ingredient (" + INGREDIENTS.map(g => g.subject + " " + g.icon).join(", ") + "). " +
+    "When you paste the day’s XP, every team with the whole recipe brews its potion: each teammate gets +" + POTION_CANDY + " candy, +" + POTION_XP + " XP, an egg and a one-day glow. " + MASTER_BREWS + " potions = Master Brewer badge.</p>" +
+    '<div class="row" style="margin:10px 0;"><button class="btn' + (on ? " ghost" : "") + '" data-act="potToggle">' + (on ? "Turn Potion Teams off" : "\u{1F9EA} Turn Potion Teams on") + "</button>" +
+    (isHaunt(cls) ? "" : '<span class="muted small">Only works while Haunt-O-Ween is on.</span>') +
+    (on && list.length ? '<button class="btn ghost small" data-act="potCheck">\u{1F504} Check cauldrons now</button>' : "") + "</div>";
+  // teams + today's cauldrons
+  h += "<h3>Teams</h3>";
+  list.forEach(t => {
+    const c = cauldron(cls, t, students, today), changed = recipeChanged(cls, t, today);
+    h += '<div class="pteamrow"><div class="row" style="gap:8px;align-items:center;justify-content:space-between;"><input data-ptname="' + t.id + '" value="' + esc(t.name) + '" style="font-weight:700;max-width:220px;" aria-label="Team name">' +
+      '<span class="small">' + (t.members || []).length + " students · <b>" + brewCount(cls, t.id) + "</b> brewed" + (c.brewed ? " · ✨ brewed today" : c.ready ? " · ready!" : "") + "</span>" +
+      '<button class="btn ghost small" data-ptdel="' + t.id + '">Delete team</button></div>' +
+      '<div class="row pneed" style="gap:10px;margin-top:8px;align-items:center;flex-wrap:wrap;"><span class="small"><b>Today:</b></span>' +
+      INGREDIENTS.map(g => '<label class="small">' + g.icon + " " + c.have[g.k] + ' / <input type="number" min="0" data-pneed="' + t.id + ":" + g.k + '" value="' + c.need[g.k] + '"></label>').join("") +
+      '<button class="btn small" data-ptrecipe="' + t.id + '">Save recipe</button>' + (changed ? '<button class="btn ghost small" data-ptreset="' + t.id + '">Use the game’s recipe</button>' : '<span class="muted small">(picked by the game)</span>') + "</div></div>";
+  });
+  h += '<div class="row" style="margin-top:8px;"><button class="btn small" data-act="potAddTeam">➕ Add a team</button></div>';
+  // who's on which team
+  if (list.length) {
+    const none = kids.filter(x => !potTeamOf(cls, x.id)).length;
+    h += '<details style="margin-top:12px;"' + (busy.potOpen ? " open" : "") + '><summary data-act="potOpen"><b>\u{1F465} Put students on teams</b> <span class="muted small">' + (none ? none + " not on a team" : "everyone is on a team") + "</span></summary>" +
+      '<div class="ptgrid">' + kids.map(x => { const tm = potTeamOf(cls, x.id); return '<label><span>' + esc(x.name) + '</span><select data-ptmember="' + x.id + '"><option value="">—</option>' +
+        list.map(t => '<option value="' + t.id + '"' + (tm && tm.id === t.id ? " selected" : "") + ">" + esc(t.name) + "</option>").join("") + "</select></label>"; }).join("") + "</div></details>";
+  }
+  // standings + the top-team Legendary
+  if (list.length) {
+    const st = potStandings(cls), top = topTeams(cls), given = cls.potionTop;
+    h += '<h3 style="margin-top:14px;">\u{1F3C6} Standings</h3><ol class="pstand">' + st.map(x => "<li>" + esc(x.t.name) + " — <b>" + x.n + "</b> potion" + (x.n === 1 ? "" : "s") + "</li>").join("") + "</ol>";
+    if (given) h += '<p class="small">✅ Special Legendary eggs given to ' + esc((given.teams || []).map(id => (list.find(t => t.id === id) || { name: "a team" }).name).join(" & ")) + ".</p>";
+    else if (!POTION_LEGENDARY) h += '<p class="muted small">At the end of Haunt-O-Ween the top team (ties all win) gets a special Legendary egg. The button shows up here once the creature is added.</p>';
+    else h += '<div class="row" style="margin-top:6px;"><button class="btn small" data-act="potAward"' + (top.length ? "" : " disabled") + '>\u{1F3C6} Give the special Legendary egg to ' + (top.length ? esc(top.map(t => t.name).join(" & ")) : "the top team") + "</button></div>";
+  }
+  return h + "</div>";
+}
+async function savePotTeams(list, msg) { try { await updateDoc(classRef, { potionTeams: list }); if (msg) flash(msg); } catch (e) { flash("Couldn’t save — " + (e.code || e.message)); } }
+async function potCheckNow() {
+  const date = azToday(), pot = brewRewards(cls, students, date); if (!pot) return;
+  if (!pot.updates.length && !pot.classData) { flash("No new potions yet today."); return; }
+  const batch = writeBatch(db); pot.updates.forEach(u => batch.update(studentRef(u.st.id), u.data)); if (pot.classData) batch.update(classRef, pot.classData);
+  try { await batch.commit(); flash("\u{1F9EA} Potion brewed: " + (pot.newTeams.map(t => t.name).join(", ") || "rewards caught up") + "!"); } catch (e) { flash("Couldn’t save — " + (e.code || e.message)); }
 }
 async function setDoor(sid, date, i, st) {
   try { await updateDoc(studentRef(sid), { ["doors." + date + "." + i + ".st"]: st, ["doors." + date + "." + i + ".checked"]: new Date().toISOString() }); }
@@ -1111,9 +1157,13 @@ async function applyUpload(up) {
     batch.update(studentRef(s.id), data);
   });
   if (up.kind === "day") { const rec = recordedDays(cls); if (!rec[d]) { rec[d] = true; batch.update(classRef, { recorded: rec }); } }
+  // Potion Brewing Teams: brew every team whose cauldron now has the whole recipe
+  const pot = Object.keys(subs).length ? brewRewards(cls, students, date) : null;
+  if (pot) { pot.updates.forEach(u => batch.update(studentRef(u.st.id), u.data)); if (pot.classData) batch.update(classRef, pot.classData); }
   try { await batch.commit(); } catch (e) { flash("Upload didn’t save — " + (e.code || e.message)); }
   busy.upReport = { kind: up.kind, day: d, file: up.file, matched, hit, missing, unmatched, autoN };
-  if (autoN) flash("\u{1F6AA} Auto-approved " + autoN + " door" + (autoN === 1 ? "" : "s") + " from the subject XP.");
+  const potMsg = pot && pot.newTeams.length ? " \u{1F9EA} Potion brewed: " + pot.newTeams.map(t => t.name).join(", ") + "!" : "";
+  if (autoN || potMsg) flash((autoN ? "\u{1F6AA} Auto-approved " + autoN + " door" + (autoN === 1 ? "" : "s") + " from the subject XP." : "") + potMsg);
   render();
 }
 
@@ -1123,6 +1173,15 @@ document.addEventListener("input", ev => {
 });
 document.addEventListener("change", async ev => {
   if (ev.target.dataset && ev.target.dataset.qstart) { await questTeacherChange(ev.target, { patch }); return; }
+  if (ev.target.dataset && ev.target.dataset.ptmember) {
+    busy.potOpen = true; const sid = ev.target.dataset.ptmember, to = ev.target.value;
+    const list = potTeams(cls).map(t => Object.assign({}, t, { members: (t.members || []).filter(id => id !== sid).concat(t.id === to ? [sid] : []) }));
+    await savePotTeams(list); return;
+  }
+  if (ev.target.dataset && ev.target.dataset.ptname) {
+    const id = ev.target.dataset.ptname, nm = ev.target.value.trim().slice(0, 40); if (!nm) return;
+    await savePotTeams(potTeams(cls).map(t => t.id === id ? Object.assign({}, t, { name: nm }) : t), "Saved \u2014 team name."); return;
+  }
   if (ev.target.dataset && ev.target.dataset.goalsub) { busy.goalOpen = true; await patch(ev.target.dataset.goalsub, { goalSubject: ev.target.value || null }); return; }
   if (ev.target.id === "goalAll" && ev.target.value) {
     const g = ev.target.value, todo = students.filter(x => x.companionId && !x.goalSubject); busy.goalOpen = true;
@@ -1309,6 +1368,22 @@ document.addEventListener("click", async ev => {
     catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); }
     return;
   }
+  if ((el = ev.target.closest("[data-ptdel]"))) {
+    const t = potTeams(cls).find(x => x.id === el.dataset.ptdel); if (!t) return;
+    if (!confirm("Delete " + t.name + "? Its students go back to no team (potions they already brewed stay).")) return;
+    await savePotTeams(potTeams(cls).filter(x => x.id !== t.id), "Deleted " + t.name + "."); return;
+  }
+  if ((el = ev.target.closest("[data-ptrecipe]"))) {
+    const tid = el.dataset.ptrecipe, r = {}, date = azToday();
+    INGREDIENTS.forEach(g => { const n = document.querySelector('[data-pneed="' + tid + ":" + g.k + '"]'); r[g.k] = Math.max(0, Math.floor(Number(n && n.value) || 0)); });
+    try { await updateDoc(classRef, { ["potionRecipe." + date + "." + tid]: r }); flash("Saved today\u2019s recipe."); } catch (e) { flash("Couldn\u2019t save \u2014 " + (e.code || e.message)); }
+    return;
+  }
+  if ((el = ev.target.closest("[data-ptreset]"))) {
+    const date = azToday(), day = Object.assign({}, (cls.potionRecipe || {})[date] || {}); delete day[el.dataset.ptreset];
+    try { await updateDoc(classRef, { ["potionRecipe." + date]: day }); flash("Back to the game\u2019s recipe."); } catch (e) { flash("Couldn\u2019t save \u2014 " + (e.code || e.message)); }
+    return;
+  }
   if ((el = ev.target.closest("[data-hitsort]"))) { busy.hitSort = el.dataset.hitsort; render(); return; }
   if ((el = ev.target.closest("[data-endbattle]"))) { await endBattle(el.dataset.endbattle); flash("Saved \u2014 battle ended."); return; }
   if ((el = ev.target.closest("[data-ideaseen]"))) {
@@ -1361,6 +1436,19 @@ document.addEventListener("click", async ev => {
   if (act === "allIdeas") { busy.allIdeas = !busy.allIdeas; render(); return; }
   if (act === "goDoors") { ctab = "events"; try { localStorage.setItem("ck-ctab", ctab); } catch (e) {} render(); const c = document.getElementById("doorCard"); if (c) c.scrollIntoView({ behavior: "smooth", block: "start" }); return; }
   if (act === "hideDoors") { doorHidden = waitingDoors(students, cls).length; render(); return; }
+  if (act === "potToggle") { const on = !cls.potionOn; try { await updateDoc(classRef, { potionOn: on }); flash("Saved \u2014 Potion Teams " + (on ? "on" : "off") + "."); } catch (e) { flash("Couldn\u2019t change that \u2014 " + e.code); } return; }
+  if (act === "potAddTeam") { const list = potTeams(cls); await savePotTeams(list.concat([{ id: "t" + Date.now().toString(36), name: "Team " + (list.length + 1), members: [] }]), "Added a team \u2014 type its name and put students on it."); return; }
+  if (act === "potOpen") { busy.potOpen = !busy.potOpen; return; }
+  if (act === "potCheck") { await potCheckNow(); return; }
+  if (act === "potAward") {
+    const top = topTeams(cls); if (!POTION_LEGENDARY || !top.length || cls.potionTop) return;
+    if (!confirm("Give the special Legendary egg to everyone on " + top.map(t => t.name).join(" & ") + "?")) return;
+    const ids = [...new Set(top.flatMap(t => t.members || []))], batch = writeBatch(db);
+    ids.forEach(id => { const st = students.find(x => x.id === id); if (st) batch.update(studentRef(id), { potionLegEggs: (Number(st.potionLegEggs) || 0) + 1 }); });
+    batch.update(classRef, { potionTop: { at: new Date().toISOString(), teams: top.map(t => t.id) } });
+    try { await batch.commit(); flash("\u{1F3C6} Gave the special Legendary egg to " + ids.length + " students!"); } catch (e) { flash("Couldn\u2019t save \u2014 " + (e.code || e.message)); }
+    return;
+  }
   if (act === "doorsToggle") { const on = !cls.doorsOn; try { await updateDoc(classRef, { doorsOn: on }); flash("Saved \u2014 " + (DOOR_NAMES[SEASON.key] || "Daily Doors") + " is " + (on ? "on" : "off") + "."); } catch (e) { flash("Couldn\u2019t change that \u2014 " + e.code); } return; }
   if (act === "doorApproveAll") {
     const w = waitingDoors(students, cls), batch = writeBatch(db), byS = {};
