@@ -1,9 +1,9 @@
-import { formOf, sparkleImg, azNow } from "./collect.js?v=20261005d";
-import { heldWeapon } from "./quest.js?v=20261005d";
+import { formOf, sparkleImg, azNow } from "./collect.js?v=20261006a";
+import { heldWeapon } from "./quest.js?v=20261006a";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261005d";
+export const APP_V = "20261006a";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -530,10 +530,10 @@ export function battleHTML(cls, students, fx) {
     teamHTML(cls, students, fx && fx.hit) + bucketHTML(cls, students) +
     (b.defeated ? '<p class="arena-win">\u{1F389} The ' + S.boss + ' has been defeated! \u{1F389}</p>' : "") +
     '<div class="arena-row"><span class="arena-k">Attacked this week</span><div class="arena-pets">' +
-    (attackedToday.length ? attackedToday.map(s => { const c = companionOf(s); return '<span class="ap" title="' + esc(s.petName || c.name) + '">' + c.glyph + "<small>" + esc(s.petName || c.name) + "</small></span>"; }).join("") : '<span class="arena-none">No attacks yet this week</span>') +
+    (attackedToday.length ? attackedToday.map(s => { const c = companionOf(s); return '<span class="ap" title="' + esc(s.name) + "\u2019s " + esc(s.petName || c.name) + '">' + c.glyph + "<small>" + esc(s.name) + "</small></span>"; }).join("") : '<span class="arena-none">No attacks yet this week</span>') +
     "</div></div>" +
     '<div class="arena-row"><span class="arena-k">Ready to attack</span><div class="arena-pets">' +
-    (ready.length ? ready.map(s => { const c = companionOf(s); return '<span class="ap ready">' + c.glyph + "<small>" + esc(s.petName || c.name) + "</small></span>"; }).join("") : '<span class="arena-none">Hit 120 XP to earn an attack</span>') +
+    (ready.length ? ready.map(s => { const c = companionOf(s); return '<span class="ap ready" title="' + esc(s.name) + "\u2019s " + esc(s.petName || c.name) + '">' + c.glyph + "<small>" + esc(s.name) + "</small></span>"; }).join("") : '<span class="arena-none">Hit 120 XP to earn an attack</span>') +
     "</div></div>" +
     '<p class="arena-foot">' + b.hits.toLocaleString() + " attack" + (b.hits === 1 ? "" : "s") + " landed \u00b7 " + b.dealt.toLocaleString() + " damage dealt" + (b.healed ? " \u00b7 " + b.healed.toLocaleString() + " healed by Ms. Ariana" : "") + "</p></div>";
   return h;
