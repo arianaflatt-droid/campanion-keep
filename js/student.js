@@ -1,20 +1,20 @@
 import {
   checkVersion, hitOn, gearInSeason, applyDisplayNames, companionOf, petCreatures, pinnedBadgeHTML, DAYS, SHORT, ROSTER, GEAR, SIDEKICKS, BANNER, bannerFor, isHaunt, battleOn, candyOf, basketHTML, CANDY_FULL, bossState, attacksReady, bossBarHTML, GHOST_IMG, ghostUnlocked, turkeyUnlocked, grinchUnlocked, isJingle, eventMode, isGobble, setSeason, SEASON, seasonOf, STORE, candyLeft, candySpent, ownedCount, ownsItem, storeArt, nextAttack, dmgOf, HAT_BONUS, BREW_BONUS, teamHTML, WHEEL, pickSlice, wheelHTML, spinTo, PRIZES, prizeSlices, bucketState, bucketHTML, baseDamage, EAT_PER_DAY, dayEaten, dayXP, byId, esc, arr5, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, sidekickSVG, petHTML as petBase, itemArt, potionFx
-} from "./game.js?v=20261006h";
-import { potionOn, potionCard, teamOf } from "./potion.js?v=20261006h";
-import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=20261006h";
-import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261006h";
-import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20261006h";
-import { nudgeCard } from "./nudges.js?v=20261006h";
-import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261006h";
-import { teacherPlayer, hasStarter } from "./collect.js?v=20261006h";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261006h";
-import { goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked } from "./doors.js?v=20261006h";
-import { azToday } from "./collect.js?v=20261006h";
+} from "./game.js?v=20261006i";
+import { potionOn, potionCard, teamOf } from "./potion.js?v=20261006i";
+import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=20261006i";
+import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261006i";
+import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20261006i";
+import { nudgeCard } from "./nudges.js?v=20261006i";
+import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261006i";
+import { teacherPlayer, hasStarter } from "./collect.js?v=20261006i";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261006i";
+import { goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked, weekGoal, weekKey, weekTotal, weekDoorState } from "./doors.js?v=20261006i";
+import { azToday } from "./collect.js?v=20261006i";
 import { roomHTML, FIT_SLOTS, slotKind, KIND_NAMES, KIND_ICON, EVERYDAY_PRICE, THEMED_PRICE, TROPHY_PRICE, TYPE_THEMES, SEASON_THEMES, THEME_NAMES, TROPHIES,
-  itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId } from "./room.js?v=20261006h";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261006h";
+  itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId } from "./room.js?v=20261006i";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261006i";
 
 let fxFor = null;   // the student whose companion is being drawn (for the potion glow)
 const petHTML = (c, worn, held) => { const h = petBase(c, worn, held), fx = fxFor ? potionFx(fxFor) : ""; return fx ? h.replace('class="petwrap', 'class="petwrap' + fx) : h; };
@@ -241,11 +241,12 @@ function viewMine(s) {
   if (tab === "collect") return h + collectorTab(collectorCtx(s));
   if (tab === "badges") return h + badgesTab(s, battles, cls);
   if (tab === "haunt") return h + (battleOn(cls) ? battleCard(s, c) : "") + wheelCard(s) + shopCard(s);
-  if (tab === "doors") return h + doorsCard(s);
+  if (tab === "doors") return h + weekDoorCard(s) + doorsCard(s);
   if (tab === "potion") return h + potionCard(s, cls, students);
   if (tab === "quest") return h + questTab(s, petHTML(c, worn, heldWeapon(s)));
   if (tab === "room") return h + roomTab(s, c, worn);
   h += nudgeCard(s, cls, battles, students);
+  if (!doorsOn || weekDoorState(s, cls) === "ready") h += weekDoorCard(s);
   h += '<div class="card"><div class="mypet t-' + t.key + '">' + pinnedBadgeHTML(s, "mine") +
     (haunt ? basketHTML(candy, "big") : "") +
     '<div class="stage" aria-hidden="true">' + petHTML(c, worn, heldWeapon(s)) + (side ? sidekickSVG(side, true) : "") + "</div>" +
@@ -381,7 +382,19 @@ function presentsReady(s) {
   Object.keys(s.doors || {}).forEach(d => Object.values(s.doors[d] || {}).forEach(e => { if (e && e.st === "ok") n++; }));
   return n + (goldenReady(s, cls, azToday()) ? 1 : 0);
 }
-function doorBadge(s) { const n = presentsReady(s); return n ? ' <span class="tbadge">' + n + "</span>" : ""; }
+function doorBadge(s) { const n = presentsReady(s) + (weekDoorState(s, cls) === "ready" ? 1 : 0); return n ? ' <span class="tbadge">' + n + "</span>" : ""; }
+// The Weekly Door: separate from the daily doors. Reach WEEK_DOOR_XP XP this week to unlock a Legendary egg.
+function weekDoorCard(s) {
+  const goal = weekGoal(cls), st = weekDoorState(s, cls), tot = weekTotal(s), pct = Math.min(100, tot / goal * 100);
+  let body;
+  if (st === "open") body = '<span class="dstate done">\u2705 Opened! Your \u{1F31F} Legendary egg is in the Creature Collector.</span>';
+  else if (st === "ready") body = '<button class="presentbtn golden" data-weekdoor="1">\u{1F31F} Open your Weekly Door!</button>';
+  else if (st === "soon") body = '<span class="dstate wait">\u{1F389} You made it! It unlocks when Ms. Ariana adds today\u2019s XP.</span>';
+  else body = '<span class="dstate lock">\u{1F512} ' + (goal - tot).toLocaleString() + " more XP this week to unlock</span>";
+  return '<div class="card weekdoor wd-' + st + '"><div class="wdrow"><div class="wdpic"><span class="wdicon">\u{1F6AA}</span>' + (st === "open" ? '<span class="dgift">\u2728</span>' : st === "ready" ? '<span class="dgift">\u{1F31F}</span>' : st === "locked" ? '<span class="dgift">\u{1F512}</span>' : "") + "</div>" +
+    '<div class="wdtxt"><h2>Weekly Door</h2><p class="lede">Get to <b>' + goal + " XP this week</b> and get a <b>Legendary Egg</b>!</p>" +
+    '<span class="pbar wdbar"><span style="width:' + pct + '%"></span></span><p class="small"><b>' + tot.toLocaleString() + " / " + goal + "</b> XP this week</p>" + body + "</div></div></div>";
+}
 function doorsCard(s) {
   const date = azToday(), list = doorsFor(cls, date), S = SEASON, gate = gateOpen(s, cls, date), day = dayDoors(s, date);
   const art = DOOR_ART[S.key] || DOOR_ART.jingle;
@@ -618,6 +631,11 @@ document.addEventListener("click", async ev => {
     fit[roomSlot] = id; return patch({ roomFit: fit }); }
   if ((el = ev.target.closest("[data-roombuyok]"))) { if (!PREVIEW) await roomPurchase(el.dataset.roombuyok, Number(el.dataset.cost)); return; }
   if ((el = ev.target.closest("[data-roombuy]"))) { roomBuy = el.dataset.roombuy || null; render(); return; }
+  if ((el = ev.target.closest("[data-weekdoor]"))) {
+    const s = students.find(x => x.id === me); if (!s || PREVIEW || weekDoorState(s, cls) !== "ready") return;
+    await patch({ weekDoor: Object.assign({}, s.weekDoor || {}, { [weekKey(cls)]: "open" }), legendaryPulls: (Number(s.legendaryPulls) || 0) + 1 });
+    flash("\u{1F31F} You got a Legendary egg! Go hatch it in the Creature Collector."); return;
+  }
   if ((el = ev.target.closest("[data-claim]"))) { if (!PREVIEW) await claimDoor(Number(el.dataset.claim)); return; }
   if ((el = ev.target.closest("[data-open]"))) { if (!PREVIEW) { const [d, k] = el.dataset.open.split(":"); await openPresent(d, k); } return; }
   if ((el = ev.target.closest("[data-side]"))) return patch({ sidekick: el.dataset.side });

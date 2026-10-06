@@ -1,21 +1,21 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261006h";
-import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261006h";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261006h";
-import { cpEarnedCalc } from "./room.js?v=20261006h";
-import { INGREDIENTS, PER_XP, POTION_CANDY, POTION_XP, POTION_LEGENDARY, MASTER_BREWS, potionOn, teams as potTeams, teamOf as potTeamOf, cauldron, recipeChanged, brewRewards, standings as potStandings, topTeams, brewCount } from "./potion.js?v=20261006h";
-import { GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP } from "./doors.js?v=20261006h";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261006h";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261006i";
+import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261006i";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261006i";
+import { cpEarnedCalc } from "./room.js?v=20261006i";
+import { INGREDIENTS, PER_XP, POTION_CANDY, POTION_XP, POTION_LEGENDARY, MASTER_BREWS, potionOn, teams as potTeams, teamOf as potTeamOf, cauldron, recipeChanged, brewRewards, standings as potStandings, topTeams, brewCount } from "./potion.js?v=20261006i";
+import { GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal } from "./doors.js?v=20261006i";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261006i";
 import {
   applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261006h";
-import { pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261006h";
+} from "./game.js?v=20261006i";
+import { pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261006i";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef
-} from "./db.js?v=20261006h";
+} from "./db.js?v=20261006i";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -433,7 +433,7 @@ function render(force) {
     if (nd && nd > doorHidden) h += '<div class="banner prizealert"><span>\u{1F6AA} <b>' + nd + " door" + (nd === 1 ? "" : "s") + "</b> to check" + doorNames() + '</span><span class="row" style="gap:8px;"><button class="btn small" data-act="goDoors">Check doors</button><button class="btn ghost small" data-act="hideDoors">Hide</button></span></div>';
     if (np && np > prizeHidden) h += '<div class="banner prizealert"><span>\u{1F381} <b>' + np + " prize" + (np === 1 ? "" : "s") + "</b> to order or give" + prizeNames() + '</span><span class="row" style="gap:8px;"><button class="btn small" data-act="goPrizes">View prizes</button><button class="btn ghost small" data-act="hidePrizes">Hide</button></span></div>';
     h += '<div class="tabs ctabs" role="tablist">' + tabs.map(([k, l]) => '<button role="tab" class="tab' + (ctab === k ? " on" : "") + '" data-ctab="' + k + '" aria-selected="' + (ctab === k) + '">' + l + "</button>").join("") + "</div>";
-    if (ctab === "daily") h += viewDaily() + viewRewards();
+    if (ctab === "daily") h += viewDaily() + viewWeekDoor() + viewRewards();
     else if (ctab === "students") h += viewStandings() + viewAssign() + viewLosses() + viewLinks();
     else if (ctab === "collector") h += viewLiveBattles() + viewIdeas() + teacherCollectorCard() + viewCollector();
     else if (ctab === "quest") h += questTracker(students);
@@ -686,6 +686,29 @@ function viewDoors() {
     '<div class="goalgrid">' + team.map(x => '<label class="goalrow"><span>' + esc(x.name) + '</span><select data-goalsub="' + x.id + '"><option value="">\u2014</option>' +
       GOAL_SUBJECTS.map(g => '<option' + (x.goalSubject === g ? " selected" : "") + ">" + esc(g) + "</option>").join("") + "</select></label>").join("") + "</div></details>";
   return h + "</div>";
+}
+/* ---------- Weekly Door ---------- */
+function viewWeekDoor() {
+  const wk = weekKey(cls), goal = weekGoal(cls), kids = students.filter(x => x.companionId);
+  const st = x => ((x.weekDoor || {})[wk]) || (weekTotal(x) >= goal ? "soon" : "");
+  const opened = kids.filter(x => st(x) === "open"), ready = kids.filter(x => st(x) === "ready"), soon = kids.filter(x => st(x) === "soon");
+  const custom = goal !== WEEK_DOOR_XP;
+  let h = '<div class="card" id="weekDoorCard"><div class="card-head"><h2>\u{1F6AA} Weekly Door</h2><span class="fact">' + opened.length + " opened \u00b7 " + ready.length + " ready</span></div>" +
+    '<p class="lede" style="font-size:13.5px;">Students who reach <b>' + goal.toLocaleString() + " XP this week</b> unlock a door with a Legendary egg. It unlocks when you paste XP that gets them there.</p>" +
+    '<div class="row" style="gap:8px;align-items:flex-end;margin-top:8px;"><div class="field"><label for="weekGoalBox">XP goal for this week' + (custom ? " (normal is " + WEEK_DOOR_XP + ")" : "") + '</label><input id="weekGoalBox" type="number" min="1" step="10" style="width:110px;" value="' + goal + '"></div>' +
+    '<button class="btn small" data-act="saveWeekGoal">Save for this week</button>' + (custom ? '<button class="btn ghost small" data-act="resetWeekGoal">Back to ' + WEEK_DOOR_XP + "</button>" : "") +
+    '<button class="btn ghost small" data-act="weekCheck">\u{1F504} Unlock for everyone who made it</button></div>' +
+    '<p class="muted small" style="margin-top:6px;">A short-week goal only lasts this week \u2014 starting a new week goes back to ' + WEEK_DOOR_XP + ".</p>";
+  if (opened.length || ready.length || soon.length) h += '<div class="inv" style="margin-top:8px;">' +
+    opened.map(x => "<span>\u2705 " + esc(x.name) + "</span>").join("") + ready.map(x => "<span>\u{1F31F} " + esc(x.name) + " (ready)</span>").join("") +
+    soon.map(x => "<span>\u23F3 " + esc(x.name) + " (made it \u2014 tap Unlock)</span>").join("") + "</div>";
+  return h + "</div>";
+}
+async function weekCheck(goalNow) {
+  const wk = weekKey(cls), goal = goalNow || weekGoal(cls), batch = writeBatch(db); let n = 0;
+  students.forEach(x => { if (x.companionId && weekTotal(x) >= goal && !(x.weekDoor || {})[wk]) { batch.update(studentRef(x.id), { weekDoor: Object.assign({}, x.weekDoor || {}, { [wk]: "ready" }) }); n++; } });
+  if (n) await batch.commit();
+  return n;
 }
 /* ---------- Potion Brewing Teams ---------- */
 function viewPotions() {
@@ -1138,7 +1161,7 @@ async function applyUpload(up) {
   }
   const seenN = {}; unmatched = unmatched.filter(u => { const k = u.name.toLowerCase(); if (seenN[k]) return false; seenN[k] = 1; return true; });
 
-  const batch = writeBatch(db); let hit = 0, matched = 0, autoN = 0; const missing = [];
+  const batch = writeBatch(db); let hit = 0, matched = 0, autoN = 0, weekN = 0; const missing = [];
   // A re-upload fully replaces the earlier file of the same kind (lunch or end-of-day) for that day:
   // anyone not in the new file has that day's number cleared. The other kind is left alone.
   const date = dateOfDay(d), key = up.kind === "lunch" ? "l" : "d";
@@ -1164,6 +1187,9 @@ async function applyUpload(up) {
     // Daily Doors: approve every door the subject numbers show as done
     if (subs[s.id] && doorsLive(cls)) { const a = autoDoors(s, cls, date, day.sub, Math.max(Number(day.d) || 0, Number(day.l) || 0)); if (a) { data.doors = a.doors; autoN += a.n; } }
     Object.assign(s, data);
+    // Weekly Door: unlock it once the week's XP reaches the goal
+    const wk = weekKey(cls);
+    if (s.companionId && weekTotal(s) >= weekGoal(cls) && !(s.weekDoor || {})[wk]) { s.weekDoor = Object.assign({}, s.weekDoor || {}, { [wk]: "ready" }); data.weekDoor = s.weekDoor; weekN++; }
     batch.update(studentRef(s.id), data);
   });
   if (up.kind === "day") { const rec = recordedDays(cls); if (!rec[d]) { rec[d] = true; batch.update(classRef, { recorded: rec }); } }
@@ -1172,7 +1198,8 @@ async function applyUpload(up) {
   if (pot) { pot.updates.forEach(u => batch.update(studentRef(u.st.id), u.data)); if (pot.classData) batch.update(classRef, pot.classData); }
   try { await batch.commit(); } catch (e) { flash("Upload didn’t save — " + (e.code || e.message)); }
   busy.upReport = { kind: up.kind, day: d, file: up.file, matched, hit, missing, unmatched, autoN };
-  const potMsg = pot && pot.newTeams.length ? " \u{1F9EA} Potion brewed: " + pot.newTeams.map(t => t.name).join(", ") + "!" : "";
+  const weekMsg = weekN ? " \u{1F6AA} " + weekN + " student" + (weekN === 1 ? "" : "s") + " unlocked the Weekly Door!" : "";
+  const potMsg = (pot && pot.newTeams.length ? " \u{1F9EA} Potion brewed: " + pot.newTeams.map(t => t.name).join(", ") + "!" : "") + weekMsg;
   if (autoN || potMsg) flash((autoN ? "\u{1F6AA} Auto-approved " + autoN + " door" + (autoN === 1 ? "" : "s") + " from the subject XP." : "") + potMsg);
   render();
 }
@@ -1446,6 +1473,16 @@ document.addEventListener("click", async ev => {
   if (act === "allIdeas") { busy.allIdeas = !busy.allIdeas; render(); return; }
   if (act === "goDoors") { ctab = "events"; try { localStorage.setItem("ck-ctab", ctab); } catch (e) {} render(); const c = document.getElementById("doorCard"); if (c) c.scrollIntoView({ behavior: "smooth", block: "start" }); return; }
   if (act === "hideDoors") { doorHidden = waitingDoors(students, cls).length; render(); return; }
+  if (act === "saveWeekGoal" || act === "resetWeekGoal") {
+    const v = act === "resetWeekGoal" ? WEEK_DOOR_XP : Math.max(1, Math.round(Number(document.getElementById("weekGoalBox").value) || WEEK_DOOR_XP));
+    try {
+      await updateDoc(classRef, { weekGoal: v === WEEK_DOOR_XP ? null : { week: weekKey(cls), xp: v } });
+      const n = await weekCheck(v);
+      flash("Saved \u2014 the Weekly Door is " + v.toLocaleString() + " XP this week." + (n ? " " + n + " student" + (n === 1 ? "" : "s") + " unlocked it!" : ""));
+    } catch (e) { flash("Couldn\u2019t save \u2014 " + (e.code || e.message)); }
+    return;
+  }
+  if (act === "weekCheck") { try { const n = await weekCheck(); flash(n ? "\u{1F6AA} Unlocked the Weekly Door for " + n + " student" + (n === 1 ? "" : "s") + "!" : "Nobody new has reached the goal yet."); } catch (e) { flash("Couldn\u2019t save \u2014 " + (e.code || e.message)); } return; }
   if (act === "potToggle") { const on = !cls.potionOn; try { await updateDoc(classRef, { potionOn: on }); flash("Saved \u2014 Potion Teams " + (on ? "on" : "off") + "."); } catch (e) { flash("Couldn\u2019t change that \u2014 " + e.code); } return; }
   if (act === "potAddTeam") { const list = potTeams(cls); await savePotTeams(list.concat([{ id: "t" + Date.now().toString(36), name: "Team " + (list.length + 1), members: [] }]), "Added a team \u2014 type its name and put students on it."); return; }
   if (act === "potOpen") { busy.potOpen = !busy.potOpen; return; }

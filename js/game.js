@@ -1,9 +1,9 @@
-import { formOf, sparkleImg, azNow, azToday } from "./collect.js?v=20261006h";
-import { heldWeapon } from "./quest.js?v=20261006h";
+import { formOf, sparkleImg, azNow, azToday } from "./collect.js?v=20261006i";
+import { heldWeapon } from "./quest.js?v=20261006i";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261006h";
+export const APP_V = "20261006i";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -18,7 +18,7 @@ export const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 export const SHORT = ["Mon", "Tue", "Wed", "Thu", "Fri"];
 export const MAX_HP = 120, HALF_HP = 60;
 export const BANNER_TEXT = 'Keep Your Companion at Full Health Today and Earn <b>500 XP</b>!' +
-  '<span class="rings">\u2B55 Close All Your Rings to Get a <b>Legendary Egg</b>! \u{1F95A}</span>';
+  '<span class="rings">\u{1F6AA} Get to <b>600 XP</b> This Week and Get a <b>Legendary Egg</b>! \u{1F95A}</span>';
 export const BANNER = '<div class="hero"><h2>' + BANNER_TEXT + "</h2></div>";
 export const HAUNT_BANNER = '<div class="hero haunt"><p class="haunt-tag">\u{1F383} Haunt-O-Ween Mode \u{1F47B}</p><h2>' + BANNER_TEXT +
   '</h2><p class="haunt-sub">Every XP is a piece of candy! Your companion eats the first 120 each day to power its attack \u2014 the rest fills your pumpkin basket.</p></div>';
@@ -26,7 +26,14 @@ export const GOBBLE_BANNER = '<div class="hero haunt gobble"><p class="haunt-tag
   '</h2><p class="haunt-sub">Every XP is a piece of corn! Your companion eats the first 120 each day to power its attack \u2014 the rest fills your cornucopia.</p></div>';
 export const JINGLE_BANNER = '<div class="hero haunt jingle"><p class="haunt-tag">\u{1F384} Jingle Jam \u{1F381}</p><h2>' + BANNER_TEXT +
   '</h2><p class="haunt-sub">Every XP is a present! Your companion eats the first 120 each day to power its attack \u2014 the rest piles up under your tree.</p></div>';
-export function bannerFor(cls) { return isJingle(cls) ? JINGLE_BANNER : isGobble(cls) ? GOBBLE_BANNER : isHaunt(cls) ? HAUNT_BANNER : BANNER; }
+// The Weekly Door goal: 600 XP on a normal week; the teacher can set a different number for this week only (short weeks).
+export const WEEK_DOOR_XP = 600;
+export const weekKey = cls => (cls && cls.weekStart) || dateOfDay(0);
+export function weekGoal(cls) { const o = cls && cls.weekGoal; return o && o.week === weekKey(cls) && Number(o.xp) > 0 ? Number(o.xp) : WEEK_DOOR_XP; }
+export function bannerFor(cls) {
+  const b = isJingle(cls) ? JINGLE_BANNER : isGobble(cls) ? GOBBLE_BANNER : isHaunt(cls) ? HAUNT_BANNER : BANNER;
+  return b.replace("<b>600 XP</b> This Week", "<b>" + weekGoal(cls).toLocaleString() + " XP</b> This Week");
+}
 
 /* ---------- Haunt-O-Ween Mode ----------
    All normal rules still apply. On top of that, every XP a student earns this week is one piece of candy.

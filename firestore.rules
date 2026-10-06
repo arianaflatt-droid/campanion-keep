@@ -187,6 +187,16 @@ service cloud.firestore {
           return same("doorXP", 0) && same("candyBonus", 0) && same("brews", 0) && same("extraAttacks", 0) && same("doorEggs", 0)
             && same("themeEggs", []) && same("goalEggs", []) && same("spinLog", []) && same("xpPrize", 0);
         }
+        // ---- Weekly Door ---- open this week's door once the teacher's upload marked it "ready": one Legendary egg.
+        function studentWeekDoor() {
+          let od = was("weekDoor", {});
+          let nd = request.resource.data.get("weekDoor", {});
+          let ks = nd.diff(od).affectedKeys();
+          return changed().hasOnly(["weekDoor", "legendaryPulls"])
+            && ks.size() == 1
+            && od.get(ks.toList()[0], "") == "ready" && nd.get(ks.toList()[0], "") == "open"
+            && now("legendaryPulls", 0) == was("legendaryPulls", 0) + 1;
+        }
         function studentDoor() {
           let parts = now("lastDoor", "").split("/");
           let dk = parts[0];
@@ -294,7 +304,7 @@ service cloud.firestore {
                 || (now("petCreature", "").matches("L-[0-9]+") && was("coll", {}).keys().hasAny([now("petCreature", "")])));   // any Legendary
         }
 
-        allow update: if isTeacher() || (request.auth != null && (studentLooks() || studentAttack() || studentBuy() || studentSpin() || studentDoor() || studentIdea() || studentRoom() || studentCollect() || studentBadges() || studentPet() || studentQuest() || studentHeld()));
+        allow update: if isTeacher() || (request.auth != null && (studentLooks() || studentAttack() || studentBuy() || studentSpin() || studentDoor() || studentWeekDoor() || studentIdea() || studentRoom() || studentCollect() || studentBadges() || studentPet() || studentQuest() || studentHeld()));
       }
     }
   }

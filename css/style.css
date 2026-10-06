@@ -1063,3 +1063,14 @@ td .emo, .ic .emo{ display:inline-block; vertical-align:middle; font-size:1.3em;
   .seenlist{ margin-top:6px; border:1px solid var(--line-2); border-radius:10px; overflow:hidden; }
   .seenrow{ display:flex; justify-content:space-between; align-items:center; gap:10px; padding:6px 10px; font-size:14px; }
   .seenrow + .seenrow{ border-top:1px solid var(--line-2); }
+
+  /* ---------- Weekly Door ---------- */
+  .weekdoor{ border:2px solid #E9A91C; background:linear-gradient(135deg, var(--panel), #FFF6DA); }
+  .weekdoor .wdrow{ display:flex; gap:16px; align-items:center; }
+  .weekdoor .wdpic{ position:relative; flex:0 0 auto; width:84px; height:104px; border-radius:42px 42px 10px 10px; background:linear-gradient(#8B5A2B,#5E3A17); border:4px solid #E9A91C; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 0 #B07A10; }
+  .weekdoor .wdicon{ font-size:44px; }
+  .weekdoor .dgift{ position:absolute; right:-10px; top:-10px; font-size:26px; }
+  .weekdoor .wdtxt{ flex:1; min-width:0; } .weekdoor h2{ margin:0 0 2px; }
+  .weekdoor .wdbar{ margin:8px 0 4px; height:12px; } .weekdoor .wdbar > span{ background:linear-gradient(90deg,#E9A91C,#FFD84D); }
+  .weekdoor.wd-ready .wdpic{ animation:qglow 1.2s ease-in-out infinite alternate; }
+  .weekdoor .presentbtn{ margin-top:14px; }
