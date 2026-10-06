@@ -32,14 +32,17 @@ service cloud.firestore {
         function klass() { return get(/databases/$(database)/documents/classes/$(classId)).data; }
         function haunt() { return klass().get("haunt", false) == true; }
         // Gobble-Palooza uses the same Battle Area, shop and wheel rules as Haunt-O-Ween (corn instead of candy).
-        function gobble() { return klass().get("gobble", false) == true; }
-        function battleMode() { return haunt() || gobble(); }
+        function jingle() { return klass().get("jingle", false) == true; }
+        function gobble() { return klass().get("gobble", false) == true && !jingle(); }
+        function battleMode() { return haunt() || gobble() || jingle(); }
         // True once the class has defeated its first Ghost-olotl (Witch Hat, Witch's Brew snack + Ghost-olotl pet unlocked).
         function ghostBeaten() { return klass().get("ghostDefeated", false) == true; }
         // True once the class has defeated its first Turducken (Pilgrim Hat, Pumpkin Pie snack + Turducken pet unlocked).
         function turkeyBeaten() { return klass().get("turkeyDefeated", false) == true; }
+        // True once the class has defeated its first Grinch-a-Duck (Reindeer Antlers, Hot Cocoa snack + Grinch-a-Duck pet unlocked).
+        function grinchBeaten() { return klass().get("grinchDefeated", false) == true; }
         // +5 damage: the Witch's Hat during Haunt-O-Ween, the Pilgrim Hat during Gobble-Palooza.
-        function hatBonus() { return (gobble() ? was("pilgrimHat", false) == true : was("witchHat", false) == true) ? 5 : 0; }
+        function hatBonus() { return (jingle() ? was("antlersHat", false) == true : gobble() ? was("pilgrimHat", false) == true : was("witchHat", false) == true) ? 5 : 0; }
         function changed() { return request.resource.data.diff(resource.data).affectedKeys(); }
         function was(k, d) { return resource.data.get(k, d); }
         function now(k, d) { return request.resource.data.get(k, d); }
@@ -56,10 +59,14 @@ service cloud.firestore {
                 || (now("equipped", null) == "witch" && (ghostBeaten() || was("witchHat", false) == true))
                 || (now("equipped", null) == "brewsnack" && ghostBeaten())
                 || (now("equipped", null) == "pilgrim" && (turkeyBeaten() || was("pilgrimHat", false) == true))
-                || (now("equipped", null) == "piesnack" && turkeyBeaten()))
+                || (now("equipped", null) == "piesnack" && turkeyBeaten())
+                || (now("equipped", null) == "antlers" && (grinchBeaten() || was("antlersHat", false) == true))
+                || (now("equipped", null) == "cocoasnack" && grinchBeaten())
+                || (now("equipped", null) == "xmashat" && request.time.month() in [12, 1]))   // Aurora's Christmas Hat: December & January
             && (now("sidekick", "axolotl") in ["axolotl", "duck"]
                 || (now("sidekick", "axolotl") == "ghost" && ghostBeaten())
-                || (now("sidekick", "axolotl") == "turkey" && turkeyBeaten()));
+                || (now("sidekick", "axolotl") == "turkey" && turkeyBeaten())
+                || (now("sidekick", "axolotl") == "grinch" && grinchBeaten()));
         }
 
         // ---- Attack the Ghost-olotl / Turducken ----
@@ -67,7 +74,14 @@ service cloud.firestore {
         // Turducken attacks are also counted in turkeyAtk (so Haunt-O-Ween badges don't count them).
         function oldAtk(i) { return was("attacks", [false, false, false, false, false])[i]; }
         function newAtk(i) { return request.resource.data.attacks[i]; }
-        function slotOk(i) { return newAtk(i) == oldAtk(i) || (oldAtk(i) == false && newAtk(i) == true && resource.data.status[i] == "c"); }
+        function slotOk(i) { return newAtk(i) == oldAtk(i) || (oldAtk(i) == false && newAtk(i) == true && dayHit(i)); }
+        // a day counts for an attack when it was a 120 day — including an excused day where they still reached the goal
+        function dayHit(i) {
+          return resource.data.status[i] == "c"
+            || (resource.data.status[i] == "e"
+                && ((resource.data.get("xp", [0, 0, 0, 0, 0])[i] is number && resource.data.get("xp", [0, 0, 0, 0, 0])[i] >= klass().get("goal", 120))
+                    || (resource.data.get("lunchXp", [0, 0, 0, 0, 0])[i] is number && resource.data.get("lunchXp", [0, 0, 0, 0, 0])[i] >= klass().get("goal", 120))));
+        }
         function flips(i) { return newAtk(i) != oldAtk(i) ? 1 : 0; }
         function usedDay() {
           return request.resource.data.attacks.size() == 5
@@ -78,10 +92,12 @@ service cloud.firestore {
         function attackDamage() {
           return klass().get("bossDmg", 50) + hatBonus() + (usedBrew() ? 10 : 0);
         }
-        function turkeyCount() { return gobble() ? now("turkeyAtk", 0) == was("turkeyAtk", 0) + 1 : same("turkeyAtk", 0); }
+        // Turducken / Grinch-a-Duck attacks are counted apart from Ghost-olotl ones.
+        function turkeyCount() { return (gobble() ? now("turkeyAtk", 0) == was("turkeyAtk", 0) + 1 : same("turkeyAtk", 0))
+                                     && (jingle() ? now("grinchAtk", 0) == was("grinchAtk", 0) + 1 : same("grinchAtk", 0)); }
         function studentAttack() {
           return battleMode()
-            && changed().hasOnly(["attacks", "attackTotal", "dmgTotal", "extraAttacks", "brews", "turkeyAtk"])
+            && changed().hasOnly(["attacks", "attackTotal", "dmgTotal", "extraAttacks", "brews", "turkeyAtk", "grinchAtk"])
             && turkeyCount()
             && (usedBrew() || same("brews", 0))
             && ((same("attacks", [false, false, false, false, false]) && now("extraAttacks", 0) == was("extraAttacks", 0) - 1 && was("extraAttacks", 0) > 0)
@@ -91,7 +107,7 @@ service cloud.firestore {
         }
 
         // ---- Candy Shop ---- keep these prices in step with STORE in js/game.js.
-        function price(id) { return {"spin": 60, "witchhat": 600, "brew": 60, "attack": 120, "pilgrimhat": 600, "pie": 60}.get(id, 999999999); }
+        function price(id) { return {"spin": 60, "witchhat": 600, "brew": 60, "attack": 120, "pilgrimhat": 600, "pie": 60, "antlers": 600, "cocoa": 60}.get(id, 999999999); }
         // The companion eats the first 120 candy each day (keep in step with EAT_PER_DAY in js/game.js).
         function dayXp(i) {
           return was("xp", [null, null, null, null, null])[i] != null ? resource.data.xp[i]
@@ -107,17 +123,19 @@ service cloud.firestore {
           let newP = request.resource.data.purchases;
           let id = newP[newP.size() - 1].id;
           return battleMode()
-            && changed().hasOnly(["purchases", "candySpent", "spins", "brews", "extraAttacks", "witchHat", "pilgrimHat", "equipped"])
+            && changed().hasOnly(["purchases", "candySpent", "spins", "brews", "extraAttacks", "witchHat", "pilgrimHat", "antlersHat", "equipped"])
             && newP.size() == was("purchases", []).size() + 1
             && newP[newP.size() - 1].cost == price(id)
             && now("candySpent", 0) == was("candySpent", 0) + price(id)
             && now("candySpent", 0) <= candyEarned()
-            && plusOneIf("spins", id == "spin") && plusOneIf("brews", id == "brew" || id == "pie") && plusOneIf("extraAttacks", id == "attack")
+            && plusOneIf("spins", id == "spin") && plusOneIf("brews", id == "brew" || id == "pie" || id == "cocoa") && plusOneIf("extraAttacks", id == "attack")
             && (id == "witchhat"
-                  ? (was("witchHat", false) == false && now("witchHat", false) == true && now("equipped", null) == "witch" && same("pilgrimHat", false))
+                  ? (was("witchHat", false) == false && now("witchHat", false) == true && now("equipped", null) == "witch" && same("pilgrimHat", false) && same("antlersHat", false))
                   : (id == "pilgrimhat"
-                      ? (was("pilgrimHat", false) == false && now("pilgrimHat", false) == true && now("equipped", null) == "pilgrim" && same("witchHat", false))
-                      : (same("witchHat", false) && same("pilgrimHat", false) && same("equipped", null))));
+                      ? (was("pilgrimHat", false) == false && now("pilgrimHat", false) == true && now("equipped", null) == "pilgrim" && same("witchHat", false) && same("antlersHat", false))
+                      : (id == "antlers"
+                          ? (was("antlersHat", false) == false && now("antlersHat", false) == true && now("equipped", null) == "antlers" && same("witchHat", false) && same("pilgrimHat", false))
+                          : (same("witchHat", false) && same("pilgrimHat", false) && same("antlersHat", false) && same("equipped", null)))));
         }
 
         // ---- Trick or Treat Wheel ---- one spin at a time; each result can only do what its slice does.
@@ -125,12 +143,13 @@ service cloud.firestore {
         function studentSpin() {
           let e = spinEntry();
           return battleMode()
-            && changed().hasOnly(["spinLog", "spins", "candyBonus", "stolen", "attackTotal", "dmgTotal", "turkeyAtk"])
+            && changed().hasOnly(["spinLog", "spins", "candyBonus", "stolen", "attackTotal", "dmgTotal", "turkeyAtk", "grinchAtk", "xpPrize"])
             && request.resource.data.spinLog.size() == was("spinLog", []).size() + 1
             && was("spins", 0) > 0
             && e.id in ["candy75", "steal", "nothing", "reroll", "prize", "attack"]
             && e.get("ordered", false) == false
             && (e.id != "prize" || (e.prize is int && e.prize >= 0 && e.prize < 8))
+            && (e.id == "prize" && e.get("xp", 0) == 100 ? now("xpPrize", 0) == was("xpPrize", 0) + 100 : (same("xpPrize", 0) && e.get("xp", 0) == 0))
             && (e.id == "reroll" ? same("spins", 0) : now("spins", 0) == was("spins", 0) - 1)
             && (e.id == "candy75" ? now("candyBonus", 0) == was("candyBonus", 0) + 75 : same("candyBonus", 0))
             && (e.id == "steal" ? (e.amt >= 0 && e.amt <= 50 && now("stolen", 0) == was("stolen", 0) + e.amt) : same("stolen", 0))
@@ -139,13 +158,70 @@ service cloud.firestore {
                       && now("dmgTotal", 0) == was("dmgTotal", was("attackTotal", 0) * klass().get("bossDmg", 50))
                            + klass().get("bossDmg", 50) + hatBonus()
                       && turkeyCount())
-                     || (same("attackTotal", 0) && same("dmgTotal", 0) && same("turkeyAtk", 0)))
-                  : (same("attackTotal", 0) && same("dmgTotal", 0) && same("turkeyAtk", 0)));
+                     || (same("attackTotal", 0) && same("dmgTotal", 0) && same("turkeyAtk", 0) && same("grinchAtk", 0)))
+                  : (same("attackTotal", 0) && same("dmgTotal", 0) && same("turkeyAtk", 0) && same("grinchAtk", 0)));
         }
 
-        // ---- Creature Collector ---- hatching, levelling and the arena "ready" switch.
+        // ---- Daily Doors ---- tap "I did it!" (claim), then open a present the teacher approved (or the Golden Present).
+        // lastDoor = "YYYY-MM-DD/<door>" says which door this save touches; only that one entry may change.
+        function doorReward(r, golden) {
+          let add = {"xp25": 25, "xp50": 50, "xp500": 500}.get(r, 0);
+          let log = request.resource.data.get("spinLog", []);
+          // g1–g4 = Goal Presents (Goal Subject doors): g1 +75 candy · g2 snack +25 candy · g3 attack + egg · g4 a Goal egg
+          return (golden ? r in ["xp500", "egg", "tegg", "prize"] : r in ["xp25", "xp50", "cur20", "brew", "attack", "egg", "prize", "g1", "g2", "g3", "g4"])
+            && now("doorXP", 0) == was("doorXP", 0) + add
+            && now("candyBonus", 0) == was("candyBonus", 0) + {"cur20": 20, "g1": 75, "g2": 25}.get(r, 0)
+            && plusOneIf("brews", r == "brew" || r == "g2") && plusOneIf("extraAttacks", r == "attack" || r == "g3") && plusOneIf("doorEggs", r == "egg" || r == "g3")
+            && (r == "tegg" ? now("themeEggs", []).size() == was("themeEggs", []).size() + 1 : same("themeEggs", []))
+            && (r == "g4" ? now("goalEggs", []).size() == was("goalEggs", []).size() + 1 : same("goalEggs", []))
+            && (r == "prize"
+                  ? (log.size() == was("spinLog", []).size() + 1
+                     && log[log.size() - 1].id == "prize" && log[log.size() - 1].get("src", "") == "door"
+                     && log[log.size() - 1].get("ordered", false) == false
+                     && log[log.size() - 1].prize is int && log[log.size() - 1].prize >= 0 && log[log.size() - 1].prize < 8
+                     && (log[log.size() - 1].get("xp", 0) == 100 ? now("xpPrize", 0) == was("xpPrize", 0) + 100
+                                                               : (same("xpPrize", 0) && log[log.size() - 1].get("xp", 0) == 0)))
+                  : (same("spinLog", []) && same("xpPrize", 0)));
+        }
+        function doorNoReward() {
+          return same("doorXP", 0) && same("candyBonus", 0) && same("brews", 0) && same("extraAttacks", 0) && same("doorEggs", 0)
+            && same("themeEggs", []) && same("goalEggs", []) && same("spinLog", []) && same("xpPrize", 0);
+        }
+        function studentDoor() {
+          let parts = now("lastDoor", "").split("/");
+          let dk = parts[0];
+          let di = parts.size() == 2 ? parts[1] : "";
+          let nd = request.resource.data.get("doors", {});
+          let od = was("doors", {});
+          let oday = od.get(dk, {});
+          let nday = nd.get(dk, {});
+          let oe = oday.get(di, {"st": "none"});
+          let ne = nday.get(di, {"st": "none"});
+          return klass().get("doorsOn", false) == true && battleMode()
+            && parts.size() == 2
+            && changed().hasOnly(["doors", "lastDoor", "doorXP", "candyBonus", "brews", "extraAttacks", "doorEggs", "themeEggs", "goalEggs", "spinLog", "xpPrize"])
+            && nd.diff(od).affectedKeys().hasOnly([dk])
+            && nday.diff(oday).affectedKeys().hasOnly([di])
+            && ne.get("ordered", false) == false
+            && ((di != "g" && oe.get("st", "none") in ["none", "no"] && ne.get("st", "") == "wait" && doorNoReward())
+                || (di != "g" && oe.get("st", "none") == "ok" && ne.get("st", "") == "open" && doorReward(ne.get("r", {}).get("id", ""), false))
+                || (di == "g" && oe.get("st", "none") == "none" && ne.get("st", "") == "open" && doorReward(ne.get("r", {}).get("id", ""), true)));
+        }
+
+        // ---- Creature Collector ---- hatching, levelling, releasing, and the arena and trading "ready" switches.
         function studentCollect() {
-          return changed().hasOnly(["coll", "starter", "pullsUsed", "legendaryUsed", "birthdayUsed", "xpSpent", "arenaReady", "dex", "spares"])
+          return changed().hasOnly(["coll", "starter", "pullsUsed", "legendaryUsed", "birthdayUsed", "xpSpent", "xpReleased", "arenaReady", "tradeReady", "dex", "spares", "themeUsed", "goalUsed", "pickleUsed"])
+            && now("themeUsed", 0) >= was("themeUsed", 0) && now("themeUsed", 0) <= was("themeUsed", 0) + 1
+            && now("goalUsed", 0) >= was("goalUsed", 0) && now("goalUsed", 0) <= was("goalUsed", 0) + 1
+            && now("goalUsed", 0) <= was("goalEggs", []).size()
+            && now("pickleUsed", 0) >= was("pickleUsed", 0) && now("pickleUsed", 0) <= was("pickleUsed", 0) + 1
+            && now("pickleUsed", 0) <= was("pickleEggs", 0)
+            && now("themeUsed", 0) <= was("themeEggs", []).size()
+            // releasing a creature: up to 300 XP back, and only when a creature or a spare is actually removed
+            && now("xpReleased", 0) >= was("xpReleased", 0) && now("xpReleased", 0) <= was("xpReleased", 0) + 300
+            && (same("xpReleased", 0)
+                || now("coll", {}).size() == was("coll", {}).size() - 1
+                || now("spares", []).size() == was("spares", []).size() - 1)
             && now("birthdayUsed", 0) >= was("birthdayUsed", 0) && now("birthdayUsed", 0) <= was("birthdayUsed", 0) + 1
             && now("birthdayUsed", 0) <= was("birthdayEggs", 0)
             && now("pullsUsed", 0) >= was("pullsUsed", 0) && now("pullsUsed", 0) <= was("pullsUsed", 0) + 1
@@ -154,6 +230,53 @@ service cloud.firestore {
             && now("xpSpent", 0) >= was("xpSpent", 0) && now("xpSpent", 0) <= was("xpSpent", 0) + 120;
         }
 
+        // ---- Grade Level Quest ---- claim one guardian battle for a test the teacher marked passed:
+        // +1 Legendary egg and up to 250 quest XP. Holding a weapon is only for looks.
+        function studentQuest() {
+          let nq = request.resource.data.get("questDone", {});
+          let oq = resource.data.get("questDone", {});
+          let d = nq.diff(oq);
+          return changed().hasOnly(["questDone", "questXP", "legendaryPulls", "held"])
+            && d.affectedKeys().size() == 1 && d.addedKeys().size() == 1
+            && d.addedKeys().hasOnly(resource.data.get("questPass", {}).keys())
+            && now("legendaryPulls", 0) == was("legendaryPulls", 0) + 1
+            && now("questXP", 0) > was("questXP", 0) && now("questXP", 0) <= was("questXP", 0) + 250;
+        }
+        function studentHeld() {
+          return changed().hasOnly(["held"]) && (now("held", null) == null || (now("held", "") is string && now("held", "").size() <= 20));
+        }
+
+        // ---- Companion Room ---- spend Comfort Points (cpEarned is saved by the teacher console) and place items.
+        function studentRoom() {
+          let b = request.resource.data.get("roomBuys", []);
+          return changed().hasOnly(["cpSpent", "roomOwned", "roomBuys", "roomFit"])
+            && now("roomFit", {}) is map && now("roomFit", {}).size() <= 12
+            && ((same("cpSpent", 0) && same("roomOwned", []) && same("roomBuys", []))
+                || (b.size() == was("roomBuys", []).size() + 1
+                    && (b[b.size() - 1].cost in [40, 50, 60, 75, 200, 600] || (b[b.size() - 1].cost is int && b[b.size() - 1].cost % 75 == 0 && b[b.size() - 1].cost <= 600 && b[b.size() - 1].cost > 0))
+                    && now("cpSpent", 0) == was("cpSpent", 0) + b[b.size() - 1].cost
+                    && now("cpSpent", 0) <= was("cpEarned", 0)
+                    && now("roomOwned", []).size() > was("roomOwned", []).size()
+                    && now("roomOwned", []).size() <= was("roomOwned", []).size() + 9));
+        }
+        // ---- Creature ideas ---- one idea per day the student hit 120 XP (checked against their saved XP history).
+        function studentIdea() {
+          let n = request.resource.data.get("ideas", []);
+          let e = n[n.size() - 1];
+          let day = was("xpHist", {}).get(e.get("date", ""), {});
+          return changed().hasOnly(["ideas"])
+            && n.size() == was("ideas", []).size() + 1 && n.size() <= 200
+            && e.keys().hasOnly(["date", "kind", "name", "types", "slot", "lore", "animal", "at"])
+            && e.name is string && e.name.size() >= 1 && e.name.size() <= 30
+            && (e.get("kind", "creature") == "gear"
+                  ? (e.get("slot", "") in ["hat", "eyes", "snack", "other"])
+                  : e.get("kind", "creature") == "room"
+                  ? (e.get("slot", "") in ["wallpaper", "flooring", "rug", "ceiling", "window", "bed", "chair", "plant", "wall_art", "shelf", "other"])
+                  : (e.get("kind", "creature") == "creature" && e.types is list && e.types.size() >= 1 && e.types.size() <= 2))
+            && e.get("lore", "") is string && e.get("lore", "").size() <= 600
+            && e.get("animal", "") is string && e.get("animal", "").size() <= 40
+            && (day.get("l", 0) >= klass().get("goal", 120) || day.get("d", 0) >= klass().get("goal", 120));
+        }
         // ---- Badges: earned badges are only ever added (never removed); pin one earned badge ----
         function studentBadges() {
           return changed().hasOnly(["badges", "badgesSeen", "pinnedBadge", "bdaySeen"])
@@ -166,10 +289,10 @@ service cloud.firestore {
           return changed().hasOnly(["petCreature"])
             && (now("petCreature", null) == null
                 || was("coll", {}).get(now("petCreature", ""), {}).get("lvl", 0) >= 100
-                || (now("petCreature", "") in ["L-26", "L-27", "L-28", "L-29"] && was("coll", {}).keys().hasAny([now("petCreature", "")])));
+                || (now("petCreature", "").matches("L-[0-9]+") && was("coll", {}).keys().hasAny([now("petCreature", "")])));   // any Legendary
         }
 
-        allow update: if isTeacher() || (request.auth != null && (studentLooks() || studentAttack() || studentBuy() || studentSpin() || studentCollect() || studentBadges() || studentPet()));
+        allow update: if isTeacher() || (request.auth != null && (studentLooks() || studentAttack() || studentBuy() || studentSpin() || studentDoor() || studentIdea() || studentRoom() || studentCollect() || studentBadges() || studentPet() || studentQuest() || studentHeld()));
       }
     }
   }

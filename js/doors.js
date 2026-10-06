@@ -8,8 +8,8 @@
    Saved on the student: doors = { "YYYY-MM-DD": { "0": { st: "wait"|"ok"|"no"|"open", at, r }, g: { st: "open", r } } }
    plus lastDoor = "YYYY-MM-DD/<door>" (which door the last save touched; the save rules check it).
    Class: doorsOn (on/off), doorList (default list), doorDays = { "YYYY-MM-DD": [..] } (one-day lists). */
-import { azToday } from "./collect.js?v=20261006a";
-import { SEASON, eventMode, esc } from "./game.js?v=20261006a";
+import { azToday } from "./collect.js?v=20261006c";
+import { SEASON, eventMode, esc } from "./game.js?v=20261006c";
 
 // A door that starts with "!" is always open (not locked behind the first doors). The "!" isn't shown.
 export const DOOR_DEFAULT = [
@@ -165,4 +165,36 @@ export function doorXPRows(students) {
   return out;
 }
 export const doorToday = date => date || azToday();
+
+/* ---------- auto-approve from subject XP ----------
+   sub = { m, f, r, w, l, v, sc, ss } (Math, FastMath, Reading, Writing, Language, Vocabulary, Science, Social Studies), total = day XP.
+   Returns true / false if the door can be checked from the data, or null if it can't (e.g. "before school"). */
+export const SUBJECT_KEYS = { "math": "m", "fast math": "f", "fastmath": "f", "reading": "r", "writing": "w", "language": "l", "vocabulary": "v", "vocab": "v", "science": "sc", "social studies": "ss" };
+export const FAST_RING = 109;
+export function doorMet(task, st, sub, total, cls) {
+  const t = doorText(task, st).toLowerCase();
+  if (!sub || /before school/.test(t)) return null;
+  let m = /(\d+)\s*xp\s+in\s+your\s+goal\s+subject/.exec(String(task || "").toLowerCase());
+  if (m) { const k = SUBJECT_KEYS[String((st && st.goalSubject) || "").toLowerCase()]; return k ? (Number(sub[k]) || 0) >= Number(m[1]) : null; }
+  m = /(\d+)\s+(math|fast ?math|reading|writing|language|vocabulary|vocab|science|social studies)\s+xp/.exec(t) || /(\d+)\s*xp\s+in\s+(math|fast ?math|reading|writing|language|vocabulary|vocab|science|social studies)\b/.exec(t);
+  if (m) return (Number(sub[SUBJECT_KEYS[m[2].replace("fast math", "fastmath")] || SUBJECT_KEYS[m[2]]]) || 0) >= Number(m[1]);
+  if (/fast ?math ring/.test(t)) return (Number(sub.f) || 0) >= (Number(cls && cls.fastRing) || FAST_RING);
+  m = /earn\s+(\d+)\s*xp\s+today/.exec(t);
+  if (m) return (Number(total) || 0) >= Number(m[1]);
+  return null;
+}
+// The doors map for one student and day after auto-approving everything the data shows as done.
+// Doors already approved/opened or marked "Not yet" by the teacher are left alone. Locked doors only open once the first ones are approved.
+export function autoDoors(st, cls, date, sub, total) {
+  const list = doorsFor(cls, date), doors = JSON.parse(JSON.stringify((st && st.doors) || {})), day = Object.assign({}, doors[date] || {});
+  let n = 0;
+  const tryDoor = i => { const cur = (day[String(i)] || {}).st || ""; if (approved(cur) || cur === "no") return;
+    if (doorMet(list[i], st, sub, total, cls) === true) { day[String(i)] = { st: "ok", at: (day[String(i)] || {}).at || new Date().toISOString(), auto: true, checked: new Date().toISOString() }; n++; } };
+  const gate = gateDoors(cls, date);
+  list.forEach((t, i) => { if (isFree(t) || gate.includes(i)) tryDoor(i); });
+  const sim = Object.assign({}, st, { doors: Object.assign({}, doors, { [date]: day }) });
+  if (gateOpen(sim, cls, date)) list.forEach((t, i) => { if (!isFree(t) && !gate.includes(i)) tryDoor(i); });
+  if (!n) return null;
+  doors[date] = day; return { doors, n };
+}
 export { esc };

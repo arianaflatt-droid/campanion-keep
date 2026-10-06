@@ -90,7 +90,7 @@ Nudges with a **Go →** button jump to the right tab. The rules live in `js/nud
 ### 🧑‍🏫 The teacher's collection
 The **🥚 Collector** tab starts with your own collection. Pick a starter, hatch eggs, level up, name creatures and use the lorebook, just like students do.
 - **Eggs:** every day you **finalize** gives you 1 egg for each student who hit 120 XP.
-- **XP:** you get 120 banked XP (1 level) for each student who didn't hit 120. Excused days don't count, and **Undo** on a finalized day takes the reward back.
+- **XP:** you get 120 banked XP (1 level) for each student who didn't hit 120. On a day when everyone hits 120, you still get 120 XP. Excused days don't count, and **Undo** on a finalized day takes the reward back.
 - **Odds:** your eggs can hatch Legendaries, at a 0.05% chance: Common 69.95% · Uncommon 20% · Rare 8% · Super Rare 2% · Legendary 0.05%.
 - **Battling:** tick **I'm ready to battle** and students see you in their arena as **Ms. Ariana**. You can challenge them, or they can challenge you. The arena is always open for you unless it's set to Closed, while students still follow their normal hours. To battle, keep the Collector tab open.
 - Your collection is saved on the class, not as a student, so it never shows up on The Keep, in standings or in badges.
@@ -104,6 +104,9 @@ Students and the teacher can swap creatures from the **🔄 Trading** card at th
 - You can't trade your last creature (spares don't count), you can't trade while in a battle, and limited event Legendaries (Duckarune, Hexaduck) can't be traded.
 - Turn trading on or off with the **🔄 Trading** checkbox on the console's **🥚 Collector** tab.
 - Trades are stored in `classes/{class}/trades`, so publish the updated `firestore.rules`.
+
+### ☀️ Lunch Hero bonus egg
+Students whose **lunch data** shows 120+ XP get **+1 bonus egg** that day, on top of their normal eggs. Lunch data only counts before the lunch cutoff, so this can't be earned after lunch. Turn it on or off with the **☀️ Lunch Hero bonus egg** checkbox on the **🥚 Collector** tab.
 
 ### ☀️ Lunch arena
 On weekdays from 12–1 pm (Arizona time), the Battle Arena opens only for students who have already hit 120 XP that day, from the lunch or end-of-day upload or paste. They can only see and challenge other students who also hit 120. A battle that's already started can be finished after 1 pm. Turn it off with the **☀️ Lunch arena** checkbox on the console's **🥚 Collector** tab. "Closed" in the arena menu also closes it.

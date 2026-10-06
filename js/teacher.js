@@ -1,20 +1,20 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261006a";
-import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261006a";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261006a";
-import { cpEarnedCalc } from "./room.js?v=20261006a";
-import { GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, waitingDoors, doorXPRows, REWARD_XP } from "./doors.js?v=20261006a";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261006a";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261006c";
+import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261006c";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261006c";
+import { cpEarnedCalc } from "./room.js?v=20261006c";
+import { GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP } from "./doors.js?v=20261006c";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261006c";
 import {
   applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261006a";
-import { pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261006a";
+} from "./game.js?v=20261006c";
+import { pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261006c";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef
-} from "./db.js?v=20261006a";
+} from "./db.js?v=20261006c";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -665,6 +665,8 @@ function viewDoors() {
     '<div class="field" style="margin-top:8px;"><label for="doorDayList">Doors for ' + esc(md(dd)) + '</label><textarea id="doorDayList" rows="8">' + esc((dayList || list).join("\n")) + "</textarea></div>" +
     '<div class="row" style="margin-top:8px;"><button class="btn small" data-act="saveDoorDay">Save for ' + esc(md(dd)) + '</button>' + (dayList ? '<button class="btn ghost small" data-act="clearDoorDay">Use the every-day doors</button>' : "") + "</div>" +
     '<p class="muted small" style="margin-top:6px;">Changing a day\u2019s doors after students have started can move their check marks to a different task, so it\u2019s best to set days ahead.</p></div></details>';
+  h += '<div class="row" style="margin-top:12px;gap:8px;align-items:flex-end;"><div class="field"><label for="fastRing">\u26A1 FastMath XP that closes the Fast Math Ring</label><input id="fastRing" type="number" min="1" style="width:90px;" value="' + (Number(cls.fastRing) || FAST_RING) + '"></div><button class="btn ghost small" data-act="saveFastRing">Save</button>' +
+    '<span class="muted small">When you paste data with subject columns, doors are approved automatically (you can still approve by hand).</span></div>';
   // Goal subjects: "your Goal Subject" in a door shows each student's own subject
   const team = students.filter(x => x.companionId), unset = team.filter(x => !x.goalSubject).length;
   h += '<details class="goalsubs" style="margin-top:14px;"' + (busy.goalOpen ? " open" : "") + '><summary data-act="goalOpen"><b>\u{1F3AF} Goal subjects</b> <span class="muted small">' + (unset ? unset + " not set yet" : "all set") + "</span></summary>" +
@@ -1000,18 +1002,28 @@ async function addRosterFromFile(file) {
    Paste straight from the XP page. For each student, the name is the line just before a "291 / 120" number,
    and only the number before the slash is used. Header text stuck to the first name ("Social StudiesJenesis") is removed. */
 const PASTE_HEADERS = ["Social Studies", "Science", "Vocabulary", "Language", "Writing", "Reading", "FastMath", "Math", "Total", "Student"];
+const SUB_ORDER = ["m", "f", "r", "w", "l", "v", "sc", "ss"];
+const SUB_HEAD = { "math": "m", "fastmath": "f", "fast math": "f", "reading": "r", "writing": "w", "language": "l", "vocabulary": "v", "science": "sc", "social studies": "ss" };
 export function parsePasted(text) {
-  const lines = String(text || "").replace(/\r/g, "").split("\n").map(x => x.replace(/\u00a0/g, " ").trim());
+  const lines = String(text || "").replace(/\r/g, "").split(/[\n\t]/).map(x => x.replace(/\u00a0/g, " ").replace(/[\u2195\u21C5\u2191\u2193\u25B2\u25BC\u2303\u2304]/g, "").trim());
   const out = [];
+  const totals = []; lines.forEach((ln, i) => { if (/^(\d[\d,]*)\s*\/\s*\d/.test(ln)) totals.push(i); });
+  // column order from the header row (Math, FastMath, Reading, ...), if it was copied too
+  const head = []; for (let i = 0; i < (totals[0] || 0); i++) { const k = SUB_HEAD[lines[i].toLowerCase()]; if (k && !head.includes(k)) head.push(k); }
+  const order = head.length >= 3 ? head : SUB_ORDER;
   lines.forEach((ln, i) => {
     const m = ln.match(/^(\d[\d,]*)\s*\/\s*\d/);          // "291 / 120101" -> 291
     if (!m) return;
+    // subject numbers: the cells after the total, up to the next student's total ("—" = blank; notes like "6d ago" are skipped)
+    const end = totals[totals.indexOf(i) + 1] ?? lines.length, vals = [];
+    for (let k = i + 1; k < end && vals.length < order.length; k++) { const c = lines[k]; if (/^\d[\d,]*$/.test(c)) vals.push(Number(c.replace(/,/g, ""))); else if (/^[\u2014\u2013-]$/.test(c)) vals.push(0); }
+    const sub = vals.length >= 3 ? Object.fromEntries(order.map((k, n) => [k, vals[n] || 0])) : null;
     let j = i - 1; while (j >= 0 && !/[A-Za-z]/.test(lines[j])) j--;   // the nearest line above with letters
     if (j < 0) return;
     let name = lines[j];
     PASTE_HEADERS.forEach(hd => { const k = name.lastIndexOf(hd); if (k >= 0 && /^[A-Z]/.test(name.slice(k + hd.length))) name = name.slice(k + hd.length); });
     name = name.replace(/\s+/g, " ").trim();
-    if (name && !/^\d/.test(name)) out.push({ name, completed: Number(m[1].replace(/,/g, "")) });
+    if (name && !/^\d/.test(name)) out.push(Object.assign({ name, completed: Number(m[1].replace(/,/g, "")) }, sub ? { sub } : {}));
   });
   return out;
 }
@@ -1052,12 +1064,14 @@ function lunchLateBox() {
 
 async function applyUpload(up) {
   const goal = goalXP(cls), d = up.day;
-  const best = {}; let unmatched = [];
+  const best = {}, subs = {}; let unmatched = [];
+  const subOf = r => { if (r.sub) return r.sub; const o = {}; let any = false;   // spreadsheet columns named Math, Reading, ...
+    Object.keys(r).forEach(k => { const c = SUB_HEAD[String(k).toLowerCase()]; if (c) { o[c] = Number(String(r[k]).replace(/[^0-9.]/g, "")) || 0; any = true; } }); return any ? o : null; };
   up.rows.forEach(r => {
     const nm = String(r[up.nameKey] || "").trim(); if (!nm) return;
     const xp = Number(String(r[up.xpKey]).replace(/[^0-9.\-]/g, "")) || 0;
     const st = matchStudent(nm);
-    if (st) { if (!best[st.id] || xp > best[st.id]) best[st.id] = xp; }
+    if (st) { if (!best[st.id] || xp > best[st.id]) { best[st.id] = xp; const sb = subOf(r); if (sb) subs[st.id] = sb; } }
     else unmatched.push({ name: nm, guide: up.guideKey ? String(r[up.guideKey] || "").trim() : "" });
   });
   if (up.guideKey && unmatched.length) {   // mixed-class files: only offer this class's guide
@@ -1068,7 +1082,7 @@ async function applyUpload(up) {
   }
   const seenN = {}; unmatched = unmatched.filter(u => { const k = u.name.toLowerCase(); if (seenN[k]) return false; seenN[k] = 1; return true; });
 
-  const batch = writeBatch(db); let hit = 0, matched = 0; const missing = [];
+  const batch = writeBatch(db); let hit = 0, matched = 0, autoN = 0; const missing = [];
   // A re-upload fully replaces the earlier file of the same kind (lunch or end-of-day) for that day:
   // anyone not in the new file has that day's number cleared. The other kind is left alone.
   const date = dateOfDay(d), key = up.kind === "lunch" ? "l" : "d";
@@ -1078,6 +1092,7 @@ async function applyUpload(up) {
     const status = arr5(s.status, ""), early = arr5(s.early, false);
     const hist = Object.assign({}, s.xpHist || {}), day = Object.assign({}, hist[date] || {});
     if (has) day[key] = xp; else delete day[key];
+    if (subs[s.id]) { const old = day.sub || {}, nw = {}; Object.keys(Object.assign({}, old, subs[s.id])).forEach(k => { nw[k] = Math.max(Number(old[k]) || 0, Number(subs[s.id][k]) || 0); }); day.sub = nw; }
     if (up.kind === "lunch") delete day.lh;   // a lunch upload replaces any hand-marked Lunch Hero for that day
     if (Object.keys(day).length) hist[date] = day; else delete hist[date];
     let data;
@@ -1090,12 +1105,15 @@ async function applyUpload(up) {
       if (status[d] !== "e") status[d] = has ? (ok ? "c" : "") : (early[d] ? "c" : "");
       data = { xp: xps, status, xpHist: hist };
     }
+    // Daily Doors: approve every door the subject numbers show as done
+    if (subs[s.id] && doorsLive(cls)) { const a = autoDoors(s, cls, date, day.sub, Math.max(Number(day.d) || 0, Number(day.l) || 0)); if (a) { data.doors = a.doors; autoN += a.n; } }
     Object.assign(s, data);
     batch.update(studentRef(s.id), data);
   });
   if (up.kind === "day") { const rec = recordedDays(cls); if (!rec[d]) { rec[d] = true; batch.update(classRef, { recorded: rec }); } }
   try { await batch.commit(); } catch (e) { flash("Upload didn’t save — " + (e.code || e.message)); }
-  busy.upReport = { kind: up.kind, day: d, file: up.file, matched, hit, missing, unmatched };
+  busy.upReport = { kind: up.kind, day: d, file: up.file, matched, hit, missing, unmatched, autoN };
+  if (autoN) flash("\u{1F6AA} Auto-approved " + autoN + " door" + (autoN === 1 ? "" : "s") + " from the subject XP.");
   render();
 }
 
@@ -1443,6 +1461,7 @@ document.addEventListener("click", async ev => {
   if (act === "saveRoomStart") { const v = document.getElementById("roomStart").value; if (!v) return; try { await updateDoc(classRef, { roomStart: v }); flash("Saved \u2014 Comfort Points count from " + v + "."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
   if (act === "saveCollStart") { try { await updateDoc(classRef, { collectorStart: document.getElementById("collStart").value || null }); flash("Saved the collector start date."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
   if (act === "rewardsFinished") { busy.rewardsFinished = !busy.rewardsFinished; render(); return; }
+  if (act === "saveFastRing") { const v = Math.max(1, Math.floor(Number(document.getElementById("fastRing").value) || FAST_RING)); try { await updateDoc(classRef, { fastRing: v }); flash("Saved \u2014 the Fast Math Ring closes at " + v + " FastMath XP."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
   if (act === "goalOpen") { busy.goalOpen = !busy.goalOpen; return; }
   if (act === "shopAll") { busy.shopAll = !busy.shopAll; render(); return; }
   if (act === "prizeDone") { busy.prizeDone = !busy.prizeDone; render(); return; }
