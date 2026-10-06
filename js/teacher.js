@@ -1,21 +1,21 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261006g";
-import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261006g";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261006g";
-import { cpEarnedCalc } from "./room.js?v=20261006g";
-import { INGREDIENTS, PER_XP, POTION_CANDY, POTION_XP, POTION_LEGENDARY, MASTER_BREWS, potionOn, teams as potTeams, teamOf as potTeamOf, cauldron, recipeChanged, brewRewards, standings as potStandings, topTeams, brewCount } from "./potion.js?v=20261006g";
-import { GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP } from "./doors.js?v=20261006g";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261006g";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261006h";
+import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261006h";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261006h";
+import { cpEarnedCalc } from "./room.js?v=20261006h";
+import { INGREDIENTS, PER_XP, POTION_CANDY, POTION_XP, POTION_LEGENDARY, MASTER_BREWS, potionOn, teams as potTeams, teamOf as potTeamOf, cauldron, recipeChanged, brewRewards, standings as potStandings, topTeams, brewCount } from "./potion.js?v=20261006h";
+import { GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP } from "./doors.js?v=20261006h";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261006h";
 import {
   applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261006g";
-import { pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261006g";
+} from "./game.js?v=20261006h";
+import { pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261006h";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef
-} from "./db.js?v=20261006g";
+} from "./db.js?v=20261006h";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -350,13 +350,23 @@ function viewIdeas() {
   const rows = ideaRows(), n = rows.filter(r => !r.x.seen).length;
   let h = '<div class="card"><div class="card-head"><h2>\u{1F4A1} Student ideas</h2><span class="fact">' + (n ? "<b>" + n + "</b> new" : rows.length + " total") + "</span></div>";
   if (!rows.length) return h + '<p class="lede">When a student hits ' + goalXP(cls) + " XP, they can send you one idea for a new creature, accessory or room decoration that day. Their ideas show up here.</p></div>";
-  const shown = busy.allIdeas ? rows : rows.slice(0, 12);
-  h += '<div class="idealist">' + shown.map(r => '<div class="idea' + (r.x.seen ? " seen" : "") + '"><div class="ideahead">' + (r.x.kind === "gear" ? "\u{1F3A9}" : r.x.kind === "room" ? "\u{1F6CF}\uFE0F" : "\u{1F43E}") + " <b>" + esc(r.x.name) + "</b> <span class=\"fact\">" + esc(r.x.kind === "gear" ? "Accessory \u00b7 " + ({ hat: "head", eyes: "eyes", snack: "snack / held", other: "other" }[r.x.slot] || "") : r.x.kind === "room" ? "Room decor \u00b7 " + String(r.x.slot || "").replace("_", " ") : (r.x.types || []).join(" / ")) + "</span>" +
+  const card = r => '<div class="idea' + (r.x.seen ? " seen" : "") + '"><div class="ideahead">' + (r.x.kind === "gear" ? "\u{1F3A9}" : r.x.kind === "room" ? "\u{1F6CF}\uFE0F" : "\u{1F43E}") + " <b>" + esc(r.x.name) + "</b> <span class=\"fact\">" + esc(r.x.kind === "gear" ? "Accessory \u00b7 " + ({ hat: "head", eyes: "eyes", snack: "snack / held", other: "other" }[r.x.slot] || "") : r.x.kind === "room" ? "Room decor \u00b7 " + String(r.x.slot || "").replace("_", " ") : (r.x.types || []).join(" / ")) + "</span>" +
       '<label class="ideaseen"><input type="checkbox" data-ideaseen="' + r.st.id + ":" + r.i + '"' + (r.x.seen ? " checked" : "") + "> Seen</label></div>" +
       '<div class="muted small">by <b>' + esc(r.st.name) + "</b> \u00b7 " + esc(new Date(r.x.date + "T12:00:00").toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })) +
       (r.x.animal ? " \u00b7 based on: " + esc(r.x.animal) : "") + "</div>" +
-      (r.x.lore ? '<p class="idealore">' + esc(r.x.lore) + "</p>" : "") + "</div>").join("") + "</div>";
-  if (rows.length > 12) h += '<button class="btn ghost small" data-act="allIdeas">' + (busy.allIdeas ? "Show fewer" : "Show all " + rows.length) + "</button>";
+      (r.x.lore ? '<p class="idealore">' + esc(r.x.lore) + "</p>" : "") + "</div>";
+  const fresh = rows.filter(r => !r.x.seen), seen = rows.filter(r => r.x.seen);
+  const shown = busy.allIdeas ? fresh : fresh.slice(0, 8);
+  h += fresh.length ? '<div class="idealist">' + shown.map(card).join("") + "</div>" : '<p class="muted small">No new ideas \u2014 you\u2019ve seen them all. \u2705</p>';
+  if (fresh.length > 8) h += '<button class="btn ghost small" data-act="allIdeas">' + (busy.allIdeas ? "Show fewer" : "Show all " + fresh.length + " new") + "</button>";
+  // ideas already checked as seen: one short line each, tucked away
+  if (seen.length) {
+    const kind = x => x.kind === "gear" ? "\u{1F3A9}" : x.kind === "room" ? "\u{1F6CF}\uFE0F" : "\u{1F43E}";
+    h += '<details class="seenideas" style="margin-top:10px;"' + (busy.seenIdeas ? " open" : "") + '><summary data-act="seenIdeas"><b>\u2705 Seen ideas</b> <span class="muted small">(' + seen.length + ")</span></summary>" +
+      '<div class="seenlist">' + seen.map(r => '<div class="seenrow"><span>' + kind(r.x) + " <b>" + esc(r.x.name) + '</b> <span class="muted small">by ' + esc(r.st.name) + " \u00b7 " +
+        esc(new Date(r.x.date + "T12:00:00").toLocaleDateString(undefined, { month: "short", day: "numeric" })) + "</span></span>" +
+        '<label class="ideaseen small"><input type="checkbox" data-ideaseen="' + r.st.id + ":" + r.i + '" checked> Seen</label></div>').join("") + "</div></details>";
+  }
   return h + "</div>";
 }
 function teacherCollectorCard() {
@@ -1550,6 +1560,7 @@ document.addEventListener("click", async ev => {
   if (act === "saveCollStart") { try { await updateDoc(classRef, { collectorStart: document.getElementById("collStart").value || null }); flash("Saved the collector start date."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
   if (act === "rewardsFinished") { busy.rewardsFinished = !busy.rewardsFinished; render(); return; }
   if (act === "saveFastRing") { const v = Math.max(1, Math.floor(Number(document.getElementById("fastRing").value) || FAST_RING)); try { await updateDoc(classRef, { fastRing: v }); flash("Saved \u2014 the Fast Math Ring closes at " + v + " FastMath XP."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
+  if (act === "seenIdeas") { busy.seenIdeas = !busy.seenIdeas; return; }
   if (act === "goalOpen") { busy.goalOpen = !busy.goalOpen; return; }
   if (act === "shopAll") { busy.shopAll = !busy.shopAll; render(); return; }
   if (act === "prizeDone") { busy.prizeDone = !busy.prizeDone; render(); return; }
