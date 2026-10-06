@@ -188,17 +188,31 @@ service cloud.firestore {
             && same("themeEggs", []) && same("goalEggs", []) && same("spinLog", []) && same("xpPrize", 0);
         }
         // ---- Weekly Door ---- open this week's door once the teacher's upload marked it "ready": one Legendary egg + a Golden Present.
+        // this week's XP, added up from the 5 school days (end-of-day number, or the lunch number if that's all there is)
+        function wkXP(i) {
+          let a = resource.data.get("xp", []);
+          let l = resource.data.get("lunchXp", []);
+          return a.size() > i && a[i] is number ? a[i] : (l.size() > i && l[i] is number ? l[i] : 0);
+        }
+        function weekSum() { return wkXP(0) + wkXP(1) + wkXP(2) + wkXP(3) + wkXP(4); }
+        function weekGoalFor(k) {
+          let g = klass().get("weekGoal", null);
+          return g != null && g.get("week", "") == k ? g.get("xp", 600) : 600;
+        }
         function studentWeekDoor() {
           let od = was("weekDoor", {});
           let nd = request.resource.data.get("weekDoor", {});
           let ks = nd.diff(od).affectedKeys();
+          let k = ks.toList()[0];
           let wp = request.resource.data.get("weekPresent", {});
           return changed().hasOnly(["weekDoor", "legendaryPulls", "weekPresent", "doorXP", "candyBonus", "brews", "extraAttacks", "doorEggs", "themeEggs", "goalEggs", "spinLog", "xpPrize"])
             && ks.size() == 1
-            && od.get(ks.toList()[0], "") == "ready" && nd.get(ks.toList()[0], "") == "open"
+            && nd.get(k, "") == "open"
+            // marked ready by the teacher's upload, or this week's days add up to the goal
+            && (od.get(k, "") == "ready" || (od.get(k, "") == "" && k == klass().get("weekStart", "") && weekSum() >= weekGoalFor(k)))
             && now("legendaryPulls", 0) == was("legendaryPulls", 0) + 1
             // plus an automatic Golden Present
-            && wp.get("week", "") == ks.toList()[0]
+            && wp.get("week", "") == k
             && doorReward(wp.get("r", {}).get("id", ""), true);
         }
         function studentDoor() {

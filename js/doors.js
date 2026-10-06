@@ -8,8 +8,8 @@
    Saved on the student: doors = { "YYYY-MM-DD": { "0": { st: "wait"|"ok"|"no"|"open", at, r }, g: { st: "open", r } } }
    plus lastDoor = "YYYY-MM-DD/<door>" (which door the last save touched; the save rules check it).
    Class: doorsOn (on/off), doorList (default list), doorDays = { "YYYY-MM-DD": [..] } (one-day lists). */
-import { azToday } from "./collect.js?v=20261006j";
-import { SEASON, eventMode, esc, dayXP, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261006j";
+import { azToday } from "./collect.js?v=20261006k";
+import { SEASON, eventMode, esc, dayXP, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261006k";
 
 // A door that starts with "!" is always open (not locked behind the first doors). The "!" isn't shown.
 export const DOOR_DEFAULT = [
@@ -203,11 +203,11 @@ export function autoDoors(st, cls, date, sub, total) {
    the student opens it for a Legendary egg (weekDoor[week] = "open", legendaryPulls + 1). week = the Monday the week's XP belongs to. */
 export { WEEK_DOOR_XP, weekKey, weekGoal };
 export function weekTotal(st) { let n = 0; for (let d = 0; d < 5; d++) n += dayXP(st, d); return Math.round(n); }
-// "open" | "ready" | "soon" (has the XP, waiting for the teacher's upload) | "locked"
+// "open" | "ready" | "locked"
 export function weekDoorState(st, cls) {
   const v = ((st && st.weekDoor) || {})[weekKey(cls)];
   if (v === "open") return "open";
   if (v === "ready") return "ready";
-  return weekTotal(st) >= weekGoal(cls) ? "soon" : "locked";
+  return weekTotal(st) >= weekGoal(cls) ? "ready" : "locked";   // opens on its own once the week's days add up to the goal
 }
 export { esc };

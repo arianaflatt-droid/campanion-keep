@@ -1,21 +1,21 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261006j";
-import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261006j";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261006j";
-import { cpEarnedCalc } from "./room.js?v=20261006j";
-import { INGREDIENTS, PER_XP, POTION_CANDY, POTION_XP, POTION_LEGENDARY, MASTER_BREWS, potionOn, teams as potTeams, teamOf as potTeamOf, cauldron, recipeChanged, brewRewards, standings as potStandings, topTeams, brewCount } from "./potion.js?v=20261006j";
-import { GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal } from "./doors.js?v=20261006j";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261006j";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261006k";
+import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261006k";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261006k";
+import { cpEarnedCalc } from "./room.js?v=20261006k";
+import { INGREDIENTS, PER_XP, POTION_CANDY, POTION_XP, POTION_LEGENDARY, MASTER_BREWS, potionOn, teams as potTeams, teamOf as potTeamOf, cauldron, recipeChanged, brewRewards, standings as potStandings, topTeams, brewCount } from "./potion.js?v=20261006k";
+import { GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal } from "./doors.js?v=20261006k";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261006k";
 import {
   applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261006j";
-import { pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261006j";
+} from "./game.js?v=20261006k";
+import { pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261006k";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef
-} from "./db.js?v=20261006j";
+} from "./db.js?v=20261006k";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -120,7 +120,7 @@ else onAuthStateChanged(auth, u => {
   if (!u || u.isAnonymous) { mode = "signin"; render(); return; }
   if (!isTeacherEmail(u.email)) { mode = "denied"; render(); return; }
   mode = "boot"; render();
-  unsub.push(watchClass(c => { cls = c; clsLoaded = true; setSeason(c); if (c && checkVersion(c, true, v => updateDoc(classRef, { appVersion: v }).catch(() => {}))) return; autoGobble(); lockBadges();
+  unsub.push(watchClass(c => { cls = c; clsLoaded = true; setSeason(c); if (c && !c.weekStart && !PREVIEW) updateDoc(classRef, { weekStart: dateOfDay(0) }).catch(() => {}); if (c && checkVersion(c, true, v => updateDoc(classRef, { appVersion: v }).catch(() => {}))) return; autoGobble(); lockBadges();
     if (c && c.haunt && !c.hauntSince) updateDoc(classRef, { hauntSince: azToday() }).catch(() => {});   // Hexaduck streaks start today if the mode was already on
     if (c && !c.collectorStart) updateDoc(classRef, { collectorStart: (() => { const t = new Date(); return t.getFullYear() + "-" + String(t.getMonth() + 1).padStart(2, "0") + "-" + String(t.getDate()).padStart(2, "0"); })() }).catch(() => {}); if (!c) mode = "setup"; else if (mode === "boot" || mode === "setup") mode = "guide"; detectEvents(); liveRender(); },
     e => flash("Couldn’t load the class — " + e.code)));
@@ -690,18 +690,18 @@ function viewDoors() {
 /* ---------- Weekly Door ---------- */
 function viewWeekDoor() {
   const wk = weekKey(cls), goal = weekGoal(cls), kids = students.filter(x => x.companionId);
-  const st = x => ((x.weekDoor || {})[wk]) || (weekTotal(x) >= goal ? "soon" : "");
-  const opened = kids.filter(x => st(x) === "open"), ready = kids.filter(x => st(x) === "ready"), soon = kids.filter(x => st(x) === "soon");
+  const st = x => ((x.weekDoor || {})[wk]) || (weekTotal(x) >= goal ? "ready" : "");
+  const opened = kids.filter(x => st(x) === "open"), ready = kids.filter(x => st(x) === "ready");
   const custom = goal !== WEEK_DOOR_XP;
   let h = '<div class="card" id="weekDoorCard"><div class="card-head"><h2>\u{1F6AA} Weekly Door</h2><span class="fact">' + opened.length + " opened \u00b7 " + ready.length + " ready</span></div>" +
-    '<p class="lede" style="font-size:13.5px;">Students who reach <b>' + goal.toLocaleString() + " XP this week</b> unlock a door with a Legendary egg. It unlocks when you paste XP that gets them there.</p>" +
+    '<p class="lede" style="font-size:13.5px;">Students who reach <b>' + goal.toLocaleString() + " XP this week</b> (all their days added up) unlock a door with a Legendary egg and a Golden Present. It opens by itself as soon as their week adds up.</p>" +
     '<div class="row" style="gap:8px;align-items:flex-end;margin-top:8px;"><div class="field"><label for="weekGoalBox">XP goal for this week' + (custom ? " (normal is " + WEEK_DOOR_XP + ")" : "") + '</label><input id="weekGoalBox" type="number" min="1" step="10" style="width:110px;" value="' + goal + '"></div>' +
     '<button class="btn small" data-act="saveWeekGoal">Save for this week</button>' + (custom ? '<button class="btn ghost small" data-act="resetWeekGoal">Back to ' + WEEK_DOOR_XP + "</button>" : "") +
     '<button class="btn ghost small" data-act="weekCheck">\u{1F504} Unlock for everyone who made it</button></div>' +
     '<p class="muted small" style="margin-top:6px;">A short-week goal only lasts this week \u2014 starting a new week goes back to ' + WEEK_DOOR_XP + ".</p>";
-  if (opened.length || ready.length || soon.length) h += '<div class="inv" style="margin-top:8px;">' +
+  if (opened.length || ready.length) h += '<div class="inv" style="margin-top:8px;">' +
     opened.map(x => "<span>\u2705 " + esc(x.name) + "</span>").join("") + ready.map(x => "<span>\u{1F31F} " + esc(x.name) + " (ready)</span>").join("") +
-    soon.map(x => "<span>\u23F3 " + esc(x.name) + " (made it \u2014 tap Unlock)</span>").join("") + "</div>";
+    "</div>";
   return h + "</div>";
 }
 async function weekCheck(goalNow) {
