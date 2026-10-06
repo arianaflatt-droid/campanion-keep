@@ -12,8 +12,8 @@
    Saved on the student:
      potionDays:   { "2026-10-07": { fx, team } }                potions brewed (rewards given) + that day's effect
      potionLegEggs: special Legendary eggs from being on the top team */
-import { isHaunt, esc } from "./game.js?v=20261006f";
-import { azToday } from "./collect.js?v=20261006f";
+import { isHaunt, esc } from "./game.js?v=20261006g";
+import { azToday } from "./collect.js?v=20261006g";
 
 export const INGREDIENTS = [
   { k: "e", sub: "m", name: "Eyeballs", one: "Eyeball", icon: "\u{1F441}️", subject: "Math" },

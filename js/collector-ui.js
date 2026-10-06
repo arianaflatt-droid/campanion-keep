@@ -4,13 +4,13 @@ import {
   formIndex, formOf, statsOf, seenSet, rollRarity, doPull, arenaOpen, arenaOpenFor, lunchHour, hitGoalToday, LUNCH_ARENA, ARENA_HOURS, fighterFrom, teamSize, alive, resolve, resolveRound, moveOk, MOVES, hitDamage,
   birthdayLeft, pickleLeft, PICKLE_FAM, brewLegLeft, BREW_FAM, goalLeft, nextGoal, rollRareUp, themeLeft, nextTheme, THEME_TYPES, THEME_EGG, WISH_FAM, spares, spareId, releaseXP, releaseProblem, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
   EVENTS, eventOpen, eventWindow, eventStreak, hasEvent, eventUnlocked, azToday, rollTeacherRarity, TEACHER_ODDS, LIVE, staleBattle
-} from "./collect.js?v=20261006f";
-import { newBattleRef, changeBattle as changeBattleRaw, setDoc, liveBattlesNow } from "./db.js?v=20261006f";
+} from "./collect.js?v=20261006g";
+import { newBattleRef, changeBattle as changeBattleRaw, setDoc, liveBattlesNow } from "./db.js?v=20261006g";
 // every change to a battle is stamped with the time (upd), so a battle nobody has touched in a while can be ended
 let locking = null, leaving = null;   // battle id while "Lock in team" is saving
 const changeBattle = (id, fn) => changeBattleRaw(id, bt => { const n = fn(bt); if (n) n.upd = new Date().toISOString(); return n; });
 
-import { tradeCard } from "./trade-ui.js?v=20261006f";
+import { tradeCard } from "./trade-ui.js?v=20261006g";
 
 const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const PER_PAGE = 20;
@@ -318,6 +318,8 @@ function detailPage(c, seen) {
     (c.dodge ? '<p class="dline"><b>\u{1F4A8} Speedy:</b> dodges ' + Math.round(c.dodge * 100) + "% of attacks in battle</p>" : "") +
     (c.daze ? '<p class="dline"><b>\u2728 Dazzle:</b> ' + Math.round(c.daze * 100) + "% chance to make the opponent\u2019s next attack " + Math.round((c.dazePct || 0) * 100) + "% weaker</p>" : "") +
     (c.atkHeal ? '<p class="dline"><b>\u{1F49A} Recovery:</b> heals ' + Math.round(c.atkHeal * 100) + "% of its HP after every " + esc(c.attack) + "</p>" : "") +
+    (c.atkDefDown ? '<p class="dline"><b>\u{1F311} Gravity:</b> ' + Math.round(c.atkDefDown * 100) + "% chance its " + esc(c.attack) + " lowers the opponent\u2019s Defense by " + Math.round((c.atkDefPct || 0.15) * 100) + "% for a turn</p>" : "") +
+    (c.alt && c.alt.evade ? '<p class="dline"><b>\u{1F300} Portal:</b> ' + Math.round(c.alt.evade * 100) + "% chance " + esc(c.alt.name) + " lets it dodge the opponent\u2019s next attack</p>" : "") +
     (c.brewFx ? '<p class="dline"><b>\u{1F9EA} Witch\u2019s Brew:</b> every hit does one surprise thing \u2014 poisons the opponent, lowers its Defense for a round, or heals Brewraith a little</p>' : "") +
     (c.poison ? '<p class="dline"><b>\u{1F922} Poison:</b> ' + Math.round(c.poison * 100) + "% chance its attack poisons the opponent (loses a little HP for 3 rounds)</p>" : "") +
     (c.alt ? '<p class="dline"><b>Second attack:</b> ' + esc(c.alt.name) + (c.alt.type ? " (" + esc(c.alt.type) + ")" : "") + " \u2014 a bit less damage" + (c.alt.heal ? ", and heals " + Math.round(c.alt.heal * 100) + "% of its HP" : "") + (c.alt.defDown ? ", " + Math.round(c.alt.defDown * 100) + "% chance to lower the opponent\u2019s defense" + (c.alt.defTemp ? " for its next turn" : "") : "") + "</p>" + (c.alt.desc ? '<p class="dline muted">' + esc(c.alt.desc) + "</p>" : "") : "") + "</div></div>" +
@@ -342,12 +344,15 @@ function viewState(bt, k) {
     if (e.k === "coin") st.line = "\u{1FA99} Coin flip: " + esc(e.s === "A" ? bt.a.name : bt.b.name) + " goes first!";
     if (e.k === "send") { st[e.s].i = e.i; st.line = esc(e.who) + " sends out <b>" + esc(e.n) + "</b>!"; }
     if (e.k === "hit") { const o = e.s === "A" ? "B" : "A"; st[o].hp[e.di] = e.left; st[e.s].i = e.ai; st[o].i = e.di; st.last = e;
-      st.line = "<b>" + esc(e.a) + "</b> used " + esc(e.atk) + "! " + (e.dodged ? "\u{1F4A8} " + esc(e.d) + " zoomed out of the way!" : e.miss ? "It missed!" : (e.crit ? "\u{1F4A5} Critical hit! " : "") + (e.weak ? "It’s super effective! " : "") + (e.guarded ? "\u{1F6E1}\uFE0F Guarded! " : "") + (e.dazedHit ? "(Still dazzled \u2014 weaker!) " : "") + e.dmg + " damage."); }
+      st.line = "<b>" + esc(e.a) + "</b> used " + esc(e.atk) + "! " + (e.dodged && e.portal ? "\u{1F300} " + esc(e.d) + " vanished through a portal!" : e.dodged ? "\u{1F4A8} " + esc(e.d) + " zoomed out of the way!" : e.miss ? "It missed!" : (e.crit ? "\u{1F4A5} Critical hit! " : "") + (e.weak ? "It’s super effective! " : "") + (e.guarded ? "\u{1F6E1}\uFE0F Guarded! " : "") + (e.dazedHit ? "(Still dazzled \u2014 weaker!) " : "") + e.dmg + " damage."); }
     if (e.k === "swap") { st[e.s].i = e.i; st.line = "\u{1F504} " + esc(e.who) + " swaps " + esc(e.from) + " for <b>" + esc(e.n) + "</b>!"; }
     if (e.k === "heal") { st[e.s].hp[e.i] = e.left; st[e.s].i = e.i; st.line = "\u{1F49A} <b>" + esc(e.n) + "</b> healed " + e.amt + " HP!"; }
     if (e.k === "guard") { st[e.s].i = e.i; st.line = "\u{1F6E1}\uFE0F <b>" + esc(e.n) + "</b> is guarding!"; }
     if (e.k === "poison") st.line = "\u{1F952} <b>" + esc(e.d) + "</b> was poisoned!";
-    if (e.k === "defdown") st.line = (e.temp ? "\u{1F338} Blossoms swirl around <b>" + esc(e.d) + "</b>! Its defense dropped " + e.pct + "% for a turn." : "\u{1F4A7} Brine soaked <b>" + esc(e.d) + "</b>! Its defense dropped " + e.pct + "%.");
+    if (e.k === "evade") st.line = "\u{1F300} <b>" + esc(e.n) + "</b> slipped into a tiny portal \u2014 it will dodge the next attack!";
+    if (e.k === "defdown" && e.src === "void") st.line = "\u{1F311} Gravity crushes <b>" + esc(e.d) + "</b>! Its defense dropped " + e.pct + "% for a turn.";
+    else if (e.k === "defdown" && e.src === "brew") st.line = "\u{1F9EA} Witch\u2019s Brew splashes <b>" + esc(e.d) + "</b>! Its defense dropped " + e.pct + "% for a turn.";
+    else if (e.k === "defdown") st.line = (e.temp ? "\u{1F338} Blossoms swirl around <b>" + esc(e.d) + "</b>! Its defense dropped " + e.pct + "% for a turn." : "\u{1F4A7} Brine soaked <b>" + esc(e.d) + "</b>! Its defense dropped " + e.pct + "%.");
     if (e.k === "psn") { st[e.s].hp[e.i] = e.left; st[e.s].i = e.i; st.line = "\u{1F922} <b>" + esc(e.n) + "</b> is hurt by poison (-" + e.amt + ")."; }
     if (e.k === "daze") st.line = "\u2728 <b>" + esc(e.d) + "</b> is dazzled! Its next attack does " + e.pct + "% less damage.";
     if (e.k === "faint") st.line = "<b>" + esc(e.n) + "</b> fainted!";
@@ -457,9 +462,9 @@ function movePanel(bt, me, them, thN) {
   return '<div class="bpanel"><h3>What will ' + esc(f.name) + " do?</h3>" + (theirs ? '<p class="muted small" style="margin:-4px 0 8px;color:#CFC3E6;">' + esc(thN) + " has picked a move!</p>" : "") +
     (hint ? '<div class="bhints">' + hint + "</div>" : "") +
     '<div class="mvgrid">' +
-      btn("attack", esc(f.attack), "about " + dmg.dmg + " damage" + (f.daze ? " \u00b7 " + Math.round(f.daze * 100) + "% chance to dazzle" : "") + (f.poison ? " \u00b7 " + Math.round(f.poison * 100) + "% chance to poison" : "") + (f.atkHeal ? " \u00b7 heals +" + Math.round(f.hp * f.atkHeal) + " HP" : "") + (f.brewFx ? " \u00b7 surprise: poison, Defense down or heal" : ""), true) +
+      btn("attack", esc(f.attack), "about " + dmg.dmg + " damage" + (f.daze ? " \u00b7 " + Math.round(f.daze * 100) + "% chance to dazzle" : "") + (f.poison ? " \u00b7 " + Math.round(f.poison * 100) + "% chance to poison" : "") + (f.atkHeal ? " \u00b7 heals +" + Math.round(f.hp * f.atkHeal) + " HP" : "") + (f.brewFx ? " \u00b7 surprise: poison, Defense down or heal" : "") + (f.atkDefDown ? " \u00b7 " + Math.round(f.atkDefDown * 100) + "% chance to lower Defense" : ""), true) +
       (f.alt ? (() => { const ad = hitDamage(f.alt.type ? Object.assign({}, f, { type: f.alt.type }) : f, o, false);
-        return btn("alt", esc(f.alt.name), "about " + Math.max(1, Math.round(ad.dmg * (f.alt.mult || 1))) + " damage" + (ad.weak ? " \u2B50" : "") + (f.alt.heal ? " \u00b7 heals +" + Math.round(f.hp * f.alt.heal) + " HP" : "") + (f.alt.defDown ? " \u00b7 " + Math.round(f.alt.defDown * 100) + "% chance to lower defense" : ""), true); })() : "") +
+        return btn("alt", esc(f.alt.name), "about " + Math.max(1, Math.round(ad.dmg * (f.alt.mult || 1))) + " damage" + (ad.weak ? " \u2B50" : "") + (f.alt.heal ? " \u00b7 heals +" + Math.round(f.hp * f.alt.heal) + " HP" : "") + (f.alt.defDown ? " \u00b7 " + Math.round(f.alt.defDown * 100) + "% chance to lower defense" : "") + (f.alt.evade ? " \u00b7 " + Math.round(f.alt.evade * 100) + "% chance to dodge the next attack" : ""), true); })() : "") +
       btn("power", "Power Move", "about " + Math.round(dmg.dmg * MOVES.power.mult) + " damage \u00b7 75% to hit", true) +
       btn("guard", "Guard", "take half damage this round", true) +
       btn("heal", "Heal", f.healed ? "already used" : f.cur >= f.hp ? "already full health" : "+" + Math.min(f.hp - f.cur, Math.round(f.hp * MOVES.heal.pct)) + " HP \u00b7 once", !f.healed && f.cur < f.hp) +

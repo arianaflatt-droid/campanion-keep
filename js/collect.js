@@ -1,5 +1,5 @@
 // Creature Collector: pulls, XP bank, levels, evolutions, lorebook and arena battles.
-import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261006f";
+import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261006g";
 
 export const PULL_XP = 120;          // every 120 XP (all-time since the collector started) = 1 pull
 export const LEVEL_XP = 120;         // 120 banked XP = 1 level
@@ -341,8 +341,8 @@ export function fighterFrom(st, fam) {
   const e = owned(st)[fam]; if (!e) return null;
   const c = formOf(fam, e.lvl || 1), s = statsOf(c, e.lvl || 1);
   return { fam, id: c.id, lvl: e.lvl || 1, name: e.nick || c.name, species: c.name, img: e.sparkle ? sparkleImg(c) : c.img, sparkle: !!e.sparkle, face: c.face || "R", type: c.types[0], types: c.types, weak: c.weak, attack: c.attack, hp: s.hp, df: s.df, dmg: s.dmg, cur: s.hp, dodge: c.dodge || 0,
-    daze: c.daze || 0, dazePct: c.dazePct || 0, poison: c.poison || 0, atkHeal: c.atkHeal || 0, brewFx: !!c.brewFx,
-    alt: c.alt ? { name: c.alt.name, mult: c.alt.mult || 1, heal: c.alt.heal || 0, type: c.alt.type || "", defDown: c.alt.defDown || 0, defPct: c.alt.defPct || 0, defTemp: !!c.alt.defTemp } : null };
+    daze: c.daze || 0, dazePct: c.dazePct || 0, poison: c.poison || 0, atkHeal: c.atkHeal || 0, brewFx: !!c.brewFx, atkDefDown: c.atkDefDown || 0, atkDefPct: c.atkDefPct || 0,
+    alt: c.alt ? { name: c.alt.name, mult: c.alt.mult || 1, heal: c.alt.heal || 0, type: c.alt.type || "", defDown: c.alt.defDown || 0, defPct: c.alt.defPct || 0, defTemp: !!c.alt.defTemp, evade: c.alt.evade || 0 } : null };
 }
 export function teamSize(a, b) { return Math.max(0, Math.min(TEAM_MAX, ownedFams(a).length, ownedFams(b).length)); }
 export function hitDamage(att, def, crit) {
@@ -395,7 +395,9 @@ export function resolveRound(bt) {
     const m = mv[s], o = other(s); if (!m || (m.m !== "attack" && m.m !== "power" && m.m !== "alt")) continue;
     const att = bt.team[s][bt.active[s]], def = bt.team[o][bt.active[o]];
     if (!att || !def || att.cur <= 0 || def.cur <= 0) continue;
-    const pmiss = m.m === "power" && Math.random() >= MOVES.power.hit, dodged = !pmiss && !!def.dodge && Math.random() < def.dodge;   // speedy creatures (Jett) dodge some hits
+    const pmiss = m.m === "power" && Math.random() >= MOVES.power.hit, portal = !pmiss && def.evade > 0;   // Cosmic Whiskers: slips through a portal and dodges this attack
+    if (portal) def.evade = 0;
+    const dodged = !pmiss && (portal || (!!def.dodge && Math.random() < def.dodge));   // speedy creatures (Jett) dodge some hits
     const power = m.m === "power", miss = pmiss || dodged, crit = !miss && Math.random() < CRIT_CHANCE;
     const alt = m.m === "alt" && att.alt;
     let { dmg, weak } = hitDamage(alt && att.alt.type ? Object.assign({}, att, { type: att.alt.type }) : att, def, crit);   // a second attack can have its own type
@@ -406,7 +408,7 @@ export function resolveRound(bt) {
     if (guard[o]) dmg = Math.max(1, Math.round(dmg / 2));
     if (miss) dmg = 0;
     def.cur = Math.max(0, def.cur - dmg);
-    bt.log.push({ k: "hit", s, ai: bt.active[s], di: bt.active[o], a: att.name, atk: power ? att.attack + " (Power)" : alt ? att.alt.name : att.attack, d: def.name, dmg, crit, weak: weak && !miss, miss, dodged, power, dazedHit: wasDazed, guarded: !!guard[o], left: def.cur, max: def.hp });
+    bt.log.push({ k: "hit", s, ai: bt.active[s], di: bt.active[o], a: att.name, atk: power ? att.attack + " (Power)" : alt ? att.alt.name : att.attack, d: def.name, dmg, crit, weak: weak && !miss, miss, dodged, portal, power, dazedHit: wasDazed, guarded: !!guard[o], left: def.cur, max: def.hp });
     // Cinnamon Swirl: a chance to dazzle the target so its next attack is weaker
     if (!miss && m.m === "attack" && att.daze && def.cur > 0 && Math.random() < att.daze) { def.dazed = att.dazePct || 0.15; bt.log.push({ k: "daze", s, d: def.name, pct: Math.round((att.dazePct || 0.15) * 100) }); }
     // Pickle Peckle: a chance to poison (loses a little HP at the end of each of the next 3 rounds; poison never knocks out)
@@ -416,12 +418,19 @@ export function resolveRound(bt) {
       if (att.alt.defTemp) { def.dfOrig = def.df; def.dfT = 2; }   // Blossom Barrage: only until the end of the next round
       def.df = Math.max(1, Math.round(def.df * (1 - (att.alt.defPct || 0.2)))); bt.log.push({ k: "defdown", s, d: def.name, pct: Math.round((att.alt.defPct || 0.2) * 100), temp: !!att.alt.defTemp }); }
     // Orchard Burst: the attacker heals a little after hitting
+    // Event Horizon (Voidwhisker): a chance to lower the opponent's Defense until the end of the next round
+    if (!miss && m.m === "attack" && att.atkDefDown && def.cur > 0 && !(def.dfT > 0) && Math.random() < att.atkDefDown) {
+      def.dfOrig = def.df; def.dfT = 2; def.df = Math.max(1, Math.round(def.df * (1 - (att.atkDefPct || 0.15))));
+      bt.log.push({ k: "defdown", s, d: def.name, pct: Math.round((att.atkDefPct || 0.15) * 100), temp: true, src: "void" });
+    }
+    // Cosmic Whiskers (Voidwhisker): a chance to dodge the opponent's next attack
+    if (!miss && alt && att.alt.evade && att.cur > 0 && !(att.evade > 0) && Math.random() < att.alt.evade) { att.evade = 1; bt.log.push({ k: "evade", s, n: att.name }); }
     // Witch's Brew (Brewraith): every hit that lands does one random thing: poison, a short Defense drop, or a small heal
     if (!miss && m.m === "attack" && att.brewFx && def.cur > 0) {
       const opts = []; if (!def.psn) opts.push("psn"); if (!(def.dfT > 0)) opts.push("def"); if (att.cur < att.hp) opts.push("heal");
       const pick = opts[Math.floor(Math.random() * opts.length)];
       if (pick === "psn") { def.psn = 3; bt.log.push({ k: "poison", s, d: def.name }); }
-      else if (pick === "def") { def.dfOrig = def.df; def.dfT = 2; def.df = Math.max(1, Math.round(def.df * 0.8)); bt.log.push({ k: "defdown", s, d: def.name, pct: 20, temp: true }); }
+      else if (pick === "def") { def.dfOrig = def.df; def.dfT = 2; def.df = Math.max(1, Math.round(def.df * 0.8)); bt.log.push({ k: "defdown", s, d: def.name, pct: 20, temp: true, src: "brew" }); }
       else if (pick === "heal") { const amt = Math.min(att.hp - att.cur, Math.round(att.hp * 0.08)); att.cur += amt; bt.log.push({ k: "heal", s, i: bt.active[s], n: att.name, amt, left: att.cur, max: att.hp, alt: true }); }
     }
     if (!miss && m.m === "attack" && att.atkHeal && att.cur < att.hp) { const amt = Math.min(att.hp - att.cur, Math.round(att.hp * att.atkHeal)); att.cur += amt; bt.log.push({ k: "heal", s, i: bt.active[s], n: att.name, amt, left: att.cur, max: att.hp, alt: true }); }
