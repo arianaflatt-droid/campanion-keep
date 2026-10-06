@@ -1,20 +1,20 @@
 import {
   checkVersion, hitOn, gearInSeason, applyDisplayNames, companionOf, petCreatures, pinnedBadgeHTML, DAYS, SHORT, ROSTER, GEAR, SIDEKICKS, BANNER, bannerFor, isHaunt, battleOn, candyOf, basketHTML, CANDY_FULL, bossState, attacksReady, bossBarHTML, GHOST_IMG, ghostUnlocked, turkeyUnlocked, grinchUnlocked, isJingle, eventMode, isGobble, setSeason, SEASON, seasonOf, STORE, candyLeft, candySpent, ownedCount, ownsItem, storeArt, nextAttack, dmgOf, HAT_BONUS, BREW_BONUS, teamHTML, WHEEL, pickSlice, wheelHTML, spinTo, PRIZES, prizeSlices, bucketState, bucketHTML, baseDamage, EAT_PER_DAY, dayEaten, dayXP, byId, esc, arr5, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, sidekickSVG, petHTML as petBase, itemArt, potionFx
-} from "./game.js?v=20261006i";
-import { potionOn, potionCard, teamOf } from "./potion.js?v=20261006i";
-import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=20261006i";
-import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261006i";
-import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20261006i";
-import { nudgeCard } from "./nudges.js?v=20261006i";
-import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261006i";
-import { teacherPlayer, hasStarter } from "./collect.js?v=20261006i";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261006i";
-import { goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked, weekGoal, weekKey, weekTotal, weekDoorState } from "./doors.js?v=20261006i";
-import { azToday } from "./collect.js?v=20261006i";
+} from "./game.js?v=20261006j";
+import { potionOn, potionCard, teamOf } from "./potion.js?v=20261006j";
+import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=20261006j";
+import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261006j";
+import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20261006j";
+import { nudgeCard } from "./nudges.js?v=20261006j";
+import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261006j";
+import { teacherPlayer, hasStarter } from "./collect.js?v=20261006j";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261006j";
+import { goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked, weekGoal, weekKey, weekTotal, weekDoorState } from "./doors.js?v=20261006j";
+import { azToday } from "./collect.js?v=20261006j";
 import { roomHTML, FIT_SLOTS, slotKind, KIND_NAMES, KIND_ICON, EVERYDAY_PRICE, THEMED_PRICE, TROPHY_PRICE, TYPE_THEMES, SEASON_THEMES, THEME_NAMES, TROPHIES,
-  itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId } from "./room.js?v=20261006i";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261006i";
+  itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId } from "./room.js?v=20261006j";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261006j";
 
 let fxFor = null;   // the student whose companion is being drawn (for the potion glow)
 const petHTML = (c, worn, held) => { const h = petBase(c, worn, held), fx = fxFor ? potionFx(fxFor) : ""; return fx ? h.replace('class="petwrap', 'class="petwrap' + fx) : h; };
@@ -387,12 +387,13 @@ function doorBadge(s) { const n = presentsReady(s) + (weekDoorState(s, cls) === 
 function weekDoorCard(s) {
   const goal = weekGoal(cls), st = weekDoorState(s, cls), tot = weekTotal(s), pct = Math.min(100, tot / goal * 100);
   let body;
-  if (st === "open") body = '<span class="dstate done">\u2705 Opened! Your \u{1F31F} Legendary egg is in the Creature Collector.</span>';
+  const wp = s.weekPresent && s.weekPresent.week === weekKey(cls) ? rewardText(s.weekPresent.r, SEASON) : null;
+  if (st === "open") body = '<span class="dstate done">\u2705 Opened! \u{1F31F} Legendary egg' + (wp ? " + \u2728 Golden Present: " + wp.icon + " " + esc(wp.big) : "") + "</span>";
   else if (st === "ready") body = '<button class="presentbtn golden" data-weekdoor="1">\u{1F31F} Open your Weekly Door!</button>';
   else if (st === "soon") body = '<span class="dstate wait">\u{1F389} You made it! It unlocks when Ms. Ariana adds today\u2019s XP.</span>';
   else body = '<span class="dstate lock">\u{1F512} ' + (goal - tot).toLocaleString() + " more XP this week to unlock</span>";
   return '<div class="card weekdoor wd-' + st + '"><div class="wdrow"><div class="wdpic"><span class="wdicon">\u{1F6AA}</span>' + (st === "open" ? '<span class="dgift">\u2728</span>' : st === "ready" ? '<span class="dgift">\u{1F31F}</span>' : st === "locked" ? '<span class="dgift">\u{1F512}</span>' : "") + "</div>" +
-    '<div class="wdtxt"><h2>Weekly Door</h2><p class="lede">Get to <b>' + goal + " XP this week</b> and get a <b>Legendary Egg</b>!</p>" +
+    '<div class="wdtxt"><h2>Weekly Door</h2><p class="lede">Get to <b>' + goal + " XP this week</b> and get a <b>Legendary Egg</b> + a \u2728 <b>Golden Present</b>!</p>" +
     '<span class="pbar wdbar"><span style="width:' + pct + '%"></span></span><p class="small"><b>' + tot.toLocaleString() + " / " + goal + "</b> XP this week</p>" + body + "</div></div></div>";
 }
 function doorsCard(s) {
@@ -428,10 +429,11 @@ function presentOverlay() {
   if (!present) return "";
   const t = rewardText(present.r, SEASON);
   return '<div class="prizeover" role="dialog" aria-label="Present"><div class="prizebox presentbox' + (present.golden ? " golden" : present.goal ? " golden goalp" : "") + '">' +
-    "<h2>" + (present.golden ? "\u2728 GOLDEN PRESENT \u2728" : present.goal ? "\u{1F3AF} GOAL PRESENT! \u{1F3AF}" : "\u{1F381} A PRESENT! \u{1F381}") + "</h2>" +
+    "<h2>" + (present.week ? "\u{1F6AA} WEEKLY DOOR \u2728" : present.golden ? "\u2728 GOLDEN PRESENT \u2728" : present.goal ? "\u{1F3AF} GOAL PRESENT! \u{1F3AF}" : "\u{1F381} A PRESENT! \u{1F381}") + "</h2>" +
     (present.phase === "shake"
       ? '<div class="giftbox shake">\u{1F381}</div><p class="arena-foot" style="font-size:14px;">Unwrapping\u2026</p>'
       : '<div class="prizewon"><span style="font-size:72px;line-height:1;">' + t.icon + "</span><b>" + esc(t.big) + '</b><span class="arena-foot">' + esc(t.sub) + "</span>" +
+        (present.week ? '<p class="arena-win" style="margin:8px 0 0;">\u2728 Golden Present \u2728 + \u{1F31F} a <b>Legendary egg</b> in your Creature Collector!</p>' : "") +
         (present.prize != null ? '<button class="attackbtn" data-act="presentSpin">\u{1F3C6} Spin the Prize Wheel!</button>' : '<button class="attackbtn" data-act="closePresent">Yay! \u{1F389}</button>') + "</div>") +
     "</div></div>";
 }
@@ -444,16 +446,9 @@ async function claimDoor(i) {
   await patch({ doors, lastDoor: date + "/" + i });
   flash("Sent! Ms. Ariana will check door " + (i + 1) + ".", true);
 }
-async function openPresent(date, k) {
-  const s = students.find(x => x.id === me), S = SEASON; if (!s || present) return;
-  const golden = k === "g";
-  if (golden ? !goldenReady(s, cls, date) : doorState(s, date, k) !== "ok") return;
-  const tier = golden ? 0 : goalTier(doorsFor(cls, date)[Number(k)]);
-  const r = rollPresent(golden, tier);
-  const doors = JSON.parse(JSON.stringify(s.doors || {}));
-  doors[date] = doors[date] || {};
-  doors[date][k] = Object.assign({}, doors[date][k] || {}, { st: "open", r, openedAt: new Date().toISOString() });
-  const data = { doors, lastDoor: date + "/" + k };
+// Adds what a present gives to the save data (shared by the daily doors and the Weekly Door). Returns the Prize Wheel slice, if any.
+function presentReward(s, r, data) {
+  const S = SEASON;
   let prize = null;
   if (REWARD_XP[r.id]) data.doorXP = (Number(s.doorXP) || 0) + REWARD_XP[r.id];
   if (r.id === "cur20") data.candyBonus = (Number(s.candyBonus) || 0) + 20;
@@ -474,6 +469,30 @@ async function openPresent(date, k) {
     if (pxp) { entry.xp = pxp; data.xpPrize = (Number(s.xpPrize) || 0) + pxp; }
     data.spinLog = (s.spinLog || []).concat([entry]);
   }
+  return prize;
+}
+// The Weekly Door: a Legendary egg and an automatic Golden Present.
+async function openWeekDoor() {
+  const s = students.find(x => x.id === me); if (!s || present || weekDoorState(s, cls) !== "ready") return;
+  const wk = weekKey(cls), r = rollPresent(true);
+  const data = { weekDoor: Object.assign({}, s.weekDoor || {}, { [wk]: "open" }), legendaryPulls: (Number(s.legendaryPulls) || 0) + 1, weekPresent: { week: wk, r, at: new Date().toISOString() } };
+  const prize = presentReward(s, r, data);
+  present = { date: wk, k: "w", r, phase: "shake", golden: true, prize, week: true };
+  render(true);
+  const saving = updateDoc(studentRef(me), data).then(() => Object.assign(s, data)).catch(e => { present = null; flash("The Weekly Door didn\u2019t open \u2014 ask Ms. Ariana. (" + (e.code || e.message) + ")"); });
+  setTimeout(async () => { await saving; if (present) { present.phase = "open"; render(true); } }, 1600);
+}
+async function openPresent(date, k) {
+  const s = students.find(x => x.id === me), S = SEASON; if (!s || present) return;
+  const golden = k === "g";
+  if (golden ? !goldenReady(s, cls, date) : doorState(s, date, k) !== "ok") return;
+  const tier = golden ? 0 : goalTier(doorsFor(cls, date)[Number(k)]);
+  const r = rollPresent(golden, tier);
+  const doors = JSON.parse(JSON.stringify(s.doors || {}));
+  doors[date] = doors[date] || {};
+  doors[date][k] = Object.assign({}, doors[date][k] || {}, { st: "open", r, openedAt: new Date().toISOString() });
+  const data = { doors, lastDoor: date + "/" + k };
+  const prize = presentReward(s, r, data);
   present = { date, k, r, phase: "shake", golden, prize, goal: tier };
   render(true);
   const saving = updateDoc(studentRef(me), data).then(() => Object.assign(s, data)).catch(e => { present = null; flash("That present didn\u2019t open \u2014 ask Ms. Ariana. (" + (e.code || e.message) + ")"); });
@@ -631,11 +650,7 @@ document.addEventListener("click", async ev => {
     fit[roomSlot] = id; return patch({ roomFit: fit }); }
   if ((el = ev.target.closest("[data-roombuyok]"))) { if (!PREVIEW) await roomPurchase(el.dataset.roombuyok, Number(el.dataset.cost)); return; }
   if ((el = ev.target.closest("[data-roombuy]"))) { roomBuy = el.dataset.roombuy || null; render(); return; }
-  if ((el = ev.target.closest("[data-weekdoor]"))) {
-    const s = students.find(x => x.id === me); if (!s || PREVIEW || weekDoorState(s, cls) !== "ready") return;
-    await patch({ weekDoor: Object.assign({}, s.weekDoor || {}, { [weekKey(cls)]: "open" }), legendaryPulls: (Number(s.legendaryPulls) || 0) + 1 });
-    flash("\u{1F31F} You got a Legendary egg! Go hatch it in the Creature Collector."); return;
-  }
+  if ((el = ev.target.closest("[data-weekdoor]"))) { if (!PREVIEW) await openWeekDoor(); return; }
   if ((el = ev.target.closest("[data-claim]"))) { if (!PREVIEW) await claimDoor(Number(el.dataset.claim)); return; }
   if ((el = ev.target.closest("[data-open]"))) { if (!PREVIEW) { const [d, k] = el.dataset.open.split(":"); await openPresent(d, k); } return; }
   if ((el = ev.target.closest("[data-side]"))) return patch({ sidekick: el.dataset.side });

@@ -187,15 +187,19 @@ service cloud.firestore {
           return same("doorXP", 0) && same("candyBonus", 0) && same("brews", 0) && same("extraAttacks", 0) && same("doorEggs", 0)
             && same("themeEggs", []) && same("goalEggs", []) && same("spinLog", []) && same("xpPrize", 0);
         }
-        // ---- Weekly Door ---- open this week's door once the teacher's upload marked it "ready": one Legendary egg.
+        // ---- Weekly Door ---- open this week's door once the teacher's upload marked it "ready": one Legendary egg + a Golden Present.
         function studentWeekDoor() {
           let od = was("weekDoor", {});
           let nd = request.resource.data.get("weekDoor", {});
           let ks = nd.diff(od).affectedKeys();
-          return changed().hasOnly(["weekDoor", "legendaryPulls"])
+          let wp = request.resource.data.get("weekPresent", {});
+          return changed().hasOnly(["weekDoor", "legendaryPulls", "weekPresent", "doorXP", "candyBonus", "brews", "extraAttacks", "doorEggs", "themeEggs", "goalEggs", "spinLog", "xpPrize"])
             && ks.size() == 1
             && od.get(ks.toList()[0], "") == "ready" && nd.get(ks.toList()[0], "") == "open"
-            && now("legendaryPulls", 0) == was("legendaryPulls", 0) + 1;
+            && now("legendaryPulls", 0) == was("legendaryPulls", 0) + 1
+            // plus an automatic Golden Present
+            && wp.get("week", "") == ks.toList()[0]
+            && doorReward(wp.get("r", {}).get("id", ""), true);
         }
         function studentDoor() {
           let parts = now("lastDoor", "").split("/");
