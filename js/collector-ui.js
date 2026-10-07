@@ -2,15 +2,15 @@
 import {
   CREATURES, FAMILIES, creature, family, xpTotal, pullsLeft, legendaryLeft, bankXP, xpToNextPull, owned, ownedFams, hasStarter,
   formIndex, formOf, statsOf, seenSet, rollRarity, doPull, arenaOpen, arenaOpenFor, lunchHour, hitGoalToday, LUNCH_ARENA, ARENA_HOURS, fighterFrom, teamSize, alive, resolve, resolveRound, moveOk, MOVES, hitDamage,
-  birthdayLeft, pickleLeft, PICKLE_FAM, brewLegLeft, BREW_FAM, goalLeft, nextGoal, rollRareUp, themeLeft, nextTheme, THEME_TYPES, THEME_EGG, WISH_FAM, spares, spareId, releaseXP, releaseProblem, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
+  birthdayLeft, pickleLeft, PICKLE_FAM, brewLegLeft, BREW_FAM, feastLegLeft, HARVEST_FAM, gingerLegLeft, GINGER_FAM, snowLegLeft, SNOW_FAM, candyLegLeft, CANDY_FAM, goalLeft, nextGoal, rollRareUp, themeLeft, nextTheme, THEME_TYPES, THEME_EGG, WISH_FAM, spares, spareId, releaseXP, releaseProblem, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
   EVENTS, eventOpen, eventWindow, eventStreak, hasEvent, eventUnlocked, azToday, rollTeacherRarity, TEACHER_ODDS, LIVE, staleBattle
-} from "./collect.js?v=20261006k";
-import { newBattleRef, changeBattle as changeBattleRaw, setDoc, liveBattlesNow } from "./db.js?v=20261006k";
+} from "./collect.js?v=20261007a";
+import { newBattleRef, changeBattle as changeBattleRaw, setDoc, liveBattlesNow } from "./db.js?v=20261007a";
 // every change to a battle is stamped with the time (upd), so a battle nobody has touched in a while can be ended
 let locking = null, leaving = null;   // battle id while "Lock in team" is saving
 const changeBattle = (id, fn) => changeBattleRaw(id, bt => { const n = fn(bt); if (n) n.upd = new Date().toISOString(); return n; });
 
-import { tradeCard } from "./trade-ui.js?v=20261006k";
+import { tradeCard } from "./trade-ui.js?v=20261007a";
 
 const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const PER_PAGE = 20;
@@ -45,6 +45,10 @@ export function collectorTab(c) {
     (birthdayLeft(s) ? stat("\u{1F382}", birthdayLeft(s), "birthday egg" + (birthdayLeft(s) === 1 ? "" : "s")) : "") +
     (pickleLeft(s) ? stat("\u{1F952}", pickleLeft(s), "Cluckledill egg" + (pickleLeft(s) === 1 ? "" : "s")) : "") +
     (brewLegLeft(s) ? stat("\u{1F9EA}", brewLegLeft(s), "Brewraith egg" + (brewLegLeft(s) === 1 ? "" : "s")) : "") +
+    (candyLegLeft(s) ? stat("\u{1F36B}", candyLegLeft(s), "Candivora egg" + (candyLegLeft(s) === 1 ? "" : "s")) : "") +
+    (snowLegLeft(s) ? stat("\u2603\uFE0F", snowLegLeft(s), "Snowmorrow egg" + (snowLegLeft(s) === 1 ? "" : "s")) : "") +
+    (gingerLegLeft(s) ? stat("\u{1F36A}", gingerLegLeft(s), "Gingermischief egg" + (gingerLegLeft(s) === 1 ? "" : "s")) : "") +
+    (feastLegLeft(s) ? stat("\u{1F983}", feastLegLeft(s), "Cornucopia egg" + (feastLegLeft(s) === 1 ? "" : "s")) : "") +
     (themeLeft(s) ? stat("\u2728", themeLeft(s), "event egg" + (themeLeft(s) === 1 ? "" : "s")) : "") +
     (goalLeft(s) ? stat("\u{1F3AF}", goalLeft(s), "Goal egg" + (goalLeft(s) === 1 ? "" : "s") + " (Rare+)") : "") +
     stat("⭐", bank.toLocaleString(), "XP in your bank") +
@@ -57,6 +61,10 @@ export function collectorTab(c) {
     (birthdayLeft(s) ? '<button class="btn big bday" data-cc="hatchBday">\u{1F382} Hatch your birthday egg!</button>' : "") +
     (pickleLeft(s) ? '<button class="btn big gold" data-cc="hatchPickle">\u{1F952} Hatch your special event egg!</button>' : "") +
     (brewLegLeft(s) ? '<button class="btn big gold" data-cc="hatchBrew">\u{1F9EA} Hatch your Top Brewers egg!</button>' : "") +
+    (candyLegLeft(s) ? '<button class="btn big gold" data-cc="hatchCandy">\u{1F36B} Hatch your Top Candy Box egg!</button>' : "") +
+    (snowLegLeft(s) ? '<button class="btn big gold" data-cc="hatchSnow">\u2603\uFE0F Hatch your Top Snowman egg!</button>' : "") +
+    (gingerLegLeft(s) ? '<button class="btn big gold" data-cc="hatchGinger">\u{1F36A} Hatch your Top Bakers egg!</button>' : "") +
+    (feastLegLeft(s) ? '<button class="btn big gold" data-cc="hatchHarvest">\u{1F983} Hatch your Top Feast egg!</button>' : "") +
     (goalLeft(s) ? '<button class="btn big gold" data-cc="hatchGoal">\u{1F3AF} Hatch a Goal egg' + (goalLeft(s) > 1 ? " (" + goalLeft(s) + ")" : "") + "</button>" : "") +
     (themeLeft(s) ? '<button class="btn big gold" data-cc="hatchTheme"><img src="assets/egg-' + nextTheme(s) + '.webp" alt="" style="height:1.5em;vertical-align:middle;margin:-4px 4px -4px 0;">Hatch your ' + THEME_EGG[nextTheme(s)] + "!</button>" : "") +
     '<button class="btn ghost big" data-cc="book">\u{1F4D6} Open lorebook</button></div>' +
@@ -75,11 +83,13 @@ function eventCard(ev, s, cls) {
   const nice = d => new Date(d + "T12:00:00").toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
   let when;
   if (ev.haunt) when = "Haunt-O-Ween only";
+  else if (ev.frost) when = "Frostbite Festival only";
+  else if (ev.heart) when = "Sweetheart Showdown only";
   else { const left = w.days.filter(d => d >= azToday()).length; when = nice(w.start) + " \u2013 " + nice(w.end) + " \u00b7 " + left + " school day" + (left === 1 ? "" : "s") + " left"; }
   const msg = got ? "You caught " + esc(dc.name) + "! Each egg still has a 1% chance to be another one (a free level up)."
     : on ? "<b>Unlocked!</b> Every egg you hatch has a <b>95% chance</b> to be " + esc(dc.name) + " until you catch it."
     : ev.boss ? "\u{1F512} <b>Defeat the " + esc(ev.bossName) + "</b> with your class to unlock " + esc(dc.name) + "! Then every egg you hatch has a <b>95% chance</b> to be it."
-    : "Hit " + goal120(cls) + " XP <b>" + ev.streak + " school days in a row</b>" + (ev.haunt ? " during Haunt-O-Ween" : ev.label ? " during " + ev.label : "") + " to unlock it. Your streak: <b>" + Math.min(st.current, ev.streak) + " / " + ev.streak + "</b>.";
+    : "Hit " + goal120(cls) + " XP <b>" + ev.streak + " school days in a row</b>" + (ev.haunt ? " during Haunt-O-Ween" : ev.frost ? " during Frostbite Festival" : ev.heart ? " during Sweetheart Showdown" : ev.label ? " during " + ev.label : "") + " to unlock it. Your streak: <b>" + Math.min(st.current, ev.streak) + " / " + ev.streak + "</b>.";
   return '<div class="card duckcard ev-' + ev.key + (on && !got ? " on" : "") + (got ? " got" : "") + '">' + img(dc, "duckimg", got && isSparkle(s, ev.fam)) +
     '<div class="duckt"><span class="duckk">' + ev.icon + " Limited event \u00b7 " + when + "</span>" +
     "<h3>" + esc(dc.name) + " <small>" + esc(dc.title || "") + "</small></h3><p>" + msg + "</p>" +
@@ -258,20 +268,25 @@ function hatchOverlay() {
     const ek = c ? { "Common": "common", "Uncommon": "uncommon", "Rare": "rare", "Super Rare": "superrare", "Legendary": "legendary" }[c.rarity] : null;
     // during Haunt-O-Ween, Ghost-type creatures (and Hexaduck, the Haunt-O-Ween event Legendary) hatch from the spooky egg
     const th = hatch.theme;   // an event egg from a Golden Present always shows that event's egg
-    const spooky = th ? th === "haunt" : c && ctx.cls && ctx.cls.haunt && !ctx.cls.gobble && !ctx.cls.jingle && (c.types.includes("Ghost") || c.event === "hex");
+    const hr = ctx.cls && ctx.cls.heart, fr = ctx.cls && ctx.cls.frost && !hr;
+    const spooky = th ? th === "haunt" : c && ctx.cls && ctx.cls.haunt && !ctx.cls.gobble && !ctx.cls.jingle && !fr && !hr && (c.types.includes("Ghost") || c.event === "hex");
     // during Gobble-Palooza, Nature-type creatures (and Thanksolotl) hatch from the harvest egg
-    const harvest = th ? th === "gobble" : !spooky && c && ctx.cls && ctx.cls.gobble && !ctx.cls.jingle && (c.types.includes("Nature") || c.event === "thanks");
+    const harvest = th ? th === "gobble" : !spooky && c && ctx.cls && ctx.cls.gobble && !ctx.cls.jingle && !fr && !hr && (c.types.includes("Nature") || c.event === "thanks");
     // during Jingle Jam, Ice- and Light-type creatures (and Jinglotl) hatch from the Jingle egg
-    const jingly = th ? th === "jingle" : !spooky && !harvest && c && ctx.cls && ctx.cls.jingle && (c.types.includes("Ice") || c.types.includes("Light") || c.event === "jingle");
-    const egg = spooky ? "assets/egg-haunt.webp" : harvest ? "assets/egg-gobble.webp" : jingly ? "assets/egg-jingle.webp" : ek ? "assets/egg-" + ek + ".webp" : "assets/egg.png";
-    h += '<div class="eggwrap ' + hatch.phase + (hatch.legendary || (c && c.rarity === "Legendary") ? " leg" : "") + (spooky ? " haunt" : harvest ? " harvest" : jingly ? " jingly" : "") + '" style="--rc:' + (spooky ? "#B45CFF" : harvest ? "#F2A541" : jingly ? "#9EE3FF" : c ? RARITY_COLOR[c.rarity] : "#FFE6AA") + '"><img class="egg whole" src="' + egg + '" alt="">' +
+    const jingly = th ? th === "jingle" : !spooky && !harvest && c && ctx.cls && ctx.cls.jingle && !fr && !hr && (c.types.includes("Ice") || c.types.includes("Light") || c.event === "jingle");
+    // during Frostbite Festival, Ice-type creatures (and Midniduck) hatch from the Frostbite egg
+    const frosty = th ? th === "frost" : !spooky && !harvest && !jingly && c && fr && (c.types.includes("Ice") || c.event === "frost");
+    // during Sweetheart Showdown, Light- and Nature-type creatures (and Amorduck) hatch from the Sweetheart egg
+    const hearty = th ? th === "heart" : !spooky && !harvest && !jingly && !frosty && c && hr && (c.types.includes("Light") || c.types.includes("Nature") || c.event === "heart");
+    const egg = spooky ? "assets/egg-haunt.webp" : harvest ? "assets/egg-gobble.webp" : jingly ? "assets/egg-jingle.webp" : frosty ? "assets/egg-frost.webp" : hearty ? "assets/egg-heart.webp" : ek ? "assets/egg-" + ek + ".webp" : "assets/egg.png";
+    h += '<div class="eggwrap ' + hatch.phase + (hatch.legendary || (c && c.rarity === "Legendary") ? " leg" : "") + (spooky ? " haunt" : harvest ? " harvest" : jingly ? " jingly" : frosty ? " frosty" : hearty ? " hearty" : "") + '" style="--rc:' + (spooky ? "#B45CFF" : harvest ? "#F2A541" : jingly ? "#9EE3FF" : frosty ? "#BDE6FF" : hearty ? "#FF9EC4" : c ? RARITY_COLOR[c.rarity] : "#FFE6AA") + '"><img class="egg whole" src="' + egg + '" alt="">' +
       '<img class="egg top" src="' + egg + '" alt=""><img class="egg bot" src="' + egg + '" alt=""><span class="flash"></span></div>' +
       '<p class="hatchtxt">' + (hatch.phase === "shake" ? "Something is moving…" : "") + "</p>";
   } else {
     h += '<div class="reveal" style="--rc:' + RARITY_COLOR[c.rarity] + '"><span class="rays"></span>' + img(c, "revimg", r.sparkle) + "</div>" +
       '<div class="revtxt">' + rarityPill(c.rarity) + (r.sparkle ? ' <span class="rpill" style="background:linear-gradient(90deg,#ff7ad9,#ffd84d,#7ae7ff)">\u2728 SPARKLE</span>' : "") + "<h2>" + (r.sparkle ? "\u2728 " : "") + esc(c.name) + "</h2>" +
       (r.event === "bday" ? '<p class="eventmsg ev-bday">\u{1F382} HAPPY BIRTHDAY! ' + (r.dupe ? "Another Wisholotl came to celebrate!" : "<b>Wisholotl, " + esc(c.title || "") + "</b>, came to make your wish come true!") + "</p>" : "") +
-      (r.event && r.event !== "bday" ? '<p class="eventmsg ev-' + r.event + '">' + (r.event === "hex" ? "\u{1F383}" : r.event === "thanks" ? "\u{1F983}" : r.event === "jingle" ? "\u{1F384}" : r.event === "pickle" ? "\u{1F952}" : r.event === "brew" ? "\u{1F9EA}" : "\u{1F986}") + (r.event === "pickle" || r.event === "brew" ? " EXCLUSIVE EVENT LEGENDARY! " : " LIMITED EVENT LEGENDARY! ") + (r.dupe ? "Another " + esc(c.name) + "!" : "You caught <b>" + esc(c.name) + ", " + esc(c.title || "") + "</b>! It\u2019s yours forever.") + "</p>" : "") +
+      (r.event && r.event !== "bday" ? '<p class="eventmsg ev-' + r.event + '">' + (r.event === "hex" ? "\u{1F383}" : r.event === "thanks" ? "\u{1F983}" : r.event === "jingle" ? "\u{1F384}" : r.event === "pickle" ? "\u{1F952}" : r.event === "brew" ? "\u{1F9EA}" : r.event === "harvest" ? "\u{1F983}" : r.event === "gingerbread" ? "\u{1F36A}" : r.event === "snowman" ? "\u2603\uFE0F" : r.event === "frost" ? "\u{1F386}" : r.event === "heart" ? "\u{1F498}" : r.event === "candybox" ? "\u{1F36B}" : "\u{1F986}") + (r.event === "pickle" || r.event === "brew" || r.event === "harvest" || r.event === "gingerbread" || r.event === "snowman" || r.event === "candybox" ? " EXCLUSIVE EVENT LEGENDARY! " : " LIMITED EVENT LEGENDARY! ") + (r.dupe ? "Another " + esc(c.name) + "!" : "You caught <b>" + esc(c.name) + ", " + esc(c.title || "") + "</b>! It\u2019s yours forever.") + "</p>" : "") +
       (r.newSparkle ? '<p class="sparkmsg">WOW! A 1-in-2,000 Sparkle! Your ' + esc(c.name) + " family is now Sparkle forever.</p>" : "") +
       (r.dupe && r.kept ? "<p>\u{1F504} Kept as a <b>spare for trading</b>. Find it under My creatures.</p>"
         : r.dupe ? '<p>You already had this family — <b>free level up! Now Lv ' + r.lvl + "</b>" + (r.evolved ? " and it <b>evolved!</b>" : "") + "</p>" +
@@ -318,6 +333,11 @@ function detailPage(c, seen) {
     (c.dodge ? '<p class="dline"><b>\u{1F4A8} Speedy:</b> dodges ' + Math.round(c.dodge * 100) + "% of attacks in battle</p>" : "") +
     (c.daze ? '<p class="dline"><b>\u2728 Dazzle:</b> ' + Math.round(c.daze * 100) + "% chance to make the opponent\u2019s next attack " + Math.round((c.dazePct || 0) * 100) + "% weaker</p>" : "") +
     (c.atkHeal ? '<p class="dline"><b>\u{1F49A} Recovery:</b> heals ' + Math.round(c.atkHeal * 100) + "% of its HP after every " + esc(c.attack) + "</p>" : "") +
+    (c.alt && c.alt.shield ? '<p class="dline"><b>\u2744\uFE0F Snow Barrier:</b> after ' + esc(c.alt.name) + ", the next hit on it does " + Math.round(c.alt.shield * 100) + "% less damage</p>" : "") +
+    (c.cheer ? '<p class="dline"><b>\u{1F386} Celebration:</b> after ' + esc(c.attack) + ", every teammate still standing does " + Math.round(c.cheer * 100) + "% more damage on its next attack</p>" : "") +
+    (c.alt && c.alt.crit ? '<p class="dline"><b>\u2728 Lucky Star:</b> ' + esc(c.alt.name) + " lands a critical hit " + Math.round(c.alt.crit * 100) + "% of the time</p>" : "") +
+    (c.teamHeal ? '<p class="dline"><b>\u{1F357} Sharing:</b> its ' + esc(c.attack) + " also heals each teammate still standing by " + Math.round(c.teamHeal * 100) + "%</p>" : "") +
+    (c.alt && c.alt.daze ? '<p class="dline"><b>\u{1F967} Splat:</b> ' + Math.round(c.alt.daze * 100) + "% chance " + esc(c.alt.name) + " makes the opponent\u2019s next attack " + Math.round((c.alt.dazePct || 0.2) * 100) + "% weaker</p>" : "") +
     (c.atkDefDown ? '<p class="dline"><b>\u{1F311} Gravity:</b> ' + Math.round(c.atkDefDown * 100) + "% chance its " + esc(c.attack) + " lowers the opponent\u2019s Defense by " + Math.round((c.atkDefPct || 0.15) * 100) + "% for a turn</p>" : "") +
     (c.alt && c.alt.evade ? '<p class="dline"><b>\u{1F300} Portal:</b> ' + Math.round(c.alt.evade * 100) + "% chance " + esc(c.alt.name) + " lets it dodge the opponent\u2019s next attack</p>" : "") +
     (c.brewFx ? '<p class="dline"><b>\u{1F9EA} Witch\u2019s Brew:</b> every hit does one surprise thing \u2014 poisons the opponent, lowers its Defense for a round, or heals Brewraith a little</p>' : "") +
@@ -346,15 +366,21 @@ function viewState(bt, k) {
     if (e.k === "hit") { const o = e.s === "A" ? "B" : "A"; st[o].hp[e.di] = e.left; st[e.s].i = e.ai; st[o].i = e.di; st.last = e;
       st.line = "<b>" + esc(e.a) + "</b> used " + esc(e.atk) + "! " + (e.dodged && e.portal ? "\u{1F300} " + esc(e.d) + " vanished through a portal!" : e.dodged ? "\u{1F4A8} " + esc(e.d) + " zoomed out of the way!" : e.miss ? "It missed!" : (e.crit ? "\u{1F4A5} Critical hit! " : "") + (e.weak ? "It’s super effective! " : "") + (e.guarded ? "\u{1F6E1}\uFE0F Guarded! " : "") + (e.dazedHit ? "(Still dazzled \u2014 weaker!) " : "") + e.dmg + " damage."); }
     if (e.k === "swap") { st[e.s].i = e.i; st.line = "\u{1F504} " + esc(e.who) + " swaps " + esc(e.from) + " for <b>" + esc(e.n) + "</b>!"; }
-    if (e.k === "heal") { st[e.s].hp[e.i] = e.left; st[e.s].i = e.i; st.line = "\u{1F49A} <b>" + esc(e.n) + "</b> healed " + e.amt + " HP!"; }
+    if (e.k === "heal") { st[e.s].hp[e.i] = e.left; if (!e.team) st[e.s].i = e.i; st.line = (e.team ? "\u{1F357} The feast shares with <b>" : "\u{1F49A} <b>") + esc(e.n) + "</b>" + (e.team ? " (+" + e.amt + " HP)!" : " healed " + e.amt + " HP!"); }
     if (e.k === "guard") { st[e.s].i = e.i; st.line = "\u{1F6E1}\uFE0F <b>" + esc(e.n) + "</b> is guarding!"; }
     if (e.k === "poison") st.line = "\u{1F952} <b>" + esc(e.d) + "</b> was poisoned!";
+    if (e.k === "shield") st.line = "\u2744\uFE0F <b>" + esc(e.n) + "</b> builds a snow barrier! The next hit on it does " + e.pct + "% less damage.";
+    if (e.k === "cheer") st.line = "\u{1F386} 3\u2026 2\u2026 1\u2026 Happy New Year! <b>" + esc(e.n) + "</b>\u2019s fireworks cheer the team: +" + e.pct + "% damage on the next attack!";
+    if (e.k === "candy") st.line = e.c === "hard" ? "\u{1F36C} Hard candy! <b>" + esc(e.n) + "</b>\u2019s Candy Crush does 20% more damage!" : e.c === "choc" ? "\u{1F36B} Chocolate! <b>" + esc(e.n) + "</b> heals " + (e.amt || 0) + " HP." : "\u{1F497} Conversation hearts rain on <b>" + esc(e.d) + "</b>! Its defense dropped 15% for a turn.";
     if (e.k === "evade") st.line = "\u{1F300} <b>" + esc(e.n) + "</b> slipped into a tiny portal \u2014 it will dodge the next attack!";
-    if (e.k === "defdown" && e.src === "void") st.line = "\u{1F311} Gravity crushes <b>" + esc(e.d) + "</b>! Its defense dropped " + e.pct + "% for a turn.";
+    if (e.k === "defdown" && e.src === "crumble") st.line = "\u{1F36A} Cookie crumbs cover <b>" + esc(e.d) + "</b>! Its defense dropped " + e.pct + "% for a turn.";
+    else if (e.k === "defdown" && e.src === "void") st.line = "\u{1F311} Gravity crushes <b>" + esc(e.d) + "</b>! Its defense dropped " + e.pct + "% for a turn.";
     else if (e.k === "defdown" && e.src === "brew") st.line = "\u{1F9EA} Witch\u2019s Brew splashes <b>" + esc(e.d) + "</b>! Its defense dropped " + e.pct + "% for a turn.";
     else if (e.k === "defdown") st.line = (e.temp ? "\u{1F338} Blossoms swirl around <b>" + esc(e.d) + "</b>! Its defense dropped " + e.pct + "% for a turn." : "\u{1F4A7} Brine soaked <b>" + esc(e.d) + "</b>! Its defense dropped " + e.pct + "%.");
     if (e.k === "psn") { st[e.s].hp[e.i] = e.left; st[e.s].i = e.i; st.line = "\u{1F922} <b>" + esc(e.n) + "</b> is hurt by poison (-" + e.amt + ")."; }
-    if (e.k === "daze") st.line = "\u2728 <b>" + esc(e.d) + "</b> is dazzled! Its next attack does " + e.pct + "% less damage.";
+    if (e.k === "daze" && e.gum) st.line = "\u{1F36C} The gumdrop bursts all over <b>" + esc(e.d) + "</b>! Its next attack does " + e.pct + "% less damage.";
+    else if (e.k === "daze" && e.pie) st.line = "\u{1F967} SPLAT! <b>" + esc(e.d) + "</b> got a pie on the head! Its next attack does " + e.pct + "% less damage.";
+    else if (e.k === "daze") st.line = "\u2728 <b>" + esc(e.d) + "</b> is dazzled! Its next attack does " + e.pct + "% less damage.";
     if (e.k === "faint") st.line = "<b>" + esc(e.n) + "</b> fainted!";
     if (e.k === "forfeit") st.line = "\u{1F3F3}\uFE0F " + esc(e.who) + " gave up.";
     if (e.k === "win") st.line = "\u{1F3C6} <b>" + esc(e.s === "A" ? bt.a.name : bt.b.name) + "</b> wins the battle!";
@@ -462,9 +488,9 @@ function movePanel(bt, me, them, thN) {
   return '<div class="bpanel"><h3>What will ' + esc(f.name) + " do?</h3>" + (theirs ? '<p class="muted small" style="margin:-4px 0 8px;color:#CFC3E6;">' + esc(thN) + " has picked a move!</p>" : "") +
     (hint ? '<div class="bhints">' + hint + "</div>" : "") +
     '<div class="mvgrid">' +
-      btn("attack", esc(f.attack), "about " + dmg.dmg + " damage" + (f.daze ? " \u00b7 " + Math.round(f.daze * 100) + "% chance to dazzle" : "") + (f.poison ? " \u00b7 " + Math.round(f.poison * 100) + "% chance to poison" : "") + (f.atkHeal ? " \u00b7 heals +" + Math.round(f.hp * f.atkHeal) + " HP" : "") + (f.brewFx ? " \u00b7 surprise: poison, Defense down or heal" : "") + (f.atkDefDown ? " \u00b7 " + Math.round(f.atkDefDown * 100) + "% chance to lower Defense" : ""), true) +
+      btn("attack", esc(f.attack), "about " + dmg.dmg + " damage" + (f.daze ? " \u00b7 " + Math.round(f.daze * 100) + "% chance to dazzle" : "") + (f.poison ? " \u00b7 " + Math.round(f.poison * 100) + "% chance to poison" : "") + (f.atkHeal ? " \u00b7 heals +" + Math.round(f.hp * f.atkHeal) + " HP" : "") + (f.brewFx ? " \u00b7 surprise: poison, Defense down or heal" : "") + (f.atkDefDown ? " \u00b7 " + Math.round(f.atkDefDown * 100) + "% chance to lower Defense" : "") + (f.teamHeal ? " \u00b7 heals the team" : "") + (f.cheer ? " \u00b7 boosts the team" : ""), true) +
       (f.alt ? (() => { const ad = hitDamage(f.alt.type ? Object.assign({}, f, { type: f.alt.type }) : f, o, false);
-        return btn("alt", esc(f.alt.name), "about " + Math.max(1, Math.round(ad.dmg * (f.alt.mult || 1))) + " damage" + (ad.weak ? " \u2B50" : "") + (f.alt.heal ? " \u00b7 heals +" + Math.round(f.hp * f.alt.heal) + " HP" : "") + (f.alt.defDown ? " \u00b7 " + Math.round(f.alt.defDown * 100) + "% chance to lower defense" : "") + (f.alt.evade ? " \u00b7 " + Math.round(f.alt.evade * 100) + "% chance to dodge the next attack" : ""), true); })() : "") +
+        return btn("alt", esc(f.alt.name), "about " + Math.max(1, Math.round(ad.dmg * (f.alt.mult || 1))) + " damage" + (ad.weak ? " \u2B50" : "") + (f.alt.heal ? " \u00b7 heals +" + Math.round(f.hp * f.alt.heal) + " HP" : "") + (f.alt.defDown ? " \u00b7 " + Math.round(f.alt.defDown * 100) + "% chance to lower defense" : "") + (f.alt.evade ? " \u00b7 " + Math.round(f.alt.evade * 100) + "% chance to dodge the next attack" : "") + (f.alt.daze ? " \u00b7 " + Math.round(f.alt.daze * 100) + "% chance to weaken their next attack" : "") + (f.alt.crit ? " \u00b7 " + Math.round(f.alt.crit * 100) + "% crit chance" : "") + (f.alt.shield ? " \u00b7 snow barrier" : ""), true); })() : "") +
       btn("power", "Power Move", "about " + Math.round(dmg.dmg * MOVES.power.mult) + " damage \u00b7 75% to hit", true) +
       btn("guard", "Guard", "take half damage this round", true) +
       btn("heal", "Heal", f.healed ? "already used" : f.cur >= f.hp ? "already full health" : "+" + Math.min(f.hp - f.cur, Math.round(f.hp * MOVES.heal.pct)) + " HP \u00b7 once", !f.healed && f.cur < f.hp) +
@@ -488,6 +514,45 @@ export async function onClick(el, c) {
     hatch = { phase: "shake", res, legendary: true };
     hold(3200); c.render(true);
     c.patch({ coll: res.coll, pickleUsed: (Number(s.pickleUsed) || 0) + 1 }, true);
+    later(1900, () => { hatch.phase = "crack"; hold(1400); });
+    later(2800, () => { hatch.phase = "reveal"; busyUntil = 0; });
+    return;
+  }
+  if (a === "hatchCandy") {
+    if (!candyLegLeft(s)) return;
+    const res = doPull(s, "Legendary", c.cls, { force: CANDY_FAM });
+    hatch = { phase: "shake", res, legendary: true };
+    hold(3200); c.render(true);
+    c.patch({ coll: res.coll, candyboxLegUsed: (Number(s.candyboxLegUsed) || 0) + 1 }, true);
+    later(1900, () => { hatch.phase = "crack"; hold(1400); });
+    later(2800, () => { hatch.phase = "reveal"; busyUntil = 0; });
+    return;
+  }  if (a === "hatchSnow") {
+    if (!snowLegLeft(s)) return;
+    const res = doPull(s, "Legendary", c.cls, { force: SNOW_FAM });
+    hatch = { phase: "shake", res, legendary: true };
+    hold(3200); c.render(true);
+    c.patch({ coll: res.coll, snowmanLegUsed: (Number(s.snowmanLegUsed) || 0) + 1 }, true);
+    later(1900, () => { hatch.phase = "crack"; hold(1400); });
+    later(2800, () => { hatch.phase = "reveal"; busyUntil = 0; });
+    return;
+  }
+  if (a === "hatchGinger") {
+    if (!gingerLegLeft(s)) return;
+    const res = doPull(s, "Legendary", c.cls, { force: GINGER_FAM });
+    hatch = { phase: "shake", res, legendary: true };
+    hold(3200); c.render(true);
+    c.patch({ coll: res.coll, gingerLegUsed: (Number(s.gingerLegUsed) || 0) + 1 }, true);
+    later(1900, () => { hatch.phase = "crack"; hold(1400); });
+    later(2800, () => { hatch.phase = "reveal"; busyUntil = 0; });
+    return;
+  }
+  if (a === "hatchHarvest") {
+    if (!feastLegLeft(s)) return;
+    const res = doPull(s, "Legendary", c.cls, { force: HARVEST_FAM });
+    hatch = { phase: "shake", res, legendary: true };
+    hold(3200); c.render(true);
+    c.patch({ coll: res.coll, feastLegUsed: (Number(s.feastLegUsed) || 0) + 1 }, true);
     later(1900, () => { hatch.phase = "crack"; hold(1400); });
     later(2800, () => { hatch.phase = "reveal"; busyUntil = 0; });
     return;

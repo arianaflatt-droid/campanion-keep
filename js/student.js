@@ -1,20 +1,20 @@
 import {
-  checkVersion, hitOn, gearInSeason, applyDisplayNames, companionOf, petCreatures, pinnedBadgeHTML, DAYS, SHORT, ROSTER, GEAR, SIDEKICKS, BANNER, bannerFor, isHaunt, battleOn, candyOf, basketHTML, CANDY_FULL, bossState, attacksReady, bossBarHTML, GHOST_IMG, ghostUnlocked, turkeyUnlocked, grinchUnlocked, isJingle, eventMode, isGobble, setSeason, SEASON, seasonOf, STORE, candyLeft, candySpent, ownedCount, ownsItem, storeArt, nextAttack, dmgOf, HAT_BONUS, BREW_BONUS, teamHTML, WHEEL, pickSlice, wheelHTML, spinTo, PRIZES, prizeSlices, bucketState, bucketHTML, baseDamage, EAT_PER_DAY, dayEaten, dayXP, byId, esc, arr5, recordedDays, goalXP,
+  checkVersion, hitOn, gearInSeason, applyDisplayNames, companionOf, petCreatures, pinnedBadgeHTML, DAYS, SHORT, ROSTER, GEAR, SIDEKICKS, BANNER, bannerFor, isHaunt, battleOn, candyOf, basketHTML, CANDY_FULL, bossState, attacksReady, bossBarHTML, GHOST_IMG, ghostUnlocked, turkeyUnlocked, grinchUnlocked, isJingle, isFrost, isHeart, heartUnlocked, yetiUnlocked, eventMode, isGobble, setSeason, SEASON, seasonOf, STORE, candyLeft, candySpent, ownedCount, ownsItem, storeArt, nextAttack, dmgOf, HAT_BONUS, BREW_BONUS, teamHTML, wallHTML, WHEEL, pickSlice, wheelHTML, spinTo, PRIZES, prizeSlices, bucketState, bucketHTML, baseDamage, EAT_PER_DAY, dayEaten, dayXP, byId, esc, arr5, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, sidekickSVG, petHTML as petBase, itemArt, potionFx
-} from "./game.js?v=20261006k";
-import { potionOn, potionCard, teamOf } from "./potion.js?v=20261006k";
-import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=20261006k";
-import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261006k";
-import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20261006k";
-import { nudgeCard } from "./nudges.js?v=20261006k";
-import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261006k";
-import { teacherPlayer, hasStarter } from "./collect.js?v=20261006k";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261006k";
-import { goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked, weekGoal, weekKey, weekTotal, weekDoorState } from "./doors.js?v=20261006k";
-import { azToday } from "./collect.js?v=20261006k";
+} from "./game.js?v=20261007a";
+import { EVENT_LIST, TEAM_EVENTS, eventOn, teamCard, teamOf as tevTeamOf } from "./teams.js?v=20261007a";
+import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=20261007a";
+import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261007a";
+import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20261007a";
+import { nudgeCard } from "./nudges.js?v=20261007a";
+import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261007a";
+import { teacherPlayer, hasStarter } from "./collect.js?v=20261007a";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261007a";
+import { goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked, weekGoal, weekKey, weekTotal, weekDoorState } from "./doors.js?v=20261007a";
+import { azToday } from "./collect.js?v=20261007a";
 import { roomHTML, FIT_SLOTS, slotKind, KIND_NAMES, KIND_ICON, EVERYDAY_PRICE, THEMED_PRICE, TROPHY_PRICE, TYPE_THEMES, SEASON_THEMES, THEME_NAMES, TROPHIES,
-  itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId } from "./room.js?v=20261006k";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261006k";
+  itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId } from "./room.js?v=20261007a";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261007a";
 
 let fxFor = null;   // the student whose companion is being drawn (for the potion glow)
 const petHTML = (c, worn, held) => { const h = petBase(c, worn, held), fx = fxFor ? potionFx(fxFor) : ""; return fx ? h.replace('class="petwrap', 'class="petwrap' + fx) : h; };
@@ -233,16 +233,16 @@ function viewMine(s) {
   if (tab === "haunt" && !haunt) tab = "pet";
   const doorsOn = doorsLive(cls);
   if (tab === "doors" && !doorsOn) tab = "pet";
-  const potOn = potionOn(cls) && !!teamOf(cls, s.id);
-  if (tab === "potion" && !potOn) tab = "pet";
+  const tevs = EVENT_LIST.filter(E => eventOn(E, cls) && tevTeamOf(E, cls, s.id));
+  if (TEAM_EVENTS[tab] && !tevs.includes(TEAM_EVENTS[tab])) tab = "pet";
   let h = notYou(s) + '<div class="tabs" role="tablist">' +
-    [["pet", "\u{1F43E} My Companion"], ["collect", "\u{1F95A} Creature Collector"], ["badges", "\u{1F3C5} Badges"]].concat(haunt ? [["haunt", S.icon + " " + S.name]] : []).concat(doorsOn ? [["doors", "\u{1F6AA} " + doorName() + doorBadge(s)]] : []).concat(potOn ? [["potion", "\u{1F9EA} Potions"]] : []).concat([["room", "\u{1F6CF}\uFE0F My Room"], ["quest", "\u{1F5FA}\uFE0F Quest" + (readyTests(s).length ? ' <span class="tbadge">' + readyTests(s).length + "</span>" : "")]])
+    [["pet", "\u{1F43E} My Companion"], ["collect", "\u{1F95A} Creature Collector"], ["badges", "\u{1F3C5} Badges"]].concat(haunt ? [["haunt", S.icon + " " + S.name]] : []).concat(doorsOn ? [["doors", "\u{1F6AA} " + doorName() + doorBadge(s)]] : []).concat(tevs.map(E => [E.key, E.tab])).concat([["room", "\u{1F6CF}\uFE0F My Room"], ["quest", "\u{1F5FA}\uFE0F Quest" + (readyTests(s).length ? ' <span class="tbadge">' + readyTests(s).length + "</span>" : "")]])
       .map(([k, t]) => '<button role="tab" class="tab' + (tab === k ? " on" : "") + '" data-tab="' + k + '" aria-selected="' + (tab === k) + '">' + t + "</button>").join("") + "</div>";
   if (tab === "collect") return h + collectorTab(collectorCtx(s));
   if (tab === "badges") return h + badgesTab(s, battles, cls);
   if (tab === "haunt") return h + (battleOn(cls) ? battleCard(s, c) : "") + wheelCard(s) + shopCard(s);
   if (tab === "doors") return h + weekDoorCard(s) + doorsCard(s);
-  if (tab === "potion") return h + potionCard(s, cls, students);
+  if (TEAM_EVENTS[tab]) return h + teamCard(TEAM_EVENTS[tab], s, cls, students);
   if (tab === "quest") return h + questTab(s, petHTML(c, worn, heldWeapon(s)));
   if (tab === "room") return h + roomTab(s, c, worn);
   h += nudgeCard(s, cls, battles, students);
@@ -260,7 +260,7 @@ function viewMine(s) {
       const v = status[i], eh = v === "e" && hitOn(s, i, cls), k = v === "c" || eh ? "c" + (eh ? " eh" : "") : v === "e" ? "e" : rec[i] ? "m" : "";
       return "<span><i class=\"" + k + '">' + (v === "c" || eh ? "✓" : v === "e" ? "–" : rec[i] ? "✕" : "") + "</i>" + SHORT[i] + (early[i] ? " ☀️" : "") + "</span>";
     }).join("") + "</div>" +
-    (haunt ? '<p style="margin-top:8px;color:#E8740C;font-weight:700;">' + S.icon + " " + candy.toLocaleString() + (S.key === "jingle" ? " present" + (candy === 1 ? "" : "s") : " piece" + (candy === 1 ? "" : "s") + " of " + S.cur) + " to spend" +
+    (haunt ? '<p style="margin-top:8px;color:#E8740C;font-weight:700;">' + S.icon + " " + candy.toLocaleString() + (S.key === "jingle" ? " present" + (candy === 1 ? "" : "s") : S.key === "frost" ? " snowflake" + (candy === 1 ? "" : "s") : S.key === "heart" ? " candy heart" + (candy === 1 ? "" : "s") : " piece" + (candy === 1 ? "" : "s") + " of " + S.cur) + " to spend" +
       (candy >= CANDY_FULL ? " \u2014 your " + S.basket + " is FULL!" : " \u00b7 " + (CANDY_FULL - candy).toLocaleString() + " more to fill your " + S.basket) + "</p>" : "") +
     '<p class="muted" style="margin-top:8px;">Streak: ' + sim.hitRun + " day" + (sim.hitRun === 1 ? "" : "s") + " · best: " + sim.bestRun + "</p></div></div>";
 
@@ -268,7 +268,7 @@ function viewMine(s) {
   GEAR.filter(g => gearInSeason(g)).forEach(g => {
     const ok = sim.unlocked.includes(g.id);
     h += "<div><button class=\"eq" + (worn && worn.id === g.id ? " on" : "") + '" data-equip="' + g.id + '"' + (ok ? "" : " disabled") + ' aria-label="' + esc(g.name) + (ok ? "" : " locked") + '">' +
-      itemArt(g, "gimg") + '</button><span class="lbl">' + (ok ? esc(g.name) : g.ghost && !ghostUnlocked(cls) ? "Defeat the Ghost-olotl" : g.turkey && !turkeyUnlocked(cls) ? "Defeat the Turducken" : g.jingle && !grinchUnlocked(cls) ? "Defeat the Grinch-a-Duck" : g.streak + "-day streak") + "</span></div>";
+      itemArt(g, "gimg") + '</button><span class="lbl">' + (ok ? esc(g.name) : g.ghost && !ghostUnlocked(cls) ? "Defeat the Ghost-olotl" : g.turkey && !turkeyUnlocked(cls) ? "Defeat the Turducken" : g.jingle && !grinchUnlocked(cls) ? "Defeat the Grinch-a-Duck" : g.frost && !yetiUnlocked(cls) ? "Defeat the Snowlotl" : g.heart && !heartUnlocked(cls) ? "Defeat the Heartbreaker-otl" : g.streak + "-day streak") + "</span></div>";
   });
   h += '</div><p class="lede" style="margin-top:12px;font-size:13.5px;text-align:center;">Hit ' + goal + " XP days in a row to unlock more. Tap what you’re wearing to take it off.</p>";
   const ws = weaponsOwned(s), hw = heldWeapon(s);
@@ -291,11 +291,11 @@ function viewMine(s) {
     '<p class="lede" style="margin-bottom:12px;">Hit ' + goal + " XP before lunch and your sidekick joins you for the day. Who do you want?</p>" +
     '<div class="pickgrid" style="grid-template-columns:repeat(auto-fit,minmax(0,140px));justify-content:center;">' +
     Object.keys(SIDEKICKS).map(k => {
-      const locked = (k === "ghost" && !ghostUnlocked(cls)) || (k === "turkey" && !turkeyUnlocked(cls)) || (k === "grinch" && !grinchUnlocked(cls));
+      const locked = (k === "ghost" && !ghostUnlocked(cls)) || (k === "turkey" && !turkeyUnlocked(cls)) || (k === "grinch" && !grinchUnlocked(cls)) || (k === "yeti" && !yetiUnlocked(cls)) || (k === "heartotl" && !heartUnlocked(cls));
       return '<button class="pick' + ((s.sidekick || "axolotl") === k ? " on" : "") + '" data-side="' + k + '"' + (locked ? ' disabled style="opacity:.45;filter:grayscale(.7);"' : "") +
         '><span style="display:flex;justify-content:center;height:70px;align-items:flex-end;">' +
-        sidekickSVG(k, true).replace('class="side', 'style="animation:none;height:' + (k === "duck" ? 68 : k === "ghost" ? 66 : k === "turkey" ? 64 : k === "grinch" ? 64 : 56) + 'px" class="side') +
-        '</span><span class="n">' + SIDEKICKS[k] + "</span>" + (locked ? '<span class="lbl" style="display:block;font-family:var(--mono);font-size:10px;color:var(--ink-3);">\u{1F512} Defeat the ' + (k === "turkey" ? "Turducken" : k === "grinch" ? "Grinch-a-Duck" : "Ghost-olotl") + "</span>" : "") + "</button>";
+        sidekickSVG(k, true).replace('class="side', 'style="animation:none;height:' + (k === "duck" ? 68 : k === "ghost" ? 66 : k === "turkey" ? 64 : k === "grinch" ? 64 : k === "yeti" ? 66 : k === "heartotl" ? 66 : 56) + 'px" class="side') +
+        '</span><span class="n">' + SIDEKICKS[k] + "</span>" + (locked ? '<span class="lbl" style="display:block;font-family:var(--mono);font-size:10px;color:var(--ink-3);">\u{1F512} Defeat the ' + (k === "turkey" ? "Turducken" : k === "grinch" ? "Grinch-a-Duck" : k === "yeti" ? "Snowlotl" : k === "heartotl" ? "Heartbreaker-otl" : "Ghost-olotl") + "</span>" : "") + "</button>";
     }).join("") + "</div></div>";
 
   h += '<div class="card"><div class="card-head"><h2>Rename</h2></div><div class="row"><div class="field" style="flex:1;min-width:200px;"><label for="rename">Companion name</label>' +
@@ -409,7 +409,7 @@ function doorsCard(s) {
     else if (st === "ok") body = '<button class="presentbtn" data-open="' + date + ":" + i + '">\u{1F381} Open your present!</button>';
     else if (st === "open") { const t = rewardText(e.r, S); body = '<span class="dstate done">\u2705 ' + t.icon + " " + esc(t.big) + "</span>"; }
     else body = (st === "no" ? '<span class="dstate no">\u21A9\uFE0F Not yet \u2014 try again!</span>' : "") + '<button class="btn small" data-claim="' + i + '">\u2714\uFE0F I did it!</button>';
-    return '<div class="door d-' + (locked ? "lock" : st || "new") + '"><div class="doorpic"><img src="' + art + '" alt=""><span class="dnum">' + (i + 1) + "</span>" +
+    return '<div class="door d-' + (locked ? "lock" : st || "new") + '"><div class="doorpic"><img src="' + (S.key === "heart" && st === "open" ? "assets/doors/door-heart-open.webp" : art) + '" alt=""><span class="dnum">' + (i + 1) + "</span>" +
       (st === "ok" ? '<span class="dgift">\u{1F381}</span>' : st === "open" ? '<span class="dgift">\u2728</span>' : "") + "</div>" +
       '<div class="dtask">' + (isFree(task) ? "\u{1F513} " : "") + esc(doorText(task, s)) + "</div>" + body + "</div>";
   }).join("") + "</div>";
@@ -526,7 +526,7 @@ function powerMeter(s) {
   const bd = boardDay(cls, students); if (bd < 0) return "";
   const eaten = dayEaten(s, bd), full = eaten >= EAT_PER_DAY, extra = Math.max(0, Math.round(dayXP(s, bd)) - EAT_PER_DAY);
   return '<div class="power"><div class="power-k">\u26A1 ' + SHORT[bd] + " power-up: <b>" + eaten + " / " + EAT_PER_DAY + "</b> " + SEASON.cur + " eaten" +
-    (full ? " \u2014 attack powered!" : "") + '</div><span class="powertrack"><span style="width:' + (eaten / EAT_PER_DAY * 100) + '%"></span></span>' +
+    (full ? (SEASON.key === "frost" ? " \u2014 snowball packed!" : " \u2014 attack powered!") : "") + '</div><span class="powertrack"><span style="width:' + (eaten / EAT_PER_DAY * 100) + '%"></span></span>' +
     (extra ? '<div class="power-s">+' + extra + " extra " + SEASON.cur + " went into your " + SEASON.basket + "</div>" : '<div class="power-s">' + SEASON.Cur + " over " + EAT_PER_DAY + " goes into your " + SEASON.basket + "</div>") + "</div>";
 }
 
@@ -566,23 +566,26 @@ function shopCard(s) {
 function battleCard(s, c) {
   const b = bossState(cls, students), nx = nextAttack(s, cls), goal = goalXP(cls);
   const S = SEASON;
-  let h = '<div class="arena fight ' + S.key + '" style="margin-bottom:16px;"><p class="arena-title">⚔️ Battle the ' + S.boss + "</p>" + bossBarHTML(b) +
+  const fr = S.key === "frost", hr = S.key === "heart", wl = b.wall && b.wall.left > 0;
+  let h = '<div class="arena fight ' + S.key + '" style="margin-bottom:16px;"><p class="arena-title">' + (fr ? "\u26C4 Snowball Fight with the " : "⚔️ Battle the ") + S.boss + "</p>" + bossBarHTML(b) +
     '<div class="ghostwrap' + (attackFx ? " hit" : "") + '"><img class="ghostimg" src="' + S.bossImg + '" alt="The ' + S.boss + '">' +
-    (attackFx ? '<span class="dmg">-' + attackFx + "</span>" : "") + "</div>" + teamHTML(cls, students, !!attackFx);
+    (attackFx ? '<span class="dmg">-' + attackFx + "</span>" : "") + (fr && attackFx ? '<span class="snowball-fly">\u26AA</span>' : hr && attackFx ? '<span class="heart-fly">\u{1F498}</span>' : "") + (wl ? wallHTML(b.wall, false) : "") + "</div>" + teamHTML(cls, students, !!attackFx);
   h += powerMeter(s);
   if (b.defeated) h += '<p class="arena-win">\u{1F389} Your class defeated the ' + S.boss + "!</p>";
   else if (nx.count) {
-    const parts = [b.dmg + " attack"];
-    if (nx.hat) parts.push("+" + HAT_BONUS + " " + S.hatIcon + " hat");
-    if (nx.brew) parts.push("+" + BREW_BONUS + " " + S.brewIcon + " " + (S.key === "gobble" ? "pie" : S.key === "jingle" ? "cocoa" : "brew"));
-    h += '<button class="attackbtn" data-act="attack">⚔️ Attack for ' + nx.damage + "!</button>" +
-      '<p class="arena-foot">' + parts.join(" ") + " = <b>" + nx.damage + "</b> damage · you have <b>" + nx.count + "</b> attack" + (nx.count === 1 ? "" : "s") + " ready</p>";
-  } else h += '<p class="arena-foot" style="font-size:13px;">Hit ' + goal + " XP today to earn an attack, or buy one in the " + S.shop + "!</p>";
-  h += bucketHTML(cls, students);
+    const parts = [b.dmg + (fr ? " snowball" : " attack")];
+    if (nx.hat) parts.push("+" + HAT_BONUS + " " + S.hatIcon + (fr ? " earmuffs" : hr ? " crown" : " hat"));
+    if (nx.brew) parts.push(fr ? "\u00d72 " + S.brewIcon + " cocoa" : hr ? "\u00d72 " + S.brewIcon + " strawberry" : "+" + BREW_BONUS + " " + S.brewIcon + " " + (S.key === "gobble" ? "pie" : S.key === "jingle" ? "cocoa" : "brew"));
+    h += '<button class="attackbtn" data-act="attack">' + (fr ? "\u26C4 Throw a snowball for " : "⚔️ Attack for ") + nx.damage + "!</button>" +
+      '<p class="arena-foot">' + parts.join(" ") + " = <b>" + nx.damage + "</b> damage · you have <b>" + nx.count + "</b> " + (fr ? "snowball" : "attack") + (nx.count === 1 ? "" : "s") + " ready" +
+      (wl ? " \u00b7 \u{1F9CA} it hits the snow wall first" : "") + "</p>";
+  } else h += '<p class="arena-foot" style="font-size:13px;">' + (fr ? "Hit " + goal + " XP today to pack a snowball, or pack one in the Snow Shop for 120 \u2744\uFE0F!" : "Hit " + goal + " XP today to earn an attack, or buy one in the " + S.shop + "!") + "</p>";
+  if (!fr) h += bucketHTML(cls, students);
+  else if (!wl) h += '<p class="arena-foot">\u2705 No snow wall right now \u2014 snowballs hit the Snowlotl directly! Every student who misses ' + goal + " XP adds a 50 HP snow block.</p>";
   const brews = Number(s.brews) || 0;
-  if (brews) h += '<p class="arena-foot">' + S.brewIcon + " " + brews + " " + (brews === 1 ? S.brewName : S.brewNames) + " ready (one is used on each attack)</p>";
+  if (brews) h += '<p class="arena-foot">' + S.brewIcon + " " + brews + " " + (brews === 1 ? S.brewName : S.brewNames) + " ready (one is used on each " + (fr ? "snowball" : "attack") + ")</p>";
   const mine = Number(s.attackTotal) || 0;
-  if (mine) h += '<p class="arena-foot">' + esc(s.petName || c.name) + " has attacked " + mine + " time" + (mine === 1 ? "" : "s") + " for " + dmgOf(s, cls).toLocaleString() + " damage.</p>";
+  if (mine) h += '<p class="arena-foot">' + esc(s.petName || c.name) + (fr ? " has thrown " + mine + " snowball" + (mine === 1 ? "" : "s") : " has attacked " + mine + " time" + (mine === 1 ? "" : "s")) + " for " + dmgOf(s, cls).toLocaleString() + " damage.</p>";
   return h + "</div>";
 }
 
@@ -634,8 +637,10 @@ document.addEventListener("click", async ev => {
     if (it.id === "witchhat") { data.witchHat = true; data.equipped = "witch"; }
     if (it.id === "pilgrimhat") { data.pilgrimHat = true; data.equipped = "pilgrim"; }
     if (it.id === "antlers") { data.antlersHat = true; data.equipped = "antlers"; }
-    if (it.id === "brew" || it.id === "pie" || it.id === "cocoa") data.brews = (Number(s.brews) || 0) + 1;
-    if (it.id === "attack") data.extraAttacks = (Number(s.extraAttacks) || 0) + 1;
+    if (it.id === "earmuffs") { data.earmuffsHat = true; data.equipped = "earmuffs"; }
+    if (it.id === "cupidcrown") { data.crownHat = true; data.equipped = "cupidcrown"; }
+    if (it.id === "brew" || it.id === "pie" || it.id === "cocoa" || it.id === "strawberry") data.brews = (Number(s.brews) || 0) + 1;
+    if (it.id === "attack" || it.id === "snowball") data.extraAttacks = (Number(s.extraAttacks) || 0) + 1;
     if (it.id === "spin") data.spins = (Number(s.spins) || 0) + 1;
     await patch(data);
     flash("You bought the " + it.name + "!", true);
@@ -669,10 +674,10 @@ document.addEventListener("click", async ev => {
     let msg = slice.icon + " " + slice.label;
     if (slice.id === "candy75") { data.candyBonus = (Number(s.candyBonus) || 0) + 75; msg += "!<small>Treat! +75 " + S.cur + " in your " + S.basket + ".</small>"; }
     if (slice.id === "steal") {
-      const avail = bucketState(cls, students).left, amt = Math.min(avail, 25 + Math.floor(Math.random() * 26));
+      const avail = S.key === "frost" ? 50 : bucketState(cls, students).left, amt = Math.min(avail, 25 + Math.floor(Math.random() * 26));
       entry.amt = amt; data.stolen = (Number(s.stolen) || 0) + amt;
-      const bk = S.key === "jingle" ? "the Grinch\u2019s Sack" : "Ms. Ariana\u2019s " + (S.key === "gobble" ? "cornucopia" : "bucket");
-      msg += "<small>" + (amt ? (S.key === "jingle" ? "You stole back " : "You snuck ") + amt + " " + S.cur + " out of " + bk + "!" : bk.charAt(0).toUpperCase() + bk.slice(1) + " is empty \u2014 nothing to steal!") + "</small>";
+      const bk = S.key === "frost" ? "the snowdrifts" : S.key === "jingle" ? "the Grinch\u2019s Sack" : "Ms. Ariana\u2019s " + (S.key === "gobble" ? "cornucopia" : S.key === "heart" ? "candy jar" : "bucket");
+      msg += "<small>" + (amt ? (S.key === "frost" ? "You scooped up " : S.key === "jingle" ? "You stole back " : "You snuck ") + amt + " " + S.cur + " out of " + bk + "!" : bk.charAt(0).toUpperCase() + bk.slice(1) + " is empty \u2014 nothing to steal!") + "</small>";
     }
     if (slice.id === "nothing") msg += "<small>" + slice.note + "</small>";
     if (slice.id === "reroll") msg += "<small>Your spin comes back \u2014 spin again!</small>";
@@ -691,6 +696,8 @@ document.addEventListener("click", async ev => {
         data.attackTotal = (Number(s.attackTotal) || 0) + 1; data.dmgTotal = dmgOf(s, cls) + dmg;
         if (S.key === "gobble") data.turkeyAtk = (Number(s.turkeyAtk) || 0) + 1;
         if (S.key === "jingle") data.grinchAtk = (Number(s.grinchAtk) || 0) + 1;
+        if (S.key === "frost") data.yetiAtk = (Number(s.yetiAtk) || 0) + 1;
+        if (S.key === "heart") data.heartAtk = (Number(s.heartAtk) || 0) + 1;
         msg += "<small>\u2728 RARE! A free attack hits the " + S.boss + " for " + dmg + "!</small>";
       }
     }
@@ -717,6 +724,8 @@ document.addEventListener("click", async ev => {
     const data = { attackTotal: (Number(s.attackTotal) || 0) + 1, dmgTotal: dmgOf(s, cls) + nx.damage };
     if (isGobble(cls)) data.turkeyAtk = (Number(s.turkeyAtk) || 0) + 1;   // Turducken attacks, counted apart from Ghost-olotl ones
     if (isJingle(cls)) data.grinchAtk = (Number(s.grinchAtk) || 0) + 1;   // Grinch-a-Duck attacks
+    if (isFrost(cls)) data.yetiAtk = (Number(s.yetiAtk) || 0) + 1;   // snowballs at the Abominable Snowlotl
+    if (isHeart(cls)) data.heartAtk = (Number(s.heartAtk) || 0) + 1;   // Heartbreaker-otl attacks
     if (nx.day !== null) { const attacks = arr5(s.attacks, false); attacks[nx.day] = true; data.attacks = attacks; }
     else data.extraAttacks = (Number(s.extraAttacks) || 0) - 1;
     if (nx.brew) data.brews = (Number(s.brews) || 0) - 1;

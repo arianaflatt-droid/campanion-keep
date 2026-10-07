@@ -1,21 +1,21 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261006k";
-import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261006k";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261006k";
-import { cpEarnedCalc } from "./room.js?v=20261006k";
-import { INGREDIENTS, PER_XP, POTION_CANDY, POTION_XP, POTION_LEGENDARY, MASTER_BREWS, potionOn, teams as potTeams, teamOf as potTeamOf, cauldron, recipeChanged, brewRewards, standings as potStandings, topTeams, brewCount } from "./potion.js?v=20261006k";
-import { GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal } from "./doors.js?v=20261006k";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261006k";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261007a";
+import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261007a";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261007a";
+import { cpEarnedCalc } from "./room.js?v=20261007a";
+import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField } from "./teams.js?v=20261007a";
+import { GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal } from "./doors.js?v=20261007a";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261007a";
 import {
   applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
-  checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261006k";
-import { pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261006k";
+  checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, isFrost, isHeart, heartUnlocked, yetiUnlocked, wallMarks, WALL_BLOCK, BOSS_START_HP, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
+} from "./game.js?v=20261007a";
+import { pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261007a";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef
-} from "./db.js?v=20261006k";
+} from "./db.js?v=20261007a";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -40,7 +40,7 @@ function showErr(e) { console.error(e); flash("Something went wrong \u2014 " + (
 // Any button that breaks shows a message instead of silently doing nothing.
 addEventListener("unhandledrejection", ev => showErr(ev.reason));
 addEventListener("error", ev => { if (ev.error) showErr(ev.error); });
-function flash(msg) { flashMsg = msg; flashOk = /^(Saved|Roster saved|New week|Haunt|\u{1F983} Gobble|\u{1F384} Jingle|Added|Everyone in that file)/u.test(msg); render(); clearTimeout(flashTimer); flashTimer = setTimeout(() => { flashMsg = null; render(); }, 6000); }
+function flash(msg) { flashMsg = msg; flashOk = /^(Saved|Roster saved|New week|Haunt|\u{1F983} Gobble|\u{1F384} Jingle|\u2744\uFE0F Frostbite|\u{1F498} Sweetheart|Added|Everyone in that file)/u.test(msg); render(); clearTimeout(flashTimer); flashTimer = setTimeout(() => { flashMsg = null; render(); }, 6000); }
 async function patch(id, data) {
   const s = sOf(id); if (s) Object.assign(s, data);
   render();
@@ -50,7 +50,7 @@ async function patch(id, data) {
    November and off once November is over. The teacher can still flip it by hand. */
 let autoBusy = false;
 function autoGobble() {
-  if (!cls || autoBusy || !studentsLoaded) return;
+  if (!cls || autoBusy || !studentsLoaded || cls.frost || cls.heart) return;   // Frostbite Festival and Sweetheart Showdown are switched by hand and wins over the others
   const t = azToday(), yr = GOBBLE_FROM.slice(0, 4), jy = JINGLE_FROM.slice(0, 4);
   // Jingle Jam: all of December, the same way.
   if (t >= JINGLE_FROM && t <= JINGLE_TO && !cls.jingle && cls.jingleAuto !== jy) { autoBusy = true; jingleOn().finally(() => { autoBusy = false; }); return; }
@@ -59,13 +59,13 @@ function autoGobble() {
   else if (t > GOBBLE_TO && cls.gobble && cls.gobbleAuto === yr) { autoBusy = true; updateDoc(classRef, { gobble: false, gobbleAuto: yr + "-done" }).catch(() => {}).finally(() => { autoBusy = false; }); }
 }
 // Whose candy is it right now? Haunt-O-Ween badge totals are only saved from Haunt-O-Ween candy.
-const hauntCandy = () => isHaunt(cls) || !(cls.gobbleSince || cls.jingleSince);
+const hauntCandy = () => isHaunt(cls) || !(cls.gobbleSince || cls.jingleSince || cls.frostSince || cls.heartSince);
 // Turning Gobble-Palooza on: Haunt-O-Ween goes off, everyone's corn starts at 0, a fresh Turducken and an empty cornucopia.
 // Spins, extra attacks and pies/brews they already own carry over. Haunt-O-Ween badge totals are saved first.
 async function gobbleOn() {
   const b = bossState(cls, students), batch = writeBatch(db);
-  batch.update(classRef, { gobble: true, haunt: false, jingle: false, doorsOn: false, gobbleSince: azToday(), gobbleAuto: GOBBLE_FROM.slice(0, 4),
-    bucketEarned: 0, bucketSpent: 0, bossBase: b.total, bossBaseHits: b.totalHits, bossHealed: 0 });
+  batch.update(classRef, { gobble: true, haunt: false, jingle: false, frost: false, heart: false, doorsOn: false, gobbleSince: azToday(), gobbleAuto: GOBBLE_FROM.slice(0, 4),
+    bucketEarned: 0, bucketSpent: 0, bossHP: BOSS_START_HP, bossBase: b.total, bossBaseHits: b.totalHits, bossHealed: 0 });
   students.forEach(s => batch.update(studentRef(s.id), { candyBank: 0, candySpent: 0, candyBonus: 0, stolen: 0,
     candyBest: Math.max(Number(s.candyBest) || 0, hauntCandy() ? candyOf(s) : 0),
     spentBest: Math.max(Number(s.spentBest) || 0, hauntCandy() ? Number(s.candySpent) || 0 : 0),
@@ -75,13 +75,45 @@ async function gobbleOn() {
 // Turning Jingle Jam on: the other modes go off, everyone's presents start at 0, a fresh Grinch-a-Duck and an empty Grinch's Sack.
 async function jingleOn() {
   const b = bossState(cls, students), batch = writeBatch(db);
-  batch.update(classRef, { jingle: true, gobble: false, haunt: false, doorsOn: true, jingleSince: azToday(), jingleAuto: JINGLE_FROM.slice(0, 4),
-    bucketEarned: 0, bucketSpent: 0, bossBase: b.total, bossBaseHits: b.totalHits, bossHealed: 0 });
+  batch.update(classRef, { jingle: true, gobble: false, haunt: false, frost: false, heart: false, doorsOn: true, jingleSince: azToday(), jingleAuto: JINGLE_FROM.slice(0, 4),
+    bucketEarned: 0, bucketSpent: 0, bossHP: BOSS_START_HP, bossBase: b.total, bossBaseHits: b.totalHits, bossHealed: 0 });
   students.forEach(s => batch.update(studentRef(s.id), { candyBank: 0, candySpent: 0, candyBonus: 0, stolen: 0,
     candyBest: Math.max(Number(s.candyBest) || 0, hauntCandy() ? candyOf(s) : 0),
     spentBest: Math.max(Number(s.spentBest) || 0, hauntCandy() ? Number(s.candySpent) || 0 : 0),
     stolenBest: Math.max(Number(s.stolenBest) || 0, hauntCandy() ? Number(s.stolen) || 0 : 0) }));
   try { await batch.commit(); if (mode === "battle") mode = "guide"; flash("\u{1F384} Jingle Jam is on!"); } catch (e) { flash("Couldn’t turn on Jingle Jam — " + e.code); }
+}
+// Turning Frostbite Festival on: the other modes go off, everyone's snowflakes start at 0, a fresh Abominable Snowlotl
+// (12,000 health, 25 per snowball) and no snow wall yet. Frozen Doors come on too.
+async function frostOn() {
+  const fresh = Object.assign({}, cls, { bossDmg: 25 }), b = bossState(fresh, students), batch = writeBatch(db);
+  batch.update(classRef, { frost: true, jingle: false, gobble: false, haunt: false, heart: false, doorsOn: true, frostSince: azToday(),
+    bossHP: BOSS_START_HP, bossDmg: 25, bucketEarned: 0, bucketSpent: 0, bossBase: b.total, bossBaseHits: b.totalHits, bossHealed: 0, wallMark: 0, wallAt: 0, wallAbs: 0 });
+  students.forEach(s => batch.update(studentRef(s.id), { candyBank: 0, candySpent: 0, candyBonus: 0, stolen: 0,
+    candyBest: Math.max(Number(s.candyBest) || 0, hauntCandy() ? candyOf(s) : 0),
+    spentBest: Math.max(Number(s.spentBest) || 0, hauntCandy() ? Number(s.candySpent) || 0 : 0),
+    stolenBest: Math.max(Number(s.stolenBest) || 0, hauntCandy() ? Number(s.stolen) || 0 : 0) }));
+  try { await batch.commit(); if (mode === "battle") mode = "guide"; flash("\u2744\uFE0F Frostbite Festival is on!"); } catch (e) { flash("Couldn\u2019t turn on Frostbite Festival \u2014 " + e.code); }
+}
+// Turning Sweetheart Showdown on: the other modes go off, everyone's candy hearts start at 0, a fresh Heartbreaker-otl
+// (12,000 health) and an empty candy jar. Mailbox Doors come on too.
+async function heartOn() {
+  const b = bossState(cls, students), batch = writeBatch(db);
+  batch.update(classRef, { heart: true, frost: false, jingle: false, gobble: false, haunt: false, doorsOn: true, heartSince: azToday(),
+    bossHP: BOSS_START_HP, bucketEarned: 0, bucketSpent: 0, bossBase: b.total, bossBaseHits: b.totalHits, bossHealed: 0 });
+  students.forEach(s => batch.update(studentRef(s.id), { candyBank: 0, candySpent: 0, candyBonus: 0, stolen: 0,
+    candyBest: Math.max(Number(s.candyBest) || 0, hauntCandy() ? candyOf(s) : 0),
+    spentBest: Math.max(Number(s.spentBest) || 0, hauntCandy() ? Number(s.candySpent) || 0 : 0),
+    stolenBest: Math.max(Number(s.stolenBest) || 0, hauntCandy() ? Number(s.stolen) || 0 : 0) }));
+  try { await batch.commit(); if (mode === "battle") mode = "guide"; flash("\u{1F498} Sweetheart Showdown is on!"); } catch (e) { flash("Couldn\u2019t turn on Sweetheart Showdown \u2014 " + e.code); }
+}
+async function toggleHeart() {
+  if (!isHeart(cls)) { await heartOn(); return; }
+  try { await updateDoc(classRef, { heart: false }); if (mode === "battle") mode = "guide"; flash("Saved \u2014 Sweetheart Showdown is off."); } catch (e) { flash("Couldn\u2019t change that \u2014 " + e.code); }
+}
+async function toggleFrost() {
+  if (!isFrost(cls)) { await frostOn(); return; }
+  try { await updateDoc(classRef, { frost: false }); if (mode === "battle") mode = "guide"; flash("Saved \u2014 Frostbite Festival is off."); } catch (e) { flash("Couldn\u2019t change that \u2014 " + e.code); }
 }
 async function toggleJingle() {
   if (!isJingle(cls)) { await jingleOn(); return; }
@@ -100,7 +132,7 @@ async function toggleHaunt() {
 async function hauntOn(fresh) {
   const batch = writeBatch(db);
   const since = azToday();   // Hexaduck's streak counts from the day Haunt-O-Ween Mode is turned on
-  batch.update(classRef, fresh ? { haunt: true, gobble: false, jingle: false, doorsOn: false, hauntSince: since, bucketEarned: 0, bucketSpent: 0 } : { haunt: true, gobble: false, jingle: false, doorsOn: false, hauntSince: since });
+  batch.update(classRef, fresh ? { haunt: true, gobble: false, jingle: false, frost: false, heart: false, doorsOn: false, hauntSince: since, bucketEarned: 0, bucketSpent: 0 } : { haunt: true, gobble: false, jingle: false, frost: false, heart: false, doorsOn: false, hauntSince: since });
   if (fresh) students.forEach(s => batch.update(studentRef(s.id), { candyBank: 0, candySpent: 0, candyBonus: 0, stolen: 0,
     // keep each student's best totals so Haunt-O-Ween badges they earned stay earned
     candyBest: Math.max(Number(s.candyBest) || 0, candyOf(s)), spentBest: Math.max(Number(s.spentBest) || 0, Number(s.candySpent) || 0), stolenBest: Math.max(Number(s.stolenBest) || 0, Number(s.stolen) || 0) }));
@@ -120,7 +152,7 @@ else onAuthStateChanged(auth, u => {
   if (!u || u.isAnonymous) { mode = "signin"; render(); return; }
   if (!isTeacherEmail(u.email)) { mode = "denied"; render(); return; }
   mode = "boot"; render();
-  unsub.push(watchClass(c => { cls = c; clsLoaded = true; setSeason(c); if (c && !c.weekStart && !PREVIEW) updateDoc(classRef, { weekStart: dateOfDay(0) }).catch(() => {}); if (c && checkVersion(c, true, v => updateDoc(classRef, { appVersion: v }).catch(() => {}))) return; autoGobble(); lockBadges();
+  unsub.push(watchClass(c => { cls = c; clsLoaded = true; setSeason(c); if (c && !c.weekStart) updateDoc(classRef, { weekStart: dateOfDay(0) }).catch(() => {}); if (c && checkVersion(c, true, v => updateDoc(classRef, { appVersion: v }).catch(() => {}))) return; autoGobble(); lockBadges();
     if (c && c.haunt && !c.hauntSince) updateDoc(classRef, { hauntSince: azToday() }).catch(() => {});   // Hexaduck streaks start today if the mode was already on
     if (c && !c.collectorStart) updateDoc(classRef, { collectorStart: (() => { const t = new Date(); return t.getFullYear() + "-" + String(t.getMonth() + 1).padStart(2, "0") + "-" + String(t.getDate()).padStart(2, "0"); })() }).catch(() => {}); if (!c) mode = "setup"; else if (mode === "boot" || mode === "setup") mode = "guide"; detectEvents(); liveRender(); },
     e => flash("Couldn’t load the class — " + e.code)));
@@ -258,7 +290,11 @@ function detectEvents() {
     // First defeat ever: unlock the hat, the snack and the boss sidekick for good.
     if (b.defeated && !cls[S.defeatFlag] && !unlockWriting) {
       unlockWriting = true;
-      const unl = S.key === "jingle"
+      const unl = S.key === "heart"
+        ? { text: "New unlocks: Cupid Crown, Chocolate Strawberry & Heartbreaker-otl pet!", sub: "Cupid Crown at a 5-day streak \u00b7 Chocolate Strawberry snack at 3 \u00b7 Heartbreaker-otl lunch sidekick", glyph: "\u{1F451}", pet: "\u{1F498}" }
+        : S.key === "frost"
+        ? { text: "New unlocks: Cozy Earmuffs, Snow Cone & Snowlotl pet!", sub: "Cozy Earmuffs at a 5-day streak \u00b7 Snow Cone snack at 3 \u00b7 Snowlotl lunch sidekick", glyph: "\u{1F3A7}", pet: "\u26C4" }
+        : S.key === "jingle"
         ? { text: "New unlocks: Reindeer Antlers, Hot Cocoa & Grinch-a-Duck pet!", sub: "Reindeer Antlers at a 5-day streak \u00b7 Hot Cocoa snack at 3 \u00b7 Grinch-a-Duck lunch sidekick", glyph: "\u{1F98C}", pet: "\u{1F986}" }
         : S.key === "gobble"
         ? { text: "New unlocks: Pilgrim Hat, Pumpkin Pie & Turducken pet!", sub: "Pilgrim Hat at a 5-day streak \u00b7 Pumpkin Pie snack at 3 \u00b7 Turducken lunch sidekick", glyph: "\u{1F3A9}", pet: "\u{1F983}" }
@@ -425,7 +461,7 @@ function render(force) {
   else if (mode === "denied") h += '<div class="card"><h2>This console is for the teacher</h2><p class="lede" style="margin-top:8px;">' + esc(user && user.email) + ' isn’t on the teacher list.</p><div class="row" style="margin-top:14px;"><button class="btn ghost" data-act="signOut">Use a different account</button></div></div>';
   else if (mode === "setup") h += viewSetup();
   else if (mode === "class") h += keepHTML(cls, students, popIds, badgeShout());
-  else if (mode === "battle") h += battleHTML(cls, students, battleFx) + healControls();
+  else if (mode === "battle") h += battleHTML(cls, students, battleFx) + (isFrost(cls) ? "" : healControls());
   else {
     const np = prizesOpen(), nd = waitingDoors(students, cls).length;
     const tabs = [["daily", "\u{1F4C5} Daily"], ["students", "\u{1F43E} Students"], ["collector", "\u{1F95A} Collector" + (newIdeas() ? ' <span class="tbadge" aria-label="new creature ideas">' + newIdeas() + "</span>" : "")], ["events", "\u2728 Events" + (eventMode(cls) ? " " + SEASON.icon : "") + (np + nd ? ' <span class="tbadge" aria-label="' + (np + nd) + ' to check">' + (np + nd) + "</span>" : "")], ["quest", "\u{1F5FA}\uFE0F Quest"], ["settings", "\u2699\uFE0F Settings"]];
@@ -437,7 +473,7 @@ function render(force) {
     else if (ctab === "students") h += viewStandings() + viewAssign() + viewLosses() + viewLinks();
     else if (ctab === "collector") h += viewLiveBattles() + viewIdeas() + teacherCollectorCard() + viewCollector();
     else if (ctab === "quest") h += questTracker(students);
-    else if (ctab === "events") h += viewModes() + viewBossHits() + (eventMode(cls) || waitingDoors(students, cls).length ? viewDoors() : "") + (isHaunt(cls) || potTeams(cls).length ? viewPotions() : "") + duckAdmin() + (eventMode(cls) ? viewBucket() + viewPrizes() + viewShop() : prizeRows().length ? viewPrizes() : "");
+    else if (ctab === "events") h += viewModes() + viewBossHits() + (eventMode(cls) || waitingDoors(students, cls).length ? viewDoors() : "") + EVENT_LIST.map(E => E.season(cls) || tevTeams(E, cls).length ? viewTeamEvent(E) : "").join("") + duckAdmin() + (eventMode(cls) ? viewBucket() + viewPrizes() + viewShop() : prizeRows().length ? viewPrizes() : "");
     else h += viewClassSettings();
   }
 
@@ -579,14 +615,20 @@ function viewStandings() {
 function healControls() {
   const k = bucketState(cls, students), b = bossState(cls, students);
   const S = SEASON;
-  return '<div class="card" style="margin-top:14px;"><div class="card-head"><h2>' + S.coin + " Heal the " + S.boss + '</h2><span class="fact">' + (S.key === "gobble" ? "Cornucopia" : S.key === "jingle" ? "Sack" : "Bucket") + ": <b>" + k.left.toLocaleString() + "</b> " + S.cur + "</span></div>" +
-    '<p class="lede" style="font-size:13.5px;">Each ' + (S.key === "gobble" ? "piece of corn" : S.key === "jingle" ? "present" : "candy") + " heals <b>" + k.rate + "</b> health. The " + S.boss + " can\u2019t heal past " + b.max.toLocaleString() + ".</p>" +
+  return '<div class="card" style="margin-top:14px;"><div class="card-head"><h2>' + S.coin + " Heal the " + S.boss + '</h2><span class="fact">' + (S.key === "gobble" ? "Cornucopia" : S.key === "jingle" ? "Sack" : S.key === "heart" ? "Candy jar" : "Bucket") + ": <b>" + k.left.toLocaleString() + "</b> " + S.cur + "</span></div>" +
+    '<p class="lede" style="font-size:13.5px;">Each ' + (S.key === "gobble" ? "piece of corn" : S.key === "jingle" ? "present" : S.key === "heart" ? "candy heart" : "candy") + " heals <b>" + k.rate + "</b> health. The " + S.boss + " can\u2019t heal past " + b.max.toLocaleString() + ".</p>" +
     '<div class="healrow" style="justify-content:flex-start;"><div class="field"><label for="healCandy">' + S.Cur + ' to spend</label><input id="healCandy" type="number" min="1" step="1" placeholder="50"></div>' +
     '<button class="btn" data-act="heal" style="background:#2E9E5B;"' + (k.left && !b.defeated ? "" : " disabled") + ">\u{1F49A} Heal</button>" +
-    '<div class="field"><label for="healRate">Health per ' + (SEASON.key === "gobble" ? "corn" : SEASON.key === "jingle" ? "present" : "candy") + '</label><input id="healRate" type="number" min="1" step="1" value="' + k.rate + '"></div>' +
+    '<div class="field"><label for="healRate">Health per ' + (SEASON.key === "gobble" ? "corn" : SEASON.key === "jingle" ? "present" : SEASON.key === "heart" ? "heart" : "candy") + '</label><input id="healRate" type="number" min="1" step="1" value="' + k.rate + '"></div>' +
     '<button class="btn ghost" data-act="saveRate">Save rate</button></div></div>';
 }
 function viewBucket() {
+  if (isFrost(cls)) {   // the Snowlotl's snow wall instead of a bucket; no healing
+    const w = bossState(cls, students).wall || { left: 0, built: 0, absorbed: 0 };
+    return '<div class="card"><div class="card-head"><h2>\u{1F9CA} ' + SEASON.bucket + '</h2><span class="fact"><b>' + w.left.toLocaleString() + "</b> HP standing</span></div>" +
+      '<p class="lede" style="font-size:13.5px;">Finalizing a day adds a ' + WALL_BLOCK + " HP snow block for every student who missed " + goalXP(cls) + " XP. Snowballs knock the wall down first, then hit the Snowlotl. " +
+      "Built " + w.built.toLocaleString() + " \u00b7 knocked down " + w.absorbed.toLocaleString() + ".</p></div>";
+  }
   const k = bucketState(cls, students);
   return '<div class="card"><div class="card-head"><h2>' + SEASON.icon + " " + SEASON.bucket + '</h2><span class="fact"><b>' + k.left.toLocaleString() + "</b> " + SEASON.cur + "</span></div>" +
     '<p class="lede" style="font-size:13.5px;">Finalizing a day adds ' + BUCKET_PER_MISS + " for every student who missed " + goalXP(cls) + " XP. Earned " + k.earned.toLocaleString() +
@@ -615,14 +657,14 @@ function prizeInfo(e) {
 /* ---------- Boss hits per student, for each event ----------
    Every attack counts once (a 120 XP day, a bought attack or a Free Attack from the wheel).
    Turducken hits are saved as turkeyAtk, Grinch-a-Duck hits as grinchAtk; the rest of attackTotal are Ghost-olotl hits. */
-function rawHits(st) { const all = Number(st.attackTotal) || 0, t = Number(st.turkeyAtk) || 0, g = Number(st.grinchAtk) || 0; return { haunt: Math.max(0, all - t - g), gobble: t, jingle: g }; }
+function rawHits(st) { const all = Number(st.attackTotal) || 0, t = Number(st.turkeyAtk) || 0, g = Number(st.grinchAtk) || 0, y = Number(st.yetiAtk) || 0, hb = Number(st.heartAtk) || 0; return { haunt: Math.max(0, all - t - g - y - hb), gobble: t, jingle: g, frost: y, heart: hb }; }
 // cls.hitBase = { haunt: { studentId: hits when the count was restarted }, gobble: {...}, jingle: {...} }, cls.hitReset = { haunt: ISO date, ... }
 function viewBossHits() {
   const team = students.filter(x => x.companionId), base = cls.hitBase || {}, when = cls.hitReset || {};
   const rows = team.map(st => { const r = rawHits(st), o = { st };
-    ["haunt", "gobble", "jingle"].forEach(k => { o[k] = Math.max(0, r[k] - (Number((base[k] || {})[st.id]) || 0)); }); o.all = o.haunt + o.gobble + o.jingle; return o; });
+    ["haunt", "gobble", "jingle", "frost", "heart"].forEach(k => { o[k] = Math.max(0, r[k] - (Number((base[k] || {})[st.id]) || 0)); }); o.all = o.haunt + o.gobble + o.jingle + o.frost + o.heart; return o; });
   if (!team.some(st => Number(st.attackTotal) > 0)) return "";
-  const cur = SEASON.key, cols = [["haunt", "\u{1F383} Haunt-O-Ween", "Ghost-olotl"], ["gobble", "\u{1F983} Gobble-Palooza", "Turducken"], ["jingle", "\u{1F384} Jingle Jam", "Grinch-a-Duck"]];
+  const cur = SEASON.key, cols = [["haunt", "\u{1F383} Haunt-O-Ween", "Ghost-olotl"], ["gobble", "\u{1F983} Gobble-Palooza", "Turducken"], ["jingle", "\u{1F384} Jingle Jam", "Grinch-a-Duck"], ["frost", "\u2744\uFE0F Frostbite", "Snowlotl"], ["heart", "\u{1F498} Sweetheart", "Heartbreaker-otl"]];
   const key = busy.hitSort || (eventMode(cls) ? cur : "all");
   rows.sort((a, b) => b[key] - a[key] || String(a.st.name).localeCompare(String(b.st.name)));
   const tot = k => rows.reduce((n, r) => n + r[k], 0);
@@ -710,51 +752,54 @@ async function weekCheck(goalNow) {
   if (n) await batch.commit();
   return n;
 }
-/* ---------- Potion Brewing Teams ---------- */
-function viewPotions() {
-  const on = potionOn(cls), list = potTeams(cls), today = azToday(), kids = students.filter(x => x.companionId);
-  let h = '<div class="card" id="potionCard"><div class="card-head"><h2>\u{1F9EA} Potion Brewing Teams</h2><span class="fact">' + (on ? "<b>ON</b>" : "off") + " · " + list.length + " team" + (list.length === 1 ? "" : "s") + "</span></div>" +
-    '<p class="lede" style="font-size:13.5px;">Teams fill a cauldron every day. Every ' + PER_XP + " XP in a subject = 1 ingredient (" + INGREDIENTS.map(g => g.subject + " " + g.icon).join(", ") + "). " +
-    "When you paste the day’s XP, every team with the whole recipe brews its potion: each teammate gets +" + POTION_CANDY + " candy, +" + POTION_XP + " XP, an egg and a one-day glow. " + MASTER_BREWS + " potions = Master Brewer badge.</p>" +
-    '<div class="row" style="margin:10px 0;"><button class="btn' + (on ? " ghost" : "") + '" data-act="potToggle">' + (on ? "Turn Potion Teams off" : "\u{1F9EA} Turn Potion Teams on") + "</button>" +
-    (isHaunt(cls) ? "" : '<span class="muted small">Only works while Haunt-O-Ween is on.</span>') +
-    (on && list.length ? '<button class="btn ghost small" data-act="potCheck">\u{1F504} Check cauldrons now</button>' : "") + "</div>";
-  // teams + today's cauldrons
+/* ---------- Team events (Potion Brewing Teams, Feast Table Teams) ---------- */
+const TEV_BLURB = {
+  potion: "Teams fill a cauldron every day. When you paste the day’s XP, every team with the whole recipe brews its potion",
+  feast: "Teams cook one dish a day (cranberry sauce first, the turkey last), using that dish\u2019s real ingredients. When you paste the day\u2019s XP, every team with all of them adds the dish to its Thanksgiving table",
+  ginger: "Teams build one step of a gingerbread house a day (10 steps, from an empty iced base to a finished house), using that step\u2019s ingredients. When you paste the day\u2019s XP, every team with all of them adds the step to its house",
+  candybox: "Teams make one chocolate a day (10 chocolates, strawberry heart first, the golden bonbon last), using that chocolate\u2019s ingredients. When you paste the day\u2019s XP, every team with all of them puts the chocolate in its slot in the candy box",
+  snowman: "Teams build one step of a snowman a day (10 steps, from a snow pile to a finished snowman), using that step\u2019s ingredients. When you paste the day\u2019s XP, every team with all of them adds the step to its snowman"
+};
+function viewTeamEvent(E) {
+  const on = eventOn(E, cls), list = tevTeams(E, cls), today = azToday(), kids = students.filter(x => x.companionId), k = E.key;
+  let h = '<div class="card" id="tev-' + k + '"><div class="card-head"><h2>' + E.icon + " " + E.title + '</h2><span class="fact">' + (on ? "<b>ON</b>" : "off") + " · " + list.length + " team" + (list.length === 1 ? "" : "s") + "</span></div>" +
+    '<p class="lede" style="font-size:13.5px;">' + TEV_BLURB[k] + " (every " + PER_XP + " XP in a subject = 1 ingredient" + (E.steps ? ": Math, Reading and Language each give one of the " + E.stepWord + "\u2019s ingredients" : ": " + E.ing.map(g => g.subject + " " + g.icon).join(", ")) + "). " +
+    "Each teammate gets +" + E.cur + " " + E.curName + ", +" + E.xp + " XP and an egg" + (E.fx ? " and a one-day glow" : "") + ". " + E.badgeN + " " + E.many + " = " + E.badge + " badge.</p>" +
+    '<div class="row" style="margin:10px 0;"><button class="btn' + (on ? " ghost" : "") + '" data-act="tevToggle" data-ev="' + k + '">' + (on ? "Turn " + E.title + " off" : E.icon + " Turn " + E.title + " on") + "</button>" +
+    (E.season(cls) ? "" : '<span class="muted small">Only works while ' + E.seasonName + " is on.</span>") +
+    (on && list.length ? '<button class="btn ghost small" data-act="tevCheck" data-ev="' + k + '">\u{1F504} Check teams now</button>' : "") + "</div>";
   h += "<h3>Teams</h3>";
   list.forEach(t => {
-    const c = cauldron(cls, t, students, today), changed = recipeChanged(cls, t, today);
-    h += '<div class="pteamrow"><div class="row" style="gap:8px;align-items:center;justify-content:space-between;"><input data-ptname="' + t.id + '" value="' + esc(t.name) + '" style="font-weight:700;max-width:220px;" aria-label="Team name">' +
-      '<span class="small">' + (t.members || []).length + " students · <b>" + brewCount(cls, t.id) + "</b> brewed" + (c.brewed ? " · ✨ brewed today" : c.ready ? " · ready!" : "") + "</span>" +
-      '<button class="btn ghost small" data-ptdel="' + t.id + '">Delete team</button></div>' +
+    const c = teamDay(E, cls, t, students, today), changed = recipeChanged(E, cls, t, today), id = k + ":" + t.id;
+    h += '<div class="pteamrow"><div class="row" style="gap:8px;align-items:center;justify-content:space-between;"><input data-ptname="' + id + '" value="' + esc(t.name) + '" style="font-weight:700;max-width:220px;" aria-label="Team name">' +
+      '<span class="small">' + (t.members || []).length + " students · <b>" + brewCount(E, cls, t.id) + "</b> " + E.many + (c.brewed ? " · ✨ done today" : c.ready ? " · ready!" : "") + "</span>" +
+      '<button class="btn ghost small" data-ptdel="' + id + '">Delete team</button></div>' +
       '<div class="row pneed" style="gap:10px;margin-top:8px;align-items:center;flex-wrap:wrap;"><span class="small"><b>Today:</b></span>' +
-      INGREDIENTS.map(g => '<label class="small">' + g.icon + " " + c.have[g.k] + ' / <input type="number" min="0" data-pneed="' + t.id + ":" + g.k + '" value="' + c.need[g.k] + '"></label>').join("") +
-      '<button class="btn small" data-ptrecipe="' + t.id + '">Save recipe</button>' + (changed ? '<button class="btn ghost small" data-ptreset="' + t.id + '">Use the game’s recipe</button>' : '<span class="muted small">(picked by the game)</span>') + "</div></div>";
+      (c.dish ? '<span class="small">' + esc(c.dish.name) + ":</span>" : "") + c.ing.map(g => '<label class="small" title="' + esc(g.name) + '">' + g.icon + " " + c.have[g.k] + ' / <input type="number" min="0" data-pneed="' + id + ":" + g.k + '" value="' + c.need[g.k] + '"></label>').join("") +
+      '<button class="btn small" data-ptrecipe="' + id + '">Save ' + E.recipe + "</button>" + (changed ? '<button class="btn ghost small" data-ptreset="' + id + '">Use the game’s ' + E.recipe + "</button>" : '<span class="muted small">(picked by the game)</span>') + "</div></div>";
   });
-  h += '<div class="row" style="margin-top:8px;"><button class="btn small" data-act="potAddTeam">➕ Add a team</button></div>';
-  // who's on which team
+  h += '<div class="row" style="margin-top:8px;"><button class="btn small" data-act="tevAddTeam" data-ev="' + k + '">➕ Add a team</button></div>';
   if (list.length) {
-    const none = kids.filter(x => !potTeamOf(cls, x.id)).length;
-    h += '<details style="margin-top:12px;"' + (busy.potOpen ? " open" : "") + '><summary data-act="potOpen"><b>\u{1F465} Put students on teams</b> <span class="muted small">' + (none ? none + " not on a team" : "everyone is on a team") + "</span></summary>" +
-      '<div class="ptgrid">' + kids.map(x => { const tm = potTeamOf(cls, x.id); return '<label><span>' + esc(x.name) + '</span><select data-ptmember="' + x.id + '"><option value="">—</option>' +
+    const none = kids.filter(x => !tevTeamOf(E, cls, x.id)).length;
+    h += '<details style="margin-top:12px;"' + (busy["tevOpen" + k] ? " open" : "") + '><summary data-act="tevOpen" data-ev="' + k + '"><b>\u{1F465} Put students on teams</b> <span class="muted small">' + (none ? none + " not on a team" : "everyone is on a team") + "</span></summary>" +
+      '<div class="ptgrid">' + kids.map(x => { const tm = tevTeamOf(E, cls, x.id); return '<label><span>' + esc(x.name) + '</span><select data-ptmember="' + k + ":" + x.id + '"><option value="">—</option>' +
         list.map(t => '<option value="' + t.id + '"' + (tm && tm.id === t.id ? " selected" : "") + ">" + esc(t.name) + "</option>").join("") + "</select></label>"; }).join("") + "</div></details>";
-  }
-  // standings + the top-team Legendary
-  if (list.length) {
-    const st = potStandings(cls), top = topTeams(cls), given = cls.potionTop;
-    h += '<h3 style="margin-top:14px;">\u{1F3C6} Standings</h3><ol class="pstand">' + st.map(x => "<li>" + esc(x.t.name) + " — <b>" + x.n + "</b> potion" + (x.n === 1 ? "" : "s") + "</li>").join("") + "</ol>";
+    const st = tevStandings(E, cls), top = topTeams(E, cls), given = cls[topField(E)];
+    h += '<h3 style="margin-top:14px;">\u{1F3C6} Standings</h3><ol class="pstand">' + st.map(x => "<li>" + esc(x.t.name) + " — <b>" + x.n + "</b> " + (x.n === 1 ? E.one : E.many) + "</li>").join("") + "</ol>";
     if (given) h += '<p class="small">✅ Special Legendary eggs given to ' + esc((given.teams || []).map(id => (list.find(t => t.id === id) || { name: "a team" }).name).join(" & ")) + ".</p>";
-    else if (!POTION_LEGENDARY) h += '<p class="muted small">At the end of Haunt-O-Ween the top team (ties all win) gets a special Legendary egg. The button shows up here once the creature is added.</p>';
-    else h += '<div class="row" style="margin-top:6px;"><button class="btn small" data-act="potAward"' + (top.length ? "" : " disabled") + '>\u{1F3C6} Give the special Legendary egg to ' + (top.length ? esc(top.map(t => t.name).join(" & ")) : "the top team") + "</button></div>";
+    else if (!E.leg) h += '<p class="muted small">At the end of ' + E.seasonName + " the top team (ties all win) gets a special Legendary egg. The button shows up here once the creature is added.</p>";
+    else h += '<div class="row" style="margin-top:6px;"><button class="btn small" data-act="tevAward" data-ev="' + k + '"' + (top.length ? "" : " disabled") + ">\u{1F3C6} Give the " + esc(E.legName) + " egg to " + (top.length ? esc(top.map(t => t.name).join(" & ")) : "the top team") + "</button></div>";
   }
   return h + "</div>";
 }
-async function savePotTeams(list, msg) { try { await updateDoc(classRef, { potionTeams: list }); if (msg) flash(msg); } catch (e) { flash("Couldn’t save — " + (e.code || e.message)); } }
-async function potCheckNow() {
-  const date = azToday(), pot = brewRewards(cls, students, date); if (!pot) return;
-  if (!pot.updates.length && !pot.classData) { flash("No new potions yet today."); return; }
+async function saveTevTeams(E, list, msg) { try { await updateDoc(classRef, { [E.p + "Teams"]: list }); if (msg) flash(msg); } catch (e) { flash("Couldn’t save — " + (e.code || e.message)); } }
+async function tevCheckNow(E) {
+  const date = azToday(), pot = brewRewards(E, cls, students, date); if (!pot) return;
+  if (!pot.updates.length && !pot.classData) { flash("No team has finished yet today."); return; }
   const batch = writeBatch(db); pot.updates.forEach(u => batch.update(studentRef(u.st.id), u.data)); if (pot.classData) batch.update(classRef, pot.classData);
-  try { await batch.commit(); flash("\u{1F9EA} Potion brewed: " + (pot.newTeams.map(t => t.name).join(", ") || "rewards caught up") + "!"); } catch (e) { flash("Couldn’t save — " + (e.code || e.message)); }
+  try { await batch.commit(); flash(E.icon + " " + E.done + " " + (pot.newTeams.map(t => t.name).join(", ") || "rewards caught up")); } catch (e) { flash("Couldn’t save — " + (e.code || e.message)); }
 }
+const tevOf = v => { const [k, ...rest] = String(v || "").split(":"); return { E: TEAM_EVENTS[k], rest }; };
 async function setDoor(sid, date, i, st) {
   try { await updateDoc(studentRef(sid), { ["doors." + date + "." + i + ".st"]: st, ["doors." + date + "." + i + ".checked"]: new Date().toISOString() }); }
   catch (e) { flash("Couldn\u2019t save that \u2014 " + (e.code || e.message)); }
@@ -886,7 +931,7 @@ function viewShop() {
   const rows = [];
   students.forEach(s => (s.purchases || []).forEach((p, idx) => rows.push({ s, p, idx })));
   rows.sort((a, b) => String(b.p.at).localeCompare(String(a.p.at)));
-  const S = SEASON, anyItem = id => byId(S.store, id) || byId(SEASONS.haunt.store, id) || byId(SEASONS.gobble.store, id) || byId(SEASONS.jingle.store, id);
+  const S = SEASON, anyItem = id => byId(S.store, id) || byId(SEASONS.haunt.store, id) || byId(SEASONS.gobble.store, id) || byId(SEASONS.jingle.store, id) || byId(SEASONS.frost.store, id) || byId(SEASONS.heart.store, id);
   let h = '<div class="card"><div class="card-head"><h2>' + S.coin + " " + S.shop + ' purchases</h2><span class="fact">' + rows.length + " total</span></div>" +
     '<p class="lede" style="font-size:13px;margin-bottom:10px;">In the shop now: ' + S.store.map(it => storeArt(it, "gimg") + " " + esc(it.name) + " (" + it.cost + ")").join(" \u00b7 ") + "</p>";
   if (!rows.length) return h + '<p class="lede">No purchases yet.</p></div>';
@@ -932,7 +977,15 @@ function ghostSettings() {
     '<button class="btn ghost" data-act="saveBoss">Save</button>' +
     '<button class="btn ghost" data-act="newBoss">' + (busy.confirmBoss ? "Yes \u2014 summon a new one" : "Summon a new " + S.boss) + "</button></div>" +
     '<p class="lede" style="font-size:12.5px;margin-top:8px;">A new ' + S.boss + " starts at full health. Past attacks don\u2019t count against it.</p>" +
-    '<p class="lede" style="font-size:13px;margin-top:8px;">' + (j
+    '<p class="lede" style="font-size:13px;margin-top:8px;">' + (S.key === "heart"
+      ? (heartUnlocked(cls)
+        ? "\u2705 <b>Unlocked for good:</b> the Cupid Crown (5-day streak), the Chocolate Strawberry snack (3-day streak) and the Heartbreaker-otl lunch sidekick."
+        : "\u{1F512} Defeat the first Heartbreaker-otl to unlock the <b>Cupid Crown</b> (5-day streak), the <b>Chocolate Strawberry</b> snack (3-day streak) and the <b>Heartbreaker-otl</b> lunch sidekick. They stay unlocked after Sweetheart Showdown.")
+      : S.key === "frost"
+      ? (yetiUnlocked(cls)
+        ? "\u2705 <b>Unlocked for good:</b> the Cozy Earmuffs (5-day streak), the Snow Cone snack (3-day streak) and the Snowlotl lunch sidekick."
+        : "\u{1F512} Defeat the first Abominable Snowlotl to unlock the <b>Cozy Earmuffs</b> (5-day streak), the <b>Snow Cone</b> snack (3-day streak) and the <b>Snowlotl</b> lunch sidekick. They stay unlocked after Frostbite Festival.")
+      : j
       ? (grinchUnlocked(cls)
         ? "\u2705 <b>Unlocked for good:</b> the Reindeer Antlers (5-day streak), the Hot Cocoa snack (3-day streak) and the Grinch-a-Duck lunch sidekick."
         : "\u{1F512} Defeat the first Grinch-a-Duck to unlock the <b>Reindeer Antlers</b> (5-day streak), the <b>Hot Cocoa</b> snack (3-day streak) and the <b>Grinch-a-Duck</b> lunch sidekick. They stay unlocked after Jingle Jam.")
@@ -946,9 +999,9 @@ function ghostSettings() {
 }
 
 function viewModes() {
-  const on = isHaunt(cls), gob = isGobble(cls), jin = isJingle(cls);
+  const on = isHaunt(cls), gob = isGobble(cls), jin = isJingle(cls), fro = isFrost(cls), hrt = isHeart(cls);
   const md = d => new Date(d + "T12:00:00").toLocaleDateString(undefined, { month: "long", day: "numeric" });
-  return '<div class="card"><div class="card-head"><h2>\u2728 Special modes</h2><span class="fact">' + (on ? "<b>Haunt-O-Ween is on</b>" : gob ? "<b>Gobble-Palooza is on</b>" : jin ? "<b>Jingle Jam is on</b>" : "none on") + "</span></div>" +
+  return '<div class="card"><div class="card-head"><h2>\u2728 Special modes</h2><span class="fact">' + (on ? "<b>Haunt-O-Ween is on</b>" : gob ? "<b>Gobble-Palooza is on</b>" : jin ? "<b>Jingle Jam is on</b>" : fro ? "<b>Frostbite Festival is on</b>" : hrt ? "<b>Sweetheart Showdown is on</b>" : "none on") + "</span></div>" +
     '<label class="modebox"><input type="checkbox" id="hauntBox"' + (on ? " checked" : "") + (busy.hauntAsk ? " disabled" : "") + '><span><b>\u{1F383} Haunt-O-Ween Mode</b>' +
     '<small>Adds candy baskets, the Candy Shop, the Trick or Treat Wheel, Ms. Ariana\u2019s bucket and the \u2694\uFE0F Battle Area with the Ghost-olotl. All the normal rules keep working. ' +
     "Turn it off and all of that is hidden from you and your students.</small></span></label>" +
@@ -966,7 +1019,17 @@ function viewModes() {
     "<small>Presents under a mini tree, the Jingle Shop, the Present Wheel, the Grinch\u2019s Sack and the \u2694\uFE0F Battle Area with the Grinch-a-Duck. " +
     "It turns itself on the first time you open this console on or after " + md(JINGLE_FROM) + " and off after " + md(JINGLE_TO) +
     ". Turning it on turns the other modes off and starts everyone\u2019s presents at 0 (spins, extra attacks and cocoas/pies/brews they already have carry over).</small></span></label>" +
-    (jin ? ghostSettings() : "") + "</div>";
+    (jin ? ghostSettings() : "") +
+    '<label class="modebox" style="margin-top:12px;"><input type="checkbox" id="frostBox"' + (fro ? " checked" : "") + '><span><b>\u2744\uFE0F Frostbite Festival</b>' +
+    "<small>Snowflakes in a snow globe, the Snow Shop, the Blizzard Wheel, Frozen Doors and the \u2694\uFE0F Battle Area with the Abominable Snowlotl. " +
+    "Each 120 XP day packs a snowball; every student who misses adds a snow block to the Snowlotl\u2019s wall. You turn it on and off yourself (it isn\u2019t automatic). " +
+    "Turning it on turns the other modes off and starts everyone\u2019s snowflakes at 0.</small></span></label>" +
+    (fro ? ghostSettings() : "") +
+    '<label class="modebox" style="margin-top:12px;"><input type="checkbox" id="heartBox"' + (hrt ? " checked" : "") + '><span><b>\u{1F498} Sweetheart Showdown</b>' +
+    "<small>Candy hearts in a candy jar, the Sweet Shop, the Sweetheart Spinner, Mailbox Doors, Ms. Ariana\u2019s Candy Jar and the \u2694\uFE0F Battle Area with the Heartbreaker-otl. " +
+    "Every XP over 120 is a candy heart; every student who misses adds 50 hearts to your jar, which you can spend to heal the Heartbreaker-otl. You turn it on and off yourself (it isn\u2019t automatic). " +
+    "Turning it on turns the other modes off and starts everyone\u2019s hearts at 0.</small></span></label>" +
+    (hrt ? ghostSettings() : "") + "</div>";
 }
 function viewClassSettings() {
   return '<div class="card"><div class="card-head"><h2>Class settings</h2></div><div class="row">' +
@@ -1193,13 +1256,13 @@ async function applyUpload(up) {
     batch.update(studentRef(s.id), data);
   });
   if (up.kind === "day") { const rec = recordedDays(cls); if (!rec[d]) { rec[d] = true; batch.update(classRef, { recorded: rec }); } }
-  // Potion Brewing Teams: brew every team whose cauldron now has the whole recipe
-  const pot = Object.keys(subs).length ? brewRewards(cls, students, date) : null;
-  if (pot) { pot.updates.forEach(u => batch.update(studentRef(u.st.id), u.data)); if (pot.classData) batch.update(classRef, pot.classData); }
+  // Team events (Potions, Feast Table): every team that now has the whole recipe/menu is done for the day
+  const pots = Object.keys(subs).length ? EVENT_LIST.map(E => ({ E, r: brewRewards(E, cls, students, date) })).filter(x => x.r) : [];
+  pots.forEach(({ r }) => { r.updates.forEach(u => batch.update(studentRef(u.st.id), u.data)); if (r.classData) batch.update(classRef, r.classData); });
   try { await batch.commit(); } catch (e) { flash("Upload didn’t save — " + (e.code || e.message)); }
   busy.upReport = { kind: up.kind, day: d, file: up.file, matched, hit, missing, unmatched, autoN };
   const weekMsg = weekN ? " \u{1F6AA} " + weekN + " student" + (weekN === 1 ? "" : "s") + " unlocked the Weekly Door!" : "";
-  const potMsg = (pot && pot.newTeams.length ? " \u{1F9EA} Potion brewed: " + pot.newTeams.map(t => t.name).join(", ") + "!" : "") + weekMsg;
+  const potMsg = pots.filter(x => x.r.newTeams.length).map(x => " " + x.E.icon + " " + x.E.done + " " + x.r.newTeams.map(t => t.name).join(", ")).join("") + weekMsg;
   if (autoN || potMsg) flash((autoN ? "\u{1F6AA} Auto-approved " + autoN + " door" + (autoN === 1 ? "" : "s") + " from the subject XP." : "") + potMsg);
   render();
 }
@@ -1211,13 +1274,13 @@ document.addEventListener("input", ev => {
 document.addEventListener("change", async ev => {
   if (ev.target.dataset && ev.target.dataset.qstart) { await questTeacherChange(ev.target, { patch }); return; }
   if (ev.target.dataset && ev.target.dataset.ptmember) {
-    busy.potOpen = true; const sid = ev.target.dataset.ptmember, to = ev.target.value;
-    const list = potTeams(cls).map(t => Object.assign({}, t, { members: (t.members || []).filter(id => id !== sid).concat(t.id === to ? [sid] : []) }));
-    await savePotTeams(list); return;
+    const { E, rest } = tevOf(ev.target.dataset.ptmember); if (!E) return; busy["tevOpen" + E.key] = true;
+    const sid = rest[0], to = ev.target.value;
+    await saveTevTeams(E, tevTeams(E, cls).map(t => Object.assign({}, t, { members: (t.members || []).filter(id => id !== sid).concat(t.id === to ? [sid] : []) }))); return;
   }
   if (ev.target.dataset && ev.target.dataset.ptname) {
-    const id = ev.target.dataset.ptname, nm = ev.target.value.trim().slice(0, 40); if (!nm) return;
-    await savePotTeams(potTeams(cls).map(t => t.id === id ? Object.assign({}, t, { name: nm }) : t), "Saved \u2014 team name."); return;
+    const { E, rest } = tevOf(ev.target.dataset.ptname), nm = ev.target.value.trim().slice(0, 40); if (!E || !nm) return;
+    await saveTevTeams(E, tevTeams(E, cls).map(t => t.id === rest[0] ? Object.assign({}, t, { name: nm }) : t), "Saved \u2014 team name."); return;
   }
   if (ev.target.dataset && ev.target.dataset.goalsub) { busy.goalOpen = true; await patch(ev.target.dataset.goalsub, { goalSubject: ev.target.value || null }); return; }
   if (ev.target.id === "goalAll" && ev.target.value) {
@@ -1232,6 +1295,8 @@ document.addEventListener("change", async ev => {
   if (id === "hauntBox") { await toggleHaunt(); return; }
   if (id === "gobbleBox") { await toggleGobble(); return; }
   if (id === "jingleBox") { await toggleJingle(); return; }
+  if (id === "frostBox") { await toggleFrost(); return; }
+  if (id === "heartBox") { await toggleHeart(); return; }
   if (ev.target.dataset && ev.target.dataset.trready) { if (cls) onTradeReady(ev.target, tctx()); return; }
   if (ev.target.dataset && ev.target.dataset.trsel) { if (cls) onTradeChange(ev.target, tctx()); return; }
   if (id === "lunchBonusBox") { const on = ev.target.checked; try { await updateDoc(classRef, { lunchBonus: on }); flash("Saved \u2014 Lunch Hero bonus egg " + (on ? "on" : "off") + "."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
@@ -1401,24 +1466,25 @@ document.addEventListener("click", async ev => {
     if (!k || el.dataset.ask) { busy.hitReset = k || null; render(); return; }
     busy.hitReset = null;
     const snap = {}; students.forEach(st => { snap[st.id] = rawHits(st)[k]; });
-    try { await updateDoc(classRef, { ["hitBase." + k]: snap, ["hitReset." + k]: new Date().toISOString() }); flash("Saved \u2014 the " + ({ haunt: "Haunt-O-Ween", gobble: "Gobble-Palooza", jingle: "Jingle Jam" }[k]) + " hit count starts over from 0."); }
+    try { await updateDoc(classRef, { ["hitBase." + k]: snap, ["hitReset." + k]: new Date().toISOString() }); flash("Saved \u2014 the " + ({ haunt: "Haunt-O-Ween", gobble: "Gobble-Palooza", jingle: "Jingle Jam", frost: "Frostbite Festival", heart: "Sweetheart Showdown" }[k]) + " hit count starts over from 0."); }
     catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); }
     return;
   }
   if ((el = ev.target.closest("[data-ptdel]"))) {
-    const t = potTeams(cls).find(x => x.id === el.dataset.ptdel); if (!t) return;
-    if (!confirm("Delete " + t.name + "? Its students go back to no team (potions they already brewed stay).")) return;
-    await savePotTeams(potTeams(cls).filter(x => x.id !== t.id), "Deleted " + t.name + "."); return;
+    const { E, rest } = tevOf(el.dataset.ptdel), t = E && tevTeams(E, cls).find(x => x.id === rest[0]); if (!t) return;
+    if (!confirm("Delete " + t.name + "? Its students go back to no team (what they already finished stays).")) return;
+    await saveTevTeams(E, tevTeams(E, cls).filter(x => x.id !== t.id), "Deleted " + t.name + "."); return;
   }
   if ((el = ev.target.closest("[data-ptrecipe]"))) {
-    const tid = el.dataset.ptrecipe, r = {}, date = azToday();
-    INGREDIENTS.forEach(g => { const n = document.querySelector('[data-pneed="' + tid + ":" + g.k + '"]'); r[g.k] = Math.max(0, Math.floor(Number(n && n.value) || 0)); });
-    try { await updateDoc(classRef, { ["potionRecipe." + date + "." + tid]: r }); flash("Saved today\u2019s recipe."); } catch (e) { flash("Couldn\u2019t save \u2014 " + (e.code || e.message)); }
+    const { E, rest } = tevOf(el.dataset.ptrecipe); if (!E) return; const tid = rest[0], r = {}, date = azToday();
+    E.ing.forEach(g => { const n = document.querySelector('[data-pneed="' + E.key + ":" + tid + ":" + g.k + '"]'); r[g.k] = Math.max(0, Math.floor(Number(n && n.value) || 0)); });
+    try { await updateDoc(classRef, { [E.p + "Recipe." + date + "." + tid]: r }); flash("Saved today\u2019s " + E.recipe + "."); } catch (e) { flash("Couldn\u2019t save \u2014 " + (e.code || e.message)); }
     return;
   }
   if ((el = ev.target.closest("[data-ptreset]"))) {
-    const date = azToday(), day = Object.assign({}, (cls.potionRecipe || {})[date] || {}); delete day[el.dataset.ptreset];
-    try { await updateDoc(classRef, { ["potionRecipe." + date]: day }); flash("Back to the game\u2019s recipe."); } catch (e) { flash("Couldn\u2019t save \u2014 " + (e.code || e.message)); }
+    const { E, rest } = tevOf(el.dataset.ptreset); if (!E) return;
+    const date = azToday(), day = Object.assign({}, (cls[E.p + "Recipe"] || {})[date] || {}); delete day[rest[0]];
+    try { await updateDoc(classRef, { [E.p + "Recipe." + date]: day }); flash("Back to the game\u2019s " + E.recipe + "."); } catch (e) { flash("Couldn\u2019t save \u2014 " + (e.code || e.message)); }
     return;
   }
   if ((el = ev.target.closest("[data-hitsort]"))) { busy.hitSort = el.dataset.hitsort; render(); return; }
@@ -1451,8 +1517,10 @@ document.addEventListener("click", async ev => {
     if (p.id === "witchhat") { data.witchHat = false; if (s.equipped === "witch") data.equipped = null; }
     if (p.id === "pilgrimhat") { data.pilgrimHat = false; if (s.equipped === "pilgrim") data.equipped = null; }
     if (p.id === "antlers") { data.antlersHat = false; if (s.equipped === "antlers") data.equipped = null; }
-    if (p.id === "brew" || p.id === "pie" || p.id === "cocoa") data.brews = dec("brews");
-    if (p.id === "attack") data.extraAttacks = dec("extraAttacks");
+    if (p.id === "earmuffs") { data.earmuffsHat = false; if (s.equipped === "earmuffs") data.equipped = null; }
+    if (p.id === "cupidcrown") { data.crownHat = false; if (s.equipped === "cupidcrown") data.equipped = null; }
+    if (p.id === "brew" || p.id === "pie" || p.id === "cocoa" || p.id === "strawberry") data.brews = dec("brews");
+    if (p.id === "attack" || p.id === "snowball") data.extraAttacks = dec("extraAttacks");
     if (p.id === "spin") data.spins = dec("spins");
     return patch(sid, data);
   }
@@ -1483,17 +1551,21 @@ document.addEventListener("click", async ev => {
     return;
   }
   if (act === "weekCheck") { try { const n = await weekCheck(); flash(n ? "\u{1F6AA} Unlocked the Weekly Door for " + n + " student" + (n === 1 ? "" : "s") + "!" : "Nobody new has reached the goal yet."); } catch (e) { flash("Couldn\u2019t save \u2014 " + (e.code || e.message)); } return; }
-  if (act === "potToggle") { const on = !cls.potionOn; try { await updateDoc(classRef, { potionOn: on }); flash("Saved \u2014 Potion Teams " + (on ? "on" : "off") + "."); } catch (e) { flash("Couldn\u2019t change that \u2014 " + e.code); } return; }
-  if (act === "potAddTeam") { const list = potTeams(cls); await savePotTeams(list.concat([{ id: "t" + Date.now().toString(36), name: "Team " + (list.length + 1), members: [] }]), "Added a team \u2014 type its name and put students on it."); return; }
-  if (act === "potOpen") { busy.potOpen = !busy.potOpen; return; }
-  if (act === "potCheck") { await potCheckNow(); return; }
-  if (act === "potAward") {
-    const top = topTeams(cls); if (!POTION_LEGENDARY || !top.length || cls.potionTop) return;
-    if (!confirm("Give the special Legendary egg to everyone on " + top.map(t => t.name).join(" & ") + "?")) return;
-    const ids = [...new Set(top.flatMap(t => t.members || []))], batch = writeBatch(db);
-    ids.forEach(id => { const st = students.find(x => x.id === id); if (st) batch.update(studentRef(id), { potionLegEggs: (Number(st.potionLegEggs) || 0) + 1 }); });
-    batch.update(classRef, { potionTop: { at: new Date().toISOString(), teams: top.map(t => t.id) } });
-    try { await batch.commit(); flash("\u{1F3C6} Gave the special Legendary egg to " + ids.length + " students!"); } catch (e) { flash("Couldn\u2019t save \u2014 " + (e.code || e.message)); }
+  if (act && act.startsWith("tev")) {
+    const E = TEAM_EVENTS[el.dataset.ev]; if (!E) return;
+    if (act === "tevToggle") { const on = !cls[E.p + "On"]; try { await updateDoc(classRef, { [E.p + "On"]: on }); flash("Saved \u2014 " + E.title + " " + (on ? "on" : "off") + "."); } catch (e) { flash("Couldn\u2019t change that \u2014 " + e.code); } return; }
+    if (act === "tevAddTeam") { const list = tevTeams(E, cls); await saveTevTeams(E, list.concat([{ id: "t" + Date.now().toString(36), name: "Team " + (list.length + 1), members: [] }]), "Added a team \u2014 type its name and put students on it."); return; }
+    if (act === "tevOpen") { busy["tevOpen" + E.key] = !busy["tevOpen" + E.key]; return; }
+    if (act === "tevCheck") { await tevCheckNow(E); return; }
+    if (act === "tevAward") {
+      const top = topTeams(E, cls); if (!E.leg || !top.length || cls[topField(E)]) return;
+      if (!confirm("Give the " + E.legName + " egg to everyone on " + top.map(t => t.name).join(" & ") + "?")) return;
+      const ids = [...new Set(top.flatMap(t => t.members || []))], batch = writeBatch(db), f = legField(E);
+      ids.forEach(id => { const st = students.find(x => x.id === id); if (st) batch.update(studentRef(id), { [f]: (Number(st[f]) || 0) + 1 }); });
+      batch.update(classRef, { [topField(E)]: { at: new Date().toISOString(), teams: top.map(t => t.id) } });
+      try { await batch.commit(); flash("\u{1F3C6} Gave the " + E.legName + " egg to " + ids.length + " students!"); } catch (e) { flash("Couldn\u2019t save \u2014 " + (e.code || e.message)); }
+      return;
+    }
     return;
   }
   if (act === "doorsToggle") { const on = !cls.doorsOn; try { await updateDoc(classRef, { doorsOn: on }); flash("Saved \u2014 " + (DOOR_NAMES[SEASON.key] || "Daily Doors") + " is " + (on ? "on" : "off") + "."); } catch (e) { flash("Couldn\u2019t change that \u2014 " + e.code); } return; }
@@ -1541,7 +1613,7 @@ document.addEventListener("click", async ev => {
   if (act === "battleView") { mode = "battle"; render(); scrollTo({ top: 0 }); return; }
   if (act === "saveBoss") {
     try {
-      await updateDoc(classRef, { bossHP: Math.max(10, Math.floor(Number(document.getElementById("gBossHP").value) || 6500)),
+      await updateDoc(classRef, { bossHP: Math.max(10, Math.floor(Number(document.getElementById("gBossHP").value) || BOSS_START_HP)),
         bossDmg: Math.max(1, Math.floor(Number(document.getElementById("gBossDmg").value) || 50)) });
       flash("Saved the " + SEASON.boss + ".");
     } catch (e) { flash("Couldn’t save — " + e.code); }
@@ -1550,7 +1622,8 @@ document.addEventListener("click", async ev => {
   if (act === "newBoss") {
     if (!busy.confirmBoss) { busy.confirmBoss = true; render(); return; }
     busy.confirmBoss = false;
-    try { await updateDoc(classRef, { bossBase: bossState(cls, students).total, bossBaseHits: bossState(cls, students).totalHits, bossHealed: 0 }); flash("Saved — a new " + SEASON.boss + " appears!"); } catch (e) { flash("Couldn’t summon — " + e.code); }
+    const nb = bossState(cls, students), wl = nb.wall ? { wallMark: 0, wallAt: nb.wall.built, wallAbs: nb.wall.built - nb.wall.left } : {};   // a standing snow wall stays up
+    try { await updateDoc(classRef, Object.assign({ bossHP: BOSS_START_HP, bossBase: nb.total, bossBaseHits: nb.totalHits, bossHealed: 0 }, wl)); flash("Saved — a new " + SEASON.boss + " appears!"); } catch (e) { flash("Couldn’t summon — " + e.code); }
     return;
   }
   if (act === "saveClass") {
@@ -1628,9 +1701,10 @@ document.addEventListener("click", async ev => {
     const tEggs = Math.max(0, (Number(tt.eggsEarned) || 0) - (tprev ? tprev.eggs : 0) + tr.eggs), tXp = Math.max(0, (Number(tt.xpEarned) || 0) - (tprev ? tprev.xp : 0) + tr.xp);
     batch.update(classRef, { recorded: rec, finalized: fin, finalAmt: amt, finalDied: died.map(x => x.join(",")),
       bucketEarned: (Number(cls.bucketEarned) || 0) + f.candy, rewardLog: rewards.slice(0, 60),
+      ...(isFrost(cls) ? wallMarks(cls, students, (Number(cls.bucketEarned) || 0) + f.candy) : {}),   // the new snow blocks go on top of what's standing
       "teacher.eggsEarned": tEggs, "teacher.xpEarned": tXp, ["teacherLog." + date]: { eggs: tr.eggs, xp: tr.xp } });
     f.died.forEach(x => batch.update(studentRef(x.id), { deaths: (x.deaths || []).concat([{ date, day: d, week: cls.weekLabel || "" }]) }));
-    try { await batch.commit(); flash("Saved \u2014 " + DAYS[d] + " is finalized." + (f.candy ? " +" + f.candy + " candy for Ms. Ariana!" : "") + " You earned " + tr.eggs + " egg" + (tr.eggs === 1 ? "" : "s") + " and " + tr.xp + " XP for your creatures."); } catch (e) { flash("Couldn\u2019t finalize \u2014 " + e.code); }
+    try { await batch.commit(); flash("Saved \u2014 " + DAYS[d] + " is finalized." + (f.candy ? (isFrost(cls) ? " The Snowlotl built +" + f.candy + " HP of snow wall!" : " +" + f.candy + " " + (isHeart(cls) ? "candy hearts" : SEASON.cur) + " for Ms. Ariana!") : "") + " You earned " + tr.eggs + " egg" + (tr.eggs === 1 ? "" : "s") + " and " + tr.xp + " XP for your creatures."); } catch (e) { flash("Couldn\u2019t finalize \u2014 " + e.code); }
     return;
   }
   if (act === "unfinalize") {
@@ -1642,6 +1716,7 @@ document.addEventListener("click", async ev => {
     const date = dateOfDay(d);
     const tlog = (cls.teacherLog || {})[date], tt = cls.teacher || {};
     batch.update(classRef, { finalized: fin, finalAmt: amt, finalDied: diedStr, bucketEarned: Math.max(0, (Number(cls.bucketEarned) || 0) - back),
+      ...(isFrost(cls) ? wallMarks(cls, students, Math.max(0, (Number(cls.bucketEarned) || 0) - back)) : {}),
       rewardLog: (cls.rewardLog || []).filter(r => !(r.date === date && r.day === d)),
       ...(tlog ? { "teacher.eggsEarned": Math.max(0, (Number(tt.eggsEarned) || 0) - tlog.eggs), "teacher.xpEarned": Math.max(0, (Number(tt.xpEarned) || 0) - tlog.xp), ["teacherLog." + date]: null } : {}) });
     ids.forEach(id => { const x = sOf(id); if (x) batch.update(studentRef(id), { deaths: (x.deaths || []).filter(e => !(e.date === date && e.day === d)) }); });
