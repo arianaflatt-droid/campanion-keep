@@ -5,15 +5,15 @@
    Saved on the student: cpEarned (teacher writes), cpSpent, roomOwned [item ids], roomFit { slot: id }, roomBuys [{ id, cost, at }].
    Item ids are "{kind}_{theme}" (e.g. bed_dragon); art is assets/room/{id}.webp. Trophies are trophy_{season}.
    The room picture is 1536x1024; everything below is placed in % of that. */
-import { azToday } from "./collect.js?v=20261006z";
-import { questCP } from "./quest.js?v=20261006z";
-import { esc } from "./game.js?v=20261006z";
+import { azToday } from "./collect.js?v=20261007a";
+import { questCP } from "./quest.js?v=20261007a";
+import { esc } from "./game.js?v=20261007a";
 
 // Themes that have art so far. Add a theme name here once its 9 pieces are in assets/room/.
 export const TYPE_THEMES = ["fire", "water", "nature", "rock", "sky", "electric", "ice", "light", "dark", "ghost", "poison", "steel", "arcane", "crystal", "dragon"];
-export const SEASON_THEMES = { haunt: "Haunt-O-Ween", gobble: "Gobble-Palooza", jingle: "Jingle Jam", frost: "Frostbite Festival" };
+export const SEASON_THEMES = { haunt: "Haunt-O-Ween", gobble: "Gobble-Palooza", jingle: "Jingle Jam", frost: "Frostbite Festival", heart: "Sweetheart Showdown" };
 export const THEME_NAMES = { arcane: "Arcane", crystal: "Crystal", dark: "Dark", dragon: "Dragon", ghost: "Ghost", light: "Light", poison: "Poison", steel: "Steel",
-  fire: "Fire", water: "Water", nature: "Nature", rock: "Rock", sky: "Sky", electric: "Electric", ice: "Ice", haunt: "Haunt-O-Ween", gobble: "Gobble-Palooza", jingle: "Jingle Jam", frost: "Frostbite Festival" };
+  fire: "Fire", water: "Water", nature: "Nature", rock: "Rock", sky: "Sky", electric: "Electric", ice: "Ice", haunt: "Haunt-O-Ween", gobble: "Gobble-Palooza", jingle: "Jingle Jam", frost: "Frostbite Festival", heart: "Sweetheart Showdown" };
 // The 9 kinds of item in a set, and what they cost on the Everyday tab.
 export const KINDS = ["wallpaper", "flooring", "rug", "ceiling", "bed", "chair", "plant", "wall_art", "shelf"];
 export const KIND_NAMES = { wallpaper: "Wallpaper", flooring: "Floor", rug: "Rug", ceiling: "Ceiling light", bed: "Bed", chair: "Chair", plant: "Plant", wall_art: "Wall art", shelf: "Shelf decor", trophy: "Trophy" };
@@ -23,7 +23,7 @@ export const THEMED_PRICE = 75, SET_PRICE = 600, TROPHY_PRICE = 200;
 // The 10 places in the room you decorate (the window is built in). Both shelves take shelf decor or trophies.
 export const FIT_SLOTS = ["wallpaper", "flooring", "rug", "ceiling", "bed", "chair", "plant", "wall_art", "shelf_upper", "shelf_lower"];
 export const slotKind = slot => (slot === "shelf_upper" || slot === "shelf_lower" ? "shelf" : slot);
-export const TROPHIES = { haunt: { flag: "ghostDefeated", boss: "Ghost-olotl", icon: "\u{1F47B}" }, gobble: { flag: "turkeyDefeated", boss: "Turducken", icon: "\u{1F983}" }, jingle: { flag: "grinchDefeated", boss: "Grinch-a-Duck", icon: "\u{1F986}" }, frost: { flag: "yetiDefeated", boss: "Abominable Snowlotl", icon: "\u26C4" } };
+export const TROPHIES = { haunt: { flag: "ghostDefeated", boss: "Ghost-olotl", icon: "\u{1F47B}" }, gobble: { flag: "turkeyDefeated", boss: "Turducken", icon: "\u{1F983}" }, jingle: { flag: "grinchDefeated", boss: "Grinch-a-Duck", icon: "\u{1F986}" }, frost: { flag: "yetiDefeated", boss: "Abominable Snowlotl", icon: "\u26C4" }, heart: { flag: "heartDefeated", boss: "Heartbreaker-otl", icon: "\u{1F498}" } };
 
 // The everyday catalog (plain and patterned walls and floors, not part of a themed set).
 export const EVERYDAY_CATALOG = ["flooring_carpet-blush-pink", "flooring_carpet-cream", "flooring_carpet-ivory", "flooring_carpet-lavender", "flooring_carpet-olive", "flooring_carpet-sand", "flooring_carpet-seafoam", "flooring_carpet-taupe", "flooring_wood-auburn", "flooring_wood-dark-walnut", "flooring_wood-espresso", "flooring_wood-honey-oak", "flooring_wood-light-oak", "flooring_wood-medium-walnut", "flooring_wood-pale-ash", "flooring_wood-sage-green", "wallpaper_pattern-blue-swirl", "wallpaper_pattern-coral-swirl", "wallpaper_pattern-gold-swirl", "wallpaper_pattern-indigo-swirl", "wallpaper_pattern-lavender-swirl", "wallpaper_pattern-mint-swirl", "wallpaper_plain-amber-orange", "wallpaper_plain-coral-orange", "wallpaper_plain-deep-navy", "wallpaper_plain-navy-blue", "wallpaper_plain-seafoam-teal", "wallpaper_plain-warm-cream"];
@@ -80,7 +80,7 @@ export function everydayItems(st, date) {
 export const setItems = theme => KINDS.map(k => itemId(k, theme));
 export function setPrice(st, theme) { const left = setItems(theme).filter(id => !owned(st).includes(id)).length; return Math.min(SET_PRICE, left * THEMED_PRICE); }
 // Seasonal sets (and their trophy) are only for sale while that event is on.
-export function liveSeason(cls) { return cls && cls.frost ? "frost" : cls && cls.jingle ? "jingle" : cls && cls.gobble ? "gobble" : cls && cls.haunt ? "haunt" : null; }
+export function liveSeason(cls) { return cls && cls.heart ? "heart" : cls && cls.frost ? "frost" : cls && cls.jingle ? "jingle" : cls && cls.gobble ? "gobble" : cls && cls.haunt ? "haunt" : null; }
 export const trophyUnlocked = (cls, season) => !!(cls && cls[TROPHIES[season].flag]);
 
 /* ---------- drawing the room ---------- */
