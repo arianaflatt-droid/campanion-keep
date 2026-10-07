@@ -1174,3 +1174,11 @@ td .emo, .ic .emo{ display:inline-block; vertical-align:middle; font-size:1.3em;
   .candybox .cb-step{ position:absolute; left:50%; bottom:6px; transform:translateX(-50%); font-size:12px; font-weight:800; background:#FFE0EC; border:1px solid #C23B78; border-radius:999px; padding:2px 10px; white-space:nowrap; }
   .candybox.done .cb-step{ background:#FFE08A; }
   .ghostwrap .heart-fly{ position:absolute; left:-10%; bottom:10%; font-size:42px; animation:snowthrow .7s ease-out forwards; z-index:3; pointer-events:none; }
+  /* earlier days' doors (approved after the day ended) */
+  .olddays{ background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.25); border-radius:14px; padding:8px 12px; margin:8px 0; }
+  .olddays summary{ cursor:pointer; font-size:14px; }
+  .olddoor{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:6px 0; border-top:1px dashed rgba(255,255,255,.25); font-size:14px; }
+  .olddoor:first-of-type{ border-top:0; }
+  .olddoor .odn{ min-width:26px; height:26px; padding:0 4px; border-radius:50%; background:rgba(0,0,0,.25); display:inline-flex; align-items:center; justify-content:center; font-weight:800; font-size:12px; }
+  .olddoor .odt{ flex:1; min-width:140px; }
+  .presentbtn.small{ font-size:13px; padding:6px 12px; }

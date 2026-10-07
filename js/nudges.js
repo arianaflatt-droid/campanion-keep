@@ -1,8 +1,9 @@
 // Nudge messages: short, friendly "you're close!" notes at the top of a student's page.
 // Each rule returns a nudge or null; the most useful few are shown (lower pri = shown first).
-import { seasonOf, dayXP, simulate, GEAR, goalXP, arr5, esc, isHaunt, battleOn, nextAttack, companionOf, bossState } from "./game.js?v=20261007a";
-import { brewLegLeft, feastLegLeft, gingerLegLeft, snowLegLeft, candyLegLeft, pickleLeft, birthdayLeft, EVENTS, eventOpen, eventUnlocked, hasEvent, eventStreak, creature, family, azNow, pullsLeft, legendaryLeft, bankXP, LEVEL_XP, PULL_XP, hasStarter, owned, MAX_LEVEL } from "./collect.js?v=20261007a";
-import { badgeState } from "./badges.js?v=20261007a";
+import { seasonOf, dayXP, simulate, GEAR, goalXP, arr5, esc, isHaunt, battleOn, nextAttack, companionOf, bossState } from "./game.js?v=20261007b";
+import { azToday, brewLegLeft, feastLegLeft, gingerLegLeft, snowLegLeft, candyLegLeft, pickleLeft, birthdayLeft, EVENTS, eventOpen, eventUnlocked, hasEvent, eventStreak, creature, family, azNow, pullsLeft, legendaryLeft, bankXP, LEVEL_XP, PULL_XP, hasStarter, owned, MAX_LEVEL } from "./collect.js?v=20261007b";
+import { badgeState } from "./badges.js?v=20261007b";
+import { doorsLive, goldenReady, doorName } from "./doors.js?v=20261007b";
 
 const MAX_SHOWN = 3;
 const WEEKDAY = { Mon: 0, Tue: 1, Wed: 2, Thu: 3, Fri: 4 };
@@ -16,6 +17,12 @@ export function nudges(st, cls, battles, students) {
   const out = [];
   const add = (pri, icon, html, tab) => out.push({ pri, icon, html, tab });
 
+  // ---- presents from earlier days' doors (approved after the day ended) ----
+  if (doorsLive(cls)) {
+    const t = azToday(), earlier = Object.keys(st.doors || {}).filter(x => x < t);
+    const n = earlier.reduce((k, x) => k + Object.keys(st.doors[x] || {}).filter(i => i !== "g" && (st.doors[x][i] || {}).st === "ok").length + (goldenReady(st, cls, x) ? 1 : 0), 0);
+    if (n) add(0, "\u{1F381}", "<b>You have " + (n === 1 ? "a present" : n + " presents") + " from an earlier day\u2019s doors!</b> Open " + (n === 1 ? "it" : "them") + " in " + esc(doorName()) + ".", "doors");
+  }
   // ---- today's XP ----
   if (today != null && today < goal) {
     const left = goal - today, lunchOpen = !(cls && cls.lunchBonus === false) && azNow().h < 12;
