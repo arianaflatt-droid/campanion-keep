@@ -1,9 +1,9 @@
-import { formOf, sparkleImg, azNow, azToday } from "./collect.js?v=20261006y";
-import { heldWeapon } from "./quest.js?v=20261006y";
+import { formOf, sparkleImg, azNow, azToday } from "./collect.js?v=20261006z";
+import { heldWeapon } from "./quest.js?v=20261006z";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261006y";
+export const APP_V = "20261006z";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -748,7 +748,7 @@ export const PRIZES = [
   { name: "Ghost Sticker", short: "Ghost Sticker", icon: "\u{1F47B}", img: "assets/prizes/prize-1.png", link: "https://a.co/d/0bfdSD1g", kind: "treat" },
   { name: "100 XP", icon: "\u2B50", img: "", link: "", kind: "trick", xp: 100, chance: 0.30 },
   { name: "Ghost Straw Toppers", short: "Straw Ghosts", icon: "\u{1F47B}", img: "assets/prizes/prize-2.png", link: "https://a.co/d/01HySKGX", kind: "treat" },
-  { name: "Ghost Tumbler", icon: "\u{1F964}", img: "assets/prizes/prize-tumbler.png", link: "https://a.co/d/05GhiRAe", kind: "trick", rare: true, chance: 0.01 },
+  { name: "Ghost Glass Cup", short: "Ghost Cup", icon: "\u{1F964}", img: "assets/prizes/prize-ghostcup.png", link: "https://a.co/d/08GLsFV6", kind: "trick", rare: true, chance: 0.01 },
   { name: "Holographic Halloween Sticker Pack", short: "Stickers", icon: "\u2728", img: "assets/prizes/prize-3.png", link: "https://a.co/d/08s3F0Kq", kind: "treat" },
   { name: "100 XP", icon: "\u2B50", img: "", link: "", kind: "trick", xp: 100, chance: 0.30 },
   { name: "Ghost Pins", icon: "\u{1F47B}", img: "assets/prizes/prize-4.png", link: "https://a.co/d/015lDXCy", kind: "treat" },
