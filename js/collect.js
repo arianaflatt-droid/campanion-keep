@@ -1,5 +1,5 @@
 // Creature Collector: pulls, XP bank, levels, evolutions, lorebook and arena battles.
-import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261007a";
+import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261006y";
 
 export const PULL_XP = 120;          // every 120 XP (all-time since the collector started) = 1 pull
 export const LEVEL_XP = 120;         // 120 banked XP = 1 level
@@ -79,8 +79,6 @@ export const PICKLE_FAM = "L-31";
 export const BREW_FAM = "L-33";   // Brewraith: the top Potion Brewing Team's special egg
 export function brewLegLeft(st) { return Math.max(0, (Number(st && st.potionLegEggs) || 0) - (Number(st && st.potionLegUsed) || 0)); }
 export const SNOW_FAM = "L-38";   // Snowmorrow: the top Build-a-Snowman team's special egg
-export const CANDY_FAM = "L-40";   // Candivora: the top Candy Box team's special egg
-export function candyLegLeft(st) { return Math.max(0, (Number(st && st.candyboxLegEggs) || 0) - (Number(st && st.candyboxLegUsed) || 0)); }
 export function snowLegLeft(st) { return Math.max(0, (Number(st && st.snowmanLegEggs) || 0) - (Number(st && st.snowmanLegUsed) || 0)); }
 export const GINGER_FAM = "L-36";   // Gingermischief: the top Gingerbread House team's special egg
 export function gingerLegLeft(st) { return Math.max(0, (Number(st && st.gingerLegEggs) || 0) - (Number(st && st.gingerLegUsed) || 0)); }
@@ -92,8 +90,8 @@ export function legendaryLeft(st) { return Math.max(0, (Number(st.legendaryPulls
 export function bankXP(st, cls) { return Math.max(0, xpTotal(st, cls) + (Number(st.bonusXP) || 0) + (Number(st.xpReleased) || 0) + (Number(st.xpPrize) || 0) + (Number(st.doorXP) || 0) + (Number(st.questXP) || 0) - (Number(st.xpSpent) || 0)); }
 // Event eggs (from a Golden Present): st.themeEggs = ["jingle", ...], st.themeUsed = how many are hatched.
 // Each one hatches a creature of that event's types (normal rarity odds).
-export const THEME_TYPES = { haunt: ["Ghost"], gobble: ["Nature"], jingle: ["Ice", "Light"], frost: ["Ice"], heart: ["Light", "Nature"] };
-export const THEME_EGG = { haunt: "Haunt-O-Ween egg", gobble: "Gobble-Palooza egg", jingle: "Jingle egg", frost: "Frostbite egg", heart: "Sweetheart egg" };
+export const THEME_TYPES = { haunt: ["Ghost"], gobble: ["Nature"], jingle: ["Ice", "Light"], frost: ["Ice"] };
+export const THEME_EGG = { haunt: "Haunt-O-Ween egg", gobble: "Gobble-Palooza egg", jingle: "Jingle egg", frost: "Frostbite egg" };
 // Goal eggs (from a 125 XP Goal Subject door): st.goalEggs = ["rare" | event Legendary family id], st.goalUsed = hatched.
 export function goalLeft(st) { return Math.max(0, ((st && st.goalEggs) || []).length - (Number(st && st.goalUsed) || 0)); }
 export function nextGoal(st) { return ((st && st.goalEggs) || [])[Number(st && st.goalUsed) || 0] || null; }
@@ -171,8 +169,6 @@ export const EVENTS = [
   // Jinglotl: all of December (Jingle Jam). Unlocks for everyone once the class defeats the Grinch-a-Duck.
   // Midniduck: Frostbite Festival (January). On while the teacher has Frostbite Festival switched on. Unlocks for everyone once the class defeats the Abominable Snowlotl.
   { key: "frost", fam: "L-37", icon: "\u{1F386}", frost: true, label: "Frostbite Festival", boss: "yetiDefeated", bossName: "Abominable Snowlotl", streak: 5, first: 0.95, again: 0.01, againAfter: true },
-  // Amorduck: Sweetheart Showdown (February). On while the teacher has Sweetheart Showdown switched on. Unlocks for everyone once the class defeats the Heartbreaker-otl.
-  { key: "heart", fam: "L-39", icon: "\u{1F498}", heart: true, label: "Sweetheart Showdown", boss: "heartDefeated", bossName: "Heartbreaker-otl", streak: 5, first: 0.95, again: 0.01, againAfter: true },
   { key: "jingle", fam: "L-30", icon: "\u{1F384}", from: "2026-12-01", to: "2026-12-31", label: "Jingle Jam", boss: "grinchDefeated", bossName: "Grinch-a-Duck", streak: 5, first: 0.95, again: 0.01, againAfter: true },
 ];
 export const DUCK = EVENTS[0], HEX = EVENTS[1];
@@ -190,14 +186,12 @@ export function eventWindow(ev, cls) {
   if (ev.from) { const d = new Date(ev.from + "T12:00:00"), days = []; while (isoDate(d) <= ev.to) { if (d.getDay() > 0 && d.getDay() < 6) days.push(isoDate(d)); d.setDate(d.getDate() + 1); } return { start: ev.from, end: ev.to, days }; }
   if (ev.haunt) return { start: (cls && cls.hauntSince) || "0000-00-00", end: null };
   if (ev.frost) return { start: (cls && cls.frostSince) || "0000-00-00", end: null };
-  if (ev.heart) return { start: (cls && cls.heartSince) || "0000-00-00", end: null };
   return duckWindow(cls);
 }
 export function eventOpen(ev, cls, date) {
   if (ev.from) { if (cls && cls[ev.key + "Off"]) return false; const t = azToday(date); return t >= ev.from && t <= ev.to; }
   if (ev.haunt) return !!(cls && cls.haunt);
-  if (ev.frost) return !!(cls && cls.frost && !cls.heart);
-  if (ev.heart) return !!(cls && cls.heart);
+  if (ev.frost) return !!(cls && cls.frost);
   if (cls && cls.duckOff) return false;
   const w = duckWindow(cls), t = azToday(date);
   return t >= w.start && t <= w.end;   // weekends in the middle count too, so eggs can still be hatched
@@ -210,7 +204,7 @@ export function streaks(st, cls, since) {
   Object.keys(h).sort().forEach(date => { if (since && date < since) return; const x = h[date] || {}, v = x.h && !(Number(x.d) >= goal) ? goal : Number(x.d != null ? x.d : x.l) || 0; if (x.e && v < goal) return; run = v >= goal ? run + 1 : 0; best = Math.max(best, run); });
   return { best, current: run };
 }
-export const eventStreak = (ev, st, cls) => streaks(st, cls, ev.haunt || ev.frost || ev.heart || ev.from ? eventWindow(ev, cls).start : null);
+export const eventStreak = (ev, st, cls) => streaks(st, cls, ev.haunt || ev.frost || ev.from ? eventWindow(ev, cls).start : null);
 export const hasEvent = (ev, st) => !!owned(st)[ev.fam];
 export const hasDuck = st => hasEvent(DUCK, st);
 // Boss events (Hexaduck, Thanksolotl) unlock for everyone once the class has defeated that event's boss (no streak needed).
@@ -357,7 +351,7 @@ export function fighterFrom(st, fam) {
   const e = owned(st)[fam]; if (!e) return null;
   const c = formOf(fam, e.lvl || 1), s = statsOf(c, e.lvl || 1);
   return { fam, id: c.id, lvl: e.lvl || 1, name: e.nick || c.name, species: c.name, img: e.sparkle ? sparkleImg(c) : c.img, sparkle: !!e.sparkle, face: c.face || "R", type: c.types[0], types: c.types, weak: c.weak, attack: c.attack, hp: s.hp, df: s.df, dmg: s.dmg, cur: s.hp, dodge: c.dodge || 0,
-    daze: c.daze || 0, dazePct: c.dazePct || 0, poison: c.poison || 0, atkHeal: c.atkHeal || 0, brewFx: !!c.brewFx, candyFx: !!c.candyFx, atkDefDown: c.atkDefDown || 0, atkDefPct: c.atkDefPct || 0, teamHeal: c.teamHeal || 0, cheer: c.cheer || 0,
+    daze: c.daze || 0, dazePct: c.dazePct || 0, poison: c.poison || 0, atkHeal: c.atkHeal || 0, brewFx: !!c.brewFx, atkDefDown: c.atkDefDown || 0, atkDefPct: c.atkDefPct || 0, teamHeal: c.teamHeal || 0, cheer: c.cheer || 0,
     alt: c.alt ? { name: c.alt.name, mult: c.alt.mult || 1, heal: c.alt.heal || 0, type: c.alt.type || "", defDown: c.alt.defDown || 0, defPct: c.alt.defPct || 0, defTemp: !!c.alt.defTemp, evade: c.alt.evade || 0, daze: c.alt.daze || 0, dazePct: c.alt.dazePct || 0, crit: c.alt.crit || 0, shield: c.alt.shield || 0 } : null };
 }
 export function teamSize(a, b) { return Math.max(0, Math.min(TEAM_MAX, ownedFams(a).length, ownedFams(b).length)); }
@@ -419,9 +413,6 @@ export function resolveRound(bt) {
     let { dmg, weak } = hitDamage(alt && att.alt.type ? Object.assign({}, att, { type: att.alt.type }) : att, def, crit);   // a second attack can have its own type
     if (power) dmg = Math.round(dmg * MOVES.power.mult);
     if (alt) dmg = Math.max(1, Math.round(dmg * (att.alt.mult || 1)));
-    // Candy Crush (Candivora): each landed hit picks one candy: chocolate (heal), a conversation heart (Defense down) or hard candy (+20% damage)
-    const candyPick = !miss && m.m === "attack" && att.candyFx ? ["choc", "heart", "hard"][Math.floor(Math.random() * 3)] : null;
-    if (candyPick === "hard") dmg = Math.round(dmg * 1.2);
     if (def.shielded && !miss) { dmg = Math.max(1, Math.round(dmg * (1 - def.shielded))); def.shielded = 0; }   // Wishful Winter snow barrier: this hit does 20% less
     const cheered = !!att.cheered;
     if (cheered) { dmg = Math.max(1, Math.round(dmg * (1 + att.cheered))); att.cheered = 0; }   // Midnight Finale cheer from a teammate: +10% this attack
@@ -455,9 +446,6 @@ export function resolveRound(bt) {
       else if (pick === "def") { def.dfOrig = def.df; def.dfT = 2; def.df = Math.max(1, Math.round(def.df * 0.8)); bt.log.push({ k: "defdown", s, d: def.name, pct: 20, temp: true, src: "brew" }); }
       else if (pick === "heal") { const amt = Math.min(att.hp - att.cur, Math.round(att.hp * 0.08)); att.cur += amt; bt.log.push({ k: "heal", s, i: bt.active[s], n: att.name, amt, left: att.cur, max: att.hp, alt: true }); }
     }
-    if (candyPick === "hard") bt.log.push({ k: "candy", s, n: att.name, c: "hard" });
-    if (candyPick === "choc") { const amt = Math.min(att.hp - att.cur, Math.round(att.hp * 0.1)); att.cur += amt; bt.log.push({ k: "candy", s, n: att.name, c: "choc", amt }); }
-    if (candyPick === "heart" && def.cur > 0) { if (!(def.dfT > 0)) { def.dfOrig = def.df; def.dfT = 2; def.df = Math.max(1, Math.round(def.df * 0.85)); } bt.log.push({ k: "candy", s, n: att.name, d: def.name, c: "heart" }); }
     if (!miss && m.m === "attack" && att.atkHeal && att.cur < att.hp) { const amt = Math.min(att.hp - att.cur, Math.round(att.hp * att.atkHeal)); att.cur += amt; bt.log.push({ k: "heal", s, i: bt.active[s], n: att.name, amt, left: att.cur, max: att.hp, alt: true }); }
     // Sugar Rush: heals the attacker a little
     // Wishful Winter (Snowmorrow): a snow barrier that takes 20% off the next hit it gets

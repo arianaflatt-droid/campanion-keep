@@ -6,8 +6,8 @@
    Saved on the class (p = the event's prefix, e.g. "potion" or "feast"):
      <p>On, <p>Teams [{ id, name, members }], <p>Recipe { date: { teamId: { e, b, s } } }, <p>Brews { date: [teamId] }, <p>Top { at, teams }
    Saved on the student: <p>Days { date: { team, fx? } } (days done + rewards given), <p>LegEggs (special Legendary eggs from the top team) */
-import { isHaunt, isGobble, isJingle, isFrost, isHeart, esc } from "./game.js?v=20261007a";
-import { azToday } from "./collect.js?v=20261007a";
+import { isHaunt, isGobble, isJingle, isFrost, esc } from "./game.js?v=20261006y";
+import { azToday } from "./collect.js?v=20261006y";
 
 export const PER_XP = 25;
 // The Feast Table: one dish shows up on a team's table for every menu it finishes (the 10th finishes the feast).
@@ -51,22 +51,6 @@ export const SNOW_STEPS = [
   { k: "buttons", name: "Buttons", ing: [["Buttons", "\u{1F518}"], ["Thread", "\u{1F9F5}"], ["Needles", "\u{1FAA1}"]] },
   { k: "magic", name: "Snowflake Magic", ing: [["Snowflakes", "\u2744\uFE0F"], ["Sparkles", "\u2728"], ["Wishes", "\u{1F31F}"]] }
 ];
-// Candy Box Teams (Sweetheart Showdown): one chocolate a day goes into its own shaped slot in the heart box.
-// Pictures: assets/heart/box/candy-box.webp and choc-1.webp ... choc-10.webp (numbered by day).
-export const CHOCS = [
-  { k: "strawberry", name: "Strawberry Cream Heart", ing: [["Chocolate", "\u{1F36B}"], ["Strawberries", "\u{1F353}"], ["Cream", "\u{1F95B}"]] },
-  { k: "caramel", name: "Caramel Swirl", ing: [["Chocolate", "\u{1F36B}"], ["Caramel", "\u{1F36F}"], ["Sea Salt", "\u{1F9C2}"]] },
-  { k: "pbcup", name: "Peanut Butter Cup", ing: [["Chocolate", "\u{1F36B}"], ["Peanut Butter", "\u{1F95C}"], ["Paper Cups", "\u{1F9C1}"]] },
-  { k: "cherry", name: "Cherry Cordial", ing: [["Chocolate", "\u{1F36B}"], ["Cherries", "\u{1F352}"], ["Sugar", "\u{1F36C}"]] },
-  { k: "mint", name: "Mint Truffle", ing: [["Chocolate", "\u{1F36B}"], ["Mint Leaves", "\u{1F33F}"], ["Cream", "\u{1F95B}"]] },
-  { k: "coconut", name: "Coconut Snowball", ing: [["White Chocolate", "\u26AA"], ["Coconut", "\u{1F965}"], ["Sugar", "\u{1F36C}"]] },
-  { k: "rose", name: "Raspberry Rose", ing: [["Chocolate", "\u{1F36B}"], ["Raspberries", "\u{1FAD0}"], ["Rose Petals", "\u{1F339}"]] },
-  { k: "toffee", name: "Toffee Crunch", ing: [["Chocolate", "\u{1F36B}"], ["Butter", "\u{1F9C8}"], ["Almonds", "\u{1F330}"]] },
-  { k: "orange", name: "Orange Dream", ing: [["Chocolate", "\u{1F36B}"], ["Oranges", "\u{1F34A}"], ["Honey", "\u{1F36F}"]] },
-  { k: "bonbon", name: "Golden Sweetheart Bonbon", ing: [["Chocolate", "\u{1F36B}"], ["Gold Sprinkles", "\u2728"], ["Pink Frosting", "\u{1F496}"]] }
-];
-// Where each day's chocolate sits in the box picture: centre x, centre y and width, as fractions of the box.
-const BOX_SPOTS = [[.268, .488, .165], [.452, .483, .15], [.611, .483, .15], [.765, .485, .145], [.278, .625, .17], [.5, .622, .18], [.722, .622, .17], [.25, .775, .18], [.503, .778, .18], [.75, .772, .18]];
 // The Feast Table: today's menu is the team's next dish, and its ingredients are that dish's real ingredients
 // (still 1 per 25 XP: the 1st from Math, the 2nd from Reading, the 3rd from Language). After all 10, the feast repeats as second helpings.
 export function dishIndex(E, cls, team, date) {
@@ -130,17 +114,6 @@ export const TEAM_EVENTS = {
     recipe: "build step", fill: "build with your team!", leg: "L-38", legName: "Snowmorrow", fx: false,
     steps: SNOW_STEPS, stepWord: "step", today: "Today’s build step", doneLine: "is done on your snowman!", againWord: "extra snow fun", countWord: " done",
     build: true, art: "assets/snowman/snowman-", thing: "snowman", extra: "Snowball Fun"
-  },
-  candybox: {
-    key: "candybox", p: "candybox", title: "Candy Box Teams", icon: "\u{1F36B}", tab: "\u{1F36B} Candy Box", season: isHeart, seasonName: "Sweetheart Showdown",
-    ing: [
-      { k: "e", sub: "m", name: "Chocolate", icon: "\u{1F36B}", subject: "Math" },
-      { k: "b", sub: "r", name: "Strawberries", icon: "\u{1F353}", subject: "Reading" },
-      { k: "s", sub: "l", name: "Cream", icon: "\u{1F95B}", subject: "Language" }],
-    cur: 30, curName: "hearts", xp: 50, eggs: 1, badge: "Master Chocolatier", badgeN: 10, one: "chocolate", many: "chocolates", done: "Chocolate made!",
-    recipe: "chocolate", fill: "make it with your team!", leg: "L-40", legName: "Candivora", fx: false,
-    steps: CHOCS, stepWord: "chocolate", today: "Today\u2019s chocolate", doneLine: "is in your candy box!", againWord: "extra sweets", countWord: " in the box",
-    build: true, box: true, thing: "candy box", extra: "Extra Sweets", makeLine: "make it with your team to put it in your candy box!"
   }
 };
 export const EVENT_LIST = Object.values(TEAM_EVENTS);
@@ -255,18 +228,6 @@ export function houseHTML(c, cls) {
     '<span class="gh-step">' + (n >= L ? "\u{1F3C6} Finished!" : "Step " + n + " / " + L) + "</span></div>";
 }
 
-// Candy Box: the open box with one chocolate in its slot for every finished day. Today's chocolate shows faintly in its slot.
-const seenBox = {};
-export function boxHTML(c, cls) {
-  const E = c.E, L = E.steps.length, n = Math.min(L, brewCount(E, cls, c.team.id)), was = seenBox[c.team.id] == null ? n : seenBox[c.team.id];
-  seenBox[c.team.id] = n;
-  const choc = (i, extra) => '<img class="cb-choc' + extra + '" src="assets/heart/box/choc-' + (i + 1) + '.webp" alt="" title="' + esc(E.steps[i].name) + '" style="left:' + (BOX_SPOTS[i][0] * 100) + "%;top:" + (BOX_SPOTS[i][1] * 100) + "%;width:" + (BOX_SPOTS[i][2] * 100) + '%;">';
-  let h = '<div class="candybox' + (n >= L ? " done" : "") + '" aria-hidden="true"><img class="cb-box" src="assets/heart/box/candy-box.webp" alt="">';
-  for (let i = 0; i < n; i++) h += choc(i, i >= was ? " new" : "");
-  if (!c.brewed && n < L) h += choc(n, " ghost");
-  return h + '<span class="cb-step">' + (n >= L ? "\u{1F3C6} Box full!" : n + " / " + L + " chocolates") + "</span></div>";
-}
-
 /* ---------- student card ---------- */
 const bar = (have, need) => '<span class="pbar"><span style="width:' + Math.min(100, need ? have / need * 100 : 100) + '%"></span></span>';
 export function teamCard(E, st, cls, students) {
@@ -274,18 +235,18 @@ export function teamCard(E, st, cls, students) {
   if (!t) return '<div class="card potion"><h2>' + E.icon + " " + E.title + '</h2><p class="lede">You’re not on a team yet — your teacher will put you on one!</p></div>';
   const c = teamDay(E, cls, t, students, date), mine = daysOf(E, st)[date], fx = E.fx && mine ? effect(mine.fx) : null, n = doneCount(E, st), bc = brewCount(E, cls, t.id);
   let h = '<div class="card potion tev-' + E.key + '"><div class="card-head"><h2>' + E.icon + " " + esc(t.name) + '</h2><span class="fact">' + bc + " " + (bc === 1 ? E.one : E.many) + (E.key === "potion" ? " brewed" : E.countWord) + "</span></div>" +
-    (E.key === "feast" ? tableHTML(c, cls) : E.box ? boxHTML(c, cls) : E.build ? houseHTML(c, cls) : cauldronHTML(c));
+    (E.key === "feast" ? tableHTML(c, cls) : E.build ? houseHTML(c, cls) : cauldronHTML(c));
   const got = "You got +" + E.cur + " " + E.curName + ", +" + E.xp + " XP" + (E.eggs ? " and an egg" : "");
   if (c.brewed) h += '<div class="banner info" style="margin:10px 0;">✨ <b>' + E.done + "</b> " + (mine ? got + (fx ? " — plus a <b>" + fx.icon + " " + esc(fx.name) + "</b>: your companion is glowing today!" : "!") : "") +
     (c.dish ? " <b>" + esc(c.dish.name) + "</b> " + (c.second && !E.build ? "(" + E.againWord + "!) " : "") + E.doneLine : "") + "</div>";
-  else h += c.dish ? '<p class="lede" style="margin:8px 0;"><b>' + E.today + ": " + esc(c.dish.name) + (c.second && !E.build ? " (" + E.againWord + ")" : "") + "</b> — " + (E.makeLine ? E.makeLine : E.build ? "build it with your team to add it to your " + E.thing + "!" : "cook it with your team to put it on your table!") + "</p>"
+  else h += c.dish ? '<p class="lede" style="margin:8px 0;"><b>' + E.today + ": " + esc(c.dish.name) + (c.second && !E.build ? " (" + E.againWord + ")" : "") + "</b> — " + (E.build ? "build it with your team to add it to your " + E.thing + "!" : "cook it with your team to put it on your table!") + "</p>"
     : '<p class="lede" style="margin:8px 0;"><b>Today’s ' + E.recipe + "</b> — " + E.fill + "</p>";
   h += '<div class="recipe">' + c.ing.map(g => '<div class="pring"><span class="ri-ic">' + g.icon + '</span><span class="ri-nm">' + g.name + " <small>(" + g.subject + ")</small></span>" + bar(c.have[g.k], c.need[g.k]) +
     '<b class="ri-n">' + c.have[g.k] + " / " + c.need[g.k] + (c.have[g.k] >= c.need[g.k] ? " ✅" : "") + "</b></div>").join("") + "</div>";
   h += '<h3 style="margin-top:12px;">Your team</h3><div class="pteam">' + c.rows.map(({ st: m, g }) => '<span class="' + (m.id === st.id ? "me" : "") + '">' + esc(m.name || "") + " " +
     c.ing.map(x => (g[x.k] ? x.icon + g[x.k] : "")).filter(Boolean).join(" ") + (E.ing.some(x => g[x.k]) ? "" : '<small class="muted">—</small>') + "</span>").join("") + "</div>";
   h += '<p class="muted small" style="margin-top:10px;">Every ' + PER_XP + " XP in a subject = 1 ingredient: " + c.ing.map(g => g.subject + " = " + g.icon + " " + g.name).join(", ") +
-    ". Ingredients show up when your teacher adds today’s XP. " + (c.dish ? (E.box ? "Each day you make the next chocolate for your box." : E.build ? "Each day you build the next step of your " + E.thing + "." : "Each day you cook the next dish on the menu.") : "A new " + E.recipe + " comes every day.") + "</p>";
+    ". Ingredients show up when your teacher adds today’s XP. " + (c.dish ? (E.build ? "Each day you build the next step of your " + E.thing + "." : "Each day you cook the next dish on the menu.") : "A new " + E.recipe + " comes every day.") + "</p>";
   h += '<p class="small" style="margin-top:6px;">\u{1F3C5} ' + E.badge + ": <b>" + Math.min(n, E.badgeN) + " / " + E.badgeN + "</b> " + E.many + (n >= E.badgeN ? " ✅" : "") + "</p>";
   const s = standings(E, cls);
   h += '<h3 style="margin-top:12px;">\u{1F3C6} Team standings</h3><ol class="pstand">' + s.map(x => '<li class="' + (x.t.id === t.id ? "me" : "") + '">' + esc(x.t.name) + " — <b>" + x.n + "</b></li>").join("") + "</ol>" +

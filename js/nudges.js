@@ -1,8 +1,8 @@
 // Nudge messages: short, friendly "you're close!" notes at the top of a student's page.
 // Each rule returns a nudge or null; the most useful few are shown (lower pri = shown first).
-import { seasonOf, dayXP, simulate, GEAR, goalXP, arr5, esc, isHaunt, battleOn, nextAttack, companionOf, bossState } from "./game.js?v=20261007a";
-import { brewLegLeft, feastLegLeft, gingerLegLeft, snowLegLeft, candyLegLeft, pickleLeft, birthdayLeft, EVENTS, eventOpen, eventUnlocked, hasEvent, eventStreak, creature, family, azNow, pullsLeft, legendaryLeft, bankXP, LEVEL_XP, PULL_XP, hasStarter, owned, MAX_LEVEL } from "./collect.js?v=20261007a";
-import { badgeState } from "./badges.js?v=20261007a";
+import { seasonOf, dayXP, simulate, GEAR, goalXP, arr5, esc, isHaunt, battleOn, nextAttack, companionOf, bossState } from "./game.js?v=20261006y";
+import { brewLegLeft, feastLegLeft, gingerLegLeft, snowLegLeft, pickleLeft, birthdayLeft, EVENTS, eventOpen, eventUnlocked, hasEvent, eventStreak, creature, family, azNow, pullsLeft, legendaryLeft, bankXP, LEVEL_XP, PULL_XP, hasStarter, owned, MAX_LEVEL } from "./collect.js?v=20261006y";
+import { badgeState } from "./badges.js?v=20261006y";
 
 const MAX_SHOWN = 3;
 const WEEKDAY = { Mon: 0, Tue: 1, Wed: 2, Thu: 3, Fri: 4 };
@@ -33,7 +33,7 @@ export function nudges(st, cls, battles, students) {
   }
 
   // ---- streak gear ----
-  const nextGear = GEAR.filter(g => !g.ghost && !g.turkey && !g.jingle && !g.frost && !g.heart && !g.months && !sim.unlocked.includes(g.id)).sort((a, b) => a.streak - b.streak)[0];
+  const nextGear = GEAR.filter(g => !g.ghost && !g.turkey && !g.jingle && !g.frost && !g.months && !sim.unlocked.includes(g.id)).sort((a, b) => a.streak - b.streak)[0];
   if (nextGear && sim.alive) {
     const need = Math.max(1, nextGear.streak - sim.hitRun);
     if (need <= 2) add(2, "\u{1F525}", "<b>" + plural(need, "more " + goal + " XP day") + "</b> in a row unlocks the <b>" + esc(nextGear.name) + "</b>!");
@@ -42,7 +42,6 @@ export function nudges(st, cls, battles, students) {
   // ---- Creature Collector ----
   if (hasStarter(st)) {
     if (birthdayLeft(st)) add(0, "\u{1F382}", "<b>Happy birthday!</b> Ms. Ariana sent you a birthday egg. Go hatch it!", "collect");
-    if (candyLegLeft(st)) add(0, "\u{1F36B}", "<b>Your Candy Box team won Sweetheart Showdown!</b> You got a special Candivora egg. Go hatch it!", "collect");
     if (snowLegLeft(st)) add(0, "\u2603\uFE0F", "<b>Your Snowman team won Frostbite Festival!</b> You got a special Snowmorrow egg. Go hatch it!", "collect");
     if (gingerLegLeft(st)) add(0, "\u{1F36A}", "<b>Your Gingerbread team won Jingle Jam!</b> You got a special Gingermischief egg. Go hatch it!", "collect");
     if (feastLegLeft(st)) add(0, "\u{1F983}", "<b>Your Feast Table Team won Gobble-Palooza!</b> You got a special Cornucopia egg. Go hatch it!", "collect");
