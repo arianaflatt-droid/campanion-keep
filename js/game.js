@@ -1,9 +1,9 @@
-import { formOf, sparkleImg, azNow, azToday } from "./collect.js?v=20261007b";
-import { heldWeapon } from "./quest.js?v=20261007b";
+import { formOf, sparkleImg, azNow, azToday } from "./collect.js?v=20261007c";
+import { heldWeapon } from "./quest.js?v=20261007c";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261007b";
+export const APP_V = "20261007c";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -972,4 +972,51 @@ export function dateOfDay(d) {
   const mon = new Date(now.getFullYear(), now.getMonth(), now.getDate() + toMon);
   const x = new Date(mon.getFullYear(), mon.getMonth(), mon.getDate() + d);
   return x.getFullYear() + "-" + String(x.getMonth() + 1).padStart(2, "0") + "-" + String(x.getDate()).padStart(2, "0");
+}
+
+/* ---------- Save check ----------
+   Firebase's save rules (firestore.rules) are strict about what a student's save looks like. These copy the
+   rules' checks so we can say WHY a save was refused, and find (and repair) student data the rules can't read. */
+const NUM_FIELDS = ["attackTotal", "dmgTotal", "extraAttacks", "brews", "spins", "candySpent", "candyBank", "candyBonus", "stolen", "doorXP", "doorEggs",
+  "pullsUsed", "legendaryUsed", "legendaryPulls", "xpSpent", "xpReleased", "turkeyAtk", "grinchAtk", "yetiAtk", "heartAtk", "xpPrize", "cpSpent", "cpEarned"];
+const LIST5 = { attacks: v => v === true || v === false, status: v => typeof v === "string", xp: v => v === null || typeof v === "number",
+  lunchXp: v => v === null || typeof v === "number", early: v => v === true || v === false };
+// Problems in one student's saved data, and the fixed values (only what needs changing).
+export function saveProblems(s, cls) {
+  const out = [], fix = {};
+  NUM_FIELDS.forEach(k => { if (k in s && typeof s[k] !== "number") { out.push(k + " is " + JSON.stringify(s[k]) + " (should be a number)"); fix[k] = s[k] != null && !isNaN(Number(s[k])) ? Math.max(0, Math.round(Number(s[k]))) : k === "dmgTotal" ? (Number(s.attackTotal) || 0) * baseDamage(cls) : 0; } });
+  Object.entries(LIST5).forEach(([k, ok]) => {
+    if (!(k in s)) return;
+    const v = s[k], fill = k === "status" ? "" : k === "xp" || k === "lunchXp" ? null : false;
+    if (!Array.isArray(v) || v.length !== 5 || !v.every(ok)) {
+      out.push(k + " is " + JSON.stringify(v));
+      fix[k] = [0, 1, 2, 3, 4].map(i => { const x = Array.isArray(v) ? v[i] : undefined; return ok(x) ? x : k === "xp" || k === "lunchXp" ? (x == null || isNaN(Number(x)) ? null : Number(x)) : k === "status" ? (x ? String(x) : "") : !!x; });
+      fix[k] = fix[k].map(x => (x === undefined ? fill : x));
+    }
+  });
+  ["purchases", "spinLog", "themeEggs", "goalEggs", "ideas", "roomBuys"].forEach(k => { if (k in s && !Array.isArray(s[k])) { out.push(k + " is not a list"); fix[k] = []; } });
+  return { problems: out, fix };
+}
+// Why Firebase would refuse this attack save (empty = it should be allowed). Mirrors studentAttack() in firestore.rules.
+export function attackRefusal(s, data, cls) {
+  const was = (k, d) => (k in s ? s[k] : d), now = (k, d) => (k in data ? data[k] : was(k, d)), eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  const why = [], sn = seasonOf(cls).key, F5 = [false, false, false, false, false], dmg = Number(cls && cls.bossDmg) || 50;
+  if (!eventMode(cls)) why.push("no event mode is on");
+  const allowed = ["attacks", "attackTotal", "dmgTotal", "extraAttacks", "brews", "turkeyAtk", "grinchAtk", "yetiAtk", "heartAtk"];
+  Object.keys(data).forEach(k => { if (!allowed.includes(k) && !eq(data[k], s[k])) why.push("the save changes " + k); });
+  [["gobble", "turkeyAtk"], ["jingle", "grinchAtk"], ["frost", "yetiAtk"], ["heart", "heartAtk"]].forEach(([k, f]) => {
+    if (sn === k ? now(f, 0) !== was(f, 0) + 1 : !eq(now(f, 0), was(f, 0))) why.push(f + " count is off"); });
+  const usedBrew = now("brews", 0) === was("brews", 0) - 1 && was("brews", 0) > 0;
+  if (!usedBrew && !eq(now("brews", 0), was("brews", 0))) why.push("brews don't match");
+  const oldA = i => (Array.isArray(s.attacks) && s.attacks[i] === true), newA = i => (Array.isArray(now("attacks", [])) && now("attacks", [])[i] === true);
+  const extraOk = eq(now("attacks", F5), was("attacks", F5)) && now("extraAttacks", 0) === was("extraAttacks", 0) - 1 && was("extraAttacks", 0) > 0;
+  let flips = 0, slots = true;
+  for (let i = 0; i < 5; i++) { if (newA(i) !== oldA(i)) { flips++; if (!(newA(i) && !oldA(i) && hitOn(s, i, cls))) slots = false; } }
+  const dayOk = eq(now("extraAttacks", 0), was("extraAttacks", 0)) && Array.isArray(now("attacks", [])) && now("attacks", []).length === 5 && slots && flips === 1;
+  if (!extraOk && !dayOk) why.push("no unused 120 day or extra attack matches (attacks " + JSON.stringify(s.attacks) + ", status " + JSON.stringify(s.status) + ", extra " + JSON.stringify(s.extraAttacks) + ")");
+  if (now("attackTotal", 0) !== was("attackTotal", 0) + 1) why.push("attackTotal is off");
+  const hatK = { heart: "crownHat", frost: "earmuffsHat", jingle: "antlersHat", gobble: "pilgrimHat" }[sn] || "witchHat";
+  const want = was("dmgTotal", was("attackTotal", 0) * dmg) + dmg + (was(hatK, false) === true ? 5 : 0) + (usedBrew ? (sn === "frost" || sn === "heart" ? dmg : 10) : 0);
+  if (now("dmgTotal", 0) !== want) why.push("damage " + now("dmgTotal", 0) + " should be " + want);
+  return why;
 }

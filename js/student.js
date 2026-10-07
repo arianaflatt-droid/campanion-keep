@@ -1,20 +1,20 @@
 import {
-  checkVersion, hitOn, gearInSeason, applyDisplayNames, companionOf, petCreatures, pinnedBadgeHTML, DAYS, SHORT, ROSTER, GEAR, SIDEKICKS, BANNER, bannerFor, isHaunt, battleOn, candyOf, basketHTML, CANDY_FULL, bossState, attacksReady, bossBarHTML, GHOST_IMG, ghostUnlocked, turkeyUnlocked, grinchUnlocked, isJingle, isFrost, isHeart, heartUnlocked, yetiUnlocked, eventMode, isGobble, setSeason, SEASON, seasonOf, STORE, candyLeft, candySpent, ownedCount, ownsItem, storeArt, nextAttack, dmgOf, HAT_BONUS, BREW_BONUS, teamHTML, wallHTML, WHEEL, pickSlice, wheelHTML, spinTo, PRIZES, prizeSlices, bucketState, bucketHTML, baseDamage, EAT_PER_DAY, dayEaten, dayXP, byId, esc, arr5, recordedDays, goalXP,
+  checkVersion, hitOn, gearInSeason, applyDisplayNames, companionOf, petCreatures, pinnedBadgeHTML, DAYS, SHORT, ROSTER, GEAR, SIDEKICKS, BANNER, bannerFor, isHaunt, battleOn, candyOf, basketHTML, CANDY_FULL, bossState, attacksReady, bossBarHTML, GHOST_IMG, ghostUnlocked, turkeyUnlocked, grinchUnlocked, isJingle, isFrost, isHeart, heartUnlocked, attackRefusal, saveProblems, yetiUnlocked, eventMode, isGobble, setSeason, SEASON, seasonOf, STORE, candyLeft, candySpent, ownedCount, ownsItem, storeArt, nextAttack, dmgOf, HAT_BONUS, BREW_BONUS, teamHTML, wallHTML, WHEEL, pickSlice, wheelHTML, spinTo, PRIZES, prizeSlices, bucketState, bucketHTML, baseDamage, EAT_PER_DAY, dayEaten, dayXP, byId, esc, arr5, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, sidekickSVG, petHTML as petBase, itemArt, potionFx
-} from "./game.js?v=20261007b";
-import { EVENT_LIST, TEAM_EVENTS, eventOn, teamCard, teamOf as tevTeamOf } from "./teams.js?v=20261007b";
-import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=20261007b";
-import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261007b";
-import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20261007b";
-import { nudgeCard } from "./nudges.js?v=20261007b";
-import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261007b";
-import { teacherPlayer, hasStarter } from "./collect.js?v=20261007b";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261007b";
-import { goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked, weekGoal, weekKey, weekTotal, weekDoorState } from "./doors.js?v=20261007b";
-import { azToday } from "./collect.js?v=20261007b";
+} from "./game.js?v=20261007c";
+import { EVENT_LIST, TEAM_EVENTS, eventOn, teamCard, teamOf as tevTeamOf } from "./teams.js?v=20261007c";
+import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=20261007c";
+import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261007c";
+import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20261007c";
+import { nudgeCard } from "./nudges.js?v=20261007c";
+import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261007c";
+import { teacherPlayer, hasStarter } from "./collect.js?v=20261007c";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261007c";
+import { goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked, weekGoal, weekKey, weekTotal, weekDoorState } from "./doors.js?v=20261007c";
+import { azToday } from "./collect.js?v=20261007c";
 import { roomHTML, FIT_SLOTS, slotKind, KIND_NAMES, KIND_ICON, EVERYDAY_PRICE, THEMED_PRICE, TROPHY_PRICE, TYPE_THEMES, SEASON_THEMES, THEME_NAMES, TROPHIES,
-  itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId } from "./room.js?v=20261007b";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261007b";
+  itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId } from "./room.js?v=20261007c";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261007c";
 
 let fxFor = null;   // the student whose companion is being drawn (for the potion glow)
 const petHTML = (c, worn, held) => { const h = petBase(c, worn, held), fx = fxFor ? potionFx(fxFor) : ""; return fx ? h.replace('class="petwrap', 'class="petwrap' + fx) : h; };
@@ -756,7 +756,11 @@ document.addEventListener("click", async ev => {
     else data.extraAttacks = (Number(s.extraAttacks) || 0) - 1;
     if (nx.brew) data.brews = (Number(s.brews) || 0) - 1;
     attackFx = nx.damage; clearTimeout(fxTimer); fxTimer = setTimeout(() => { attackFx = null; render(); }, 1500);
-    return patch(data);
+    const why = attackRefusal(s, data, cls), bad = saveProblems(s, cls).problems;
+    Object.assign(s, data); render(true);
+    try { await updateDoc(studentRef(me), data); }
+    catch (e) { flash("That attack didn\u2019t save \u2014 show Ms. Ariana this message. (" + (e.code || e.message) + (why.length ? " \u00b7 " + why.join("; ") : "") + (bad.length ? " \u00b7 save data: " + bad.join("; ") : "") + ")"); }
+    return;
   }
   if (act === "notMe") { me = null; save(null); history.replaceState(null, "", location.pathname); render(); return; }
   if (act === "choose") {

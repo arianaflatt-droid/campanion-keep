@@ -1,21 +1,21 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261007b";
-import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261007b";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261007b";
-import { cpEarnedCalc } from "./room.js?v=20261007b";
-import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField } from "./teams.js?v=20261007b";
-import { GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal } from "./doors.js?v=20261007b";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261007b";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261007c";
+import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261007c";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261007c";
+import { cpEarnedCalc } from "./room.js?v=20261007c";
+import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField } from "./teams.js?v=20261007c";
+import { GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal } from "./doors.js?v=20261007c";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261007c";
 import {
   applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
-  checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, isFrost, isHeart, heartUnlocked, yetiUnlocked, wallMarks, WALL_BLOCK, BOSS_START_HP, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261007b";
-import { pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261007b";
+  checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, isFrost, isHeart, heartUnlocked, saveProblems, yetiUnlocked, wallMarks, WALL_BLOCK, BOSS_START_HP, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
+} from "./game.js?v=20261007c";
+import { pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261007c";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef
-} from "./db.js?v=20261007b";
+} from "./db.js?v=20261007c";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -473,7 +473,7 @@ function render(force) {
     else if (ctab === "students") h += viewStandings() + viewAssign() + viewLosses() + viewLinks();
     else if (ctab === "collector") h += viewLiveBattles() + viewIdeas() + teacherCollectorCard() + viewCollector();
     else if (ctab === "quest") h += questTracker(students);
-    else if (ctab === "events") h += viewModes() + viewBossHits() + (eventMode(cls) || waitingDoors(students, cls).length ? viewDoors() : "") + EVENT_LIST.map(E => E.season(cls) || tevTeams(E, cls).length ? viewTeamEvent(E) : "").join("") + duckAdmin() + (eventMode(cls) ? viewBucket() + viewPrizes() + viewShop() : prizeRows().length ? viewPrizes() : "");
+    else if (ctab === "events") h += viewModes() + viewSaveCheck() + viewBossHits() + (eventMode(cls) || waitingDoors(students, cls).length ? viewDoors() : "") + EVENT_LIST.map(E => E.season(cls) || tevTeams(E, cls).length ? viewTeamEvent(E) : "").join("") + duckAdmin() + (eventMode(cls) ? viewBucket() + viewPrizes() + viewShop() : prizeRows().length ? viewPrizes() : "");
     else h += viewClassSettings();
   }
 
@@ -659,6 +659,15 @@ function prizeInfo(e) {
    Turducken hits are saved as turkeyAtk, Grinch-a-Duck hits as grinchAtk; the rest of attackTotal are Ghost-olotl hits. */
 function rawHits(st) { const all = Number(st.attackTotal) || 0, t = Number(st.turkeyAtk) || 0, g = Number(st.grinchAtk) || 0, y = Number(st.yetiAtk) || 0, hb = Number(st.heartAtk) || 0; return { haunt: Math.max(0, all - t - g - y - hb), gobble: t, jingle: g, frost: y, heart: hb }; }
 // cls.hitBase = { haunt: { studentId: hits when the count was restarted }, gobble: {...}, jingle: {...} }, cls.hitReset = { haunt: ISO date, ... }
+// Students whose saved data is in a shape Firebase's save rules can't read (their saves get "permission-denied").
+function viewSaveCheck() {
+  const bad = students.map(st => ({ st, r: saveProblems(st, cls) })).filter(x => x.r.problems.length);
+  if (!bad.length) return "";
+  return '<div class="card"><div class="card-head"><h2>\u{1F527} Save data check</h2><span class="fact"><b>' + bad.length + "</b> student" + (bad.length === 1 ? "" : "s") + "</span></div>" +
+    '<p class="lede" style="font-size:13.5px;">These students have saved data Firebase can\u2019t read, so some of their saves (attacks, the shop) can be refused. Repair fixes the format only \u2014 nothing is taken away.</p><ul class="small">' +
+    bad.map(x => "<li><b>" + esc(x.st.name || x.st.id) + "</b>: " + esc(x.r.problems.join("; ")) + "</li>").join("") + "</ul>" +
+    '<button class="btn small" data-act="repairSaves">\u{1F527} Repair ' + bad.length + " save" + (bad.length === 1 ? "" : "s") + "</button></div>";
+}
 function viewBossHits() {
   const team = students.filter(x => x.companionId), base = cls.hitBase || {}, when = cls.hitReset || {};
   const rows = team.map(st => { const r = rawHits(st), o = { st };
@@ -1721,6 +1730,12 @@ document.addEventListener("click", async ev => {
       ...(tlog ? { "teacher.eggsEarned": Math.max(0, (Number(tt.eggsEarned) || 0) - tlog.eggs), "teacher.xpEarned": Math.max(0, (Number(tt.xpEarned) || 0) - tlog.xp), ["teacherLog." + date]: null } : {}) });
     ids.forEach(id => { const x = sOf(id); if (x) batch.update(studentRef(id), { deaths: (x.deaths || []).filter(e => !(e.date === date && e.day === d)) }); });
     try { await batch.commit(); flash("Saved \u2014 " + DAYS[d] + " is open again."); } catch (e) { flash("Couldn\u2019t undo \u2014 " + e.code); }
+    return;
+  }
+  if (act === "repairSaves") {
+    const batch = writeBatch(db); let n = 0;
+    students.forEach(st => { const r = saveProblems(st, cls); if (Object.keys(r.fix).length) { batch.update(studentRef(st.id), r.fix); n++; } });
+    try { await batch.commit(); flash("Saved \u2014 repaired " + n + " student save" + (n === 1 ? "" : "s") + "."); } catch (e) { flash("Couldn\u2019t repair \u2014 " + e.code); }
     return;
   }
   if (act === "saveRate") {
