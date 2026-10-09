@@ -1,21 +1,21 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261009a";
-import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261009a";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261009a";
-import { cpEarnedCalc } from "./room.js?v=20261009a";
-import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField } from "./teams.js?v=20261009a";
-import { GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP } from "./doors.js?v=20261009a";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261009a";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261009b";
+import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261009b";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261009b";
+import { cpEarnedCalc } from "./room.js?v=20261009b";
+import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField } from "./teams.js?v=20261009b";
+import { GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP } from "./doors.js?v=20261009b";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261009b";
 import {
   applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   boss2Of, boss2Prize, simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, isFrost, isHeart, heartUnlocked, saveProblems, yetiUnlocked, wallMarks, WALL_BLOCK, BOSS_START_HP, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261009a";
-import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261009a";
+} from "./game.js?v=20261009b";
+import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261009b";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef
-} from "./db.js?v=20261009a";
+} from "./db.js?v=20261009b";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -1228,13 +1228,14 @@ function pasteBox() {
   // Which day this data is for. Picked here on purpose: a new day's console opens on today, and yesterday's file pasted
   // onto today would be overwritten by today's real numbers later (and yesterday's eggs would never count).
   const pd = busy.pasteDay != null ? busy.pasteDay : day, ti = todayIndex(), wd = new Date().getDay(), monday = wd === 1;
-  const wkend = wd === 0 || wd === 6, extra = monday ? [-3, -2, -1] : wkend ? [5, 6] : [];
+  // Weekend buttons are always there: on the weekend = this Sat/Sun; Mon-Fri = last weekend (+ last Friday on Monday)
+  const wkend = wd === 0 || wd === 6, extra = monday ? [-3, -2, -1] : wkend ? [5, 6] : [-2, -1];
   const prev = monday ? -3 : ti - 1, nm = i => PASTE_NAME[i] || DAYS[i];
   const kids = students.filter(x => x.companionId), noDay = i => kids.filter(x => !((x.xpHist || {})[pasteDate(i)] || {}).hasOwnProperty("d")).length;
   const warnPrev = wd >= 1 && wd <= 5 && pd === ti && kids.length && noDay(prev) > kids.length / 2;
   return '<div class="pastebox"><div class="row" style="justify-content:space-between;align-items:center;"><b>\u{1F4CB} Paste XP</b><button class="btn ghost small" data-act="pasteClose">Close</button></div>' +
     '<div class="row" style="gap:6px;align-items:center;margin:6px 0;"><span class="small"><b>This data is for:</b></span>' +
-    (monday ? extra.map(i => '<button class="btn small' + (pd === i ? "" : " ghost") + '" data-pday="' + i + '">' + PASTE_CHIP[i] + "</button>").join("") : "") +
+    (!wkend ? extra.map(i => '<button class="btn small' + (pd === i ? "" : " ghost") + '" data-pday="' + i + '">' + PASTE_CHIP[i] + "</button>").join("") : "") +
     DAYS.map((n, i) => '<button class="btn small' + (i === pd ? "" : " ghost") + '" data-pday="' + i + '">' + n + (i === ti && wd >= 1 && wd <= 5 ? " (today)" : "") + "</button>").join("") +
     (wkend ? extra.map(i => '<button class="btn small' + (pd === i ? "" : " ghost") + '" data-pday="' + i + '">' + PASTE_CHIP[i] + "</button>").join("") : "") + "</div>" +
     (extra.length ? '<p class="muted small" style="margin:-2px 0 6px;">\u{1F4C5} Weekend work counts toward the week it finished (Weekly Door + Treasure Vault), and for eggs and creature XP.</p>' : "") +

@@ -1,9 +1,9 @@
-import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261009a";
-import { heldWeapon } from "./quest.js?v=20261009a";
+import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261009b";
+import { heldWeapon } from "./quest.js?v=20261009b";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261009a";
+export const APP_V = "20261009b";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
