@@ -1232,3 +1232,9 @@ td .emo, .ic .emo{ display:inline-block; vertical-align:middle; font-size:1.3em;
 .vaultloot b{ font-size:inherit !important; display:inline !important; margin:0 !important; } .vaultloot li{ margin:2px 0; }
 .vaultbar b{ color:#FFF4D6 !important; text-shadow:0 1px 2px rgba(0,0,0,.8) !important; } .vaultbar.full b{ color:#2A1B4A !important; text-shadow:0 1px 0 rgba(255,255,255,.6) !important; }
 .pteam .extra{ background:#FFF3C4; border-radius:8px; padding:2px 8px; } .pexg{ display:inline-flex; align-items:center; gap:4px; } .pexg .btn{ padding:2px 8px; min-width:28px; }
+
+/* Creature companions: the picture fills the box (see creature-fit.js) */
+.crbox{ position:relative; display:inline-block; width:1em; height:1em; margin:0 .125em; vertical-align:bottom; }
+.crbox img.crfit{ position:absolute; max-width:none; margin:0; object-fit:contain; }
+.pick .crg .crbox{ font-size:48px; } .pick .crg .crbox img.crfit{ margin:0; }
+.room .rpet .crbox img.crfit{ height:auto; margin:0; }

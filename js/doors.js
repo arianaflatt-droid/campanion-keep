@@ -8,8 +8,8 @@
    Saved on the student: doors = { "YYYY-MM-DD": { "0": { st: "wait"|"ok"|"no"|"open", at, r }, g: { st: "open", r } } }
    plus lastDoor = "YYYY-MM-DD/<door>" (which door the last save touched; the save rules check it).
    Class: doorsOn (on/off), doorList (default list), doorDays = { "YYYY-MM-DD": [..] } (one-day lists). */
-import { azToday } from "./collect.js?v=20261009d";
-import { SEASON, eventMode, esc, dayXP, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261009d";
+import { azToday } from "./collect.js?v=20261009f";
+import { SEASON, eventMode, esc, dayXP, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261009f";
 
 // A door that starts with "!" is always open (not locked behind the first doors). The "!" isn't shown.
 export const DOOR_DEFAULT = [
@@ -78,19 +78,20 @@ export function goldenReady(st, cls, date) { return allDone(st, cls, date) && !d
 /* ---------- rewards ---------- */
 // A regular present gives one of these. cur = the event's currency (candy / corn / presents).
 export const PRESENT_ODDS = [
-  { id: "xp25",   p: 0.32, xp: 25 },
+  { id: "xp25",   p: 0.34, xp: 25 },
   { id: "xp50",   p: 0.23, xp: 50 },
   { id: "cur20",  p: 0.20 },
   { id: "brew",   p: 0.12 },
   { id: "attack", p: 0.06 },
   { id: "egg",    p: 0.04 },
-  { id: "prize",  p: 0.03 }
+  { id: "prize",  p: 0.01 }   // was 3%: prize spins were coming up too often
 ];
-// A Golden Present gives one of three (1 in 3 each). The egg is an event egg 1 time in 5, otherwise a regular egg.
+// A Golden Present gives one of three: 500 XP (45%), an egg (45%) or a prize spin (10%; it was 1 in 3).
+// The egg is an event egg 1 time in 5, otherwise a regular egg.
 export const GOLDEN_ODDS = [
-  { id: "xp500", p: 1 / 3, xp: 500 },
-  { id: "gegg",  p: 1 / 3 },
-  { id: "prize", p: 1 / 3 }
+  { id: "xp500", p: 0.45, xp: 500 },
+  { id: "gegg",  p: 0.45 },
+  { id: "prize", p: 0.10 }
 ];
 export const THEME_EGG_CHANCE = 0.2;
 /* Goal Subject doors: a guaranteed "Goal Present" instead of a random one. The tier comes from the XP in the door's text

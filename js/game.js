@@ -1,9 +1,10 @@
-import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261009d";
-import { heldWeapon } from "./quest.js?v=20261009d";
+import { CREATURE_LAYOUT, CREATURE_FIT_ID } from "./creature-fit.js?v=20261009f";
+import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261009f";
+import { heldWeapon } from "./quest.js?v=20261009f";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261009d";
+export const APP_V = "20261009f";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -481,10 +482,12 @@ export function creatureCompanion(st, fam) {
   if (!e) return null;
   const c = formOf(fam, e.lvl || 1); if (!c) return null;
   if ((Number(e.lvl) || 1) < PET_LEVEL && !c.event && c.rarity !== "Legendary" && fam !== starterFam(st)) return null;   // every Legendary (and the starter) can be a companion right away
-  const img = e.sparkle ? sparkleImg(c) : c.img;
-  return { id: "cr:" + fam, fam, name: c.name, creature: true, sparkle: !!e.sparkle,
-    glyph: '<img class="crpet" src="' + img + '" alt="">',
-    fit: CREATURE_FIT[fam] || { hat: [0.62, 0.1, 0.42, 0], eyes: [0.64, 0.34, 0.3, 0], snack: [1.1, 0.86] } };
+  const img = e.sparkle ? sparkleImg(c) : c.img, L = CREATURE_LAYOUT[c.id];
+  // The picture is sized from its outline so the creature fills the box (wide ones spill out to the sides) and stands on the ground
+  const glyph = L ? '<span class="crbox"><img class="crpet crfit" src="' + img + '" alt="" style="left:' + L[0] + "em;top:" + L[1] + "em;width:" + L[2] + "em;height:" + L[2] + 'em"></span>'
+    : '<img class="crpet" src="' + img + '" alt="">';
+  return { id: "cr:" + fam, fam, name: c.name, creature: true, sparkle: !!e.sparkle, glyph,
+    fit: CREATURE_FIT_ID[c.id] || CREATURE_FIT[fam] || { hat: [0.62, 0.1, 0.42, 0], eyes: [0.64, 0.34, 0.3, 0], snack: [1.1, 0.86] } };
 }
 /* ---------- Companion level bar ----------
    Every day a student hits the goal (and their companion is still around) fills one of 5 spots on their current
@@ -757,6 +760,7 @@ export function storeArt(it, cls) { return it.img ? '<img class="' + (cls || "")
    The slices are drawn here and spin underneath it. Edit WHEEL to change the prizes. */
 // Orange = treats, purple = tricks (they alternate around the wheel). Rare slices land 5% of the time;
 // the other six share the rest equally (15% each).
+export const PRIZE_SLICE_CHANCE = 0.02;   // the "Prize!" slice on every event wheel (other rare slices stay at RARE_CHANCE)
 export const WHEEL = [
   { id: "candy75", label: "75 Candy",       icon: "\u{1F36C}", kind: "treat" },
   { id: "steal",   label: "Steal Candy",    icon: "\u{1F9B9}", kind: "trick", note: "Steal 25\u201350 of Ms. Ariana\u2019s candy!" },
@@ -764,7 +768,7 @@ export const WHEEL = [
   { id: "nothing", label: "Nothing",        icon: "\u{1F47B}", kind: "trick", note: "Nothing happens\u2026 boo!" },
   { id: "candy75", label: "75 Candy",       icon: "\u{1F36D}", kind: "treat" },
   { id: "nothing", label: "Nothing",        icon: "\u{1F987}", kind: "trick", note: "Nothing happens\u2026 boo!" },
-  { id: "prize",   label: "Prize!",         icon: "\u{1F381}", kind: "treat", rare: true, note: "You won a prize! Ms. Ariana has been told." },
+  { id: "prize",   label: "Prize!",         icon: "\u{1F381}", kind: "treat", rare: true, chance: PRIZE_SLICE_CHANCE, note: "You won a prize! Ms. Ariana has been told." },
   { id: "attack",  label: "Free Attack",    icon: "\u2694\uFE0F", kind: "trick", rare: true, note: "A free attack on the Ghost-olotl!" }
 ];
 export const RARE_CHANCE = 0.05;
@@ -777,7 +781,7 @@ export const PIE_WHEEL = [
   { id: "nothing", label: "Nothing",     icon: "\u{1F342}", kind: "trick", note: "Nothing happens\u2026 gobble gobble!" },
   { id: "candy75", label: "75 Corn",     icon: "\u{1F33D}", kind: "treat" },
   { id: "nothing", label: "Nothing",     icon: "\u{1F34E}", kind: "trick", note: "Nothing happens\u2026 gobble gobble!" },
-  { id: "prize",   label: "Prize!",      icon: "\u{1F381}", kind: "treat", rare: true, note: "You won a prize! Ms. Ariana has been told." },
+  { id: "prize",   label: "Prize!",      icon: "\u{1F381}", kind: "treat", rare: true, chance: PRIZE_SLICE_CHANCE, note: "You won a prize! Ms. Ariana has been told." },
   { id: "attack",  label: "Free Attack", icon: "\u2694\uFE0F", kind: "trick", rare: true, note: "A free attack on the Turducken!" }
 ];
 // Present Wheel: green slices are treats, red slices are tricks. Same slice ids as the other wheels.
@@ -788,7 +792,7 @@ export const PRESENT_WHEEL = [
   { id: "nothing", label: "Coal",        icon: "\u{1FAA8}", kind: "trick", note: "A lump of coal\u2026 nothing happens!" },
   { id: "candy75", label: "75 Presents", icon: "\u{1F381}", kind: "treat" },
   { id: "nothing", label: "Coal",        icon: "\u{1FAA8}", kind: "trick", note: "A lump of coal\u2026 nothing happens!" },
-  { id: "prize",   label: "Prize!",      icon: "\u{1F31F}", kind: "treat", rare: true, note: "You won a prize! Ms. Ariana has been told." },
+  { id: "prize",   label: "Prize!",      icon: "\u{1F31F}", kind: "treat", rare: true, chance: PRIZE_SLICE_CHANCE, note: "You won a prize! Ms. Ariana has been told." },
   { id: "attack",  label: "Free Attack", icon: "\u2694\uFE0F", kind: "trick", rare: true, note: "A free attack on the Grinch-a-Duck!" }
 ];
 
@@ -800,7 +804,7 @@ export const BLIZZARD_WHEEL = [
   { id: "nothing", label: "Brrr!",         icon: "\u{1F976}", kind: "trick", note: "Brrr! Too cold \u2014 nothing happens!" },
   { id: "candy75", label: "75 Snowflakes", icon: "\u2744\uFE0F", kind: "treat" },
   { id: "nothing", label: "Brrr!",         icon: "\u{1F32C}\uFE0F", kind: "trick", note: "A blast of wind\u2026 nothing happens!" },
-  { id: "prize",   label: "Prize!",        icon: "\u{1F31F}", kind: "treat", rare: true, note: "You won a prize! Ms. Ariana has been told." },
+  { id: "prize",   label: "Prize!",        icon: "\u{1F31F}", kind: "treat", rare: true, chance: PRIZE_SLICE_CHANCE, note: "You won a prize! Ms. Ariana has been told." },
   { id: "attack",  label: "Free Snowball", icon: "\u26C4", kind: "trick", rare: true, note: "A free snowball at the Snowlotl!" }
 ];
 
@@ -812,7 +816,7 @@ export const SWEET_WHEEL = [
   { id: "nothing", label: "Heartbreak",   icon: "\u{1F494}", kind: "trick", note: "Heartbreak\u2026 nothing happens!" },
   { id: "candy75", label: "75 Hearts",    icon: "\u{1F497}", kind: "treat" },
   { id: "nothing", label: "Heartbreak",   icon: "\u{1F494}", kind: "trick", note: "Heartbreak\u2026 nothing happens!" },
-  { id: "prize",   label: "Prize!",       icon: "\u{1F31F}", kind: "treat", rare: true, note: "You won a prize! Ms. Ariana has been told." },
+  { id: "prize",   label: "Prize!",       icon: "\u{1F31F}", kind: "treat", rare: true, chance: PRIZE_SLICE_CHANCE, note: "You won a prize! Ms. Ariana has been told." },
   { id: "attack",  label: "Free Attack",  icon: "\u2694\uFE0F", kind: "trick", rare: true, note: "A free attack on the Heartbreaker-otl!" }
 ];
 
