@@ -1,9 +1,9 @@
 // Nudge messages: short, friendly "you're close!" notes at the top of a student's page.
 // Each rule returns a nudge or null; the most useful few are shown (lower pri = shown first).
-import { seasonOf, dayXP, simulate, GEAR, goalXP, arr5, esc, isHaunt, battleOn, nextAttack, companionOf, bossState } from "./game.js?v=20261007c";
-import { azToday, brewLegLeft, feastLegLeft, gingerLegLeft, snowLegLeft, candyLegLeft, pickleLeft, birthdayLeft, EVENTS, eventOpen, eventUnlocked, hasEvent, eventStreak, creature, family, azNow, pullsLeft, legendaryLeft, bankXP, LEVEL_XP, PULL_XP, hasStarter, owned, MAX_LEVEL } from "./collect.js?v=20261007c";
-import { badgeState } from "./badges.js?v=20261007c";
-import { doorsLive, goldenReady, doorName } from "./doors.js?v=20261007c";
+import { seasonOf, dayXP, simulate, GEAR, goalXP, arr5, esc, isHaunt, battleOn, nextAttack, companionOf, bossState } from "./game.js?v=20261009a";
+import { azToday, brewLegLeft, feastLegLeft, gingerLegLeft, snowLegLeft, candyLegLeft, ghostEggLeft, BOSS2_LIST, boss2EggLeft, vaultLegLeft, pickleLeft, birthdayLeft, EVENTS, eventOpen, eventUnlocked, hasEvent, eventStreak, creature, family, azNow, pullsLeft, legendaryLeft, bankXP, LEVEL_XP, PULL_XP, hasStarter, owned, MAX_LEVEL } from "./collect.js?v=20261009a";
+import { badgeState } from "./badges.js?v=20261009a";
+import { doorsLive, goldenReady, doorName } from "./doors.js?v=20261009a";
 
 const MAX_SHOWN = 3;
 const WEEKDAY = { Mon: 0, Tue: 1, Wed: 2, Thu: 3, Fri: 4 };
@@ -49,6 +49,8 @@ export function nudges(st, cls, battles, students) {
   // ---- Creature Collector ----
   if (hasStarter(st)) {
     if (birthdayLeft(st)) add(0, "\u{1F382}", "<b>Happy birthday!</b> Ms. Ariana sent you a birthday egg. Go hatch it!", "collect");
+    if (vaultLegLeft(st)) add(0, "\u{1F48E}", "<b>Treasure Vault treasure!</b> You have a Sparkle Legendary egg waiting. Go hatch it!", "collect");
+    BOSS2_LIST.forEach(B => { if (boss2EggLeft(st, B)) add(0, B.icon, "<b>You helped beat the " + B.boss + " a 2nd time!</b> You got a " + B.boss + " egg. Go hatch it!", "collect"); });
     if (candyLegLeft(st)) add(0, "\u{1F36B}", "<b>Your Candy Box team won Sweetheart Showdown!</b> You got a special Candivora egg. Go hatch it!", "collect");
     if (snowLegLeft(st)) add(0, "\u2603\uFE0F", "<b>Your Snowman team won Frostbite Festival!</b> You got a special Snowmorrow egg. Go hatch it!", "collect");
     if (gingerLegLeft(st)) add(0, "\u{1F36A}", "<b>Your Gingerbread team won Jingle Jam!</b> You got a special Gingermischief egg. Go hatch it!", "collect");

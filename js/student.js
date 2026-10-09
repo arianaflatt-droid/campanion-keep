@@ -1,20 +1,21 @@
 import {
   checkVersion, hitOn, gearInSeason, applyDisplayNames, companionOf, petCreatures, pinnedBadgeHTML, DAYS, SHORT, ROSTER, GEAR, SIDEKICKS, BANNER, bannerFor, isHaunt, battleOn, candyOf, basketHTML, CANDY_FULL, bossState, attacksReady, bossBarHTML, GHOST_IMG, ghostUnlocked, turkeyUnlocked, grinchUnlocked, isJingle, isFrost, isHeart, heartUnlocked, attackRefusal, saveProblems, yetiUnlocked, eventMode, isGobble, setSeason, SEASON, seasonOf, STORE, candyLeft, candySpent, ownedCount, ownsItem, storeArt, nextAttack, dmgOf, HAT_BONUS, BREW_BONUS, teamHTML, wallHTML, WHEEL, pickSlice, wheelHTML, spinTo, PRIZES, prizeSlices, bucketState, bucketHTML, baseDamage, EAT_PER_DAY, dayEaten, dayXP, byId, esc, arr5, recordedDays, goalXP,
-  simulate, wornItem, tier, boardDay, sidekickToday, sidekickSVG, petHTML as petBase, itemArt, potionFx
-} from "./game.js?v=20261007c";
-import { EVENT_LIST, TEAM_EVENTS, eventOn, teamCard, teamOf as tevTeamOf } from "./teams.js?v=20261007c";
-import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=20261007c";
-import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261007c";
-import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20261007c";
-import { nudgeCard } from "./nudges.js?v=20261007c";
-import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261007c";
-import { teacherPlayer, hasStarter } from "./collect.js?v=20261007c";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261007c";
-import { goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked, weekGoal, weekKey, weekTotal, weekDoorState } from "./doors.js?v=20261007c";
-import { azToday } from "./collect.js?v=20261007c";
+  simulate, wornItem, tier, boardDay, sidekickToday, sidekickSVG, petHTML as petBase, itemArt, potionFx,
+  ghost2Unlocked, boss2Of, BOSS2, BOSS2_LIST, creditCompanion, compKey, compLevel, compFill, COMP_DAYS, creatureCompanion
+} from "./game.js?v=20261009a";
+import { EVENT_LIST, TEAM_EVENTS, eventOn, teamCard, teamOf as tevTeamOf } from "./teams.js?v=20261009a";
+import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=20261009a";
+import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261009a";
+import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20261009a";
+import { nudgeCard } from "./nudges.js?v=20261009a";
+import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261009a";
+import { teacherPlayer, hasStarter, MOVES, formOf } from "./collect.js?v=20261009a";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261009a";
+import { goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked, weekGoal, weekKey, weekTotal, weekDoorState, vaultState, oldReady, vaultLessonsLeft, VAULT_XP, VAULT_BONUS_XP, VAULT_EGGS } from "./doors.js?v=20261009a";
+import { azToday } from "./collect.js?v=20261009a";
 import { roomHTML, FIT_SLOTS, slotKind, KIND_NAMES, KIND_ICON, EVERYDAY_PRICE, THEMED_PRICE, TROPHY_PRICE, TYPE_THEMES, SEASON_THEMES, THEME_NAMES, TROPHIES,
-  itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId } from "./room.js?v=20261007c";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261007c";
+  itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId } from "./room.js?v=20261009a";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261009a";
 
 let fxFor = null;   // the student whose companion is being drawn (for the potion glow)
 const petHTML = (c, worn, held) => { const h = petBase(c, worn, held), fx = fxFor ? potionFx(fxFor) : ""; return fx ? h.replace('class="petwrap', 'class="petwrap' + fx) : h; };
@@ -32,6 +33,17 @@ function load() { try { return localStorage.getItem("ck-student"); } catch (e) {
 function save(id) { if (PREVIEW) return; try { id ? localStorage.setItem("ck-student", id) : localStorage.removeItem("ck-student"); } catch (e) {} }
 // Any error while clicking in the Collector (battles, trades) shows on screen instead of failing silently.
 function showErr(e) { console.error(e); flash("Something went wrong \u2014 " + ((e && (e.code || e.message)) || e) + ". Tell Ms. Ariana!"); }
+// Companion level bar: count new goal days onto the current companion (see creditCompanion in game.js).
+let crediting = false;
+function maybeCredit() {
+  if (PREVIEW || crediting || !cls || !loaded.s) return;
+  const s = students.find(x => x.id === me); if (!s || !s.companionId) return;
+  const d = creditCompanion(s, cls, simulate(s, cls)); if (!d) return;
+  const ups = d.compUps; delete d.compUps; crediting = true;
+  updateDoc(studentRef(me), d).then(() => { Object.assign(s, d);
+    if (ups) flash("\u2B50 " + esc(s.petName || companionOf(s).name) + " went up " + (ups === 1 ? "a level" : ups + " levels") + " for staying healthy! Now level " + compLevel(s) + ".", true); else render(); })
+    .catch(() => {}).finally(() => { crediting = false; });
+}
 function flash(m, ok) { flashMsg = m; flashOk = !!ok; render(); clearTimeout(flashTimer); flashTimer = setTimeout(() => { flashMsg = null; render(); }, 4000); }
 const app = document.getElementById("app");
 
@@ -55,8 +67,8 @@ let watching = false, started = false, unsubMain = [];
 function startWatch() {
   watching = true;
   unsubMain = [
-    watchClass(c => { cls = c; setSeason(c); loaded.c = true; if (!PREVIEW && checkVersion(c, false)) return; liveRender(); }, e => { error = "Couldn’t load your class (" + e.code + ")."; render(); }),
-    watchStudents(l => { students = applyDisplayNames(l); loaded.s = true; nameBattles(); const s = students.find(x => x.id === me); if (s && !PREVIEW && trades.length) settleTrades(collectorCtx(s)); liveRender(); }, e => { error = "Couldn’t load your class (" + e.code + ")."; render(); }),
+    watchClass(c => { cls = c; setSeason(c); loaded.c = true; if (!PREVIEW && checkVersion(c, false)) return; liveRender(); maybeCredit(); }, e => { error = "Couldn’t load your class (" + e.code + ")."; render(); }),
+    watchStudents(l => { students = applyDisplayNames(l); loaded.s = true; nameBattles(); const s = students.find(x => x.id === me); if (s && !PREVIEW && trades.length) settleTrades(collectorCtx(s)); liveRender(); maybeCredit(); }, e => { error = "Couldn’t load your class (" + e.code + ")."; render(); }),
   ];
   subFor = undefined; subMine();
 }
@@ -185,7 +197,7 @@ function render(force) {
   const bday = !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() && !questBusy() ? birthdayParty(cur) : "";
   const party = !bday && !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() && !questBusy() ? badgeParty(cur) : "";
   const fields = liveNow ? saveFields(app) : {};
-  app.innerHTML = h + presentOverlay() + prizeOverlay() + (cur && cur.companionId && cls ? collectorOverlays(collectorCtx(cur)) + questOverlay(cur) : "") + party + bday;
+  app.innerHTML = h + presentOverlay() + vaultOverlay() + prizeOverlay() + (cur && cur.companionId && cls ? collectorOverlays(collectorCtx(cur)) + questOverlay(cur) : "") + party + bday;
   restoreFields(fields);
   if (bday && !bdayChimed) { bdayChimed = true; birthdayTune(); }
   if (party) { const key = unseenBadges(cur).join(","); if (key !== partyKey) { partyKey = key; badgeChime(); } }
@@ -241,12 +253,14 @@ function viewMine(s) {
   if (tab === "collect") return h + collectorTab(collectorCtx(s));
   if (tab === "badges") return h + badgesTab(s, battles, cls);
   if (tab === "haunt") return h + (battleOn(cls) ? battleCard(s, c) : "") + wheelCard(s) + shopCard(s);
-  if (tab === "doors") return h + weekDoorCard(s) + doorsCard(s);
+  if (tab === "doors") return h + earlierWeeksHTML(s) + weekDoorCard(s) + vaultCard(s) + doorsCard(s);
   if (TEAM_EVENTS[tab]) return h + teamCard(TEAM_EVENTS[tab], s, cls, students);
   if (tab === "quest") return h + questTab(s, petHTML(c, worn, heldWeapon(s)));
   if (tab === "room") return h + roomTab(s, c, worn);
   h += nudgeCard(s, cls, battles, students);
+  h += earlierWeeksHTML(s);
   if (!doorsOn || weekDoorState(s, cls) === "ready") h += weekDoorCard(s);
+  if (!doorsOn || vaultState(s, cls) === "ready") h += vaultCard(s);
   h += '<div class="card"><div class="mypet t-' + t.key + '">' + pinnedBadgeHTML(s, "mine") +
     (haunt ? basketHTML(candy, "big") : "") +
     '<div class="stage" aria-hidden="true">' + petHTML(c, worn, heldWeapon(s)) + (side ? sidekickSVG(side, true) : "") + "</div>" +
@@ -254,6 +268,10 @@ function viewMine(s) {
     '<div class="tspec" style="font-family:var(--mono);font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);">' + esc(c.name) + "</div>" +
     '<span class="tbar"><span style="width:' + Math.max(0, Math.min(100, sim.health / sim.max * 100)) + '%"></span></span>' +
     '<div style="font-family:var(--mono);font-size:13px;margin-top:6px;">' + (sim.alive ? sim.health + " / " + sim.max + " health" : "disappeared") + "</div>" +
+    (() => { const lv = compLevel(s), k = compKey(s), maxed = k !== "starter" && lv >= 100, f = maxed ? COMP_DAYS : compFill(s);
+      return '<div style="margin-top:10px;font-weight:700;">\u2B50 Companion level ' + lv + "</div>" +
+        '<div class="compbar" title="Each day you hit ' + goal + ' XP fills one spot">' + Array.from({ length: COMP_DAYS }, (_, i) => '<i class="' + (i < f ? "on" : "") + '"></i>').join("") + "</div>" +
+        '<div class="muted small">' + (maxed ? "Max level!" : f + " / " + COMP_DAYS + " days \u00b7 hit " + goal + " XP to fill the bar and level up") + "</div>"; })() +
     '<p class="lede" style="margin-top:10px;">' + msg + "</p>" +
     (side ? '<p style="margin-top:6px;color:var(--warn);font-weight:700;">☀️ You hit ' + goal + " by lunch — your " + SIDEKICKS[side].toLowerCase() + " came to hang out!</p>" : "") +
     '<div class="weekdots">' + DAYS.map((d, i) => {
@@ -276,6 +294,18 @@ function viewMine(s) {
     ws.map(id => { const w = weapon(id); return '<button class="qw' + (hw && hw.id === id ? " on" : "") + '" data-qhold="' + id + '" title="' + esc(w.name) + '"><img src="' + esc(w.img) + '" alt=""><small>' + esc(w.name) + "</small></button>"; }).join("") + "</div>";
   h += "</div>";
 
+  // 2nd-boss moves (BOSS2): students who helped beat a boss twice teach one companion its special move, forever
+  BOSS2_LIST.filter(B => s[B.stu] && cls[B.flag]).forEach(B => {
+    const M = MOVES[B.mv], gm = s[B.move], gc = gm ? creatureCompanion(s, gm) : null, cur = s.petCreature && creatureCompanion(s, s.petCreature);
+    const what = "a " + M.type + " attack that does 1.75\u00d7 damage and never misses (once per battle)";
+    h += '<div class="card ghostmove"><div class="card-head"><h2>' + M.icon + " " + M.name + '</h2><span class="fact">' + esc(B.boss) + " move</span></div>" +
+      (gm ? '<p class="lede"><b>' + esc(gc ? gc.name : "Your creature") + "</b> knows <b>" + M.name + "</b>! In battles it\u2019s " + what + ".</p>"
+        : cur ? '<p class="lede" style="margin-bottom:10px;">You helped beat the ' + esc(B.boss) + " twice! Teach <b>" + M.name + "</b> to one companion \u2014 " + what + ". <b>It stays with that creature forever.</b></p>" +
+          (busy.teach === B.key ? '<div class="row"><button class="btn" data-act="teachMove" data-k="' + B.key + '">Yes, teach it to ' + esc(cur.name) + '</button><button class="btn ghost" data-act="teachCancel">Not yet</button></div>'
+            : '<button class="btn" data-act="teachAsk" data-k="' + B.key + '">' + M.icon + " Teach it to " + esc(cur.name) + "</button>")
+        : '<p class="lede">You helped beat the ' + esc(B.boss) + " twice! Make a Legendary or level 100 creature your companion (below), then come back here to teach it <b>" + M.name + "</b>.</p>") + "</div>";
+  });
+  h += vaultMoveCard(s);
   const legends = petCreatures(s);
   if (legends.length) {
     const base = byId(ROSTER, s.companionId), curId = s.petCreature && legends.some(x => x.fam === s.petCreature) ? s.petCreature : "";
@@ -291,11 +321,11 @@ function viewMine(s) {
     '<p class="lede" style="margin-bottom:12px;">Hit ' + goal + " XP before lunch and your sidekick joins you for the day. Who do you want?</p>" +
     '<div class="pickgrid" style="grid-template-columns:repeat(auto-fit,minmax(0,140px));justify-content:center;">' +
     Object.keys(SIDEKICKS).map(k => {
-      const locked = (k === "ghost" && !ghostUnlocked(cls)) || (k === "turkey" && !turkeyUnlocked(cls)) || (k === "grinch" && !grinchUnlocked(cls)) || (k === "yeti" && !yetiUnlocked(cls)) || (k === "heartotl" && !heartUnlocked(cls));
+      const locked = (k === "ghost" && !ghostUnlocked(cls)) || (k === "turkey" && !turkeyUnlocked(cls)) || (k === "grinch" && !grinchUnlocked(cls)) || (k === "yeti" && !yetiUnlocked(cls)) || (k === "heartotl" && !heartUnlocked(cls)) || BOSS2_LIST.some(B => B.side === k && !cls[B.flag]);
       return '<button class="pick' + ((s.sidekick || "axolotl") === k ? " on" : "") + '" data-side="' + k + '"' + (locked ? ' disabled style="opacity:.45;filter:grayscale(.7);"' : "") +
         '><span style="display:flex;justify-content:center;height:70px;align-items:flex-end;">' +
-        sidekickSVG(k, true).replace('class="side', 'style="animation:none;height:' + (k === "duck" ? 68 : k === "ghost" ? 66 : k === "turkey" ? 64 : k === "grinch" ? 64 : k === "yeti" ? 66 : k === "heartotl" ? 66 : 56) + 'px" class="side') +
-        '</span><span class="n">' + SIDEKICKS[k] + "</span>" + (locked ? '<span class="lbl" style="display:block;font-family:var(--mono);font-size:10px;color:var(--ink-3);">\u{1F512} Defeat the ' + (k === "turkey" ? "Turducken" : k === "grinch" ? "Grinch-a-Duck" : k === "yeti" ? "Snowlotl" : k === "heartotl" ? "Heartbreaker-otl" : "Ghost-olotl") + "</span>" : "") + "</button>";
+        sidekickSVG(k, true).replace('class="side', 'style="animation:none;height:' + (k === "duck" ? 68 : k === "ghost" ? 66 : k === "turkey" ? 64 : k === "grinch" ? 64 : k === "yeti" ? 66 : k === "heartotl" ? 66 : BOSS2_LIST.some(B => B.side === k) ? 66 : 56) + 'px" class="side') +
+        '</span><span class="n">' + SIDEKICKS[k] + "</span>" + (locked ? '<span class="lbl" style="display:block;font-family:var(--mono);font-size:10px;color:var(--ink-3);">\u{1F512} Defeat the ' + (BOSS2_LIST.some(B => B.side === k) ? BOSS2_LIST.find(B => B.side === k).boss + " twice" : k === "turkey" ? "Turducken" : k === "grinch" ? "Grinch-a-Duck" : k === "yeti" ? "Snowlotl" : k === "heartotl" ? "Heartbreaker-otl" : "Ghost-olotl") + "</span>" : "") + "</button>";
     }).join("") + "</div></div>";
 
   h += '<div class="card"><div class="card-head"><h2>Rename</h2></div><div class="row"><div class="field" style="flex:1;min-width:200px;"><label for="rename">Companion name</label>' +
@@ -412,7 +442,7 @@ function earlierDoorsHTML(s, today) {
 function doorBadge(s) { const n = presentsReady(s) + (weekDoorState(s, cls) === "ready" ? 1 : 0); return n ? ' <span class="tbadge">' + n + "</span>" : ""; }
 // The Weekly Door: separate from the daily doors. Reach WEEK_DOOR_XP XP this week to unlock a Legendary egg.
 function weekDoorCard(s) {
-  const goal = weekGoal(cls), st = weekDoorState(s, cls), tot = weekTotal(s), pct = Math.min(100, tot / goal * 100);
+  const goal = weekGoal(cls), st = weekDoorState(s, cls), tot = weekTotal(s, cls), pct = Math.min(100, tot / goal * 100);
   let body;
   const wp = s.weekPresent && s.weekPresent.week === weekKey(cls) ? rewardText(s.weekPresent.r, SEASON) : null;
   if (st === "open") body = '<span class="dstate done">\u2705 Opened! \u{1F31F} Legendary egg' + (wp ? " + \u2728 Golden Present: " + wp.icon + " " + esc(wp.big) : "") + "</span>";
@@ -421,6 +451,69 @@ function weekDoorCard(s) {
   return '<div class="card weekdoor wd-' + st + '"><div class="wdrow"><div class="wdpic"><span class="wdicon">\u{1F6AA}</span>' + (st === "open" ? '<span class="dgift">\u2728</span>' : st === "ready" ? '<span class="dgift">\u{1F31F}</span>' : st === "locked" ? '<span class="dgift">\u{1F512}</span>' : "") + "</div>" +
     '<div class="wdtxt"><h2>Weekly Door</h2><p class="lede">Get to <b>' + goal + " XP this week</b> and get a <b>Legendary Egg</b> + a \u2728 <b>Golden Present</b>!</p>" +
     '<span class="pbar wdbar"><span style="width:' + pct + '%"></span></span><p class="small"><b>' + tot.toLocaleString() + " / " + goal + "</b> XP this week</p>" + body + "</div></div></div>";
+}
+/* ---------- Treasure Vault (doors.js) ---------- */
+let vaultFx = null;   // the opening animation: { wk, phase: "dial" | "open", prize }
+function vaultArt(open, spin) {
+  return '<div class="vaultpic' + (spin ? " spinning" : "") + '"><img class="vbase" src="assets/vault/vault-' + (open ? "open" : "closed") + '.webp" alt="Treasure Vault">' +
+    (open ? "" : '<img class="vdial" src="assets/vault/vault-dial.webp" alt="">') + "</div>";
+}
+function vaultCard(s) {
+  const st = vaultState(s, cls), tot = weekTotal(s, cls), pct = Math.min(100, tot / VAULT_XP * 100);
+  let body;
+  if (st === "open") body = '<span class="dstate done">✅ Opened this week! Come back next week for another one.</span>';
+  else if (st === "ready") body = '<button class="presentbtn golden vaultbtn" data-vault="' + weekKey(cls) + '">\u{1F48E} Open the Treasure Vault! \u{1F48E}</button>';
+  else body = '<span class="dstate lock">\u{1F512} ' + (VAULT_XP - tot).toLocaleString() + " more XP this week to crack it open</span>";
+  return '<div class="card vaultcard v-' + st + '"><h2 style="text-align:center;">\u{1F48E} Treasure Vault \u{1F48E}</h2>' +
+    '<p class="lede" style="text-align:center;margin:4px 0 8px;">Earn <b>' + VAULT_XP.toLocaleString() + " XP in one week</b> (weekend work counts!) to open it.</p>" +
+    '<div class="vaultbar' + (pct >= 100 ? " full" : "") + '"><span style="width:' + pct + '%"></span><b>' + tot.toLocaleString() + " / " + VAULT_XP.toLocaleString() + " XP</b></div>" +
+    vaultArt(st === "open", false) +
+    '<p class="small" style="text-align:center;margin:6px 0;">Inside: \u{1F48E} a <b>Sparkle Legendary egg</b> · \u{1F3C6} a <b>prize spin</b> · ✨ <b>' + VAULT_BONUS_XP + " XP</b> + <b>" + VAULT_EGGS + " eggs</b> · \u{1F510} the <b>Vault Breaker</b> move</p>" +
+    '<div style="text-align:center;">' + body + "</div></div>";
+}
+// Weekend work can unlock last week's Weekly Door or Vault on Monday: show those first
+function earlierWeeksHTML(s) {
+  const doors = oldReady(s, cls, "weekDoor"), vaults = oldReady(s, cls, "vault");
+  if (!doors.length && !vaults.length) return "";
+  return '<div class="card olddays"><h2>\u{1F31F} Your weekend work unlocked something!</h2><div class="row" style="flex-wrap:wrap;gap:8px;margin-top:8px;">' +
+    vaults.map(wk => '<button class="presentbtn golden vaultbtn" data-vault="' + wk + '">\u{1F48E} Open last week’s Treasure Vault!</button>').join("") +
+    doors.map(wk => '<button class="presentbtn golden" data-weekdoor="' + wk + '">\u{1F31F} Open last week’s Weekly Door!</button>').join("") + "</div></div>";
+}
+// Vault Breaker: one lesson per Vault opened, taught to any creature the student owns
+function vaultMoveCard(s) {
+  const left = vaultLessonsLeft(s), known = s.vaultMoves || [];
+  if (!left && !known.length) return "";
+  const M = MOVES.vault, fams = Object.keys(s.coll || {}).filter(f => !known.includes(f));
+  const nameOf = f => { const e = (s.coll || {})[f] || {}, c = formOf(f, e.lvl || 1); return c ? (e.nick || c.name) : f; };
+  return '<div class="card ghostmove vaultmove"><div class="card-head"><h2>' + M.icon + " " + M.name + '</h2><span class="fact">Treasure Vault move</span></div>' +
+    '<p class="lede">A Steel attack that does <b>2× damage</b> and goes right through Defense (85% to hit, once per battle). Every Treasure Vault you open lets you teach it to one more creature.</p>' +
+    (known.length ? '<p class="small" style="margin:6px 0;">\u{1F510} Knows it: <b>' + known.map(f => esc(nameOf(f))).join(", ") + "</b></p>" : "") +
+    (left && fams.length ? '<div class="row" style="margin-top:8px;"><select id="vaultPick">' + fams.map(f => '<option value="' + f + '">' + esc(nameOf(f)) + "</option>").join("") + "</select>" +
+      '<button class="btn" data-act="vaultTeach">' + M.icon + " Teach it (" + left + " lesson" + (left === 1 ? "" : "s") + " left)</button></div>" : "") + "</div>";
+}
+function vaultOverlay() {
+  if (!vaultFx) return "";
+  const open = vaultFx.phase === "open";
+  return '<div class="prizeover" role="dialog" aria-label="Treasure Vault"><div class="prizebox presentbox golden vaultbox' + (open ? " opened" : "") + '"><h2>\u{1F48E} TREASURE VAULT \u{1F48E}</h2>' +
+    vaultArt(open, !open) +
+    (open ? '<div class="prizewon vaultwon"><b>You cracked the vault!</b>' +
+        '<ul class="vaultloot"><li>\u{1F48E} A <b>Sparkle Legendary egg</b> — hatch it in your Creature Collector!</li><li>✨ <b>' + VAULT_BONUS_XP + " XP</b> for your creatures</li><li>\u{1F95A} <b>" + VAULT_EGGS + " eggs</b></li><li>\u{1F510} A <b>Vault Breaker</b> lesson for any creature</li>" +
+        (vaultFx.prize != null ? "<li>\u{1F3C6} A <b>prize spin</b>!</li>" : "") + "</ul>" +
+        (vaultFx.prize != null ? '<button class="attackbtn" data-act="vaultSpin">\u{1F3C6} Spin the Prize Wheel!</button>' : '<button class="attackbtn" data-act="vaultClose">Yay! \u{1F389}</button>') + "</div>"
+      : '<p class="arena-foot" style="font-size:14px;">Cracking the code…</p>') + "</div></div>";
+}
+async function openVault(wk) {
+  const s = students.find(x => x.id === me); if (!s || vaultFx || present) return;
+  const ok = wk === weekKey(cls) ? vaultState(s, cls) === "ready" : (s.vault || {})[wk] === "ready";
+  if (!ok) return;
+  const data = { vault: Object.assign({}, s.vault || {}, { [wk]: "open" }), vaultLegEggs: (Number(s.vaultLegEggs) || 0) + 1,
+    doorXP: (Number(s.doorXP) || 0) + VAULT_BONUS_XP, doorEggs: (Number(s.doorEggs) || 0) + VAULT_EGGS };
+  const prize = presentReward(Object.assign({}, s, data), { id: "prize" }, data);
+  if (data.spinLog) data.spinLog[data.spinLog.length - 1].src = "vault";
+  vaultFx = { wk, phase: "dial", prize };
+  render(true);
+  const saving = updateDoc(studentRef(me), data).then(() => Object.assign(s, data)).catch(e => { vaultFx = null; flash("The Treasure Vault didn’t open — ask Ms. Ariana. (" + (e.code || e.message) + ")"); });
+  setTimeout(async () => { await saving; if (vaultFx) { vaultFx.phase = "open"; render(true); } }, 2600);
 }
 function doorsCard(s) {
   const date = azToday(), list = doorsFor(cls, date), S = SEASON, gate = gateOpen(s, cls, date), day = dayDoors(s, date);
@@ -497,9 +590,10 @@ function presentReward(s, r, data) {
   return prize;
 }
 // The Weekly Door: a Legendary egg and an automatic Golden Present.
-async function openWeekDoor() {
-  const s = students.find(x => x.id === me); if (!s || present || weekDoorState(s, cls) !== "ready") return;
-  const wk = weekKey(cls), r = rollPresent(true);
+async function openWeekDoor(wkIn) {
+  const wk = wkIn || weekKey(cls), s = students.find(x => x.id === me);
+  if (!s || present || (wk === weekKey(cls) ? weekDoorState(s, cls) !== "ready" : (s.weekDoor || {})[wk] !== "ready")) return;
+  const r = rollPresent(true);
   const data = { weekDoor: Object.assign({}, s.weekDoor || {}, { [wk]: "open" }), legendaryPulls: (Number(s.legendaryPulls) || 0) + 1, weekPresent: { week: wk, r, at: new Date().toISOString() } };
   const prize = presentReward(s, r, data);
   present = { date: wk, k: "w", r, phase: "shake", golden: true, prize, week: true };
@@ -680,7 +774,8 @@ document.addEventListener("click", async ev => {
     fit[roomSlot] = id; return patch({ roomFit: fit }); }
   if ((el = ev.target.closest("[data-roombuyok]"))) { if (!PREVIEW) await roomPurchase(el.dataset.roombuyok, Number(el.dataset.cost)); return; }
   if ((el = ev.target.closest("[data-roombuy]"))) { roomBuy = el.dataset.roombuy || null; render(); return; }
-  if ((el = ev.target.closest("[data-weekdoor]"))) { if (!PREVIEW) await openWeekDoor(); return; }
+  if ((el = ev.target.closest("[data-weekdoor]"))) { if (!PREVIEW) await openWeekDoor(el.dataset.weekdoor && el.dataset.weekdoor !== "1" ? el.dataset.weekdoor : null); return; }
+  if ((el = ev.target.closest("[data-vault]"))) { if (!PREVIEW) await openVault(el.dataset.vault); return; }
   if ((el = ev.target.closest("[data-claim]"))) { if (!PREVIEW) await claimDoor(Number(el.dataset.claim)); return; }
   if ((el = ev.target.closest("[data-open]"))) { if (!PREVIEW) { const [d, k] = el.dataset.open.split(":"); await openPresent(d, k); } return; }
   if ((el = ev.target.closest("[data-side]"))) return patch({ sidekick: el.dataset.side });
@@ -724,6 +819,7 @@ document.addEventListener("click", async ev => {
         if (S.key === "jingle") data.grinchAtk = (Number(s.grinchAtk) || 0) + 1;
         if (S.key === "frost") data.yetiAtk = (Number(s.yetiAtk) || 0) + 1;
         if (S.key === "heart") data.heartAtk = (Number(s.heartAtk) || 0) + 1;
+        { const B2 = BOSS2[S.key]; if (B2 && cls[B2.defeat] && !cls[B2.flag]) data[B2.atk] = (Number(s[B2.atk]) || 0) + 1; }   // attacks on the 2nd boss
         msg += "<small>\u2728 RARE! A free attack hits the " + S.boss + " for " + dmg + "!</small>";
       }
     }
@@ -741,7 +837,21 @@ document.addEventListener("click", async ev => {
   }
   if (act === "closePrize") { prizeWheel = null; render(); return; }
   if (act === "closePresent") { present = null; render(); return; }
+  if (act === "vaultSpin") { const idx = vaultFx && vaultFx.prize; vaultFx = null; if (idx != null) openPrizeWheel(idx); else render(); return; }
+  if (act === "vaultClose") { vaultFx = null; render(); return; }
+  if (act === "vaultTeach") {
+    const s = students.find(x => x.id === me), f = (document.getElementById("vaultPick") || {}).value;
+    if (!s || !f || !vaultLessonsLeft(s) || !(s.coll || {})[f] || (s.vaultMoves || []).includes(f)) return;
+    await patch({ vaultMoves: (s.vaultMoves || []).concat([f]) }); flash("\u{1F48E} " + (formOf(f, ((s.coll || {})[f] || {}).lvl || 1) || {}).name + " learned Vault Breaker!", true); return;
+  }
   if (act === "presentSpin") { const idx = present && present.prize; present = null; if (idx != null) openPrizeWheel(idx); return; }
+  if (act === "teachAsk") { busy.teach = el.dataset.k; render(); return; }
+  if (act === "teachCancel") { busy.teach = null; render(); return; }
+  if (act === "teachMove") {
+    const s = students.find(x => x.id === me), B = BOSS2_LIST.find(x => x.key === el.dataset.k); busy.teach = null;
+    if (!s || !B || !s[B.stu] || s[B.move] || !s.petCreature || !creatureCompanion(s, s.petCreature)) { render(); return; }
+    await patch({ [B.move]: s.petCreature }); flash(MOVES[B.mv].icon + " " + esc(companionOf(s).name) + " learned " + MOVES[B.mv].name + "!", true); return;
+  }
   if (act === "cancelBuy") { busy.confirmBuy = null; render(); return; }
   if (act === "attack") {
     const s = students.find(x => x.id === me);
@@ -752,6 +862,7 @@ document.addEventListener("click", async ev => {
     if (isJingle(cls)) data.grinchAtk = (Number(s.grinchAtk) || 0) + 1;   // Grinch-a-Duck attacks
     if (isFrost(cls)) data.yetiAtk = (Number(s.yetiAtk) || 0) + 1;   // snowballs at the Abominable Snowlotl
     if (isHeart(cls)) data.heartAtk = (Number(s.heartAtk) || 0) + 1;   // Heartbreaker-otl attacks
+    { const B2 = boss2Of(cls); if (B2 && cls[B2.defeat] && !cls[B2.flag]) data[B2.atk] = (Number(s[B2.atk]) || 0) + 1; }   // attacks on the 2nd boss
     if (nx.day !== null) { const attacks = arr5(s.attacks, false); attacks[nx.day] = true; data.attacks = attacks; }
     else data.extraAttacks = (Number(s.extraAttacks) || 0) - 1;
     if (nx.brew) data.brews = (Number(s.brews) || 0) - 1;

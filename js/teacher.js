@@ -1,21 +1,21 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261007c";
-import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261007c";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261007c";
-import { cpEarnedCalc } from "./room.js?v=20261007c";
-import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField } from "./teams.js?v=20261007c";
-import { GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal } from "./doors.js?v=20261007c";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261007c";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261009a";
+import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261009a";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261009a";
+import { cpEarnedCalc } from "./room.js?v=20261009a";
+import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField } from "./teams.js?v=20261009a";
+import { GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP } from "./doors.js?v=20261009a";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261009a";
 import {
   applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
-  simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
+  boss2Of, boss2Prize, simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, isFrost, isHeart, heartUnlocked, saveProblems, yetiUnlocked, wallMarks, WALL_BLOCK, BOSS_START_HP, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261007c";
-import { pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261007c";
+} from "./game.js?v=20261009a";
+import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261009a";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef
-} from "./db.js?v=20261007c";
+} from "./db.js?v=20261009a";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -461,7 +461,7 @@ function render(force) {
   else if (mode === "denied") h += '<div class="card"><h2>This console is for the teacher</h2><p class="lede" style="margin-top:8px;">' + esc(user && user.email) + ' isn’t on the teacher list.</p><div class="row" style="margin-top:14px;"><button class="btn ghost" data-act="signOut">Use a different account</button></div></div>';
   else if (mode === "setup") h += viewSetup();
   else if (mode === "class") h += keepHTML(cls, students, popIds, badgeShout());
-  else if (mode === "battle") h += battleHTML(cls, students, battleFx) + (isFrost(cls) ? "" : healControls());
+  else if (mode === "battle") h += battleHTML(cls, students, battleFx) + ghost2Card() + (isFrost(cls) ? "" : healControls());
   else {
     const np = prizesOpen(), nd = waitingDoors(students, cls).length;
     const tabs = [["daily", "\u{1F4C5} Daily"], ["students", "\u{1F43E} Students"], ["collector", "\u{1F95A} Collector" + (newIdeas() ? ' <span class="tbadge" aria-label="new creature ideas">' + newIdeas() + "</span>" : "")], ["events", "\u2728 Events" + (eventMode(cls) ? " " + SEASON.icon : "") + (np + nd ? ' <span class="tbadge" aria-label="' + (np + nd) + ' to check">' + (np + nd) + "</span>" : "")], ["quest", "\u{1F5FA}\uFE0F Quest"], ["settings", "\u2699\uFE0F Settings"]];
@@ -473,7 +473,7 @@ function render(force) {
     else if (ctab === "students") h += viewStandings() + viewAssign() + viewLosses() + viewLinks();
     else if (ctab === "collector") h += viewLiveBattles() + viewIdeas() + teacherCollectorCard() + viewCollector();
     else if (ctab === "quest") h += questTracker(students);
-    else if (ctab === "events") h += viewModes() + viewSaveCheck() + viewBossHits() + (eventMode(cls) || waitingDoors(students, cls).length ? viewDoors() : "") + EVENT_LIST.map(E => E.season(cls) || tevTeams(E, cls).length ? viewTeamEvent(E) : "").join("") + duckAdmin() + (eventMode(cls) ? viewBucket() + viewPrizes() + viewShop() : prizeRows().length ? viewPrizes() : "");
+    else if (ctab === "events") h += ghost2Card() + prize2Card() + viewModes() + viewSaveCheck() + viewBossHits() + (eventMode(cls) || waitingDoors(students, cls).length ? viewDoors() : "") + EVENT_LIST.map(E => E.season(cls) || tevTeams(E, cls).length ? viewTeamEvent(E) : "").join("") + duckAdmin() + (eventMode(cls) ? viewBucket() + viewPrizes() + viewShop() : prizeRows().length ? viewPrizes() : "");
     else h += viewClassSettings();
   }
 
@@ -542,10 +542,10 @@ function viewDaily() {
     ' (their sidekick joins them today). The <b>end-of-day</b> file decides health and turns the day on.</p>';
 
   const up = busy.upReport;
-  if (up && up.day === day) {
-    h += '<div class="banner ' + (up.unmatched.length || up.missing.length ? "warn" : "info") + '"><b>' + (up.kind === "lunch" ? "Lunch" : "End of day") + " · " + esc(up.file) + ":</b> matched " +
+  if (up && (up.day === day || up.day < 0 || up.day > 4)) {
+    h += '<div class="banner ' + (up.unmatched.length || up.missing.length ? "warn" : "info") + '"><b>' + (PASTE_NAME[up.day] ? cap(PASTE_NAME[up.day]) + " \u00b7 " : "") + (up.kind === "lunch" ? "Lunch" : "End of day") + " · " + esc(up.file) + ":</b> matched " +
       up.matched + " students · " + up.hit + " at " + goal + "+ XP.";
-    if (up.missing.length) h += "<br>Not in this file (their " + (up.kind === "lunch" ? "lunch" : "end-of-day") + " number was cleared): " + up.missing.map(esc).join(", ");
+    if (up.missing.length) h += "<br>Not in this file (their earlier " + (up.kind === "lunch" ? "lunch" : "end-of-day") + " number was kept): " + up.missing.map(esc).join(", ");
     if (up.unmatched.length) h += "<br>In the file but not on your roster: " + up.unmatched.map(u => esc(u.name)).join(", ") +
       '<div style="margin-top:8px;"><button class="btn small" data-act="addUnmatched">Add ' + up.unmatched.length + " to roster</button></div>";
     h += "</div>";
@@ -660,6 +660,44 @@ function prizeInfo(e) {
 function rawHits(st) { const all = Number(st.attackTotal) || 0, t = Number(st.turkeyAtk) || 0, g = Number(st.grinchAtk) || 0, y = Number(st.yetiAtk) || 0, hb = Number(st.heartAtk) || 0; return { haunt: Math.max(0, all - t - g - y - hb), gobble: t, jingle: g, frost: y, heart: hb }; }
 // cls.hitBase = { haunt: { studentId: hits when the count was restarted }, gobble: {...}, jingle: {...} }, cls.hitReset = { haunt: ISO date, ... }
 // Students whose saved data is in a shape Firebase's save rules can't read (their saves get "permission-denied").
+/* 2nd boss wins (BOSS2 in collect.js): once this event's boss has been beaten before and a newer one is beaten too,
+   Ms. Ariana gives the 2nd-win rewards to the students who attacked it: that boss as a Legendary egg (B.eggs), the "II"
+   badge and the special move (B.stu). The class gets the Sparkle sidekick and the boss joins the Legendary pool (B.flag). */
+function ghost2Pending() {
+  const B = boss2Of(cls);
+  if (!B || !cls[B.defeat] || cls[B.flag]) return null;
+  if (!bossState(cls, students).defeated) return null;
+  // Is this a new boss (summoned after the 1st one fell)? Summons save bossSummonedAt; for one summoned before
+  // that was added, attacks on it (B.atk) show it's the 2nd one.
+  const at = cls[B.defeat + "At"];
+  if (cls.bossSummonedAt) return !at || cls.bossSummonedAt > at ? B : null;
+  return students.some(s => (Number(s[B.atk]) || 0) > 0) ? B : null;
+}
+function ghost2Attacked(s, B) {
+  if ((Number(s[B.atk]) || 0) > 0) return true;
+  const base = cls.bossStartAtk; return !!(base && (Number(s.attackTotal) || 0) > (Number(base[s.id]) || 0));
+}
+// While the 2nd boss is up: what the banner promises (Ms. Ariana can change it)
+function prize2Card() {
+  const B = boss2Of(cls); if (!B || !cls[B.defeat] || cls[B.flag]) return "";
+  return '<div class="card"><div class="card-head"><h2>' + B.icon + " 2nd " + esc(B.boss) + ' prize</h2><span class="fact">on the banner</span></div>' +
+    '<p class="small" style="margin-bottom:6px;">The banner says: <b>\u201cDefeat the ' + esc(B.boss) + " again and you get to " + esc(boss2Prize(cls, B)) + "!\u201d</b></p>" +
+    '<div class="row"><div class="field" style="flex:1;"><label for="prize2">They get to\u2026</label><input id="prize2" type="text" maxlength="80" value="' + esc(boss2Prize(cls, B)) + '"></div>' +
+    '<button class="btn ghost" data-act="savePrize2">Save</button></div></div>';
+}
+function ghost2Card() {
+  const B = ghost2Pending(); if (!B) return "";
+  const kids = students.filter(s => s.companionId);
+  if (!busy.g2pick || busy.g2key !== B.key) { busy.g2pick = {}; busy.g2key = B.key; kids.forEach(s => { if (ghost2Attacked(s, B)) busy.g2pick[s.id] = true; }); }
+  const n = kids.filter(s => busy.g2pick[s.id]).length, M = MOVES[B.mv];
+  return '<div class="card" style="border:2px solid #5FD3A6;"><div class="card-head"><h2>' + B.icon + " The " + esc(B.boss) + ' is beaten again!</h2><span class="fact">2nd-win rewards</span></div>' +
+    '<p class="lede" style="font-size:13.5px;">Only press this after the <b>2nd</b> ' + esc(B.boss) + " falls. Every ticked student gets a <b>" + esc(B.boss) + " egg</b>, the <b>" + esc(B.badgeName) + "</b> badge and the <b>" + M.name + "</b> move for one companion. " +
+    "The class unlocks the <b>Sparkle " + esc(B.boss) + "</b> lunch sidekick, and the " + esc(B.boss) + " joins the Legendary egg pool for good. (Don\u2019t forget: they get to " + esc(boss2Prize(cls, B)) + "! \u{1F3C6})</p>" +
+    '<p class="small muted" style="margin:6px 0;">Ticked = attacked this ' + esc(B.boss) + ". Add or remove anyone before you give the rewards.</p>" +
+    '<div class="row" style="flex-wrap:wrap;gap:6px;margin:8px 0;">' + kids.map(s => '<label class="modebox" style="margin:0;padding:6px 10px;"><input type="checkbox" data-g2="' + s.id + '"' + (busy.g2pick[s.id] ? " checked" : "") + "><span><b>" + esc(s.name) + "</b></span></label>").join("") + "</div>" +
+    (busy.g2confirm ? '<div class="row"><button class="btn" data-act="ghost2Give" style="background:#2E9E5B;">Yes \u2014 give rewards to ' + n + " student" + (n === 1 ? "" : "s") + '</button><button class="btn ghost" data-act="ghost2No">Cancel</button></div>'
+      : '<button class="btn" data-act="ghost2Ask"' + (n ? "" : " disabled") + ">" + B.icon + " Give the 2nd-win rewards (" + n + ")</button>") + "</div>";
+}
 function viewSaveCheck() {
   const bad = students.map(st => ({ st, r: saveProblems(st, cls) })).filter(x => x.r.problems.length);
   if (!bad.length) return "";
@@ -741,7 +779,7 @@ function viewDoors() {
 /* ---------- Weekly Door ---------- */
 function viewWeekDoor() {
   const wk = weekKey(cls), goal = weekGoal(cls), kids = students.filter(x => x.companionId);
-  const st = x => ((x.weekDoor || {})[wk]) || (weekTotal(x) >= goal ? "ready" : "");
+  const st = x => ((x.weekDoor || {})[wk]) || (weekTotal(x, cls) >= goal ? "ready" : "");
   const opened = kids.filter(x => st(x) === "open"), ready = kids.filter(x => st(x) === "ready");
   const custom = goal !== WEEK_DOOR_XP;
   let h = '<div class="card" id="weekDoorCard"><div class="card-head"><h2>\u{1F6AA} Weekly Door</h2><span class="fact">' + opened.length + " opened \u00b7 " + ready.length + " ready</span></div>" +
@@ -750,6 +788,9 @@ function viewWeekDoor() {
     '<button class="btn small" data-act="saveWeekGoal">Save for this week</button>' + (custom ? '<button class="btn ghost small" data-act="resetWeekGoal">Back to ' + WEEK_DOOR_XP + "</button>" : "") +
     '<button class="btn ghost small" data-act="weekCheck">\u{1F504} Unlock for everyone who made it</button></div>' +
     '<p class="muted small" style="margin-top:6px;">A short-week goal only lasts this week \u2014 starting a new week goes back to ' + WEEK_DOOR_XP + ".</p>";
+  const vst = x => ((x.vault || {})[wk]) || (weekTotal(x, cls) >= VAULT_XP ? "ready" : ""), vOpen = kids.filter(x => vst(x) === "open"), vReady = kids.filter(x => vst(x) === "ready");
+  h += '<p class="small" style="margin-top:10px;">\u{1F48E} <b>Treasure Vault</b> (' + VAULT_XP.toLocaleString() + " XP in a week, weekend included): " + vOpen.length + " opened · " + vReady.length + " ready" +
+    (vOpen.length || vReady.length ? " — " + vOpen.map(x => "✅ " + esc(x.name)).concat(vReady.map(x => "\u{1F48E} " + esc(x.name))).join(", ") : "") + "</p>";
   if (opened.length || ready.length) h += '<div class="inv" style="margin-top:8px;">' +
     opened.map(x => "<span>\u2705 " + esc(x.name) + "</span>").join("") + ready.map(x => "<span>\u{1F31F} " + esc(x.name) + " (ready)</span>").join("") +
     "</div>";
@@ -757,7 +798,10 @@ function viewWeekDoor() {
 }
 async function weekCheck(goalNow) {
   const wk = weekKey(cls), goal = goalNow || weekGoal(cls), batch = writeBatch(db); let n = 0;
-  students.forEach(x => { if (x.companionId && weekTotal(x) >= goal && !(x.weekDoor || {})[wk]) { batch.update(studentRef(x.id), { weekDoor: Object.assign({}, x.weekDoor || {}, { [wk]: "ready" }) }); n++; } });
+  students.forEach(x => { if (!x.companionId) return; const t = weekTotal(x, cls), up = {};
+    if (t >= goal && !(x.weekDoor || {})[wk]) { up.weekDoor = Object.assign({}, x.weekDoor || {}, { [wk]: "ready" }); n++; }
+    if (t >= VAULT_XP && !(x.vault || {})[wk]) up.vault = Object.assign({}, x.vault || {}, { [wk]: "ready" });
+    if (Object.keys(up).length) batch.update(studentRef(x.id), up); });
   if (n) await batch.commit();
   return n;
 }
@@ -1181,7 +1225,21 @@ export function parsePasted(text) {
 function pasteBox() {
   if (!busy.paste) return "";
   const rows = parsePasted(busy.pasteText || ""), matched = rows.filter(r => matchStudent(r.name));
-  return '<div class="pastebox"><div class="row" style="justify-content:space-between;align-items:center;"><b>\u{1F4CB} Paste ' + DAYS[day] + '\u2019s XP</b><button class="btn ghost small" data-act="pasteClose">Close</button></div>' +
+  // Which day this data is for. Picked here on purpose: a new day's console opens on today, and yesterday's file pasted
+  // onto today would be overwritten by today's real numbers later (and yesterday's eggs would never count).
+  const pd = busy.pasteDay != null ? busy.pasteDay : day, ti = todayIndex(), wd = new Date().getDay(), monday = wd === 1;
+  const wkend = wd === 0 || wd === 6, extra = monday ? [-3, -2, -1] : wkend ? [5, 6] : [];
+  const prev = monday ? -3 : ti - 1, nm = i => PASTE_NAME[i] || DAYS[i];
+  const kids = students.filter(x => x.companionId), noDay = i => kids.filter(x => !((x.xpHist || {})[pasteDate(i)] || {}).hasOwnProperty("d")).length;
+  const warnPrev = wd >= 1 && wd <= 5 && pd === ti && kids.length && noDay(prev) > kids.length / 2;
+  return '<div class="pastebox"><div class="row" style="justify-content:space-between;align-items:center;"><b>\u{1F4CB} Paste XP</b><button class="btn ghost small" data-act="pasteClose">Close</button></div>' +
+    '<div class="row" style="gap:6px;align-items:center;margin:6px 0;"><span class="small"><b>This data is for:</b></span>' +
+    (monday ? extra.map(i => '<button class="btn small' + (pd === i ? "" : " ghost") + '" data-pday="' + i + '">' + PASTE_CHIP[i] + "</button>").join("") : "") +
+    DAYS.map((n, i) => '<button class="btn small' + (i === pd ? "" : " ghost") + '" data-pday="' + i + '">' + n + (i === ti && wd >= 1 && wd <= 5 ? " (today)" : "") + "</button>").join("") +
+    (wkend ? extra.map(i => '<button class="btn small' + (pd === i ? "" : " ghost") + '" data-pday="' + i + '">' + PASTE_CHIP[i] + "</button>").join("") : "") + "</div>" +
+    (extra.length ? '<p class="muted small" style="margin:-2px 0 6px;">\u{1F4C5} Weekend work counts toward the week it finished (Weekly Door + Treasure Vault), and for eggs and creature XP.</p>' : "") +
+    (warnPrev ? '<div class="banner warn" style="margin:6px 0;">\u26A0\uFE0F <b>' + cap(nm(prev)) + " doesn\u2019t have end-of-day XP yet.</b> If this file is " + nm(prev) + "\u2019s data, pick <b>" + (PASTE_CHIP[prev] || DAYS[prev]) +
+      '</b> above \u2014 saving it on today would get replaced by today\u2019s numbers later, and ' + nm(prev) + "\u2019s eggs wouldn\u2019t count.</div>" : "") +
     '<p class="muted small" style="margin:4px 0 8px;">Select the whole table on the XP page, copy it, and paste it here. Only the first number before the slash (like <b>291</b> in \u201c291 / 120\u201d) is used for each student.</p>' +
     '<textarea id="pasteBox" rows="8" placeholder="Paste here\u2026">' + esc(busy.pasteText || "") + "</textarea>" +
     (rows.length ? '<div class="pasteprev"><span class="muted small">Found ' + rows.length + " student" + (rows.length === 1 ? "" : "s") + " \u00b7 " + matched.length + " on your roster:</span> " +
@@ -1213,6 +1271,12 @@ function lunchLateBox() {
     '<button class="btn ghost small" data-act="lateCancel">Cancel</button></div></div>';
 }
 
+// The date a pasted/uploaded file is saved on. Day -1 = last Friday (for pasting Friday's data on Monday).
+const cap = t => t.charAt(0).toUpperCase() + t.slice(1);
+// d = 0-4 Mon-Fri of this week, 5/6 = its Saturday/Sunday (pasting on the weekend), -3/-2/-1 = last Fri/Sat/Sun (pasting on Monday)
+function pasteDate(d) { return dateOfDay(d); }
+const PASTE_NAME = { "-3": "last Friday", "-2": "last Saturday", "-1": "last Sunday", 5: "Saturday", 6: "Sunday" };
+const PASTE_CHIP = { "-3": "Last Fri", "-2": "Last Sat", "-1": "Last Sun", 5: "Sat", 6: "Sun" };
 async function applyUpload(up) {
   const goal = goalXP(cls), d = up.day;
   const best = {}, subs = {}; let unmatched = [];
@@ -1233,21 +1297,24 @@ async function applyUpload(up) {
   }
   const seenN = {}; unmatched = unmatched.filter(u => { const k = u.name.toLowerCase(); if (seenN[k]) return false; seenN[k] = 1; return true; });
 
-  const batch = writeBatch(db); let hit = 0, matched = 0, autoN = 0, weekN = 0; const missing = [];
+  const batch = writeBatch(db); let hit = 0, matched = 0, autoN = 0, weekN = 0, vaultN = 0; const missing = [];
   // A re-upload fully replaces the earlier file of the same kind (lunch or end-of-day) for that day:
   // anyone not in the new file has that day's number cleared. The other kind is left alone.
-  const date = dateOfDay(d), key = up.kind === "lunch" ? "l" : "d";
+  // Exception: a student who isn't in the new file keeps the number they already had, so a short or partial
+  // file can never take away eggs that day already earned.
+  const date = pasteDate(d), key = up.kind === "lunch" ? "l" : "d", lastWk = d < 0 || d > 4;   // weekend / last week: history only
   students.forEach(s => {
     const has = s.id in best, xp = has ? best[s.id] : null, ok = has && xp >= goal;
     if (has) { matched++; if (ok) hit++; } else missing.push(s.name);
     const status = arr5(s.status, ""), early = arr5(s.early, false);
     const hist = Object.assign({}, s.xpHist || {}), day = Object.assign({}, hist[date] || {});
-    if (has) day[key] = xp; else delete day[key];
+    if (has) day[key] = xp;
     if (subs[s.id]) { const old = day.sub || {}, nw = {}; Object.keys(Object.assign({}, old, subs[s.id])).forEach(k => { nw[k] = Math.max(Number(old[k]) || 0, Number(subs[s.id][k]) || 0); }); day.sub = nw; }
     if (up.kind === "lunch") delete day.lh;   // a lunch upload replaces any hand-marked Lunch Hero for that day
     if (Object.keys(day).length) hist[date] = day; else delete hist[date];
     let data;
-    if (up.kind === "lunch") {
+    if (lastWk) data = { xpHist: hist };   // last week's numbers only go into the history (eggs + doors); this week's boxes stay as they are
+    else if (up.kind === "lunch") {
       const lunchXp = arr5(s.lunchXp, null); lunchXp[d] = xp; early[d] = ok;
       if (status[d] !== "e" && arr5(s.xp, null)[d] == null) status[d] = ok ? "c" : "";
       data = { lunchXp, early, status, xpHist: hist };
@@ -1259,18 +1326,20 @@ async function applyUpload(up) {
     // Daily Doors: approve every door the subject numbers show as done
     if (subs[s.id] && doorsLive(cls)) { const a = autoDoors(s, cls, date, day.sub, Math.max(Number(day.d) || 0, Number(day.l) || 0)); if (a) { data.doors = a.doors; autoN += a.n; } }
     Object.assign(s, data);
-    // Weekly Door: unlock it once the week's XP reaches the goal
-    const wk = weekKey(cls);
-    if (s.companionId && weekTotal(s) >= weekGoal(cls) && !(s.weekDoor || {})[wk]) { s.weekDoor = Object.assign({}, s.weekDoor || {}, { [wk]: "ready" }); data.weekDoor = s.weekDoor; weekN++; }
+    // Weekly Door + Treasure Vault: unlock them once the week's XP (weekend included) reaches the goal.
+    // Weekend work pasted on Monday belongs to the week it finished, so that (older) week's door can unlock late.
+    const wk = mondayOf(date), cur = wk === weekKey(cls), tot = cur ? weekTotal(s, cls) : histWeekTotal(s, wk);
+    if (s.companionId && tot >= (cur ? weekGoal(cls) : WEEK_DOOR_XP) && !(s.weekDoor || {})[wk]) { s.weekDoor = Object.assign({}, s.weekDoor || {}, { [wk]: "ready" }); data.weekDoor = s.weekDoor; weekN++; }
+    if (s.companionId && tot >= VAULT_XP && !(s.vault || {})[wk]) { s.vault = Object.assign({}, s.vault || {}, { [wk]: "ready" }); data.vault = s.vault; vaultN++; }
     batch.update(studentRef(s.id), data);
   });
-  if (up.kind === "day") { const rec = recordedDays(cls); if (!rec[d]) { rec[d] = true; batch.update(classRef, { recorded: rec }); } }
+  if (up.kind === "day" && !lastWk) { const rec = recordedDays(cls); if (!rec[d]) { rec[d] = true; batch.update(classRef, { recorded: rec }); } }
   // Team events (Potions, Feast Table): every team that now has the whole recipe/menu is done for the day
   const pots = Object.keys(subs).length ? EVENT_LIST.map(E => ({ E, r: brewRewards(E, cls, students, date) })).filter(x => x.r) : [];
   pots.forEach(({ r }) => { r.updates.forEach(u => batch.update(studentRef(u.st.id), u.data)); if (r.classData) batch.update(classRef, r.classData); });
   try { await batch.commit(); } catch (e) { flash("Upload didn’t save — " + (e.code || e.message)); }
   busy.upReport = { kind: up.kind, day: d, file: up.file, matched, hit, missing, unmatched, autoN };
-  const weekMsg = weekN ? " \u{1F6AA} " + weekN + " student" + (weekN === 1 ? "" : "s") + " unlocked the Weekly Door!" : "";
+  const weekMsg = (weekN ? " \u{1F6AA} " + weekN + " student" + (weekN === 1 ? "" : "s") + " unlocked the Weekly Door!" : "") + (vaultN ? " \u{1F48E} " + vaultN + " student" + (vaultN === 1 ? "" : "s") + " unlocked the TREASURE VAULT!" : "");
   const potMsg = pots.filter(x => x.r.newTeams.length).map(x => " " + x.E.icon + " " + x.E.done + " " + x.r.newTeams.map(t => t.name).join(", ")).join("") + weekMsg;
   if (autoN || potMsg) flash((autoN ? "\u{1F6AA} Auto-approved " + autoN + " door" + (autoN === 1 ? "" : "s") + " from the subject XP." : "") + potMsg);
   render();
@@ -1281,6 +1350,7 @@ document.addEventListener("input", ev => {
   if (ev.target.id === "pasteBox") { busy.pasteText = ev.target.value; clearTimeout(busy.pasteT); busy.pasteT = setTimeout(render, 250); }
 });
 document.addEventListener("change", async ev => {
+  if (ev.target.dataset && ev.target.dataset.g2) { busy.g2pick = busy.g2pick || {}; busy.g2pick[ev.target.dataset.g2] = ev.target.checked; render(); return; }
   if (ev.target.dataset && ev.target.dataset.qstart) { await questTeacherChange(ev.target, { patch }); return; }
   if (ev.target.dataset && ev.target.dataset.ptmember) {
     const { E, rest } = tevOf(ev.target.dataset.ptmember); if (!E) return; busy["tevOpen" + E.key] = true;
@@ -1541,6 +1611,7 @@ document.addEventListener("click", async ev => {
     try { await navigator.clipboard.writeText(link); el.textContent = "Copied!"; setTimeout(render, 1400); } catch (e) { prompt("Copy this link:", link); }
     return;
   }
+  if ((el = ev.target.closest("[data-pday]"))) { busy.pasteText = (document.getElementById("pasteBox") || {}).value || busy.pasteText; busy.pasteDay = Number(el.dataset.pday); render(); return; }
   if (!(el = ev.target.closest("[data-act]"))) return;
   const act = el.dataset.act;
 
@@ -1628,11 +1699,30 @@ document.addEventListener("click", async ev => {
     } catch (e) { flash("Couldn’t save — " + e.code); }
     return;
   }
+  if (act === "savePrize2") {
+    const B = boss2Of(cls); if (!B) return; const v = (document.getElementById("prize2").value || "").trim().slice(0, 80);
+    try { await updateDoc(classRef, { ["prize2." + B.key]: v || null }); flash("Saved \u2014 the banner prize is updated."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); }
+    return;
+  }
+  if (act === "ghost2Ask") { busy.g2confirm = true; render(); return; }
+  if (act === "ghost2No") { busy.g2confirm = false; render(); return; }
+  if (act === "ghost2Give") {
+    busy.g2confirm = false; const B = ghost2Pending(); if (!B) return;
+    const pick = students.filter(s => s.companionId && (busy.g2pick || {})[s.id]); if (!pick.length) return;
+    const batch = writeBatch(db), M = MOVES[B.mv];
+    pick.forEach(s => batch.update(studentRef(s.id), { [B.eggs]: (Number(s[B.eggs]) || 0) + 1, [B.stu]: true }));
+    batch.update(classRef, { [B.flag]: true, [B.key + "2At"]: new Date().toISOString(), [B.key + "2Count"]: pick.length });
+    try { await batch.commit(); busy.g2pick = null; flash("Saved \u2014 " + pick.length + " student" + (pick.length === 1 ? "" : "s") + " got a " + B.boss + " egg, the " + B.badgeName + " badge and " + M.name + "!");
+      partyQueue.push({ text: "The " + B.boss + " is beaten AGAIN!", sub: B.boss + " eggs \u00b7 " + M.name + " \u00b7 Sparkle " + B.boss + " sidekick \u00b7 you get to " + boss2Prize(cls, B) + "!", glyph: B.icon, pet: "\u{1F3C6}" }); if (!partyShowing) runParty(); }
+    catch (e) { flash("Couldn\u2019t give the rewards \u2014 " + (e.code || e.message)); }
+    return;
+  }
   if (act === "newBoss") {
     if (!busy.confirmBoss) { busy.confirmBoss = true; render(); return; }
     busy.confirmBoss = false;
     const nb = bossState(cls, students), wl = nb.wall ? { wallMark: 0, wallAt: nb.wall.built, wallAbs: nb.wall.built - nb.wall.left } : {};   // a standing snow wall stays up
-    try { await updateDoc(classRef, Object.assign({ bossHP: BOSS_START_HP, bossBase: nb.total, bossBaseHits: nb.totalHits, bossHealed: 0 }, wl)); flash("Saved — a new " + SEASON.boss + " appears!"); } catch (e) { flash("Couldn’t summon — " + e.code); }
+    const startAtk = {}; students.forEach(s => { startAtk[s.id] = Number(s.attackTotal) || 0; });   // who attacks this one (2nd Ghost-olotl rewards)
+    try { await updateDoc(classRef, Object.assign({ bossHP: BOSS_START_HP, bossBase: nb.total, bossBaseHits: nb.totalHits, bossHealed: 0, bossSummonedAt: new Date().toISOString(), bossStartAtk: startAtk }, wl)); flash("Saved — a new " + SEASON.boss + " appears!"); } catch (e) { flash("Couldn’t summon — " + e.code); }
     return;
   }
   if (act === "saveClass") {
@@ -1644,12 +1734,14 @@ document.addEventListener("click", async ev => {
     } catch (e) { flash("Couldn’t save — " + e.code); }
     return;
   }
-  if (act === "pasteOpen") { busy.paste = true; render(); const b = document.getElementById("pasteBox"); if (b) b.focus(); return; }
+  if (act === "pasteOpen") { busy.paste = true; busy.pasteDay = null; render(); const b = document.getElementById("pasteBox"); if (b) b.focus(); return; }
   if (act === "pasteClose") { busy.paste = false; render(); return; }
   if (act === "pasteLunch" || act === "pasteDay") {
     const rows = parsePasted(busy.pasteText || ""); if (!rows.length) return;
-    const up = { kind: act === "pasteLunch" ? "lunch" : "day", day, file: "pasted data", rows, nameKey: "name", xpKey: "completed", guideKey: null };
-    busy.lastUpload = up; busy.paste = false; busy.pasteText = "";
+    const pd = busy.pasteDay != null ? busy.pasteDay : day;
+    if (pd !== day && pd >= 0 && pd <= 4) day = pd;   // the console moves to the day the data was saved on
+    const up = { kind: act === "pasteLunch" ? "lunch" : "day", day: pd, file: "pasted data", rows, nameKey: "name", xpKey: "completed", guideKey: null };
+    busy.lastUpload = up; busy.paste = false; busy.pasteText = ""; busy.pasteDay = null;
     await sendUpload(up); return;
   }
   if (act === "lateCancel") { busy.lunchLate = null; render(); return; }

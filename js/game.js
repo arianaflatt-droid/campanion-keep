@@ -1,9 +1,9 @@
-import { formOf, sparkleImg, azNow, azToday } from "./collect.js?v=20261007c";
-import { heldWeapon } from "./quest.js?v=20261007c";
+import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261009a";
+import { heldWeapon } from "./quest.js?v=20261009a";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261007c";
+export const APP_V = "20261009a";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -36,6 +36,11 @@ export const HEART_BANNER = '<div class="hero haunt heart"><p class="haunt-tag">
   '</h2><p class="haunt-sub">Every XP is a candy heart! Your companion eats the first 120 each day to power its attack \u2014 the rest fills your candy jar.</p></div>';
 export function bannerFor(cls) {
   const b = isHeart(cls) ? HEART_BANNER : isFrost(cls) ? FROST_BANNER : isJingle(cls) ? JINGLE_BANNER : isGobble(cls) ? GOBBLE_BANNER : isHaunt(cls) ? HAUNT_BANNER : BANNER;
+  // The 2nd boss (already beaten once, 2nd-win rewards not given yet): the prize promise (Ms. Ariana can change it: cls.prize2)
+  const B = b !== BANNER ? boss2Of(cls) : null;
+  if (B && cls[B.defeat] && !cls[B.flag])
+    return b.replace("</p></div>", '</p><p class="haunt-sub costume">\u{1F3C6} <b>Defeat the ' + B.boss + " again and you get to " + esc(boss2Prize(cls, B)) + "!</b> " + B.icon + "</p></div>")
+      .replace("<b>600 XP</b> This Week", "<b>" + weekGoal(cls).toLocaleString() + " XP</b> This Week");
   return b.replace("<b>600 XP</b> This Week", "<b>" + weekGoal(cls).toLocaleString() + " XP</b> This Week");
 }
 
@@ -245,9 +250,15 @@ export const emojiImg = key => '<img class="emo" src="assets/emoji/' + key + '.w
 export function itemArt(it, cls) {
   return it.img ? '<img class="' + (cls || "") + '" src="' + it.img + '" alt="">' : emojiImg("gear-" + it.id);
 }
-export const SIDEKICKS = { axolotl: "Axolotl", duck: "Duck", ghost: "Ghost-olotl", turkey: "Turducken", grinch: "Grinch-a-Duck", yeti: "Snowlotl", heartotl: "Heartbreaker-otl" };
+export const SIDEKICKS = { axolotl: "Axolotl", duck: "Duck", ghost: "Ghost-olotl", turkey: "Turducken", grinch: "Grinch-a-Duck", yeti: "Snowlotl", heartotl: "Heartbreaker-otl", ghostsp: "Sparkle Ghost-olotl",
+  turkeysp: "Sparkle Turducken", grinchsp: "Sparkle Grinch-a-Duck", yetisp: "Sparkle Snowlotl", heartsp: "Sparkle Heartbreaker-otl" };
 // The Ghost-olotl reward: set once the class defeats the first Ghost-olotl. Stays after Haunt-O-Ween ends.
 export function ghostUnlocked(cls) { return !!(cls && cls.ghostDefeated); }
+export function ghost2Unlocked(cls) { return !!(cls && cls.ghost2Done); }   // the 2nd Ghost-olotl was beaten and its rewards given
+// 2nd boss wins (collect.js BOSS2): the entry for the event that's on now, and the prize on its banner
+export function boss2Of(cls) { const k = isHeart(cls) ? "heart" : isFrost(cls) ? "frost" : isJingle(cls) ? "jingle" : isGobble(cls) ? "gobble" : isHaunt(cls) ? "haunt" : null; return k ? Object.assign({ key: k }, BOSS2[k]) : null; }
+export function boss2Prize(cls, B) { const t = ((cls && cls.prize2) || {})[B.key]; return t && String(t).trim() ? String(t).trim() : B.prize; }
+export { BOSS2, BOSS2_LIST };
 // The Turducken reward: set once the class defeats the first Turducken. Stays after Gobble-Palooza ends.
 export function turkeyUnlocked(cls) { return !!(cls && cls.turkeyDefeated); }
 // The Grinch-a-Duck reward: set once the class defeats the first Grinch-a-Duck. Stays after Jingle Jam ends.
@@ -381,12 +392,13 @@ export function boardDay(cls, students, date) {
 // Sidekick only appears on days the student hit 120 by lunch.
 export function sidekickToday(st, day) {
   if (day < 0 || !arr5(st.early, false)[day]) return null;
-  return ["duck", "ghost", "turkey", "grinch", "yeti", "heartotl"].includes(st.sidekick) ? st.sidekick : "axolotl";
+  return ["duck", "ghost", "turkey", "grinch", "yeti", "heartotl", "ghostsp", "turkeysp", "grinchsp", "yetisp", "heartsp"].includes(st.sidekick) ? st.sidekick : "axolotl";
 }
 
 /* ---------- art ----------
    Sidekick pictures live in assets/. Swap the PNGs to change the art (keep the file names). */
-export const SIDEKICK_ART = { axolotl: "assets/axolotl.png", duck: "assets/duck.png", ghost: "assets/ghost-pet.png", turkey: "assets/gobble/turducken-sidekick.webp", grinch: "assets/jingle/grinchaduck-sidekick.webp", yeti: "assets/frost/snowlotl-sidekick.webp", heartotl: "assets/heart/heartbreaker-sidekick.webp" };
+export const SIDEKICK_ART = { axolotl: "assets/axolotl.png", duck: "assets/duck.png", ghost: "assets/ghost-pet.png", turkey: "assets/gobble/turducken-sidekick.webp", grinch: "assets/jingle/grinchaduck-sidekick.webp", yeti: "assets/frost/snowlotl-sidekick.webp", heartotl: "assets/heart/heartbreaker-sidekick.webp", ghostsp: "assets/ghost-pet-sparkle.png",
+  turkeysp: "assets/gobble/turkeysp.webp", grinchsp: "assets/jingle/grinchsp.webp", yetisp: "assets/frost/yetisp.webp", heartsp: "assets/heart/heartsp.webp" };
 export function sidekickSVG(kind, big) {
   const k = SIDEKICK_ART[kind] ? kind : "axolotl";
   return '<img class="side ' + k + (big ? " big" : "") + '" src="' + SIDEKICK_ART[k] + '" alt="' + SIDEKICKS[k] + ' sidekick">';
@@ -465,6 +477,36 @@ export function creatureCompanion(st, fam) {
   return { id: "cr:" + fam, fam, name: c.name, creature: true, sparkle: !!e.sparkle,
     glyph: '<img class="crpet" src="' + img + '" alt="">',
     fit: CREATURE_FIT[fam] || { hat: [0.62, 0.1, 0.42, 0], eyes: [0.64, 0.34, 0.3, 0], snack: [1.1, 0.86] } };
+}
+/* ---------- Companion level bar ----------
+   Every day a student hits the goal (and their companion is still around) fills one of 5 spots on their current
+   companion's level bar. A full bar = +1 real level: a creature companion goes up a level in the collection (stronger
+   in battles, up to level 100); the starter companion has its own level (starterLvl).
+   compStart = the first day that counts (the day this started), compThru = the last day already counted,
+   compBar = { fam or "starter": spots filled }. */
+export const COMP_DAYS = 5;
+export function compKey(st) { return st && st.petCreature && creatureCompanion(st, st.petCreature) ? st.petCreature : "starter"; }
+export function compLevel(st) { const k = compKey(st); return k === "starter" ? Math.max(1, Number(st.starterLvl) || 1) : Math.max(1, Number((((st.coll || {})[k]) || {}).lvl) || 1); }
+export function compFill(st) { return Math.max(0, Math.min(COMP_DAYS - 1, Number(((st && st.compBar) || {})[compKey(st)]) || 0)); }
+// The save changes to make (or null): counts any new goal days onto the current companion's bar.
+export function creditCompanion(st, cls, sim) {
+  const today = azToday();
+  if (!st.compStart) return { compStart: today, compThru: "" };
+  const goal = goalXP(cls), thru = st.compThru || "";
+  const days = dayXPs(st, cls).filter(d => d.date >= st.compStart && d.date > thru && d.date <= today && d.xp >= goal);
+  if (!days.length) return null;
+  const k = compKey(st), bar = Object.assign({}, st.compBar || {}), data = { compThru: days[days.length - 1].date };
+  if (sim && !sim.alive) return data;   // a companion that disappeared doesn't fill its bar
+  let n = (Number(bar[k]) || 0) + days.length, ups = 0;
+  while (n >= COMP_DAYS) { n -= COMP_DAYS; ups++; }
+  if (ups && k === "starter") data.starterLvl = Math.max(1, Number(st.starterLvl) || 1) + ups;
+  else if (ups) {
+    const coll = Object.assign({}, st.coll || {}), e = Object.assign({}, coll[k] || {}), lvl = Math.max(1, Number(e.lvl) || 1);
+    if (lvl >= MAX_LEVEL) n = COMP_DAYS - 1;   // already level 100: the bar just stays full
+    else { e.lvl = Math.min(MAX_LEVEL, lvl + ups); coll[k] = e; data.coll = coll; }
+  }
+  bar[k] = n; data.compBar = bar; data.compUps = ups;
+  return data;
 }
 export function petCreatures(st) { return Object.keys((st && st.coll) || {}).map(f => creatureCompanion(st, f)).filter(Boolean); }
 export function companionOf(st) {

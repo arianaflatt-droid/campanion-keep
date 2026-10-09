@@ -1,10 +1,10 @@
-import { owned as roomOwned, fitOf as roomFit, FIT_SLOTS, setItems as roomSet } from "./room.js?v=20261007c";
-import { presentsOpened } from "./doors.js?v=20261007c";
+import { owned as roomOwned, fitOf as roomFit, FIT_SLOTS, setItems as roomSet } from "./room.js?v=20261009a";
+import { presentsOpened } from "./doors.js?v=20261009a";
 // Badges: worked out from each student's saved data, so nothing extra is stored and no rules change.
 // To add a badge: add an entry with a check(st) that returns how far along the student is,
 // and a goal. Put its picture in assets/badges/ (a transparent WEBP or PNG). Without a picture, the emoji shows.
-import { esc, goalXP, candyOf, ghostUnlocked } from "./game.js?v=20261007c";
-import { seenSet, ownedFams, owned, family, formIndex, formOf, STARTERS, CREATURES } from "./collect.js?v=20261007c";
+import { esc, goalXP, candyOf, ghostUnlocked } from "./game.js?v=20261009a";
+import { seenSet, ownedFams, owned, family, formIndex, formOf, STARTERS, CREATURES } from "./collect.js?v=20261009a";
 
 export const hatches = st => (Number(st.pullsUsed) || 0) + (Number(st.legendaryUsed) || 0);
 
@@ -186,6 +186,8 @@ export const BADGES = [
   { id: "health-month", group: "care", name: "Full-Health Month", desc: "Keep full health for 4 school weeks in a row", goal: 4, img: "assets/badges/health-month.webp", emoji: "\u{1F496}", check: bestFullWeekRun },
   { id: "never-lost", group: "care", name: "Never Lost", desc: "30 school days in a row without your companion disappearing", goal: 30, img: "assets/badges/never-lost.webp", emoji: "\u{1F6E1}\uFE0F", check: bestSafeRun },
   { id: "ghost-1",  group: "haunt", name: "Ghost Buster",    desc: "Help defeat the Ghost-olotl", goal: 1, img: "assets/badges/ghost-1.webp", emoji: "\u{1F47B}", check: helpedDefeat },
+  // Ghost Buster II: helped beat the 2nd Ghost-olotl (Ms. Ariana gave them its rewards). Art: assets/badges/ghost-2.webp
+  { id: "ghost-2",  group: "haunt", name: "Ghost Buster II", desc: "Help defeat the Ghost-olotl a 2nd time", goal: 1, img: "assets/badges/ghost-2.webp", emoji: "\u{1F47B}", check: st => (st.ghost2 ? 1 : 0) },
   { id: "ghost-10", group: "haunt", name: "Ghost Buster 10", desc: "Attack the Ghost-olotl 10 times", goal: 10, img: "assets/badges/ghost-10.webp", emoji: "\u{1F47B}", check: attacks },
   { id: "master-brewer", group: "haunt", name: "Master Brewer", desc: "Brew 3 potions with your Potion Team", goal: 3, img: "assets/badges/master-brewer.webp", emoji: "\u{1F9EA}", check: st => Object.keys(st.potionDays || {}).length },
   { id: "feast-master", group: "gobble", name: "Feast Master", desc: "Cook 3 Feast Table menus with your team", goal: 3, img: "assets/badges/feast-master.webp", emoji: "\u{1F983}", check: st => Object.keys(st.feastDays || {}).length },
@@ -202,13 +204,17 @@ export const BADGES = [
   { id: "t-legendary",     group: "teacher", name: "Legendary Lesson", desc: "Beat Ms. Ariana when her team has a Legendary and yours doesn\u2019t", goal: 1, img: "assets/badges/t-legendary.webp", emoji: "\u{1F451}", check: teacherLegendWins },
   { id: "t-perfect",       group: "teacher", name: "Perfect Score", desc: "Beat Ms. Ariana without any of your creatures fainting", goal: 1, img: "assets/badges/t-perfect.webp", emoji: "\u{1F4AF}", check: teacherPerfect },
   { id: "turkey-takedown", group: "gobble", name: "Turkey Takedown", desc: "Help defeat the Turducken", goal: 1, img: "assets/badges/turkey-takedown.webp", emoji: "\u{1F983}", check: turkeyHelped },
+  { id: "turkey-2", group: "gobble", name: "Turkey Takedown II", desc: "Help defeat the Turducken a 2nd time", goal: 1, img: "assets/badges/turkey-2.webp", emoji: "\u{1F983}", check: st => (st.turkey2 ? 1 : 0) },
   { id: "ev-thanks",       group: "gobble", name: "Thanksolotl", desc: "Catch the limited Thanksolotl during Gobble-Palooza", goal: 1, img: "assets/badges/ev-thanks.webp", emoji: "\u{1F342}", check: st => (owned(st)["L-29"] ? 1 : 0) },
   { id: "present-rescuer", group: "jingle", name: "Present Rescuer", desc: "Help defeat the Grinch-a-Duck", goal: 1, img: "assets/badges/present-rescuer.webp", emoji: "\u{1F381}", check: grinchHelped },
+  { id: "grinch-2", group: "jingle", name: "Grinch Grabber II", desc: "Help defeat the Grinch-a-Duck a 2nd time", goal: 1, img: "assets/badges/grinch-2.webp", emoji: "\u{1F381}", check: st => (st.grinch2 ? 1 : 0) },
   { id: "ev-jingle",       group: "jingle", name: "Jinglotl", desc: "Catch the limited Jinglotl during Jingle Jam", goal: 1, img: "assets/badges/ev-jingle.webp", emoji: "\u2744\uFE0F", check: st => (owned(st)["L-30"] ? 1 : 0) },
   { id: "yeti-tamer",    group: "frost", name: "Yeti Tamer", desc: "Help defeat the Abominable Snowlotl", goal: 1, img: "assets/badges/yeti-tamer.webp", emoji: "\u26C4", check: yetiHelped },
+  { id: "yeti-2", group: "frost", name: "Snowlotl Smasher II", desc: "Help defeat the Snowlotl a 2nd time", goal: 1, img: "assets/badges/yeti-2.webp", emoji: "\u2744\uFE0F", check: st => (st.yeti2 ? 1 : 0) },
   { id: "ev-frost",      group: "frost", name: "Midniduck", desc: "Catch the limited Midniduck during Frostbite Festival", goal: 1, img: "assets/badges/ev-frost.webp", emoji: "\u{1F386}", check: st => (owned(st)["L-37"] ? 1 : 0) },
   { id: "snow-sculptor", group: "frost", name: "Snow Sculptor", desc: "Finish all 10 steps of your team\u2019s snowman", goal: 10, img: "assets/badges/snow-sculptor.webp", emoji: "\u2603\uFE0F", check: st => Object.keys(st.snowmanDays || {}).length },
   { id: "heart-mender",  group: "heart", name: "Heart Mender", desc: "Help defeat the Heartbreaker-otl", goal: 1, img: "assets/badges/heart-mender.webp", emoji: "\u{1F498}", check: heartHelped },
+  { id: "heart-2", group: "heart", name: "Heart Mender II", desc: "Help defeat the Heartbreaker-otl a 2nd time", goal: 1, img: "assets/badges/heart-2.webp", emoji: "\u{1F498}", check: st => (st.heart2 ? 1 : 0) },
   { id: "ev-heart",      group: "heart", name: "Amorduck", desc: "Catch the limited Amorduck during Sweetheart Showdown", goal: 1, img: "assets/badges/ev-heart.webp", emoji: "\u{1F986}", check: st => (owned(st)["L-39"] ? 1 : 0) },
   { id: "master-chocolatier", group: "heart", name: "Master Chocolatier", desc: "Fill all 10 slots of your team\u2019s candy box", goal: 10, img: "assets/badges/master-chocolatier.webp", emoji: "\u{1F36B}", check: st => Object.keys(st.candyboxDays || {}).length },
   // Daily Doors (Haunted Doors / Harvest Doors / Advent Calendar).

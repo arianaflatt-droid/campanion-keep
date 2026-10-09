@@ -6,8 +6,8 @@
    Saved on the class (p = the event's prefix, e.g. "potion" or "feast"):
      <p>On, <p>Teams [{ id, name, members }], <p>Recipe { date: { teamId: { e, b, s } } }, <p>Brews { date: [teamId] }, <p>Top { at, teams }
    Saved on the student: <p>Days { date: { team, fx? } } (days done + rewards given), <p>LegEggs (special Legendary eggs from the top team) */
-import { isHaunt, isGobble, isJingle, isFrost, isHeart, esc } from "./game.js?v=20261007c";
-import { azToday } from "./collect.js?v=20261007c";
+import { isHaunt, isGobble, isJingle, isFrost, isHeart, esc } from "./game.js?v=20261009a";
+import { azToday } from "./collect.js?v=20261009a";
 
 export const PER_XP = 25;
 // The Feast Table: one dish shows up on a team's table for every menu it finishes (the 10th finishes the feast).

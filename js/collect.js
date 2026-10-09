@@ -1,5 +1,5 @@
 // Creature Collector: pulls, XP bank, levels, evolutions, lorebook and arena battles.
-import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261007c";
+import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261009a";
 
 export const PULL_XP = 120;          // every 120 XP (all-time since the collector started) = 1 pull
 export const LEVEL_XP = 120;         // 120 banked XP = 1 level
@@ -79,6 +79,23 @@ export const PICKLE_FAM = "L-31";
 export const BREW_FAM = "L-33";   // Brewraith: the top Potion Brewing Team's special egg
 export function brewLegLeft(st) { return Math.max(0, (Number(st && st.potionLegEggs) || 0) - (Number(st && st.potionLegUsed) || 0)); }
 export const SNOW_FAM = "L-38";   // Snowmorrow: the top Build-a-Snowman team's special egg
+/* ---------- 2nd boss wins ----------
+   Beat an event boss a 2nd time and Ms. Ariana gives every student who attacked it (stu = true):
+   that boss as a Legendary egg (eggs / used), the "II" badge, and a special battle move to teach one companion (move = family).
+   The class (flag) unlocks the Sparkle sidekick (side) and the boss joins the normal Legendary pool for good.
+   atk counts attacks on the 2nd boss. Keyed by season (game.js SEASONS). */
+export const BOSS2 = {
+  haunt:  { fam: "L-41", boss: "Ghost-olotl", icon: "\u{1F47B}", defeat: "ghostDefeated", flag: "ghost2Done", stu: "ghost2", eggs: "ghostEggs", used: "ghostEggsUsed", atk: "ghost2Atk", move: "ghostMove", mv: "ghost", side: "ghostsp", badge: "ghost-2", badgeName: "Ghost Buster II", prize: "choose a costume for Ms. Ariana" },
+  gobble: { fam: "L-42", boss: "Turducken", icon: "\u{1F983}", defeat: "turkeyDefeated", flag: "turkey2Done", stu: "turkey2", eggs: "turkeyEggs", used: "turkeyEggsUsed", atk: "turkey2Atk", move: "turkeyMove", mv: "feast", side: "turkeysp", badge: "turkey-2", badgeName: "Turkey Takedown II", prize: "make Ms. Ariana dress up as a turkey for class" },
+  jingle: { fam: "L-43", boss: "Grinch-a-Duck", icon: "\u{1F986}", defeat: "grinchDefeated", flag: "grinch2Done", stu: "grinch2", eggs: "grinchEggs", used: "grinchEggsUsed", atk: "grinch2Atk", move: "grinchMove", mv: "sack", side: "grinchsp", badge: "grinch-2", badgeName: "Grinch Grabber II", prize: "pick Ms. Ariana\u2019s holiday sweater" },
+  frost:  { fam: "L-44", boss: "Snowlotl", icon: "\u26C4", defeat: "yetiDefeated", flag: "yeti2Done", stu: "yeti2", eggs: "yetiEggs", used: "yetiEggsUsed", atk: "yeti2Atk", move: "yetiMove", mv: "blizzard", side: "yetisp", badge: "yeti-2", badgeName: "Snowlotl Smasher II", prize: "have a class pajama day" },
+  heart:  { fam: "L-45", boss: "Heartbreaker-otl", icon: "\u{1F494}", defeat: "heartDefeated", flag: "heart2Done", stu: "heart2", eggs: "heartEggs", used: "heartEggsUsed", atk: "heart2Atk", move: "heartMove", mv: "shatter", side: "heartsp", badge: "heart-2", badgeName: "Heart Mender II", prize: "pick Ms. Ariana\u2019s outfit for a day" }
+};
+export const BOSS2_LIST = Object.keys(BOSS2).map(k => Object.assign({ key: k }, BOSS2[k]));
+export function boss2EggLeft(st, B) { return Math.max(0, (Number(st && st[B.eggs]) || 0) - (Number(st && st[B.used]) || 0)); }
+export const GHOST_FAM = "L-41";
+export function vaultLegLeft(st) { return Math.max(0, (Number(st && st.vaultLegEggs) || 0) - (Number(st && st.vaultLegUsed) || 0)); }   // Treasure Vault: Sparkle Legendary eggs
+export function ghostEggLeft(st) { return boss2EggLeft(st, BOSS2.haunt); }
 export const CANDY_FAM = "L-40";   // Candivora: the top Candy Box team's special egg
 export function candyLegLeft(st) { return Math.max(0, (Number(st && st.candyboxLegEggs) || 0) - (Number(st && st.candyboxLegUsed) || 0)); }
 export function snowLegLeft(st) { return Math.max(0, (Number(st && st.snowmanLegEggs) || 0) - (Number(st && st.snowmanLegUsed) || 0)); }
@@ -274,16 +291,16 @@ export function rollRarity() {
 export function doPull(st, rarity, cls, opts) {
   opts = opts || {};
   let pool = FAMILIES.filter(f => f.rarity === rarity && (!f.event || (opts.legendaryEgg && f.id === WISH_FAM && cls && cls.wishInPool)
-    || (f.id === PICKLE_FAM && owned(st)[PICKLE_FAM])));   // Cluckledill: only for students who already have one   // event creatures never come from normal eggs
+    || (f.id === PICKLE_FAM && owned(st)[PICKLE_FAM]) || BOSS2_LIST.some(B => f.id === B.fam && cls && cls[B.flag])));   // Cluckledill: only for students who already have one   // event creatures never come from normal eggs
   if (opts.types) {   // an event egg: only creatures of those types (falls back to the whole pool if none at that rarity)
     const typed = pool.filter(f => { const c0 = CREATURES.find(c => c.id === f.forms[0]); return c0 && c0.types.some(t => opts.types.includes(t)); });
     if (typed.length) pool = typed;
   }
-  const ev = opts.force ? null : rollEvent(st, cls);
+  const ev = opts.force || opts.noEvent ? null : rollEvent(st, cls);
   const event = opts.force ? (family(opts.force) || {}).event || null : ev ? ev.key : null;
   const fam = opts.force || (ev ? ev.fam : pick(pool).id);
   const coll = Object.assign({}, owned(st));
-  const had = coll[fam], sparkle = Math.random() < SPARKLE_CHANCE;
+  const had = coll[fam], sparkle = !!opts.sparkle || Math.random() < SPARKLE_CHANCE;   // opts.sparkle: the Treasure Vault's Sparkle Legendary egg
   if (had) coll[fam] = Object.assign({}, had, { lvl: Math.min(MAX_LEVEL, (had.lvl || 1) + 1) });
   else coll[fam] = { lvl: 1, at: new Date().toISOString() };
   // a Sparkle hatch turns the family Sparkle for good (a duplicate Sparkle still levels up too)
@@ -357,7 +374,7 @@ export function fighterFrom(st, fam) {
   const e = owned(st)[fam]; if (!e) return null;
   const c = formOf(fam, e.lvl || 1), s = statsOf(c, e.lvl || 1);
   return { fam, id: c.id, lvl: e.lvl || 1, name: e.nick || c.name, species: c.name, img: e.sparkle ? sparkleImg(c) : c.img, sparkle: !!e.sparkle, face: c.face || "R", type: c.types[0], types: c.types, weak: c.weak, attack: c.attack, hp: s.hp, df: s.df, dmg: s.dmg, cur: s.hp, dodge: c.dodge || 0,
-    daze: c.daze || 0, dazePct: c.dazePct || 0, poison: c.poison || 0, atkHeal: c.atkHeal || 0, brewFx: !!c.brewFx, candyFx: !!c.candyFx, atkDefDown: c.atkDefDown || 0, atkDefPct: c.atkDefPct || 0, teamHeal: c.teamHeal || 0, cheer: c.cheer || 0,
+    daze: c.daze || 0, dazePct: c.dazePct || 0, poison: c.poison || 0, atkHeal: c.atkHeal || 0, brewFx: !!c.brewFx, candyFx: !!c.candyFx, atkDefDown: c.atkDefDown || 0, atkDefPct: c.atkDefPct || 0, pierce: c.atkPierce || 0, sp: BOSS2_LIST.filter(B => st && st[B.move] === fam).map(B => B.mv).concat(((st && st.vaultMoves) || []).includes(fam) ? ["vault"] : []), spUsed: {}, teamHeal: c.teamHeal || 0, cheer: c.cheer || 0,
     alt: c.alt ? { name: c.alt.name, mult: c.alt.mult || 1, heal: c.alt.heal || 0, type: c.alt.type || "", defDown: c.alt.defDown || 0, defPct: c.alt.defPct || 0, defTemp: !!c.alt.defTemp, evade: c.alt.evade || 0, daze: c.alt.daze || 0, dazePct: c.alt.dazePct || 0, crit: c.alt.crit || 0, shield: c.alt.shield || 0 } : null };
 }
 export function teamSize(a, b) { return Math.max(0, Math.min(TEAM_MAX, ownedFams(a).length, ownedFams(b).length)); }
@@ -381,13 +398,24 @@ export const MOVES = {
   guard:  { icon: "\u{1F6E1}\uFE0F", name: "Guard" },
   heal:   { icon: "\u{1F49A}", name: "Heal", pct: 0.35 },
   swap:   { icon: "\u{1F504}", name: "Swap" },
-  alt:    { icon: "\u2728", name: "Special" }   // a creature's own second attack (e.g. Cinnamon's Sugar Rush)
+  alt:    { icon: "\u2728", name: "Special" },   // a creature's own second attack (e.g. Cinnamon's Sugar Rush)
+  // 2nd-boss moves (BOSS2): each is taught once to one companion. 1.75x damage of its type, never misses
+  // (not even dodges or portals), once per battle.
+  ghost:    { icon: "\u{1F47B}", name: "Spectral Strike", mult: 1.75, type: "Ghost", special: true },
+  feast:    { icon: "\u{1F983}", name: "Feast Frenzy", mult: 1.75, type: "Nature", special: true },
+  sack:     { icon: "\u{1F381}", name: "Sack Smash", mult: 1.75, type: "Dark", special: true },
+  blizzard: { icon: "\u2744\uFE0F", name: "Blizzard Burst", mult: 1.75, type: "Ice", special: true },
+  shatter:  { icon: "\u{1F494}", name: "Shatter Strike", mult: 1.75, type: "Crystal", special: true },
+  // Treasure Vault move: any creature can learn it (one lesson per Vault opened). Steel, 2x damage, goes right through
+  // Defense, 85% to hit, once per battle.
+  vault:    { icon: "\u{1F48E}", name: "Vault Breaker", mult: 2, type: "Steel", special: true, hit: 0.85, pierce: true }
 };
 export function moveOk(bt, side, mv) {
   const team = bt.team && bt.team[side], cur = team && team[bt.active[side]];
   if (!mv || !MOVES[mv.m] || !cur || cur.cur <= 0) return false;
   if (mv.m === "heal") return !cur.healed && cur.cur < cur.hp;
   if (mv.m === "alt") return !!cur.alt;
+  if (MOVES[mv.m].special) return (cur.sp || []).includes(mv.m) && !(cur.spUsed || {})[mv.m];
   if (mv.m === "swap") return Number.isInteger(mv.to) && mv.to !== bt.active[side] && team[mv.to] && team[mv.to].cur > 0;
   return true;
 }
@@ -408,15 +436,21 @@ export function resolveRound(bt) {
     if (m.m === "guard") { guard[s] = true; bt.log.push({ k: "guard", s, i: bt.active[s], n: f.name }); } });
   // 3. attacks, in order; a creature that faints first doesn't get to hit
   for (const s of order) {
-    const m = mv[s], o = other(s); if (!m || (m.m !== "attack" && m.m !== "power" && m.m !== "alt")) continue;
+    const m = mv[s], o = other(s); if (!m || (m.m !== "attack" && m.m !== "power" && m.m !== "alt" && !(MOVES[m.m] && MOVES[m.m].special))) continue;
     const att = bt.team[s][bt.active[s]], def = bt.team[o][bt.active[o]];
     if (!att || !def || att.cur <= 0 || def.cur <= 0) continue;
-    const pmiss = m.m === "power" && Math.random() >= MOVES.power.hit, portal = !pmiss && def.evade > 0;   // Cosmic Whiskers: slips through a portal and dodges this attack
+    const SP = MOVES[m.m] && MOVES[m.m].special ? MOVES[m.m] : null, spook = !!SP && (att.sp || []).includes(m.m) && !(att.spUsed || {})[m.m];
+    if (spook) att.spUsed = Object.assign({}, att.spUsed || {}, { [m.m]: true });
+    const sure = spook && !SP.hit;   // boss moves never miss; Vault Breaker can
+    const pmiss = (m.m === "power" && Math.random() >= MOVES.power.hit) || (spook && SP.hit && Math.random() >= SP.hit), portal = !sure && !pmiss && def.evade > 0;   // Cosmic Whiskers: slips through a portal and dodges this attack
     if (portal) def.evade = 0;
-    const dodged = !pmiss && (portal || (!!def.dodge && Math.random() < def.dodge));   // speedy creatures (Jett) dodge some hits
+    const dodged = !sure && !pmiss && (portal || (!!def.dodge && Math.random() < def.dodge));   // speedy creatures (Jett) dodge some hits
     const alt = m.m === "alt" && att.alt;
     const power = m.m === "power", miss = pmiss || dodged, crit = !miss && Math.random() < Math.max(CRIT_CHANCE, alt && att.alt.crit || 0);   // Confetti Comet: 20% crit
-    let { dmg, weak } = hitDamage(alt && att.alt.type ? Object.assign({}, att, { type: att.alt.type }) : att, def, crit);   // a second attack can have its own type
+    // Boo-nanza (Ghost-olotl): 20% of its normal hits go right through the opponent's Defense
+    const pierced = !miss && ((m.m === "attack" && att.pierce && Math.random() < att.pierce) || (spook && SP.pierce));
+    let { dmg, weak } = hitDamage(spook ? Object.assign({}, att, { type: SP.type }) : alt && att.alt.type ? Object.assign({}, att, { type: att.alt.type }) : att, pierced ? Object.assign({}, def, { df: 0 }) : def, crit);   // a second attack can have its own type
+    if (spook) dmg = Math.round(dmg * SP.mult);
     if (power) dmg = Math.round(dmg * MOVES.power.mult);
     if (alt) dmg = Math.max(1, Math.round(dmg * (att.alt.mult || 1)));
     // Candy Crush (Candivora): each landed hit picks one candy: chocolate (heal), a conversation heart (Defense down) or hard candy (+20% damage)
@@ -430,7 +464,7 @@ export function resolveRound(bt) {
     if (guard[o]) dmg = Math.max(1, Math.round(dmg / 2));
     if (miss) dmg = 0;
     def.cur = Math.max(0, def.cur - dmg);
-    bt.log.push({ k: "hit", s, ai: bt.active[s], di: bt.active[o], a: att.name, atk: power ? att.attack + " (Power)" : alt ? att.alt.name : att.attack, d: def.name, dmg, crit, weak: weak && !miss, miss, dodged, portal, power, dazedHit: wasDazed, guarded: !!guard[o], left: def.cur, max: def.hp });
+    bt.log.push({ k: "hit", s, ai: bt.active[s], di: bt.active[o], a: att.name, atk: spook ? SP.name : power ? att.attack + " (Power)" : alt ? att.alt.name : att.attack, pierced: !!pierced, d: def.name, dmg, crit, weak: weak && !miss, miss, dodged, portal, power, dazedHit: wasDazed, guarded: !!guard[o], left: def.cur, max: def.hp });
     // Cinnamon Swirl: a chance to dazzle the target so its next attack is weaker
     if (!miss && m.m === "attack" && att.daze && def.cur > 0 && Math.random() < att.daze) { def.dazed = att.dazePct || 0.15; bt.log.push({ k: "daze", s, d: def.name, pct: Math.round((att.dazePct || 0.15) * 100) }); }
     // Pickle Peckle: a chance to poison (loses a little HP at the end of each of the next 3 rounds; poison never knocks out)

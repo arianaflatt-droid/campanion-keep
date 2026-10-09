@@ -305,7 +305,7 @@
   @keyframes lunge{ 0%{ transform:translate(0,0);} 45%{ transform:translate(90px,-40px) scale(1.2) rotate(12deg);} 100%{ transform:translate(0,0);} }
   @media (prefers-reduced-motion: reduce){ .ghostimg, .ghostwrap.hit .ghostimg, .lunge, .dmg{ animation:none !important; } }
 
-  .side.ghost{ height:34px; } .side.ghost.big{ height:66px; }
+  .side.ghost, .side.ghostsp{ height:34px; } .side.ghost.big, .side.ghostsp.big{ height:66px; }
   .gear .gimg{ height:1em; width:auto; }
 
   /* ===== Candy Shop ===== */
@@ -1182,3 +1182,52 @@ td .emo, .ic .emo{ display:inline-block; vertical-align:middle; font-size:1.3em;
   .olddoor .odn{ min-width:26px; height:26px; padding:0 4px; border-radius:50%; background:rgba(0,0,0,.25); display:inline-flex; align-items:center; justify-content:center; font-weight:800; font-size:12px; }
   .olddoor .odt{ flex:1; min-width:140px; }
   .presentbtn.small{ font-size:13px; padding:6px 12px; }
+
+/* 2nd Ghost-olotl: costume promise, Ghost-olotl egg, Ghost move */
+.haunt-sub.costume{ margin-top:6px; color:#FFE7A3; }
+.eventmsg.ev-ghost2{ color:#2F9C76; }
+.mvbtn.mv-ghost{ background:linear-gradient(135deg,#2B6F5A,#5FD3A6); color:#fff; }
+.mvbtn.mv-feast{ background:linear-gradient(135deg,#7A4512,#E0962E); color:#fff; }
+.mvbtn.mv-sack{ background:linear-gradient(135deg,#1F6B2E,#C8322F); color:#fff; }
+.mvbtn.mv-blizzard{ background:linear-gradient(135deg,#2C5DA8,#9CD3F2); color:#fff; }
+.mvbtn.mv-shatter{ background:linear-gradient(135deg,#4B2177,#E26CA5); color:#fff; }
+.side.turkeysp, .side.grinchsp, .side.yetisp, .side.heartsp{ height:34px; } .side.turkeysp.big, .side.grinchsp.big, .side.yetisp.big, .side.heartsp.big{ height:66px; }
+.eventmsg.ev-turkey2{ color:#C2691B; } .eventmsg.ev-grinch2{ color:#2E8B3E; } .eventmsg.ev-yeti2{ color:#3C7FC4; } .eventmsg.ev-heart2{ color:#B03A7A; }
+.ghostmove{ border:2px dashed #5FD3A6; }
+.compbar{ display:flex; gap:5px; justify-content:center; margin:8px 0 2px; }
+.compbar i{ width:22px; height:10px; border-radius:6px; background:var(--line,#ddd); }
+.compbar i.on{ background:linear-gradient(90deg,#F2B33D,#F6D365); }
+
+/* ---------- Treasure Vault ---------- */
+.vaultcard{ background:linear-gradient(180deg,#2A1B4A,#3B2468 60%,#24163F); color:#FFF4D6; border:3px solid #E8B842; }
+.vaultcard h2{ color:#FFD86B; } .vaultcard .lede, .vaultcard .small{ color:#F3E6FF; }
+.vaultcard.v-ready{ box-shadow:0 0 0 4px rgba(255,216,107,.35), 0 0 34px rgba(255,200,80,.55); animation:vaultglow 1.8s ease-in-out infinite; }
+@keyframes vaultglow{ 50%{ box-shadow:0 0 0 6px rgba(255,216,107,.55), 0 0 50px rgba(255,200,80,.85); } }
+.vaultbar{ position:relative; height:26px; border-radius:14px; background:#1A1030; border:2px solid #E8B842; overflow:hidden; margin:6px auto 10px; max-width:460px; }
+.vaultbar span{ position:absolute; left:0; top:0; bottom:0; background:linear-gradient(90deg,#B8860B,#FFD86B,#FFF2B0); transition:width .6s; }
+.vaultbar.full span{ animation:vaultshine 1.4s linear infinite; background-size:200% 100%; background-image:linear-gradient(90deg,#FFD86B,#FFF8D8,#FFD86B); }
+@keyframes vaultshine{ to{ background-position:-200% 0; } }
+.vaultbar b{ position:relative; display:block; text-align:center; line-height:22px; font-size:13px; color:#2A1B4A; text-shadow:0 1px 0 rgba(255,255,255,.6); }
+.vaultpic{ position:relative; width:min(300px,80%); margin:0 auto; aspect-ratio:1238/1234; }
+.vaultpic img{ position:absolute; display:block; }
+.vaultpic .vbase{ inset:0; width:100%; height:100%; object-fit:contain; filter:drop-shadow(0 8px 18px rgba(0,0,0,.45)); }
+.vaultpic .vdial{ left:34.5%; top:32.9%; width:31%; height:auto; }
+.vaultcard.v-locked .vaultpic{ filter:saturate(.75) brightness(.92); }
+.vaultbtn{ background:linear-gradient(135deg,#B8860B,#FFD86B 50%,#B8860B); color:#2A1B4A; }
+.vaultbox{ background:linear-gradient(180deg,#2A1B4A,#3B2468); color:#FFF4D6; }
+.vaultbox h2{ color:#FFD86B; }
+.vaultbox .vaultpic{ width:min(320px,78vw); }
+.vaultpic.spinning{ animation:vaultshake .25s ease-in-out 6 alternate; }
+.vaultpic.spinning .vdial{ animation:vaultdial 2.4s cubic-bezier(.3,.1,.3,1) forwards; }
+@keyframes vaultdial{ 0%{ transform:rotate(0); } 35%{ transform:rotate(-260deg); } 65%{ transform:rotate(140deg); } 100%{ transform:rotate(-420deg); } }
+@keyframes vaultshake{ from{ transform:translateX(-2px); } to{ transform:translateX(2px); } }
+.vaultbox.opened .vaultpic{ animation:vaultpop .7s ease-out; }
+.vaultbox.opened .vaultpic::after{ content:""; position:absolute; inset:-10%; background:radial-gradient(circle at 55% 45%,rgba(255,230,140,.55),transparent 60%); pointer-events:none; animation:vaultrays 2s ease-in-out infinite; }
+@keyframes vaultpop{ from{ transform:scale(.85); opacity:.4; } to{ transform:scale(1); opacity:1; } }
+@keyframes vaultrays{ 50%{ opacity:.45; } }
+.vaultloot{ text-align:left; margin:8px auto; padding-left:18px; max-width:380px; font-size:14px; line-height:1.5; color:#FFF4D6; }
+.vaultwon b{ color:#FFD86B; }
+.vaultmove{ border-color:#E8B842; }
+.mvbtn.mv-vault{ background:linear-gradient(135deg,#6B5B2E,#E8B842 55%,#7A7F8C); color:#fff; }
+.vaultloot b{ font-size:inherit !important; display:inline !important; margin:0 !important; } .vaultloot li{ margin:2px 0; }
+.vaultbar b{ color:#FFF4D6 !important; text-shadow:0 1px 2px rgba(0,0,0,.8) !important; } .vaultbar.full b{ color:#2A1B4A !important; text-shadow:0 1px 0 rgba(255,255,255,.6) !important; }

@@ -8,8 +8,8 @@
    Saved on the student: doors = { "YYYY-MM-DD": { "0": { st: "wait"|"ok"|"no"|"open", at, r }, g: { st: "open", r } } }
    plus lastDoor = "YYYY-MM-DD/<door>" (which door the last save touched; the save rules check it).
    Class: doorsOn (on/off), doorList (default list), doorDays = { "YYYY-MM-DD": [..] } (one-day lists). */
-import { azToday } from "./collect.js?v=20261007c";
-import { SEASON, eventMode, esc, dayXP, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261007c";
+import { azToday } from "./collect.js?v=20261009a";
+import { SEASON, eventMode, esc, dayXP, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261009a";
 
 // A door that starts with "!" is always open (not locked behind the first doors). The "!" isn't shown.
 export const DOOR_DEFAULT = [
@@ -202,12 +202,37 @@ export function autoDoors(st, cls, date, sub, total) {
    When the teacher pastes XP that puts a student at the goal, the console marks it ready (weekDoor[week] = "ready");
    the student opens it for a Legendary egg (weekDoor[week] = "open", legendaryPulls + 1). week = the Monday the week's XP belongs to. */
 export { WEEK_DOOR_XP, weekKey, weekGoal };
-export function weekTotal(st) { let n = 0; for (let d = 0; d < 5; d++) n += dayXP(st, d); return Math.round(n); }
+// Weekend work (pasted on Monday as "Last Sat" / "Last Sun") counts toward the week just finished: it lives only in
+// xpHist, on the Saturday and Sunday after that week's Monday.
+export function addDays(iso, n) { const [y, m, d] = String(iso).split("-").map(Number), x = new Date(y, m - 1, d + n);
+  return x.getFullYear() + "-" + String(x.getMonth() + 1).padStart(2, "0") + "-" + String(x.getDate()).padStart(2, "0"); }
+export function mondayOf(iso) { const [y, m, d] = String(iso).split("-").map(Number), wd = new Date(y, m - 1, d).getDay(); return addDays(iso, wd === 0 ? -6 : 1 - wd); }
+const histXP = (st, date) => { const h = ((st && st.xpHist) || {})[date] || {}; return Number(h.d != null ? h.d : h.l != null ? h.l : 0) || 0; };
+// This week (cls.weekStart): Mon-Fri from the week's boxes + the weekend from the history
+export function weekTotal(st, cls) { let n = 0; for (let d = 0; d < 5; d++) n += dayXP(st, d);
+  if (cls) { const mon = weekKey(cls); n += histXP(st, addDays(mon, 5)) + histXP(st, addDays(mon, 6)); } return Math.round(n); }
+// Any week, Mon-Sun, from the history only (used for a week that's already over)
+export function histWeekTotal(st, mon) { let n = 0; for (let i = 0; i < 7; i++) n += histXP(st, addDays(mon, i)); return Math.round(n); }
 // "open" | "ready" | "locked"
 export function weekDoorState(st, cls) {
   const v = ((st && st.weekDoor) || {})[weekKey(cls)];
   if (v === "open") return "open";
   if (v === "ready") return "ready";
-  return weekTotal(st) >= weekGoal(cls) ? "ready" : "locked";   // opens on its own once the week's days add up to the goal
+  return weekTotal(st, cls) >= weekGoal(cls) ? "ready" : "locked";   // opens on its own once the week's days add up to the goal
 }
+// Doors from an earlier week that weekend work unlocked late ("ready" under an older week)
+export function oldReady(st, cls, field) { const wk = weekKey(cls), o = (st && st[field]) || {}; return Object.keys(o).filter(k => k !== wk && o[k] === "ready").sort(); }
+
+/* ---------- Treasure Vault ----------
+   Reach VAULT_XP XP in one week (weekend included) and that week's Treasure Vault unlocks: vault = { "<Monday>": "ready" | "open" }.
+   Inside: a Sparkle Legendary egg (vaultLegEggs / vaultLegUsed), a prize spin, 500 XP (doorXP), 3 eggs (doorEggs)
+   and one more Vault Breaker lesson (vaultMoves = families that know it; one per Vault opened). */
+export const VAULT_XP = 1000, VAULT_BONUS_XP = 500, VAULT_EGGS = 3;
+export function vaultState(st, cls) {
+  const v = ((st && st.vault) || {})[weekKey(cls)];
+  if (v === "open" || v === "ready") return v;
+  return weekTotal(st, cls) >= VAULT_XP ? "ready" : "locked";
+}
+export function vaultsOpened(st) { return Object.values((st && st.vault) || {}).filter(v => v === "open").length; }
+export function vaultLessonsLeft(st) { return Math.max(0, vaultsOpened(st) - ((st && st.vaultMoves) || []).length); }
 export { esc };
