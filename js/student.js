@@ -2,20 +2,20 @@ import {
   checkVersion, hitOn, gearInSeason, applyDisplayNames, companionOf, petCreatures, pinnedBadgeHTML, DAYS, SHORT, ROSTER, GEAR, SIDEKICKS, BANNER, bannerFor, isHaunt, battleOn, candyOf, basketHTML, CANDY_FULL, bossState, attacksReady, bossBarHTML, GHOST_IMG, ghostUnlocked, turkeyUnlocked, grinchUnlocked, isJingle, isFrost, isHeart, heartUnlocked, attackRefusal, saveProblems, yetiUnlocked, eventMode, isGobble, setSeason, SEASON, seasonOf, STORE, candyLeft, candySpent, ownedCount, ownsItem, storeArt, nextAttack, dmgOf, HAT_BONUS, BREW_BONUS, teamHTML, wallHTML, WHEEL, pickSlice, wheelHTML, spinTo, PRIZES, prizeSlices, bucketState, bucketHTML, baseDamage, EAT_PER_DAY, dayEaten, dayXP, byId, esc, arr5, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, sidekickSVG, petHTML as petBase, itemArt, potionFx,
   ghost2Unlocked, starterFam, boss2Of, BOSS2, BOSS2_LIST, creditCompanion, compKey, compLevel, compFill, COMP_DAYS, creatureCompanion
-} from "./game.js?v=20261009f";
-import { EVENT_LIST, TEAM_EVENTS, eventOn, teamCard, teamOf as tevTeamOf } from "./teams.js?v=20261009f";
-import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=20261009f";
-import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261009f";
-import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20261009f";
-import { nudgeCard } from "./nudges.js?v=20261009f";
-import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261009f";
-import { teacherPlayer, hasStarter, MOVES, formOf } from "./collect.js?v=20261009f";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261009f";
-import { goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked, weekGoal, weekKey, weekTotal, weekDoorState, vaultState, oldReady, vaultLessonsLeft, VAULT_XP, VAULT_BONUS_XP, VAULT_EGGS } from "./doors.js?v=20261009f";
-import { azToday } from "./collect.js?v=20261009f";
+} from "./game.js?v=20261009g";
+import { EVENT_LIST, TEAM_EVENTS, eventOn, teamCard, teamOf as tevTeamOf } from "./teams.js?v=20261009g";
+import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=20261009g";
+import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261009g";
+import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20261009g";
+import { nudgeCard } from "./nudges.js?v=20261009g";
+import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261009g";
+import { teacherPlayer, hasStarter, MOVES, formOf } from "./collect.js?v=20261009g";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261009g";
+import { goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked, weekGoal, weekKey, weekTotal, weekDoorState, vaultState, oldReady, vaultLessonsLeft, VAULT_XP, VAULT_BONUS_XP, VAULT_EGGS } from "./doors.js?v=20261009g";
+import { azToday } from "./collect.js?v=20261009g";
 import { roomHTML, FIT_SLOTS, slotKind, KIND_NAMES, KIND_ICON, EVERYDAY_PRICE, THEMED_PRICE, TROPHY_PRICE, TYPE_THEMES, SEASON_THEMES, THEME_NAMES, TROPHIES,
-  itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId } from "./room.js?v=20261009f";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261009f";
+  itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId } from "./room.js?v=20261009g";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261009g";
 
 let fxFor = null;   // the student whose companion is being drawn (for the potion glow)
 const petHTML = (c, worn, held) => { const h = petBase(c, worn, held), fx = fxFor ? potionFx(fxFor) : ""; return fx ? h.replace('class="petwrap', 'class="petwrap' + fx) : h; };
@@ -306,7 +306,7 @@ function viewMine(s) {
         : '<p class="lede">You helped beat the ' + esc(B.boss) + " twice! Pick your starter in the Creature Collector so it becomes your companion, then come back here to teach it <b>" + M.name + "</b>.</p>") + "</div>";
   });
   h += vaultMoveCard(s);
-  // Companions are creatures: the starter creature, or any Legendary / level 100 creature (no more basic companions)
+  // Companions are creatures: the starter creature, or any Legendary / level 5+ creature (no more basic companions)
   const legends = petCreatures(s), sf = starterFam(s), cur = companionOf(s);
   if (!sf) h += '<div class="card"><div class="card-head"><h2>\u{1F95A} Pick your starter creature!</h2></div><p class="lede">Your companion is becoming a creature! Go to the <b>Creature Collector</b> and pick your starter — it becomes your new companion. Your gear, name and health stay the same.</p>' +
     '<button class="btn" data-tab="collect">\u{1F95A} Go pick my starter</button></div>';
@@ -314,7 +314,7 @@ function viewMine(s) {
     const curId = cur && cur.creature ? cur.fam : sf;
     legends.sort((a, b) => (a.fam === sf ? -1 : b.fam === sf ? 1 : 0));
     h += '<div class="card"><div class="card-head"><h2>\u{1F31F} Creature companions</h2><span class="fact">' + legends.length + " to pick from</span></div>" +
-      '<p class="lede" style="margin-bottom:12px;">Your <b>starter</b>, any Legendary you own, and any creature you got to level 100 can be your companion! Your gear, name and health stay the same.</p>' +
+      '<p class="lede" style="margin-bottom:12px;">Your <b>starter</b>, any Legendary you own, and any creature at level 5 or higher can be your companion! Your gear, name and health stay the same.</p>' +
       '<div class="pickgrid">' +
       legends.map(x => '<button class="pick' + (curId === x.fam ? " on" : "") + '" data-petcr="' + x.fam + '"><span class="g crg">' + x.glyph + '</span><span class="n">' + (x.sparkle ? "✨ " : "") + esc(x.name) + (x.fam === sf ? " · starter" : "") + "</span></button>").join("") +
       "</div></div>";

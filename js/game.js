@@ -1,10 +1,10 @@
-import { CREATURE_LAYOUT, CREATURE_FIT_ID } from "./creature-fit.js?v=20261009f";
-import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261009f";
-import { heldWeapon } from "./quest.js?v=20261009f";
+import { CREATURE_LAYOUT, CREATURE_FIT_ID } from "./creature-fit.js?v=20261009g";
+import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261009g";
+import { heldWeapon } from "./quest.js?v=20261009g";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261009f";
+export const APP_V = "20261009g";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -447,9 +447,9 @@ export function applyDisplayNames(students) {
   return students;
 }
 
-/* A level-100 creature can be picked as the companion instead (st.petCreature = its family id).
+/* A level 5+ creature can be picked as the companion instead (st.petCreature = its family id).
    Limited event Legendaries (Duckarune, Hexaduck, Wisholotl, Thanksolotl...) can be picked at any level. */
-export const PET_LEVEL = 100;
+export const PET_LEVEL = 5;   // any creature at this level (or higher) can be a companion
 // Where gear sits on the event Legendaries (their pictures aren't centred like the companions).
 const CREATURE_FIT = {
   "L-26": { hat: [0.855, 0.37, 0.24, 6], cap: [0.855, 0.4, 0.26, 6], eyes: [0.88, 0.49, 0.2, 0], snack: [1.08, 0.9] },     // Duckarune
@@ -470,7 +470,7 @@ const CREATURE_FIT = {
   "S-37": { hat: [0.83, 0.2, 0.26, 8], cap: [0.83, 0.24, 0.28, 8], eyes: [0.86, 0.35, 0.2, 6], snack: [1.1, 0.95] }       // Cinnamon
 };
 // The student's starter creature (picked in the Creature Collector). It's their companion until they pick a
-// Legendary or a level 100 creature; the old basic companions (fox, otter...) are only used before a starter is picked.
+// Legendary or a level 5+ creature; the old basic companions (fox, otter...) are only used before a starter is picked.
 export function starterFam(st) {
   const coll = (st && st.coll) || {};
   if (st && st.starter && coll[st.starter]) return st.starter;
