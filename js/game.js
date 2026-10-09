@@ -1,9 +1,9 @@
-import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261009b";
-import { heldWeapon } from "./quest.js?v=20261009b";
+import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261009c";
+import { heldWeapon } from "./quest.js?v=20261009c";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261009b";
+export const APP_V = "20261009c";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -468,11 +468,19 @@ const CREATURE_FIT = {
   "L-33": { hat: [0.71, 0.2, 0.3, 4], cap: [0.71, 0.24, 0.32, 4], eyes: [0.74, 0.41, 0.26, 0], snack: [1.1, 0.95] },      // Brewraith
   "S-37": { hat: [0.83, 0.2, 0.26, 8], cap: [0.83, 0.24, 0.28, 8], eyes: [0.86, 0.35, 0.2, 6], snack: [1.1, 0.95] }       // Cinnamon
 };
+// The student's starter creature (picked in the Creature Collector). It's their companion until they pick a
+// Legendary or a level 100 creature; the old basic companions (fox, otter...) are only used before a starter is picked.
+export function starterFam(st) {
+  const coll = (st && st.coll) || {};
+  if (st && st.starter && coll[st.starter]) return st.starter;
+  const s0 = ["C-01", "C-02", "C-03"].find(f => coll[f]); if (s0) return s0;
+  return Object.keys(coll).sort((a, b) => String(coll[a].at || "").localeCompare(String(coll[b].at || "")))[0] || null;
+}
 export function creatureCompanion(st, fam) {
   const e = ((st && st.coll) || {})[fam];
   if (!e) return null;
   const c = formOf(fam, e.lvl || 1); if (!c) return null;
-  if ((Number(e.lvl) || 1) < PET_LEVEL && !c.event && c.rarity !== "Legendary") return null;   // every Legendary can be a companion right away
+  if ((Number(e.lvl) || 1) < PET_LEVEL && !c.event && c.rarity !== "Legendary" && fam !== starterFam(st)) return null;   // every Legendary (and the starter) can be a companion right away
   const img = e.sparkle ? sparkleImg(c) : c.img;
   return { id: "cr:" + fam, fam, name: c.name, creature: true, sparkle: !!e.sparkle,
     glyph: '<img class="crpet" src="' + img + '" alt="">',
@@ -485,9 +493,11 @@ export function creatureCompanion(st, fam) {
    compStart = the first day that counts (the day this started), compThru = the last day already counted,
    compBar = { fam or "starter": spots filled }. */
 export const COMP_DAYS = 5;
-export function compKey(st) { return st && st.petCreature && creatureCompanion(st, st.petCreature) ? st.petCreature : "starter"; }
+export function compKey(st) { const c = companionOf(st); return c && c.creature ? c.fam : "starter"; }
 export function compLevel(st) { const k = compKey(st); return k === "starter" ? Math.max(1, Number(st.starterLvl) || 1) : Math.max(1, Number((((st.coll || {})[k]) || {}).lvl) || 1); }
-export function compFill(st) { return Math.max(0, Math.min(COMP_DAYS - 1, Number(((st && st.compBar) || {})[compKey(st)]) || 0)); }
+// a starter creature also gets any progress from before (when the bar was on the basic companion, key "starter")
+const barOf = (st, k) => (Number(((st && st.compBar) || {})[k]) || 0) + (k !== "starter" && k === starterFam(st) ? Number(((st && st.compBar) || {}).starter) || 0 : 0);
+export function compFill(st) { return Math.max(0, Math.min(COMP_DAYS - 1, barOf(st, compKey(st)))); }
 // The save changes to make (or null): counts any new goal days onto the current companion's bar.
 export function creditCompanion(st, cls, sim) {
   const today = azToday();
@@ -497,7 +507,8 @@ export function creditCompanion(st, cls, sim) {
   if (!days.length) return null;
   const k = compKey(st), bar = Object.assign({}, st.compBar || {}), data = { compThru: days[days.length - 1].date };
   if (sim && !sim.alive) return data;   // a companion that disappeared doesn't fill its bar
-  let n = (Number(bar[k]) || 0) + days.length, ups = 0;
+  let n = barOf(st, k) + days.length, ups = 0;
+  if (k !== "starter" && k === starterFam(st)) delete bar.starter;
   while (n >= COMP_DAYS) { n -= COMP_DAYS; ups++; }
   if (ups && k === "starter") data.starterLvl = Math.max(1, Number(st.starterLvl) || 1) + ups;
   else if (ups) {
@@ -511,6 +522,7 @@ export function creditCompanion(st, cls, sim) {
 export function petCreatures(st) { return Object.keys((st && st.coll) || {}).map(f => creatureCompanion(st, f)).filter(Boolean); }
 export function companionOf(st) {
   if (st && st.petCreature) { const c = creatureCompanion(st, st.petCreature); if (c) return c; }
+  const sf = starterFam(st); if (sf) { const c = creatureCompanion(st, sf); if (c) return c; }   // the starter creature replaces the basic companion
   return byId(ROSTER, st && st.companionId);
 }
 // The badge a student pinned (top-right corner of their tile on The Keep). Badge art is assets/badges/<id>.webp.
