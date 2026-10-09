@@ -6,8 +6,8 @@
    Saved on the class (p = the event's prefix, e.g. "potion" or "feast"):
      <p>On, <p>Teams [{ id, name, members }], <p>Recipe { date: { teamId: { e, b, s } } }, <p>Brews { date: [teamId] }, <p>Top { at, teams }
    Saved on the student: <p>Days { date: { team, fx? } } (days done + rewards given), <p>LegEggs (special Legendary eggs from the top team) */
-import { isHaunt, isGobble, isJingle, isFrost, isHeart, esc } from "./game.js?v=20261009g";
-import { azToday } from "./collect.js?v=20261009g";
+import { isHaunt, isGobble, isJingle, isFrost, isHeart, esc } from "./game.js?v=20261009i";
+import { azToday } from "./collect.js?v=20261009i";
 
 export const PER_XP = 25;
 // The Feast Table: one dish shows up on a team's table for every menu it finishes (the 10th finishes the feast).
@@ -163,9 +163,13 @@ export function recipeFor(E, cls, team, date) {
 }
 export const recipeChanged = (E, cls, team, date) => !!(((cls && cls[F(E, "Recipe")]) || {})[date] || {})[team.id];
 // One student's ingredients for a day (from the subject XP saved by the paste).
-export function ingOf(E, st, date) {
+// Subject swaps: Ms. Ariana can have a student's ingredient come from a different subject
+// (cls.subSwap = { studentId: { m|r|l: "sc" } } means that ingredient uses that student's Science XP instead).
+export const SUB_NAMES = { m: "Math", f: "Fast Math", r: "Reading", w: "Writing", l: "Language", v: "Vocabulary", sc: "Science", ss: "Social Studies" };
+export function subFor(cls, st, sub) { const o = ((cls && cls.subSwap) || {})[st && st.id] || {}; return o[sub] && SUB_NAMES[o[sub]] ? o[sub] : sub; }
+export function ingOf(E, st, date, cls) {
   const s = ((((st && st.xpHist) || {})[date] || {}).sub) || {};
-  return E.ing.reduce((r, g) => (r[g.k] = Math.floor((Number(s[g.sub]) || 0) / PER_XP), r), {});
+  return E.ing.reduce((r, g) => (r[g.k] = Math.floor((Number(s[subFor(cls, st, g.sub)]) || 0) / PER_XP), r), {});
 }
 // A team's day: what each member added, the totals, what's needed and whether it's done.
 // Extra ingredients Ms. Ariana added by hand (for students working on other subjects): <p>Extra[date][team] = { k: n }
@@ -173,7 +177,7 @@ export function extraFor(E, cls, team, date) { const o = (((cls && cls[F(E, "Ext
 export function teamDay(E, cls, team, students, date) {
   const need = recipeFor(E, cls, team, date), have = { e: 0, b: 0, s: 0 }, extra = extraFor(E, cls, team, date);
   const rows = (team.members || []).map(id => students.find(x => x.id === id)).filter(Boolean).map(st => {
-    const g = ingOf(E, st, date); E.ing.forEach(x => { have[x.k] += g[x.k]; }); return { st, g };
+    const g = ingOf(E, st, date, cls); E.ing.forEach(x => { have[x.k] += g[x.k]; }); return { st, g };
   });
   E.ing.forEach(x => { have[x.k] += extra[x.k]; });
   const ready = E.ing.every(x => have[x.k] >= need[x.k]);
@@ -288,6 +292,8 @@ export function teamCard(E, st, cls, students) {
   h += '<h3 style="margin-top:12px;">Your team</h3><div class="pteam">' + c.rows.map(({ st: m, g }) => '<span class="' + (m.id === st.id ? "me" : "") + '">' + esc(m.name || "") + " " +
     c.ing.map(x => (g[x.k] ? x.icon + g[x.k] : "")).filter(Boolean).join(" ") + (E.ing.some(x => g[x.k]) ? "" : '<small class="muted">—</small>') + "</span>").join("") +
     (E.ing.some(x => c.extra[x.k]) ? '<span class="extra">⭐ Ms. Ariana ' + c.ing.map(x => (c.extra[x.k] ? x.icon + c.extra[x.k] : "")).filter(Boolean).join(" ") + "</span>" : "") + "</div>";
+  const mySw = c.ing.filter(g => subFor(cls, st, g.sub) !== g.sub);
+  if (mySw.length) h += '<p class="small" style="margin-top:10px;">\u{1F501} <b>Just for you:</b> ' + mySw.map(g => g.icon + " " + g.name + " come from <b>" + SUB_NAMES[subFor(cls, st, g.sub)] + "</b> instead of " + g.subject).join(" \u00b7 ") + ".</p>";
   h += '<p class="muted small" style="margin-top:10px;">Every ' + PER_XP + " XP in a subject = 1 ingredient: " + c.ing.map(g => g.subject + " = " + g.icon + " " + g.name).join(", ") +
     ". Ingredients show up when your teacher adds today’s XP. " + (c.dish ? (E.box ? "Each day you make the next chocolate for your box." : E.build ? "Each day you build the next step of your " + E.thing + "." : "Each day you cook the next dish on the menu.") : "A new " + E.recipe + " comes every day.") + "</p>";
   h += '<p class="small" style="margin-top:6px;">\u{1F3C5} ' + E.badge + ": <b>" + Math.min(n, E.badgeN) + " / " + E.badgeN + "</b> " + E.many + (n >= E.badgeN ? " ✅" : "") + "</p>";

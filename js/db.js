@@ -6,7 +6,7 @@ import {
 import {
   getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, signInAnonymously
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { firebaseConfig, CLASS_ID, TEACHER_EMAILS } from "./firebase-config.js?v=20261009g";
+import { firebaseConfig, CLASS_ID, TEACHER_EMAILS } from "./firebase-config.js?v=20261009i";
 
 // Teacher preview (student.html?s=ID&preview=1): the page shows a student's view, but nothing is ever written.
 export const PREVIEW = typeof location !== "undefined" && new URLSearchParams(location.search).get("preview") === "1";

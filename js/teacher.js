@@ -1,21 +1,21 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261009g";
-import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261009g";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261009g";
-import { cpEarnedCalc } from "./room.js?v=20261009g";
-import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField } from "./teams.js?v=20261009g";
-import { GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP } from "./doors.js?v=20261009g";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261009g";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261009i";
+import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261009i";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261009i";
+import { cpEarnedCalc } from "./room.js?v=20261009i";
+import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261009i";
+import { GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP } from "./doors.js?v=20261009i";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261009i";
 import {
   applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   boss2Of, boss2Prize, simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, isFrost, isHeart, heartUnlocked, saveProblems, yetiUnlocked, wallMarks, WALL_BLOCK, BOSS_START_HP, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261009g";
-import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261009g";
+} from "./game.js?v=20261009i";
+import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261009i";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef
-} from "./db.js?v=20261009g";
+} from "./db.js?v=20261009i";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -842,6 +842,14 @@ function viewTeamEvent(E) {
     h += '<details style="margin-top:12px;"' + (busy["tevOpen" + k] ? " open" : "") + '><summary data-act="tevOpen" data-ev="' + k + '"><b>\u{1F465} Put students on teams</b> <span class="muted small">' + (none ? none + " not on a team" : "everyone is on a team") + "</span></summary>" +
       '<div class="ptgrid">' + kids.map(x => { const tm = tevTeamOf(E, cls, x.id); return '<label><span>' + esc(x.name) + '</span><select data-ptmember="' + k + ":" + x.id + '"><option value="">—</option>' +
         list.map(t => '<option value="' + t.id + '"' + (tm && tm.id === t.id ? " selected" : "") + ">" + esc(t.name) + "</option>").join("") + "</select></label>"; }).join("") + "</div></details>";
+    // Swap subjects: a student's ingredient can come from a different subject (shared by every team event)
+    const sw = cls.subSwap || {}, onTeam = kids.filter(x => tevTeamOf(E, cls, x.id)), nSw = onTeam.filter(x => Object.keys(sw[x.id] || {}).length).length;
+    h += '<details style="margin-top:8px;"' + (busy["tevSwap" + k] ? " open" : "") + '><summary data-act="tevSwap" data-ev="' + k + '"><b>\u{1F501} Swap subjects for a student</b> <span class="muted small">' + (nSw ? nSw + " student" + (nSw === 1 ? "" : "s") + " with swaps" : "for students working on other subjects") + "</span></summary>" +
+      '<p class="muted small" style="margin:6px 0;">Pick a different subject for any ingredient — that student’s XP in that subject counts instead. Works for every team event.</p>' +
+      '<div class="ptgrid pswap">' + onTeam.map(x => '<div class="pswaprow"><span><b>' + esc(x.name) + "</b></span>" +
+        E.ing.map(g => { const cur = (sw[x.id] || {})[g.sub] || ""; return '<label class="small">' + g.icon + " " + g.subject + ' → <select data-subswap="' + x.id + ":" + g.sub + '"><option value="">' + g.subject + "</option>" +
+          Object.keys(SUB_NAMES).filter(c => c !== g.sub).map(c => '<option value="' + c + '"' + (cur === c ? " selected" : "") + ">" + SUB_NAMES[c] + "</option>").join("") + "</select></label>"; }).join("") + "</div>").join("") +
+      (onTeam.length ? "" : '<p class="muted small">Put students on teams first.</p>') + "</div></details>";
     const st = tevStandings(E, cls), top = topTeams(E, cls), given = cls[topField(E)];
     h += '<h3 style="margin-top:14px;">\u{1F3C6} Standings</h3><ol class="pstand">' + st.map(x => "<li>" + esc(x.t.name) + " — <b>" + x.n + "</b> " + (x.n === 1 ? E.one : E.many) + "</li>").join("") + "</ol>";
     if (given) h += '<p class="small">✅ Special Legendary eggs given to ' + esc((given.teams || []).map(id => (list.find(t => t.id === id) || { name: "a team" }).name).join(" & ")) + ".</p>";
@@ -1356,6 +1364,12 @@ document.addEventListener("input", ev => {
   if (ev.target.id === "pasteBox") { busy.pasteText = ev.target.value; clearTimeout(busy.pasteT); busy.pasteT = setTimeout(render, 250); }
 });
 document.addEventListener("change", async ev => {
+  if (ev.target.dataset && ev.target.dataset.subswap) {
+    const [sid, sub] = ev.target.dataset.subswap.split(":"), v = ev.target.value, cur = Object.assign({}, (cls.subSwap || {})[sid] || {});
+    if (v) cur[sub] = v; else delete cur[sub];
+    try { await updateDoc(classRef, { ["subSwap." + sid]: cur }); flash("Saved — " + (v ? SUB_NAMES[sub] + " now comes from " + SUB_NAMES[v] + " for this student." : "back to " + SUB_NAMES[sub] + ".")); } catch (e) { flash("Couldn’t save — " + (e.code || e.message)); }
+    return;
+  }
   if (ev.target.dataset && ev.target.dataset.g2) { busy.g2pick = busy.g2pick || {}; busy.g2pick[ev.target.dataset.g2] = ev.target.checked; render(); return; }
   if (ev.target.dataset && ev.target.dataset.qstart) { await questTeacherChange(ev.target, { patch }); return; }
   if (ev.target.dataset && ev.target.dataset.ptmember) {
@@ -1651,6 +1665,7 @@ document.addEventListener("click", async ev => {
     const E = TEAM_EVENTS[el.dataset.ev]; if (!E) return;
     if (act === "tevToggle") { const on = !cls[E.p + "On"]; try { await updateDoc(classRef, { [E.p + "On"]: on }); flash("Saved \u2014 " + E.title + " " + (on ? "on" : "off") + "."); } catch (e) { flash("Couldn\u2019t change that \u2014 " + e.code); } return; }
     if (act === "tevAddTeam") { const list = tevTeams(E, cls); await saveTevTeams(E, list.concat([{ id: "t" + Date.now().toString(36), name: "Team " + (list.length + 1), members: [] }]), "Added a team \u2014 type its name and put students on it."); return; }
+    if (act === "tevSwap") { busy["tevSwap" + E.key] = !busy["tevSwap" + E.key]; return; }
     if (act === "tevOpen") { busy["tevOpen" + E.key] = !busy["tevOpen" + E.key]; return; }
     if (act === "tevCheck") { await tevCheckNow(E); return; }
     if (act === "tevAward") {

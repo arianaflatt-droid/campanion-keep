@@ -1238,3 +1238,4 @@ td .emo, .ic .emo{ display:inline-block; vertical-align:middle; font-size:1.3em;
 .crbox img.crfit{ position:absolute; max-width:none; margin:0; object-fit:contain; }
 .pick .crg .crbox{ font-size:48px; } .pick .crg .crbox img.crfit{ margin:0; }
 .room .rpet .crbox img.crfit{ height:auto; margin:0; }
+.pswap{ display:flex; flex-direction:column; gap:6px; } .pswaprow{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; } .pswaprow > span{ min-width:110px; }
