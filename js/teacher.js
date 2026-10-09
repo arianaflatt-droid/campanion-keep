@@ -1,21 +1,21 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261009c";
-import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261009c";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261009c";
-import { cpEarnedCalc } from "./room.js?v=20261009c";
-import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField } from "./teams.js?v=20261009c";
-import { GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP } from "./doors.js?v=20261009c";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261009c";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261009d";
+import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261009d";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261009d";
+import { cpEarnedCalc } from "./room.js?v=20261009d";
+import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField } from "./teams.js?v=20261009d";
+import { GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP } from "./doors.js?v=20261009d";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261009d";
 import {
   applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   boss2Of, boss2Prize, simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, isFrost, isHeart, heartUnlocked, saveProblems, yetiUnlocked, wallMarks, WALL_BLOCK, BOSS_START_HP, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261009c";
-import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261009c";
+} from "./game.js?v=20261009d";
+import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261009d";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef
-} from "./db.js?v=20261009c";
+} from "./db.js?v=20261009d";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -829,7 +829,12 @@ function viewTeamEvent(E) {
       '<button class="btn ghost small" data-ptdel="' + id + '">Delete team</button></div>' +
       '<div class="row pneed" style="gap:10px;margin-top:8px;align-items:center;flex-wrap:wrap;"><span class="small"><b>Today:</b></span>' +
       (c.dish ? '<span class="small">' + esc(c.dish.name) + ":</span>" : "") + c.ing.map(g => '<label class="small" title="' + esc(g.name) + '">' + g.icon + " " + c.have[g.k] + ' / <input type="number" min="0" data-pneed="' + id + ":" + g.k + '" value="' + c.need[g.k] + '"></label>').join("") +
-      '<button class="btn small" data-ptrecipe="' + id + '">Save ' + E.recipe + "</button>" + (changed ? '<button class="btn ghost small" data-ptreset="' + id + '">Use the game’s ' + E.recipe + "</button>" : '<span class="muted small">(picked by the game)</span>') + "</div></div>";
+      '<button class="btn small" data-ptrecipe="' + id + '">Save ' + E.recipe + "</button>" + (changed ? '<button class="btn ghost small" data-ptreset="' + id + '">Use the game’s ' + E.recipe + "</button>" : '<span class="muted small">(picked by the game)</span>') + "</div>" +
+      // Add ingredients by hand: for students who worked on other subjects (Science, Social Studies, Fast Math...)
+      '<div class="row pextra" style="gap:8px;margin-top:6px;align-items:center;flex-wrap:wrap;"><span class="small"><b>➕ Add ingredients:</b></span>' +
+      c.ing.map(g => '<span class="small pexg">' + g.icon + ' <button class="btn ghost small" data-ptextra="' + id + ":" + g.k + ':-1"' + (c.extra[g.k] ? "" : " disabled") + ' aria-label="One less ' + esc(g.name) + '">−</button><b>' + c.extra[g.k] + '</b><button class="btn ghost small" data-ptextra="' + id + ":" + g.k + ':1" aria-label="One more ' + esc(g.name) + '">+</button></span>').join("") +
+      '<span class="muted small">for work in other subjects — counts toward today and finishes the ' + (E.stepWord || E.one) + " if it’s enough</span>" +
+      "</div></div>";
   });
   h += '<div class="row" style="margin-top:8px;"><button class="btn small" data-act="tevAddTeam" data-ev="' + k + '">➕ Add a team</button></div>';
   if (list.length) {
@@ -1559,6 +1564,16 @@ document.addEventListener("click", async ev => {
     const { E, rest } = tevOf(el.dataset.ptrecipe); if (!E) return; const tid = rest[0], r = {}, date = azToday();
     E.ing.forEach(g => { const n = document.querySelector('[data-pneed="' + E.key + ":" + tid + ":" + g.k + '"]'); r[g.k] = Math.max(0, Math.floor(Number(n && n.value) || 0)); });
     try { await updateDoc(classRef, { [E.p + "Recipe." + date + "." + tid]: r }); flash("Saved today\u2019s " + E.recipe + "."); } catch (e) { flash("Couldn\u2019t save \u2014 " + (e.code || e.message)); }
+    return;
+  }
+  if ((el = ev.target.closest("[data-ptextra]"))) {
+    const { E, rest } = tevOf(el.dataset.ptextra); if (!E) return; const [tid, k, d] = rest, date = azToday();
+    const t = tevTeams(E, cls).find(x => x.id === tid); if (!t) return;
+    const cur = Object.assign({}, (((cls[E.p + "Extra"] || {})[date] || {})[tid]) || {}); cur[k] = Math.max(0, (Number(cur[k]) || 0) + Number(d));
+    try { await updateDoc(classRef, { [E.p + "Extra." + date + "." + tid]: cur }); cls[E.p + "Extra"] = Object.assign({}, cls[E.p + "Extra"] || {}, { [date]: Object.assign({}, (cls[E.p + "Extra"] || {})[date] || {}, { [tid]: cur }) }); }
+    catch (e) { flash("Couldn’t save — " + (e.code || e.message)); return; }
+    if (teamDay(E, cls, t, students, date).ready) await tevCheckNow(E);   // enough now: finish it and give the rewards
+    else render();
     return;
   }
   if ((el = ev.target.closest("[data-ptreset]"))) {
