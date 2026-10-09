@@ -1239,3 +1239,4 @@ td .emo, .ic .emo{ display:inline-block; vertical-align:middle; font-size:1.3em;
 .pick .crg .crbox{ font-size:48px; } .pick .crg .crbox img.crfit{ margin:0; }
 .room .rpet .crbox img.crfit{ height:auto; margin:0; }
 .pswap{ display:flex; flex-direction:column; gap:6px; } .pswaprow{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; } .pswaprow > span{ min-width:110px; }
+.capebox{ background:linear-gradient(180deg,#FFF6E0,#FFE3E3); } .capeicon{ animation:capefly 1.6s ease-in-out infinite; } @keyframes capefly{ 50%{ transform:translateY(-10px) rotate(-6deg); } } .capestage{ font-size:100px; display:flex; justify-content:center; height:150px; padding-top:40px; box-sizing:border-box; align-items:flex-end; margin:6px 0; }

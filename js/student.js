@@ -2,20 +2,20 @@ import {
   checkVersion, hitOn, gearInSeason, applyDisplayNames, companionOf, petCreatures, pinnedBadgeHTML, DAYS, SHORT, ROSTER, GEAR, SIDEKICKS, BANNER, bannerFor, isHaunt, battleOn, candyOf, basketHTML, CANDY_FULL, bossState, attacksReady, bossBarHTML, GHOST_IMG, ghostUnlocked, turkeyUnlocked, grinchUnlocked, isJingle, isFrost, isHeart, heartUnlocked, attackRefusal, saveProblems, yetiUnlocked, eventMode, isGobble, setSeason, SEASON, seasonOf, STORE, candyLeft, candySpent, ownedCount, ownsItem, storeArt, nextAttack, dmgOf, HAT_BONUS, BREW_BONUS, teamHTML, wallHTML, WHEEL, pickSlice, wheelHTML, spinTo, PRIZES, prizeSlices, bucketState, bucketHTML, baseDamage, EAT_PER_DAY, dayEaten, dayXP, byId, esc, arr5, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, sidekickSVG, petHTML as petBase, itemArt, potionFx,
   ghost2Unlocked, starterFam, boss2Of, BOSS2, BOSS2_LIST, creditCompanion, compKey, compLevel, compFill, COMP_DAYS, creatureCompanion
-} from "./game.js?v=20261009i";
-import { EVENT_LIST, TEAM_EVENTS, eventOn, teamCard, teamOf as tevTeamOf } from "./teams.js?v=20261009i";
-import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=20261009i";
-import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261009i";
-import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20261009i";
-import { nudgeCard } from "./nudges.js?v=20261009i";
-import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261009i";
-import { teacherPlayer, hasStarter, MOVES, formOf } from "./collect.js?v=20261009i";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261009i";
-import { goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked, weekGoal, weekKey, weekTotal, weekDoorState, vaultState, oldReady, vaultLessonsLeft, VAULT_XP, VAULT_BONUS_XP, VAULT_EGGS } from "./doors.js?v=20261009i";
-import { azToday } from "./collect.js?v=20261009i";
+} from "./game.js?v=20261009j";
+import { EVENT_LIST, TEAM_EVENTS, eventOn, teamCard, teamOf as tevTeamOf } from "./teams.js?v=20261009j";
+import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=20261009j";
+import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261009j";
+import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20261009j";
+import { nudgeCard } from "./nudges.js?v=20261009j";
+import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261009j";
+import { teacherPlayer, hasStarter, MOVES, formOf } from "./collect.js?v=20261009j";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261009j";
+import { goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked, weekGoal, weekKey, weekTotal, weekDoorState, vaultState, oldReady, vaultLessonsLeft, VAULT_XP, VAULT_BONUS_XP, VAULT_EGGS } from "./doors.js?v=20261009j";
+import { azToday } from "./collect.js?v=20261009j";
 import { roomHTML, FIT_SLOTS, slotKind, KIND_NAMES, KIND_ICON, EVERYDAY_PRICE, THEMED_PRICE, TROPHY_PRICE, TYPE_THEMES, SEASON_THEMES, THEME_NAMES, TROPHIES,
-  itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId } from "./room.js?v=20261009i";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261009i";
+  itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId } from "./room.js?v=20261009j";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261009j";
 
 let fxFor = null;   // the student whose companion is being drawn (for the potion glow)
 const petHTML = (c, worn, held) => { const h = petBase(c, worn, held), fx = fxFor ? potionFx(fxFor) : ""; return fx ? h.replace('class="petwrap', 'class="petwrap' + fx) : h; };
@@ -107,6 +107,23 @@ function lockBadges(s) {
   badgeWriting = true;
   updateDoc(studentRef(s.id), data).catch(() => {}).finally(() => { badgeWriting = false; });
 }
+// 🦸 Hero Cape pop-up: shows once for each new cape (capeSeen = when the newest cape already shown was given;
+// a time, not a count, because a new week clears the capes).
+const capeCount = s => (s.items || []).filter(i => i.id === "cape").map(i => String(i.at || "")).sort().pop() || "";
+let capeInit = false;
+function capeParty(s) {
+  const n = capeCount(s);
+  if (s.capeSeen == null || typeof s.capeSeen !== "string") { if (!capeInit && !PREVIEW) { capeInit = true; s.capeSeen = n; updateDoc(studentRef(s.id), { capeSeen: n }).catch(() => {}); } return ""; }   // capes from before this pop-up existed
+  if (!n || n <= s.capeSeen) return "";
+  const c = companionOf(s), nm = esc(s.petName || c.name);
+  let conf = ""; const cols = ["#E63946", "#FFD166", "#4CC9F0", "#FFFFFF", "#F77F00"];
+  for (let i = 0; i < 70; i++) conf += '<i style="left:' + ((i * 37) % 100) + "%;background:" + cols[i % cols.length] + ";animation-delay:" + ((i * 0.13) % 3).toFixed(2) + "s;animation-duration:" + (2.6 + (i % 5) * 0.4).toFixed(1) + 's;"></i>';
+  return '<div class="bdayover capeover" role="dialog" aria-label="Hero Cape"><div class="confetti" aria-hidden="true">' + conf + "</div>" +
+    '<div class="bdaybox capebox"><div class="bdaycake capeicon">\u{1F9B8}</div><h2>' + nm + " is BACK!</h2>" +
+    '<div class="stage capestage" aria-hidden="true">' + petHTML(c, null) + "</div>" +
+    "<p>You hit <b>" + goalXP(cls) + " XP</b> and earned a <b>Hero Cape</b>! It swooped in and brought " + nm + " back to <b>full health</b>. \u{1F4AA}</p>" +
+    '<div class="row" style="justify-content:center;margin-top:12px;"><button class="btn big bday" data-capeok="1">\u{1F9B8} Welcome back, ' + nm + "!</button></div></div></div>";
+}
 // 🎂 Birthday pop-up: shows once each time the teacher sends a birthday egg (bdaySeen counts the ones already shown).
 let bdayChimed = false;
 function birthdayParty(s) {
@@ -195,9 +212,10 @@ function render(force) {
   const cur = students.find(x => x.id === me);
   if (cur && cur.companionId && cls) lockBadges(cur);
   const bday = !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() && !questBusy() ? birthdayParty(cur) : "";
-  const party = !bday && !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() && !questBusy() ? badgeParty(cur) : "";
+  const cape = !bday && !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() && !questBusy() ? capeParty(cur) : "";
+  const party = !bday && !cape && !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() && !questBusy() ? badgeParty(cur) : "";
   const fields = liveNow ? saveFields(app) : {};
-  app.innerHTML = h + presentOverlay() + vaultOverlay() + prizeOverlay() + (cur && cur.companionId && cls ? collectorOverlays(collectorCtx(cur)) + questOverlay(cur) : "") + party + bday;
+  app.innerHTML = h + presentOverlay() + vaultOverlay() + prizeOverlay() + (cur && cur.companionId && cls ? collectorOverlays(collectorCtx(cur)) + questOverlay(cur) : "") + party + cape + bday;
   restoreFields(fields);
   if (bday && !bdayChimed) { bdayChimed = true; birthdayTune(); }
   if (party) { const key = unseenBadges(cur).join(","); if (key !== partyKey) { partyKey = key; badgeChime(); } }
@@ -237,7 +255,7 @@ function viewMine(s) {
   const status = arr5(s.status, ""), early = arr5(s.early, false);
   let msg;
   if (!sim.started) msg = "Hit " + goal + " XP every day to keep " + esc(s.petName || c.name) + " healthy!";
-  else if (!sim.alive) msg = sim.capeReady ? "Your teacher can give you a Hero Cape to bring " + esc(s.petName || c.name) + " back!" : esc(s.petName || c.name) + " disappeared. Hit " + goal + " XP to earn a Hero Cape.";
+  else if (!sim.alive) msg = sim.capeReady ? "You earned a Hero Cape! " + esc(s.petName || c.name) + " is on the way back\u2026" : esc(s.petName || c.name) + " disappeared. Hit " + goal + " XP to earn a Hero Cape.";
   else if (sim.atRisk) msg = "Half health! Hit " + goal + " XP tomorrow or " + esc(s.petName || c.name) + " disappears.";
   else msg = esc(s.petName || c.name) + " is at full health. Keep it up!";
 
@@ -720,6 +738,12 @@ document.addEventListener("change", ev => {
 document.addEventListener("input", ev => { if (ev.target.id === "petName") draftName = ev.target.value; });
 document.addEventListener("click", async ev => {
   let el;
+  if ((el = ev.target.closest("[data-capeok]"))) {
+    const s = students.find(x => x.id === me); if (!s) return;
+    s.capeSeen = capeCount(s); render(true);
+    try { await updateDoc(studentRef(me), { capeSeen: s.capeSeen }); } catch (e) {}
+    return;
+  }
   if ((el = ev.target.closest("[data-bdayok]"))) {
     const s = students.find(x => x.id === me); if (!s) return;
     const seen = Number(s.birthdayEggs) || 0; s.bdaySeen = seen; bdayChimed = false;

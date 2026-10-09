@@ -1,21 +1,21 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261009i";
-import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261009i";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261009i";
-import { cpEarnedCalc } from "./room.js?v=20261009i";
-import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261009i";
-import { GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP } from "./doors.js?v=20261009i";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261009i";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261009j";
+import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261009j";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261009j";
+import { cpEarnedCalc } from "./room.js?v=20261009j";
+import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261009j";
+import { GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP } from "./doors.js?v=20261009j";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261009j";
 import {
   applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   boss2Of, boss2Prize, simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, isFrost, isHeart, heartUnlocked, saveProblems, yetiUnlocked, wallMarks, WALL_BLOCK, BOSS_START_HP, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261009i";
-import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261009i";
+} from "./game.js?v=20261009j";
+import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261009j";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef
-} from "./db.js?v=20261009i";
+} from "./db.js?v=20261009j";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -172,6 +172,18 @@ function battleHit(amount) {
 }
 const popIds = {};
 // Save newly earned badges for every student (they're locked in forever; the student page celebrates them next visit).
+/* Hero Capes give themselves out: a companion that disappeared comes back as soon as the student hits the goal again
+   (no more "Award Hero Cape" button press needed). The student sees a big celebration on their page. */
+let capeWriting = false;
+async function autoCapes() {
+  if (capeWriting || !cls || !studentsLoaded || !students.length) return;
+  const due = students.filter(s => s.companionId && simulate(s, cls).capeReady); if (!due.length) return;
+  capeWriting = true;
+  const batch = writeBatch(db), at = new Date().toISOString();
+  due.forEach(s => batch.update(studentRef(s.id), { items: (s.items || []).concat([{ id: "cape", at, auto: true }]), capesTotal: (Number(s.capesTotal) || 0) + 1 }));
+  try { await batch.commit(); } catch (e) { flash("Couldn’t give Hero Capes — " + (e.code || e.message)); }
+  capeWriting = false;
+}
 /* One-time cleanup (Sept 2026): the Full-Health Week badge used to be given after only 3 days at the goal.
    Takes it back (and Full-Health Month) from anyone who hasn't really had a full Mon-Fri week. Runs once, then sets cls.healthWeekFixed. */
 let healthFixing = false;
@@ -217,7 +229,7 @@ async function syncExcused() {
   if (n) try { await batch.commit(); } catch (e) { console.error(e); }
 }
 async function lockBadges() {
-  fixHealthBadges(); syncComfort(); syncExcused();
+  fixHealthBadges(); syncComfort(); syncExcused(); autoCapes();
   if (badgeWriting || !cls || !students.length) return;
   const batch = writeBatch(db), at = new Date().toISOString(); let n = 0;
   students.forEach(s => {
