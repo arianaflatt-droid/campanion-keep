@@ -1,10 +1,10 @@
-import { CREATURE_LAYOUT, CREATURE_FIT_ID } from "./creature-fit.js?v=20261009j";
-import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261009j";
-import { heldWeapon } from "./quest.js?v=20261009j";
+import { CREATURE_LAYOUT, CREATURE_FIT_ID } from "./creature-fit.js?v=20261010a";
+import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261010a";
+import { heldWeapon } from "./quest.js?v=20261010a";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261009j";
+export const APP_V = "20261010a";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -240,11 +240,20 @@ export const ITEMS = [
   { id: "cupidcrown", name: "Cupid Crown", glyph: "\u{1F451}", streak: 5, heart: true, img: "assets/gear/cupid-crown.webp" },
   // A snack-pack choice unlocked by defeating the Heartbreaker-otl.
   { id: "strawsnack", name: "Chocolate Strawberry", glyph: "\u{1F353}", streak: 3, heart: true, slot: "snack", img: "assets/gear/choc-strawberry.webp" },
+  // Friendship outfits (bond.js): unlocked by petting the companion (friendship level), any time of year.
+  { id: "bow", name: "Bow", glyph: "\u{1F380}", bond: 2 },
+  { id: "flower", name: "Flower Clip", glyph: "\u{1F338}", bond: 4 },
+  { id: "gradcap", name: "Grad Cap", glyph: "\u{1F393}", bond: 6 },
   { id: "cape",   name: "Hero Cape",   glyph: "\u{1F9B8}", revive: true }
 ];
 // To use a picture instead of an emoji, drop a transparent PNG in assets/gear/ and set img, e.g. img: "assets/gear/cap.png"
 ITEMS.forEach(it => { if (!("img" in it)) it.img = null; });
-export const GEAR = ITEMS.filter(it => it.streak);
+export const GEAR = ITEMS.filter(it => it.streak || it.bond);
+// Bonding meter (bond.js): bond.n = how many days the student pet their companion. 5 hearts = 1 friendship level (max 9).
+export const BOND_HEARTS = 5;
+export const bondLevel = st => Math.min(9, Math.floor((((st && st.bond) || {}).n || 0) / BOND_HEARTS));
+export const bondHearts = st => (((st && st.bond) || {}).n || 0) % BOND_HEARTS;
+export const bondFx = st => bondLevel(st) >= 9 && st.bondAura !== false ? " aura" : "";
 // Companions and gear are drawn from pictures of the Google (Chromebook) emoji, so hats and shades line up the
 // same way on every computer. Each picture has 0.3em of padding around the emoji box (see .emo in style.css).
 export const emojiImg = key => '<img class="emo" src="assets/emoji/' + key + '.webp" alt="">';
@@ -353,7 +362,7 @@ export function simulate(st, cls) {
       else health = HALF_HP;
     }
   }
-  const unlocked = GEAR.filter(g => (bestRun >= g.streak && bossGearOk(g, cls)) || (g.id === "witch" && st.witchHat) || (g.id === "pilgrim" && st.pilgrimHat) || (g.id === "antlers" && st.antlersHat) || (g.id === "earmuffs" && st.earmuffsHat) || (g.id === "cupidcrown" && st.crownHat)).map(g => g.id);
+  const unlocked = GEAR.filter(g => (bestRun >= g.streak && bossGearOk(g, cls)) || (g.id === "witch" && st.witchHat) || (g.id === "pilgrim" && st.pilgrimHat) || (g.id === "antlers" && st.antlersHat) || (g.id === "earmuffs" && st.earmuffsHat) || (g.id === "cupidcrown" && st.crownHat) || (g.bond && bondLevel(st) >= g.bond)).map(g => g.id);
   return {
     health, max: MAX_HP, alive, capeReady, capeSaved, hitRun, bestRun, carry, unlocked,
     atRisk: alive && daysCounted > 0 && missRun === 1,
@@ -406,9 +415,9 @@ export function sidekickSVG(kind, big) {
 }
 
 // Hats sit on the head (anchored at their bottom-centre); shades centre on the eyes.
-const HAT_SCALE = { cap: 1, hat: 1.05, crown: 0.95, witch: 1.25, pilgrim: 1.2, antlers: 1.35, xmashat: 1.35, hat67: 1.3, earmuffs: 1.25, cupidcrown: 1.2 };
+const HAT_SCALE = { cap: 1, hat: 1.05, crown: 0.95, witch: 1.25, pilgrim: 1.2, antlers: 1.35, xmashat: 1.35, hat67: 1.3, earmuffs: 1.25, cupidcrown: 1.2, bow: 0.62, flower: 0.55, gradcap: 1.1 };
 // How far up each hat is lifted from its anchor point (the cap emoji has empty space under its brim, so it sits lower).
-const HAT_LIFT = { cap: 72, hat: 88, crown: 88, witch: 88, pilgrim: 88, antlers: 70, xmashat: 78, hat67: 76, earmuffs: 45, cupidcrown: 80 };
+const HAT_LIFT = { cap: 72, hat: 88, crown: 88, witch: 88, pilgrim: 88, antlers: 70, xmashat: 78, hat67: 76, earmuffs: 45, cupidcrown: 80, bow: 62, flower: 58, gradcap: 80 };
 const GLYPH_W = 1.25;   // emoji box is 1.25em wide x 1em tall
 const pos = (x, y) => "left:" + (x / GLYPH_W * 100).toFixed(1) + "%;top:" + (y * 100).toFixed(1) + "%;";
 export function gearStyle(c, worn) {
@@ -553,7 +562,7 @@ export function tileHTML(st, sim, rank, day, popped, haunt) {
     '<span class="rank">' + rank + "</span>" + pinnedBadgeHTML(st) +
     (haunt ? basketHTML(candyLeft(st), "corner") : "") +
     (side ? '<span class="lunch">LUNCH HERO</span>' : "") +
-    '<div class="stage' + potionFx(st) + '" aria-hidden="true">' + petHTML(c, worn, heldWeapon(st)) + (side ? sidekickSVG(side) : "") + "</div>" +
+    '<div class="stage' + potionFx(st) + bondFx(st) + '" aria-hidden="true">' + petHTML(c, worn, heldWeapon(st)) + (side ? sidekickSVG(side) : "") + "</div>" +
     '<div class="tname2">' + esc(st.petName || c.name) + "</div>" +
     '<div class="towner">' + esc(st.name || "") + "</div>" +
     '<div class="tspec">' + esc(c.name) + "</div>" +

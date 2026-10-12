@@ -1,15 +1,19 @@
 // Nudge messages: short, friendly "you're close!" notes at the top of a student's page.
 // Each rule returns a nudge or null; the most useful few are shown (lower pri = shown first).
-import { seasonOf, dayXP, simulate, GEAR, goalXP, arr5, esc, isHaunt, battleOn, nextAttack, companionOf, bossState } from "./game.js?v=20261009j";
-import { azToday, brewLegLeft, feastLegLeft, gingerLegLeft, snowLegLeft, candyLegLeft, ghostEggLeft, BOSS2_LIST, boss2EggLeft, vaultLegLeft, pickleLeft, birthdayLeft, EVENTS, eventOpen, eventUnlocked, hasEvent, eventStreak, creature, family, azNow, pullsLeft, legendaryLeft, bankXP, LEVEL_XP, PULL_XP, hasStarter, owned, MAX_LEVEL } from "./collect.js?v=20261009j";
-import { badgeState } from "./badges.js?v=20261009j";
-import { doorsLive, goldenReady, doorName } from "./doors.js?v=20261009j";
+import { seasonOf, dayXP, simulate, GEAR, goalXP, arr5, esc, isHaunt, battleOn, nextAttack, companionOf, bossState } from "./game.js?v=20261010a";
+import { azToday, brewLegLeft, feastLegLeft, gingerLegLeft, snowLegLeft, candyLegLeft, ghostEggLeft, BOSS2_LIST, boss2EggLeft, vaultLegLeft, pickleLeft, birthdayLeft, EVENTS, eventOpen, eventUnlocked, hasEvent, eventStreak, creature, family, azNow, pullsLeft, legendaryLeft, bankXP, LEVEL_XP, PULL_XP, hasStarter, owned, MAX_LEVEL } from "./collect.js?v=20261010a";
+import { badgeState } from "./badges.js?v=20261010a";
+import { mqReady } from "./morning.js?v=20261010a";
+import { unthanked } from "./kindness.js?v=20261010a";
+import { pettedToday } from "./bond.js?v=20261010a";
+import { doorsLive, goldenReady, doorName } from "./doors.js?v=20261010a";
 
 const MAX_SHOWN = 3;
 const WEEKDAY = { Mon: 0, Tue: 1, Wed: 2, Thu: 3, Fri: 4 };
 const plural = (n, w) => n.toLocaleString() + " " + w + (n === 1 ? "" : "s");
 
 export function nudges(st, cls, battles, students) {
+  const kindN = students ? unthanked(st, students, cls).length : 0;
   const goal = goalXP(cls), sim = simulate(st, cls), c = companionOf(st), pet = esc(st.petName || (c && c.name) || "your companion");
   const d = WEEKDAY[azNow().day];                       // today as a school-day index (undefined on weekends)
   const hasToday = d != null && (arr5(st.xp, null)[d] != null || arr5(st.lunchXp, null)[d] != null);
@@ -17,6 +21,11 @@ export function nudges(st, cls, battles, students) {
   const out = [];
   const add = (pri, icon, html, tab) => out.push({ pri, icon, html, tab });
 
+  if (kindN) out.push({ pri: 0, icon: "\u{1F48C}", html: "<b>" + (kindN === 1 ? "A classmate sent you a shout-out!" : kindN + " classmates sent you shout-outs!") + "</b> Read " + (kindN === 1 ? "it" : "them") + " on the Kindness Board.", tab: "pet" });
+  // ---- Bonding meter: a daily pet ----
+  if (!pettedToday(st)) add(4, "\u{1F43E}", "<b>Pet " + pet + " today</b> to fill a friendship heart and unlock tricks and outfits!", "pet");
+  // ---- Morning Quest Board ----
+  { const n = mqReady(st, cls); if (n) add(0, "\u{1F305}", "<b>" + (n === 1 ? "A morning quest is" : n + " morning quests are") + " ready!</b> Catch creatures, dig for treasure and more on the Morning Quest Board.", "morning"); }
   // ---- presents from earlier days' doors (approved after the day ended) ----
   if (doorsLive(cls)) {
     const t = azToday(), earlier = Object.keys(st.doors || {}).filter(x => x < t);
@@ -34,13 +43,13 @@ export function nudges(st, cls, battles, students) {
   } else if (sim.atRisk) {
     add(0, "⚠️", pet + " is at half health. Hit <b>" + goal + " XP</b> today to heal it!");
   } else if (!sim.alive && sim.capeReady) {
-    add(0, "\u{1F9B8}", "You earned a Hero Cape! Ask your teacher to bring " + pet + " back.");
+    add(0, "\u{1F9B8}", "You earned a Hero Cape! " + pet + " is on the way back.");
   } else if (!sim.alive) {
     add(0, "\u{1F4AA}", "Hit <b>" + goal + " XP</b> to earn a Hero Cape and bring " + pet + " back!");
   }
 
   // ---- streak gear ----
-  const nextGear = GEAR.filter(g => !g.ghost && !g.turkey && !g.jingle && !g.frost && !g.heart && !g.months && !sim.unlocked.includes(g.id)).sort((a, b) => a.streak - b.streak)[0];
+  const nextGear = GEAR.filter(g => !g.ghost && !g.turkey && !g.jingle && !g.frost && !g.heart && !g.months && !g.bond && !sim.unlocked.includes(g.id)).sort((a, b) => a.streak - b.streak)[0];
   if (nextGear && sim.alive) {
     const need = Math.max(1, nextGear.streak - sim.hitRun);
     if (need <= 2) add(2, "\u{1F525}", "<b>" + plural(need, "more " + goal + " XP day") + "</b> in a row unlocks the <b>" + esc(nextGear.name) + "</b>!");

@@ -1,10 +1,10 @@
-import { owned as roomOwned, fitOf as roomFit, FIT_SLOTS, setItems as roomSet } from "./room.js?v=20261009j";
-import { presentsOpened } from "./doors.js?v=20261009j";
+import { owned as roomOwned, fitOf as roomFit, FIT_SLOTS, setItems as roomSet } from "./room.js?v=20261010a";
+import { presentsOpened } from "./doors.js?v=20261010a";
 // Badges: worked out from each student's saved data, so nothing extra is stored and no rules change.
 // To add a badge: add an entry with a check(st) that returns how far along the student is,
 // and a goal. Put its picture in assets/badges/ (a transparent WEBP or PNG). Without a picture, the emoji shows.
-import { esc, goalXP, candyOf, ghostUnlocked } from "./game.js?v=20261009j";
-import { seenSet, ownedFams, owned, family, formIndex, formOf, STARTERS, CREATURES } from "./collect.js?v=20261009j";
+import { esc, goalXP, candyOf, ghostUnlocked } from "./game.js?v=20261010a";
+import { seenSet, ownedFams, owned, family, formIndex, formOf, STARTERS, CREATURES } from "./collect.js?v=20261010a";
 
 export const hatches = st => (Number(st.pullsUsed) || 0) + (Number(st.legendaryUsed) || 0);
 
@@ -114,6 +114,7 @@ const LORE = CREATURES.filter(c => !c.event).length, lore = pct => Math.ceil(LOR
 
 export const BADGE_GROUPS = [
   { key: "hatch", title: "\u{1F95A} Hatching" },
+  { key: "morning", title: "\u{1F305} Morning Quests" },
   { key: "collect", title: "\u{1F43E} Collector" },
   { key: "lore", title: "\u{1F4D6} Lorebook Scholar" },
   { key: "rare", title: "\u{1F48E} Rarity" },
@@ -185,6 +186,11 @@ export const BADGES = [
   { id: "health-week",  group: "care", name: "Full-Health Week",  desc: "Hit the goal all 5 school days in one week (Mon\u2013Fri)", goal: 1, img: "assets/badges/health-week.webp",  emoji: "\u2764\uFE0F", check: fullWeekCount },
   { id: "health-month", group: "care", name: "Full-Health Month", desc: "Keep full health for 4 school weeks in a row", goal: 4, img: "assets/badges/health-month.webp", emoji: "\u{1F496}", check: bestFullWeekRun },
   { id: "never-lost", group: "care", name: "Never Lost", desc: "30 school days in a row without your companion disappearing", goal: 30, img: "assets/badges/never-lost.webp", emoji: "\u{1F6E1}\uFE0F", check: bestSafeRun },
+  { id: "early-1",  group: "morning", name: "Early Bird", desc: "Finish the whole Morning Quest Board", goal: 1, img: "assets/badges/early-1.webp", emoji: "\u{1F305}", check: st => Number(st.mqFull) || 0 },
+  { id: "early-5",  group: "morning", name: "Early Bird 5", desc: "Finish the whole Morning Quest Board 5 times", goal: 5, img: "assets/badges/early-5.webp", emoji: "\u{1F426}", check: st => Number(st.mqFull) || 0 },
+  { id: "early-20", group: "morning", name: "Early Bird 20", desc: "Finish the whole Morning Quest Board 20 times", goal: 20, img: "assets/badges/early-20.webp", emoji: "\u{1F31E}", check: st => Number(st.mqFull) || 0 },
+  { id: "mcatch-10", group: "morning", name: "Morning Catcher", desc: "Catch 10 creatures on the Morning Quest Board", goal: 10, img: "assets/badges/mcatch-10.webp", emoji: "\u{1F3AF}", check: st => Number(st.mqCatch) || 0 },
+  { id: "mcatch-50", group: "morning", name: "Morning Catcher 50", desc: "Catch 50 creatures on the Morning Quest Board", goal: 50, img: "assets/badges/mcatch-50.webp", emoji: "\u{1F3A3}", check: st => Number(st.mqCatch) || 0 },
   { id: "ghost-1",  group: "haunt", name: "Ghost Buster",    desc: "Help defeat the Ghost-olotl", goal: 1, img: "assets/badges/ghost-1.webp", emoji: "\u{1F47B}", check: helpedDefeat },
   // Ghost Buster II: helped beat the 2nd Ghost-olotl (Ms. Ariana gave them its rewards). Art: assets/badges/ghost-2.webp
   { id: "ghost-2",  group: "haunt", name: "Ghost Buster II", desc: "Help defeat the Ghost-olotl a 2nd time", goal: 1, img: "assets/badges/ghost-2.webp", emoji: "\u{1F47B}", check: st => (st.ghost2 ? 1 : 0) },
