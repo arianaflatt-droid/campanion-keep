@@ -2,16 +2,17 @@
    A new pass every month (Arizona dates), themed to that month's event. One track for everyone.
    Pass points are worked out from data the app already saves (nothing extra to cheat):
      120 XP day +10 · Morning Quest finished +2 · door opened +2 · Treasure Vault opened +15 · new badge +5
-   20 tiers, 15 points each (300 to finish). Rewards: eggs (better toward the top), pass-only room decor at tiers 5/10/15,
+   20 tiers, 25 points each by default (500 to finish; cls.passStep changes it). Rewards: eggs (better toward the top), pass-only room decor at tiers 5/10/15,
    and at tier 20 a Legendary egg + the pass badge + a title on The Keep.
    Saved on the student: pass = { "YYYY-MM": [claimed tiers] }, passTitle (the newest title), mqDays { date: quests finished }.
    Ms. Ariana can switch it off (cls.passOff). */
-import { esc, goalXP } from "./game.js?v=20261010d";
-import { azToday, doPull, formOf, sparkleImg } from "./collect.js?v=20261010d";
-import { PASS_DECOR, itemArt as roomArt } from "./room.js?v=20261010d";
+import { esc, goalXP } from "./game.js?v=20261012c";
+import { azToday, doPull, formOf, sparkleImg } from "./collect.js?v=20261012c";
+import { PASS_DECOR, itemArt as roomArt } from "./room.js?v=20261012c";
 
 export const PASS_START = "2026-10";          // the first pass
-export const PASS_TIERS = 20, PASS_STEP = 15;
+export const PASS_TIERS = 20, PASS_STEP = 25;   // points per tier (Ms. Ariana can change it: cls.passStep)
+export const stepOf = cls => Number(cls && cls.passStep) || PASS_STEP;
 export const PASS_PTS = { goal: 10, mq: 2, door: 2, vault: 15, badge: 5 };
 const MONTH_THEME = { 1: "frost", 2: "heart", 3: "lucky", 4: "spring", 5: "spring", 6: "summer", 7: "summer", 8: "school", 9: "school", 10: "haunt", 11: "gobble", 12: "jingle" };
 export const PASS_THEMES = {
@@ -28,6 +29,7 @@ export const PASS_THEMES = {
 // What each tier gives: an egg rarity, a decor piece (0-2 = the month's 3 pieces), or the final prize
 const TRACK = ["Common", "Common", "Uncommon", "Uncommon", 0, "Uncommon", "Rare", "Uncommon", "Rare", 1, "Rare", "Rare", "Super Rare", "Rare", 2,
   "Super Rare", "Rare", "Super Rare", "Super Rare", "final"];
+const EGG_IMG = { Common: "assets/egg-common.webp", Uncommon: "assets/egg-uncommon.webp", Rare: "assets/egg-rare.webp", "Super Rare": "assets/egg-superrare.webp" };
 const EGG_ICON = { Common: "\u{1F95A}", Uncommon: "\u{1F95A}", Rare: "\u{1F48E}", "Super Rare": "\u{1F31F}" };
 
 export const passKey = date => (date || azToday()).slice(0, 7);
@@ -36,9 +38,9 @@ export const passOf = key => Object.assign({ key, theme: themeOf(key) }, PASS_TH
 export const decorId = (theme, i) => PASS_DECOR[theme][i][0] + "_pass" + theme;
 export function tierReward(key, tier) {
   const r = TRACK[tier - 1], th = themeOf(key);
-  if (r === "final") return { kind: "final", icon: "\u{1F451}", label: "Legendary egg + badge + title" };
+  if (r === "final") return { kind: "final", icon: "\u{1F451}", label: "Legendary egg + badge + title", img: "assets/egg-legendary.webp" };
   if (typeof r === "number") return { kind: "decor", id: decorId(th, r), icon: "\u{1F6CB}️", label: PASS_DECOR[th][r][1], img: roomArt(decorId(th, r)) };
-  return { kind: "egg", rarity: r, icon: EGG_ICON[r], label: r + " egg" };
+  return { kind: "egg", rarity: r, icon: EGG_ICON[r], label: r + " egg", img: EGG_IMG[r] };
 }
 const inMonth = (date, key) => String(date).slice(0, 7) === key;
 const azDateOf = iso => { try { return azToday(new Date(iso)); } catch (e) { return ""; } };
@@ -57,7 +59,7 @@ export function passPoints(st, cls, key) {
   Object.keys((st && st.vault) || {}).forEach(wk => { if (inMonth(wk, key) && st.vault[wk] === "open") n.vault++; });
   Object.keys((st && st.badges) || {}).forEach(id => { if (!id.startsWith("pass-") && inMonth(azDateOf(st.badges[id]), key)) n.badge++; });
   const total = Object.keys(n).reduce((t, k) => t + n[k] * PASS_PTS[k], 0);
-  return { n, total, tier: Math.min(PASS_TIERS, Math.floor(total / PASS_STEP)) };
+  return { n, total, tier: Math.min(PASS_TIERS, Math.floor(total / stepOf(cls))) };
 }
 export const claimed = (st, key) => ((st && st.pass) || {})[key] || [];
 const lastMonth = () => { const d = new Date(azToday() + "T12:00:00"); d.setDate(1); d.setMonth(d.getMonth() - 1); return d.toISOString().slice(0, 7); };
@@ -87,18 +89,18 @@ function trackHTML(st, cls, key, past) {
     h += '<div class="ptier' + (got ? " got" : ready ? " ready" : "") + (r.kind === "final" ? " final" : r.kind === "decor" ? " decor" : "") + '"><span class="ptnum">' + t + "</span>" +
       (r.img ? '<img class="ptimg" src="' + esc(r.img) + '" alt="">' : '<span class="ptic">' + (r.kind === "final" ? P.icon : r.icon) + "</span>") +
       '<span class="ptlbl">' + esc(r.label) + "</span>" +
-      (got ? '<span class="ptdone">✅</span>' : ready ? '<button class="btn small" data-passclaim="' + key + ":" + t + '">Claim!</button>' : '<span class="ptpts">' + t * PASS_STEP + " pts</span>") + "</div>";
+      (got ? '<span class="ptdone">✅</span>' : ready ? '<button class="btn small" data-passclaim="' + key + ":" + t + '">Claim!</button>' : '<span class="ptpts">' + t * stepOf(cls) + " pts</span>") + "</div>";
   }
   return h + "</div>";
 }
 export function passTab(st, cls) {
   if (cls && cls.passOff) return '<div class="card"><p class="lede">The Season Pass is taking a break right now.</p></div>';
   const key = passKey(), P = passOf(key), p = passPoints(st, cls, key), pts = p.total, next = Math.min(PASS_TIERS, p.tier + 1);
-  const pct = Math.min(100, pts / (PASS_TIERS * PASS_STEP) * 100), dl = daysLeft();
+  const pct = Math.min(100, pts / (PASS_TIERS * stepOf(cls)) * 100), dl = daysLeft();
   let h = '<div class="card passcard pass-' + P.theme + '"><div class="card-head"><h2>' + P.icon + " " + esc(P.name) + '</h2><span class="fact">' + dl + " day" + (dl === 1 ? "" : "s") + " left</span></div>" +
     '<p class="lede">Earn pass points all month to climb 20 tiers of rewards! Finish the pass for a <b>Legendary egg</b>, the <b>' + esc(P.name) + "</b> badge and the title <b>" + esc(P.title) + "</b>.</p>" +
-    '<div class="passbar"><span style="width:' + pct.toFixed(1) + '%"></span><b>' + pts + " / " + PASS_TIERS * PASS_STEP + " pts</b></div>" +
-    '<p class="small" style="margin-top:4px;">' + (p.tier >= PASS_TIERS ? "\u{1F3C6} You finished the pass!" : "Tier <b>" + p.tier + "</b> of 20 · <b>" + (next * PASS_STEP - pts) + "</b> more points to tier " + next) + "</p>" +
+    '<div class="passbar"><span style="width:' + pct.toFixed(1) + '%"></span><b>' + pts + " / " + PASS_TIERS * stepOf(cls) + " pts</b></div>" +
+    '<p class="small" style="margin-top:4px;">' + (p.tier >= PASS_TIERS ? "\u{1F3C6} You finished the pass!" : "Tier <b>" + p.tier + "</b> of 20 · <b>" + (next * stepOf(cls) - pts) + "</b> more points to tier " + next) + "</p>" +
     '<div class="passways">' + [["goal", "⭐", "120 XP day"], ["mq", "\u{1F305}", "Morning Quest"], ["door", "\u{1F6AA}", "Door opened"], ["vault", "\u{1F510}", "Treasure Vault"], ["badge", "\u{1F3C5}", "New badge"]]
       .map(([k, i, l]) => '<span class="pway">' + i + " " + l + " <b>+" + PASS_PTS[k] + "</b><small>" + p.n[k] + " this month</small></span>").join("") + "</div>" +
     trackHTML(st, cls, key) + "</div>";
@@ -142,7 +144,8 @@ export function passAdmin(students, cls) {
   const key = passKey(), P = passOf(key);
   const rows = students.filter(s => s.companionId).map(s => ({ s, p: passPoints(s, cls, key) })).sort((a, b) => b.p.total - a.p.total);
   return '<div class="card"><div class="card-head"><h2>\u{1F39F}️ ' + esc(P.name) + '</h2><span class="fact">' + rows.filter(r => r.p.tier >= PASS_TIERS).length + " finished</span></div>" +
-    '<p class="lede" style="font-size:13px;">A new pass every month. Points: 120 XP day +10 · Morning Quest +2 · door +2 · Treasure Vault +15 · new badge +5. 20 tiers × 15 points.</p>' +
+    '<p class="lede" style="font-size:13px;">A new pass every month. Points: 120 XP day +10 · Morning Quest +2 · door +2 · Treasure Vault +15 · new badge +5. 20 tiers × ' + stepOf(cls) + ' points = ' + stepOf(cls) * 20 + ' to finish. Tiers already claimed stay claimed.</p>' +
+    '<div class="row" style="margin:6px 0;gap:6px;flex-wrap:wrap;align-items:center;"><span class="small">Points per tier:</span>' + [15, 20, 25, 30, 35, 40].map(v => '<button class="btn small' + (stepOf(cls) === v ? "" : " ghost") + '" data-act="passStep" data-v="' + v + '">' + v + " (" + v * 20 + " total)</button>").join("") + "</div>" +
     '<div class="row" style="margin:6px 0;"><button class="btn ghost small" data-act="passToggle">' + (cls.passOff ? "▶️ Turn the Season Pass on" : "⏸️ Turn the Season Pass off") + "</button></div>" +
     '<div class="passadmin">' + rows.map(r => '<span class="pa"><b>' + esc(r.s.name) + "</b> tier " + r.p.tier + " <small>(" + r.p.total + " pts)</small></span>").join("") + "</div></div>";
 }

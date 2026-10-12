@@ -5,9 +5,9 @@
    Saved on the student: cpEarned (teacher writes), cpSpent, roomOwned [item ids], roomFit { slot: id }, roomBuys [{ id, cost, at }].
    Item ids are "{kind}_{theme}" (e.g. bed_dragon); art is assets/room/{id}.webp. Trophies are trophy_{season}.
    The room picture is 1536x1024; everything below is placed in % of that. */
-import { azToday } from "./collect.js?v=20261010d";
-import { questCP } from "./quest.js?v=20261010d";
-import { esc } from "./game.js?v=20261010d";
+import { azToday } from "./collect.js?v=20261012c";
+import { questCP } from "./quest.js?v=20261012c";
+import { esc } from "./game.js?v=20261012c";
 
 // Themes that have art so far. Add a theme name here once its 9 pieces are in assets/room/.
 export const TYPE_THEMES = ["fire", "water", "nature", "rock", "sky", "electric", "ice", "light", "dark", "ghost", "poison", "steel", "arcane", "crystal", "dragon"];
@@ -37,7 +37,7 @@ export const PASS_DECOR = {
   jingle: [["wall_art", "Holiday Wreath"], ["shelf", "Snow Globe"], ["plant", "Mini Christmas Tree"]],
   frost: [["wall_art", "Northern Lights Painting"], ["shelf", "Ice Crystal Lamp"], ["plant", "Frosted Pine"]],
   heart: [["wall_art", "Heart Garland"], ["shelf", "Candy Heart Jar"], ["plant", "Rose Bouquet"]],
-  lucky: [["wall_art", "Rainbow Painting"], ["shelf", "Pot of Gold"], ["plant", "Four-Leaf Clover Pot"]],
+  lucky: [["wall_art", "Leprechaun Treasure Map"], ["shelf", "Gold Coin Piggy Bank"], ["plant", "Rainbow Toadstool Garden"]],
   spring: [["wall_art", "Butterfly Frame"], ["shelf", "Bird Nest"], ["plant", "Tulip Pot"]],
   summer: [["wall_art", "Beach Sunset Painting"], ["shelf", "Seashell Jar"], ["plant", "Mini Palm Tree"]],
   school: [["wall_art", "Gold Star Chart"], ["shelf", "Apple Stack"], ["plant", "Pencil Cup Cactus"]]
