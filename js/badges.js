@@ -1,10 +1,11 @@
-import { owned as roomOwned, fitOf as roomFit, FIT_SLOTS, setItems as roomSet } from "./room.js?v=20261010a";
-import { presentsOpened } from "./doors.js?v=20261010a";
+import { owned as roomOwned, fitOf as roomFit, FIT_SLOTS, setItems as roomSet } from "./room.js?v=20261010c";
+import { presentsOpened } from "./doors.js?v=20261010c";
+import { PASS_THEMES, passDone } from "./pass.js?v=20261010c";
 // Badges: worked out from each student's saved data, so nothing extra is stored and no rules change.
 // To add a badge: add an entry with a check(st) that returns how far along the student is,
 // and a goal. Put its picture in assets/badges/ (a transparent WEBP or PNG). Without a picture, the emoji shows.
-import { esc, goalXP, candyOf, ghostUnlocked } from "./game.js?v=20261010a";
-import { seenSet, ownedFams, owned, family, formIndex, formOf, STARTERS, CREATURES } from "./collect.js?v=20261010a";
+import { esc, goalXP, candyOf, ghostUnlocked } from "./game.js?v=20261010c";
+import { seenSet, ownedFams, owned, family, formIndex, formOf, STARTERS, CREATURES } from "./collect.js?v=20261010c";
 
 export const hatches = st => (Number(st.pullsUsed) || 0) + (Number(st.legendaryUsed) || 0);
 
@@ -129,6 +130,7 @@ export const BADGE_GROUPS = [
   { key: "heart", title: "\u{1F498} Sweetheart Showdown" },
   { key: "doors", title: "\u{1F6AA} Daily Doors" },
   { key: "room", title: "\u{1F3E0} Home Sweet Keep" },
+  { key: "pass", title: "\u{1F39F}\uFE0F Season Pass" },
 ];
 
 export const BADGES = [
@@ -233,6 +235,15 @@ export const BADGES = [
   { id: "room-first",    group: "room", name: "First Decoration", desc: "Buy your first room item", goal: 1, img: "assets/badges/room-first.webp", emoji: "\u{1F6CB}\uFE0F", check: st => ((st.roomBuys || []).length ? 1 : 0) },
   { id: "room-full",     group: "room", name: "Full Room", desc: "Fill every spot in your room at once", goal: 1, img: "assets/badges/room-full.webp", emoji: "\u{1F3E0}", check: st => (FIT_SLOTS.every(sl => roomFit(st)[sl]) ? 1 : 0) },
   { id: "candy-thief", group: "haunt", name: "Candy Thief", desc: "Steal candy from Ms. Ariana", goal: 1, img: "assets/badges/candy-thief.webp", emoji: "\u{1F9B9}", check: steals },
+  { id: "pass-haunt", group: "pass", name: "Haunt-O-Ween Pass", desc: "Finish the Haunt-O-Ween Pass (all 20 tiers)", goal: 1, img: "assets/badges/pass-haunt.webp", emoji: "\u{1F383}", check: st => passDone(st, "haunt") },
+  { id: "pass-gobble", group: "pass", name: "Gobble-Palooza Pass", desc: "Finish the Gobble-Palooza Pass (all 20 tiers)", goal: 1, img: "assets/badges/pass-gobble.webp", emoji: "\u{1F983}", check: st => passDone(st, "gobble") },
+  { id: "pass-jingle", group: "pass", name: "Jingle Jam Pass", desc: "Finish the Jingle Jam Pass (all 20 tiers)", goal: 1, img: "assets/badges/pass-jingle.webp", emoji: "\u{1F384}", check: st => passDone(st, "jingle") },
+  { id: "pass-frost", group: "pass", name: "Frostbite Festival Pass", desc: "Finish the Frostbite Festival Pass (all 20 tiers)", goal: 1, img: "assets/badges/pass-frost.webp", emoji: "\u2744\uFE0F", check: st => passDone(st, "frost") },
+  { id: "pass-heart", group: "pass", name: "Sweetheart Pass", desc: "Finish the Sweetheart Pass (all 20 tiers)", goal: 1, img: "assets/badges/pass-heart.webp", emoji: "\u{1F498}", check: st => passDone(st, "heart") },
+  { id: "pass-lucky", group: "pass", name: "Lucky Pass", desc: "Finish the Lucky Pass (all 20 tiers)", goal: 1, img: "assets/badges/pass-lucky.webp", emoji: "\u2618\uFE0F", check: st => passDone(st, "lucky") },
+  { id: "pass-spring", group: "pass", name: "Spring Pass", desc: "Finish the Spring Pass (all 20 tiers)", goal: 1, img: "assets/badges/pass-spring.webp", emoji: "\u{1F337}", check: st => passDone(st, "spring") },
+  { id: "pass-summer", group: "pass", name: "Summer Pass", desc: "Finish the Summer Pass (all 20 tiers)", goal: 1, img: "assets/badges/pass-summer.webp", emoji: "\u2600\uFE0F", check: st => passDone(st, "summer") },
+  { id: "pass-school", group: "pass", name: "Back-to-School Pass", desc: "Finish the Back-to-School Pass (all 20 tiers)", goal: 1, img: "assets/badges/pass-school.webp", emoji: "\u{1F4DA}", check: st => passDone(st, "school") },
 ];
 
 /* Earned badges are locked in forever: once earned, the id is saved in st.badges = { id: ISO date }
@@ -256,7 +267,7 @@ export function newlyEarned(st, battles, cls) {
 }
 // saved badges the student hasn't seen the celebration for
 export function unseenBadges(st) { const seen = st.badgesSeen || {}; return Object.keys(locked(st)).filter(id => !seen[id] && byIdB[id]); }
-export function badgeArt(b, cls) { return b.img ? '<img class="' + (cls || "") + '" src="' + b.img + '" alt="">' : '<span class="bdg-emoji">' + b.emoji + "</span>"; }
+export function badgeArt(b, cls) { return b.img ? '<img class="' + (cls || "") + '" src="' + b.img + '" alt="" onerror="this.outerHTML=\'<span class=bdg-emoji>' + b.emoji + '</span>\'">' : '<span class="bdg-emoji">' + b.emoji + "</span>"; }
 
 export function badgesTab(st, battles, cls) {
   const list = badgeState(st, battles, cls), got = list.filter(b => b.have).length, pin = st.pinnedBadge, soon = Date.now() - 3 * 864e5;

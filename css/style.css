@@ -1350,9 +1350,28 @@ img.mqbob{ width:54px; height:auto; filter:drop-shadow(0 4px 3px rgba(0,0,0,.35)
 @keyframes trflip{ 0%{ transform:none; } 30%{ transform:translateY(-60px) rotate(-180deg); } 60%{ transform:translateY(-60px) rotate(-360deg); } 80%{ transform:translateY(0) scaleY(.85); } 100%{ transform:none; } }
 .petwrap.tr-sparkle{ animation:trsparkle 1.4s ease-in-out; }
 @keyframes trsparkle{ 0%,100%{ filter:none; transform:none; } 40%{ filter:brightness(1.5) drop-shadow(0 0 18px #ffe066); transform:scale(1.12); } }
-.stage.aura{ position:relative; }
-.stage.aura::before, .stage.aura::after{ content:"\1F496"; position:absolute; font-size:22px; pointer-events:none; animation:aura 3.2s ease-in-out infinite; z-index:3; }
-.stage.aura::before{ left:6%; top:30%; }
-.stage.aura::after{ right:6%; top:10%; animation-delay:1.6s; content:"\1F495"; }
-@keyframes aura{ 0%{ transform:translateY(10px) scale(.7); opacity:0; } 30%{ opacity:1; } 100%{ transform:translateY(-40px) scale(1.1); opacity:0; } }
-@media (prefers-reduced-motion: reduce){ .petwrap[class*="tr-"], .bondfly, .stage.aura::before, .stage.aura::after{ animation-duration:.01s; } }
+@media (prefers-reduced-motion: reduce){ .petwrap[class*="tr-"], .bondfly{ animation-duration:.01s; } }
+
+/* ---------- 🎟️ Season Pass ---------- */
+.passcard{ background:linear-gradient(180deg,#fff7ec,#fff); }
+.passcard.pass-haunt{ background:linear-gradient(180deg,#ffe8cc,#fff); } .passcard.pass-gobble{ background:linear-gradient(180deg,#f8e2c4,#fff); }
+.passcard.pass-jingle{ background:linear-gradient(180deg,#e3f3e6,#fff); } .passcard.pass-frost{ background:linear-gradient(180deg,#e2f1ff,#fff); }
+.passcard.pass-heart{ background:linear-gradient(180deg,#ffe3ee,#fff); } .passcard.pass-lucky{ background:linear-gradient(180deg,#e2f7df,#fff); }
+.passbar{ position:relative; height:26px; border-radius:13px; background:#eee3d3; overflow:hidden; margin-top:10px; }
+.passbar span{ position:absolute; inset:0 auto 0 0; background:linear-gradient(90deg,#ffb347,#ff7a59); border-radius:13px; }
+.passbar b{ position:relative; display:block; text-align:center; line-height:26px; font-size:13px; }
+.passways{ display:flex; flex-wrap:wrap; gap:6px; margin:10px 0; }
+.pway{ background:#fff; border:1px solid #eadfcd; border-radius:10px; padding:5px 9px; font-size:13px; }
+.pway small{ display:block; color:var(--ink-3); font-size:11px; }
+.passtrack{ display:grid; grid-template-columns:repeat(auto-fill,minmax(112px,1fr)); gap:8px; margin-top:8px; }
+.ptier{ position:relative; display:flex; flex-direction:column; align-items:center; gap:3px; padding:10px 6px 8px; border-radius:12px; background:#f4efe7; border:2px solid #e6dccb; text-align:center; opacity:.75; }
+.ptier.ready{ opacity:1; background:#fff4d6; border-color:#f5b83d; box-shadow:0 0 0 3px #ffe6a3; animation:ptpulse 1.6s ease-in-out infinite; }
+.ptier.got{ opacity:1; background:#eaf6e8; border-color:#a8d5a0; }
+.ptier.final{ border-color:#d6a8ff; } .ptier.final.ready{ background:#f7ecff; }
+.ptnum{ position:absolute; top:4px; left:7px; font:700 11px var(--mono); color:var(--ink-3); }
+.ptic{ font-size:30px; line-height:1.2; } .ptimg{ width:46px; height:46px; object-fit:contain; }
+.ptlbl{ font-size:12px; font-weight:700; line-height:1.2; } .ptpts{ font-size:11px; color:var(--ink-3); }
+@keyframes ptpulse{ 50%{ transform:translateY(-2px); } }
+.passover{ background:linear-gradient(180deg,#ffd27a 0%,#ffe9b8 40%,#fff 100%); }
+.ttitle{ font-size:10.5px; font-weight:700; color:#b5651d; margin-top:1px; }
+.passadmin{ display:flex; flex-wrap:wrap; gap:6px; } .pa{ background:#f4efe7; border-radius:8px; padding:3px 8px; font-size:12.5px; }

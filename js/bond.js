@@ -1,27 +1,22 @@
 /* ---------- 🐾 Bonding meter ----------
    Once a day (Arizona date) a student can pet their companion: +1 friendship heart.
-   5 hearts = 1 friendship level. Levels unlock tricks (play when tapped) and outfit pieces (in the Gear list).
+   5 hearts = 1 friendship level. Each level unlocks a new trick (a button that makes the companion move).
    Saved on the student: bond = { n: total pets, last: "YYYY-MM-DD" }. Hearts stay if the companion changes.
    The companion also shows a mood (sleepy, wants a pet, happy, proud, missed you). No XP and no badges. */
-import { esc, BOND_HEARTS, bondLevel, bondHearts } from "./game.js?v=20261010a";
-import { azToday, azNow } from "./collect.js?v=20261010a";
+import { esc, BOND_HEARTS, bondLevel, bondHearts } from "./game.js?v=20261010c";
+import { azToday, azNow } from "./collect.js?v=20261010c";
 
-// What each friendship level unlocks. kind "trick" = a button that plays an animation, "outfit" = a Gear item, "aura" = floating hearts.
+// The trick each friendship level unlocks
 export const BOND_UNLOCKS = [
   { lv: 1, kind: "trick", id: "wave", icon: "\u{1F44B}", name: "Wave" },
-  { lv: 2, kind: "outfit", id: "bow", icon: "\u{1F380}", name: "Bow" },
-  { lv: 3, kind: "trick", id: "spin", icon: "\u{1F300}", name: "Spin" },
-  { lv: 4, kind: "outfit", id: "flower", icon: "\u{1F338}", name: "Flower Clip" },
-  { lv: 5, kind: "trick", id: "dance", icon: "\u{1F483}", name: "Dance" },
-  { lv: 6, kind: "outfit", id: "gradcap", icon: "\u{1F393}", name: "Grad Cap" },
-  { lv: 7, kind: "trick", id: "flip", icon: "\u{1F938}", name: "Backflip" },
-  { lv: 8, kind: "trick", id: "sparkle", icon: "✨", name: "Sparkle Burst" },
-  { lv: 9, kind: "aura", id: "aura", icon: "\u{1F496}", name: "Friendship Aura" }
+  { lv: 2, kind: "trick", id: "spin", icon: "\u{1F300}", name: "Spin" },
+  { lv: 3, kind: "trick", id: "dance", icon: "\u{1F483}", name: "Dance" },
+  { lv: 4, kind: "trick", id: "flip", icon: "\u{1F938}", name: "Backflip" },
+  { lv: 5, kind: "trick", id: "sparkle", icon: "\u2728", name: "Sparkle Burst" }
 ];
 export const BOND_MAX = BOND_UNLOCKS[BOND_UNLOCKS.length - 1].lv;
 const daysBetween = (a, b) => Math.round((new Date(b + "T12:00:00") - new Date(a + "T12:00:00")) / 864e5);
 export const pettedToday = s => ((s && s.bond) || {}).last === azToday();
-export const auraOn = s => bondLevel(s) >= BOND_MAX && s.bondAura !== false;
 export const tricksFor = s => BOND_UNLOCKS.filter(u => u.kind === "trick" && bondLevel(s) >= u.lv);
 
 // Today's mood: missed you (3+ days without a pet) > proud (hit the goal today) > happy (petted) > sleepy (before 8am) > wants a pet
@@ -43,10 +38,9 @@ export function bondHTML(s, name) {
   return '<div class="bond">' +
     '<div style="font-weight:700;">\u{1F49E} Friendship level ' + lv + (maxed ? " · Best friends!" : "") + "</div>" +
     '<div class="bondhearts" title="Pet your companion once a day to fill a heart">' + Array.from({ length: BOND_HEARTS }, (_, i) => '<i class="' + (maxed || i < hearts ? "on" : "") + '">' + (maxed || i < hearts ? "❤️" : "\u{1F90D}") + "</i>").join("") + "</div>" +
-    '<div class="muted small">' + (maxed ? "Every trick and outfit is unlocked! Keep petting " + esc(name) + " every day." : next ? (BOND_HEARTS - hearts) + " more pet" + (BOND_HEARTS - hearts === 1 ? "" : "s") + " to level " + next.lv + ": " + next.icon + " " + esc(next.name) + (next.kind === "outfit" ? " (outfit)" : next.kind === "trick" ? " (trick)" : "") : "") + "</div>" +
+    '<div class="muted small">' + (maxed ? "Every trick is unlocked! Keep petting " + esc(name) + " every day." : next ? (BOND_HEARTS - hearts) + " more pet" + (BOND_HEARTS - hearts === 1 ? "" : "s") + " to level " + next.lv + ": " + next.icon + " " + esc(next.name) + " (trick)" : "") + "</div>" +
     '<button class="btn bondpet" data-bondpet="1"' + (done ? " disabled" : "") + ">" + (done ? "✅ You pet " + esc(name) + " today" : "\u{1F43E} Pet " + esc(name)) + "</button>" +
     (tricks.length ? '<div class="bondtricks"><span class="small muted">Tricks:</span>' + tricks.map(u => '<button class="btn ghost small" data-trick="' + u.id + '">' + u.icon + " " + esc(u.name) + "</button>").join("") + "</div>" : "") +
-    (maxed ? '<button class="btn ghost small" data-bondaura="1" style="margin-top:6px;">' + (auraOn(s) ? "\u{1F496} Hide the Friendship Aura" : "\u{1F496} Show the Friendship Aura") + "</button>" : "") +
     "</div>";
 }
 

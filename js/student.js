@@ -1,24 +1,25 @@
 import {
   checkVersion, hitOn, gearInSeason, applyDisplayNames, companionOf, petCreatures, pinnedBadgeHTML, DAYS, SHORT, ROSTER, GEAR, SIDEKICKS, BANNER, bannerFor, isHaunt, battleOn, candyOf, basketHTML, CANDY_FULL, bossState, attacksReady, bossBarHTML, GHOST_IMG, ghostUnlocked, turkeyUnlocked, grinchUnlocked, isJingle, isFrost, isHeart, heartUnlocked, attackRefusal, saveProblems, yetiUnlocked, eventMode, isGobble, setSeason, SEASON, seasonOf, STORE, candyLeft, candySpent, ownedCount, ownsItem, storeArt, nextAttack, dmgOf, HAT_BONUS, BREW_BONUS, teamHTML, wallHTML, WHEEL, pickSlice, wheelHTML, spinTo, PRIZES, prizeSlices, bucketState, bucketHTML, baseDamage, EAT_PER_DAY, dayEaten, dayXP, byId, esc, arr5, recordedDays, goalXP,
-  simulate, wornItem, tier, boardDay, sidekickToday, sidekickSVG, petHTML as petBase, itemArt, potionFx, bondLevel, bondFx,
+  simulate, wornItem, tier, boardDay, sidekickToday, sidekickSVG, petHTML as petBase, itemArt, potionFx, bondLevel,
   ghost2Unlocked, starterFam, boss2Of, BOSS2, BOSS2_LIST, creditCompanion, compKey, compLevel, compFill, COMP_DAYS, creatureCompanion
-} from "./game.js?v=20261010a";
-import { EVENT_LIST, TEAM_EVENTS, eventOn, teamCard, teamOf as tevTeamOf } from "./teams.js?v=20261010a";
-import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=20261010a";
-import { kindCard } from "./kindness.js?v=20261010a";
-import { bondHTML, moodBubble, playTrick, burst, unlockAt, BOND_MAX } from "./bond.js?v=20261010a";
-import { morningTab, morningOverlay, morningClick, morningBusy, mqReady } from "./morning.js?v=20261010a";
-import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261010a";
-import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20261010a";
-import { nudgeCard } from "./nudges.js?v=20261010a";
-import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261010a";
-import { teacherPlayer, hasStarter, MOVES, formOf } from "./collect.js?v=20261010a";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261010a";
-import { goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked, weekGoal, weekKey, weekTotal, weekDoorState, vaultState, oldReady, vaultLessonsLeft, VAULT_XP, VAULT_BONUS_XP, VAULT_EGGS } from "./doors.js?v=20261010a";
-import { azToday } from "./collect.js?v=20261010a";
+} from "./game.js?v=20261010c";
+import { EVENT_LIST, TEAM_EVENTS, eventOn, teamCard, teamOf as tevTeamOf } from "./teams.js?v=20261010c";
+import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=20261010c";
+import { kindCard } from "./kindness.js?v=20261010c";
+import { passTab, passOverlay, passClick, passBusy, passReady } from "./pass.js?v=20261010c";
+import { bondHTML, moodBubble, playTrick, burst, unlockAt } from "./bond.js?v=20261010c";
+import { morningTab, morningOverlay, morningClick, morningBusy, mqReady } from "./morning.js?v=20261010c";
+import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261010c";
+import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20261010c";
+import { nudgeCard } from "./nudges.js?v=20261010c";
+import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261010c";
+import { teacherPlayer, hasStarter, MOVES, formOf } from "./collect.js?v=20261010c";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261010c";
+import { goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked, weekGoal, weekKey, weekTotal, weekDoorState, vaultState, oldReady, vaultLessonsLeft, VAULT_XP, VAULT_BONUS_XP, VAULT_EGGS } from "./doors.js?v=20261010c";
+import { azToday } from "./collect.js?v=20261010c";
 import { roomHTML, FIT_SLOTS, slotKind, KIND_NAMES, KIND_ICON, EVERYDAY_PRICE, THEMED_PRICE, TROPHY_PRICE, TYPE_THEMES, SEASON_THEMES, THEME_NAMES, TROPHIES,
-  itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId } from "./room.js?v=20261010a";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261010a";
+  itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId } from "./room.js?v=20261010c";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261010c";
 
 let fxFor = null;   // the student whose companion is being drawn (for the potion glow)
 const petHTML = (c, worn, held) => { const h = petBase(c, worn, held), fx = fxFor ? potionFx(fxFor) : ""; return fx ? h.replace('class="petwrap', 'class="petwrap' + fx) : h; };
@@ -215,11 +216,11 @@ function render(force) {
   }
   const cur = students.find(x => x.id === me);
   if (cur && cur.companionId && cls) lockBadges(cur);
-  const bday = !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() && !questBusy() && !morningBusy() ? birthdayParty(cur) : "";
-  const cape = !bday && !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() && !questBusy() && !morningBusy() ? capeParty(cur) : "";
-  const party = !bday && !cape && !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() && !questBusy() && !morningBusy() ? badgeParty(cur) : "";
+  const bday = !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() && !questBusy() && !morningBusy() && !passBusy() ? birthdayParty(cur) : "";
+  const cape = !bday && !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() && !questBusy() && !morningBusy() && !passBusy() ? capeParty(cur) : "";
+  const party = !bday && !cape && !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() && !questBusy() && !morningBusy() && !passBusy() ? badgeParty(cur) : "";
   const fields = liveNow ? saveFields(app) : {};
-  app.innerHTML = h + presentOverlay() + vaultOverlay() + prizeOverlay() + (cur && cur.companionId && cls ? collectorOverlays(collectorCtx(cur)) + questOverlay(cur) + morningOverlay(cur, cls) : "") + party + cape + bday;
+  app.innerHTML = h + passOverlay() + presentOverlay() + vaultOverlay() + prizeOverlay() + (cur && cur.companionId && cls ? collectorOverlays(collectorCtx(cur)) + questOverlay(cur) + morningOverlay(cur, cls) : "") + party + cape + bday;
   restoreFields(fields);
   if (bday && !bdayChimed) { bdayChimed = true; birthdayTune(); }
   if (party) { const key = unseenBadges(cur).join(","); if (key !== partyKey) { partyKey = key; badgeChime(); } }
@@ -270,7 +271,7 @@ function viewMine(s) {
   const tevs = EVENT_LIST.filter(E => eventOn(E, cls) && tevTeamOf(E, cls, s.id));
   if (TEAM_EVENTS[tab] && !tevs.includes(TEAM_EVENTS[tab])) tab = "pet";
   let h = notYou(s) + '<div class="tabs" role="tablist">' +
-    [["pet", "\u{1F43E} My Companion"], ["collect", "\u{1F95A} Creature Collector"], ["badges", "\u{1F3C5} Badges"]].concat(haunt ? [["haunt", S.icon + " " + S.name]] : []).concat(doorsOn ? [["doors", "\u{1F6AA} " + doorName() + doorBadge(s)]] : []).concat(tevs.map(E => [E.key, E.tab])).concat([["morning", "\u{1F305} Morning Quests" + (mqReady(s, cls) ? ' <span class="tbadge">' + mqReady(s, cls) + "</span>" : "")], ["room", "\u{1F6CF}\uFE0F My Room"], ["quest", "\u{1F5FA}\uFE0F Quest" + (readyTests(s).length ? ' <span class="tbadge">' + readyTests(s).length + "</span>" : "")]])
+    [["pet", "\u{1F43E} My Companion"], ["collect", "\u{1F95A} Creature Collector"], ["badges", "\u{1F3C5} Badges"]].concat(haunt ? [["haunt", S.icon + " " + S.name]] : []).concat(doorsOn ? [["doors", "\u{1F6AA} " + doorName() + doorBadge(s)]] : []).concat(tevs.map(E => [E.key, E.tab])).concat(cls && cls.passOff ? [] : [["pass", "\u{1F39F}\uFE0F Season Pass" + (passReady(s, cls) ? ' <span class="tbadge">' + passReady(s, cls) + "</span>" : "")]]).concat([["morning", "\u{1F305} Morning Quests" + (mqReady(s, cls) ? ' <span class="tbadge">' + mqReady(s, cls) + "</span>" : "")], ["room", "\u{1F6CF}\uFE0F My Room"], ["quest", "\u{1F5FA}\uFE0F Quest" + (readyTests(s).length ? ' <span class="tbadge">' + readyTests(s).length + "</span>" : "")]])
       .map(([k, t]) => '<button role="tab" class="tab' + (tab === k ? " on" : "") + '" data-tab="' + k + '" aria-selected="' + (tab === k) + '">' + t + "</button>").join("") + "</div>";
   if (tab === "collect") return h + collectorTab(collectorCtx(s));
   if (tab === "badges") return h + badgesTab(s, battles, cls);
@@ -278,6 +279,7 @@ function viewMine(s) {
   if (tab === "doors") return h + earlierWeeksHTML(s) + weekDoorCard(s) + vaultCard(s) + doorsCard(s);
   if (TEAM_EVENTS[tab]) return h + teamCard(TEAM_EVENTS[tab], s, cls, students);
   if (tab === "morning") return h + morningTab(s, cls);
+  if (tab === "pass") return h + passTab(s, cls);
   if (tab === "quest") return h + questTab(s, petHTML(c, worn, heldWeapon(s)));
   if (tab === "room") return h + roomTab(s, c, worn);
   h += nudgeCard(s, cls, battles, students);
@@ -287,7 +289,7 @@ function viewMine(s) {
   h += '<div class="card"><div class="mypet t-' + t.key + '">' + pinnedBadgeHTML(s, "mine") +
     (haunt ? basketHTML(candy, "big") : "") +
     moodBubble(s, goal) +
-    '<div class="stage' + bondFx(s) + '" aria-hidden="true">' + petHTML(c, worn, heldWeapon(s)) + (side ? sidekickSVG(side, true) : "") + "</div>" +
+    '<div class="stage" aria-hidden="true">' + petHTML(c, worn, heldWeapon(s)) + (side ? sidekickSVG(side, true) : "") + "</div>" +
     '<div class="bigname">' + esc(s.petName || c.name) + "</div>" +
     '<div class="tspec" style="font-family:var(--mono);font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);">' + esc(c.name) + "</div>" +
     '<span class="tbar"><span style="width:' + Math.max(0, Math.min(100, sim.health / sim.max * 100)) + '%"></span></span>' +
@@ -311,7 +313,7 @@ function viewMine(s) {
   GEAR.filter(g => gearInSeason(g)).forEach(g => {
     const ok = sim.unlocked.includes(g.id);
     h += "<div><button class=\"eq" + (worn && worn.id === g.id ? " on" : "") + '" data-equip="' + g.id + '"' + (ok ? "" : " disabled") + ' aria-label="' + esc(g.name) + (ok ? "" : " locked") + '">' +
-      itemArt(g, "gimg") + '</button><span class="lbl">' + (ok ? esc(g.name) : g.ghost && !ghostUnlocked(cls) ? "Defeat the Ghost-olotl" : g.turkey && !turkeyUnlocked(cls) ? "Defeat the Turducken" : g.jingle && !grinchUnlocked(cls) ? "Defeat the Grinch-a-Duck" : g.frost && !yetiUnlocked(cls) ? "Defeat the Snowlotl" : g.heart && !heartUnlocked(cls) ? "Defeat the Heartbreaker-otl" : g.bond ? "\u{1F49E} Friendship level " + g.bond : g.streak + "-day streak") + "</span></div>";
+      itemArt(g, "gimg") + '</button><span class="lbl">' + (ok ? esc(g.name) : g.ghost && !ghostUnlocked(cls) ? "Defeat the Ghost-olotl" : g.turkey && !turkeyUnlocked(cls) ? "Defeat the Turducken" : g.jingle && !grinchUnlocked(cls) ? "Defeat the Grinch-a-Duck" : g.frost && !yetiUnlocked(cls) ? "Defeat the Snowlotl" : g.heart && !heartUnlocked(cls) ? "Defeat the Heartbreaker-otl" : g.streak + "-day streak") + "</span></div>";
   });
   h += '</div><p class="lede" style="margin-top:12px;font-size:13.5px;text-align:center;">Hit ' + goal + " XP days in a row to unlock more. Tap what you’re wearing to take it off.</p>";
   const ws = weaponsOwned(s), hw = heldWeapon(s);
@@ -794,13 +796,12 @@ document.addEventListener("click", async ev => {
     flash("\u{1F48C} Shout-out sent! That was really kind.", true); return;
   }
   if ((el = ev.target.closest("[data-trick]"))) { playTrick(el.dataset.trick); return; }
-  if ((el = ev.target.closest("[data-bondaura]"))) { const s = students.find(x => x.id === me); if (s && !PREVIEW) await patch({ bondAura: s.bondAura === false }); return; }
   if ((el = ev.target.closest("[data-bondpet]"))) {
     const s = students.find(x => x.id === me), date = azToday(); if (!s || PREVIEW || ((s.bond || {}).last === date)) return;
     const before = bondLevel(s), bond = { n: ((s.bond || {}).n || 0) + 1, last: date };
     s.bond = bond;
     const after = bondLevel(s), u = after > before ? unlockAt(after) : null;
-    if (u) flash("\u{1F49E} Friendship level " + after + "! " + (u.kind === "trick" ? "New trick: " : u.kind === "outfit" ? "New outfit: " : "Unlocked: ") + u.icon + " " + u.name + (u.kind === "outfit" ? " (find it in Gear)" : "") + "!", true);
+    if (u) flash("\u{1F49E} Friendship level " + after + "! " + "New trick: " + u.icon + " " + u.name + "!", true);
     else flash("\u{1F49E} " + (s.petName || companionOf(s).name) + " loved that!", true);
     burst(null, ["\u2764\uFE0F", "\u{1F496}", "\u{1F495}"]);
     await patch({ bond }, true); return;
@@ -810,6 +811,11 @@ document.addEventListener("click", async ev => {
     s.kindThanks = Object.assign({}, s.kindThanks || {}, { [k]: true });
     await patch({ ["kindThanks." + k]: true });
     flash("\u{1F496} Heart sent!", true); return;
+  }
+  if ((el = ev.target.closest("[data-passclaim],[data-passok]"))) {
+    const s = students.find(x => x.id === me); if (!s || PREVIEW) return;
+    await passClick(el, Object.assign(collectorCtx(s), { flash })).catch(e => flash("Something went wrong \u2014 " + (e.message || e)));
+    return;
   }
   if ((el = ev.target.closest("[data-mq],[data-mqa],[data-mqpick],[data-mqmove],[data-mqdig],[data-mqegg]"))) {
     const s = students.find(x => x.id === me); if (!s || PREVIEW) return;

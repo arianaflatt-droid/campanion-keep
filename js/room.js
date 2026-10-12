@@ -5,9 +5,9 @@
    Saved on the student: cpEarned (teacher writes), cpSpent, roomOwned [item ids], roomFit { slot: id }, roomBuys [{ id, cost, at }].
    Item ids are "{kind}_{theme}" (e.g. bed_dragon); art is assets/room/{id}.webp. Trophies are trophy_{season}.
    The room picture is 1536x1024; everything below is placed in % of that. */
-import { azToday } from "./collect.js?v=20261010a";
-import { questCP } from "./quest.js?v=20261010a";
-import { esc } from "./game.js?v=20261010a";
+import { azToday } from "./collect.js?v=20261010c";
+import { questCP } from "./quest.js?v=20261010c";
+import { esc } from "./game.js?v=20261010c";
 
 // Themes that have art so far. Add a theme name here once its 9 pieces are in assets/room/.
 export const TYPE_THEMES = ["fire", "water", "nature", "rock", "sky", "electric", "ice", "light", "dark", "ghost", "poison", "steel", "arcane", "crystal", "dragon"];
@@ -29,11 +29,26 @@ export const TROPHIES = { haunt: { flag: "ghostDefeated", boss: "Ghost-olotl", i
 export const EVERYDAY_CATALOG = ["flooring_carpet-blush-pink", "flooring_carpet-cream", "flooring_carpet-ivory", "flooring_carpet-lavender", "flooring_carpet-olive", "flooring_carpet-sand", "flooring_carpet-seafoam", "flooring_carpet-taupe", "flooring_wood-auburn", "flooring_wood-dark-walnut", "flooring_wood-espresso", "flooring_wood-honey-oak", "flooring_wood-light-oak", "flooring_wood-medium-walnut", "flooring_wood-pale-ash", "flooring_wood-sage-green", "wallpaper_pattern-blue-swirl", "wallpaper_pattern-coral-swirl", "wallpaper_pattern-gold-swirl", "wallpaper_pattern-indigo-swirl", "wallpaper_pattern-lavender-swirl", "wallpaper_pattern-mint-swirl", "wallpaper_plain-amber-orange", "wallpaper_plain-coral-orange", "wallpaper_plain-deep-navy", "wallpaper_plain-navy-blue", "wallpaper_plain-seafoam-teal", "wallpaper_plain-warm-cream"];
 // Free starter pieces everyone owns (the "Cozy" set). The bed starts in the room.
 export const STARTERS = ["bed_base", "chair_base", "rug_base", "ceiling_base", "plant_base", "wall_art_base"];
+/* Season Pass decor (pass.js): 3 pass-only pieces each month, ids "{kind}_pass{theme}" (e.g. plant_passhaunt), art assets/room/{id}.webp.
+   Not sold in the shops; students get them from Season Pass tiers 5, 10 and 15. */
+export const PASS_DECOR = {
+  haunt: [["wall_art", "Haunted Portrait"], ["shelf", "Jack-o\u2019-Lantern Trio"], ["plant", "Spooky Pumpkin Vine"]],
+  gobble: [["wall_art", "Harvest Wreath"], ["shelf", "Pie Stack"], ["plant", "Autumn Leaf Tree"]],
+  jingle: [["wall_art", "Holiday Wreath"], ["shelf", "Snow Globe"], ["plant", "Mini Christmas Tree"]],
+  frost: [["wall_art", "Northern Lights Painting"], ["shelf", "Ice Crystal Lamp"], ["plant", "Frosted Pine"]],
+  heart: [["wall_art", "Heart Garland"], ["shelf", "Candy Heart Jar"], ["plant", "Rose Bouquet"]],
+  lucky: [["wall_art", "Rainbow Painting"], ["shelf", "Pot of Gold"], ["plant", "Four-Leaf Clover Pot"]],
+  spring: [["wall_art", "Butterfly Frame"], ["shelf", "Bird Nest"], ["plant", "Tulip Pot"]],
+  summer: [["wall_art", "Beach Sunset Painting"], ["shelf", "Seashell Jar"], ["plant", "Mini Palm Tree"]],
+  school: [["wall_art", "Gold Star Chart"], ["shelf", "Apple Stack"], ["plant", "Pencil Cup Cactus"]]
+};
+export const PASS_DECOR_NAMES = {};
+Object.entries(PASS_DECOR).forEach(([th, list]) => list.forEach(([k, n]) => { PASS_DECOR_NAMES[k + "_pass" + th] = n; }));
 export const itemId = (kind, theme) => kind + "_" + theme;
 export function parseItem(id) { const i = String(id).lastIndexOf("_"); return { kind: String(id).slice(0, i), theme: String(id).slice(i + 1) }; }
 export const itemArt = id => "assets/room/" + id + ".webp";
 const title = t => t.split("-").filter(w => !["plain", "pattern", "wood", "carpet"].includes(w)).map(w => w[0].toUpperCase() + w.slice(1)).join(" ");
-export const itemName = id => { const p = parseItem(id); if (p.kind === "trophy") return (SEASON_THEMES[p.theme] || "") + " Trophy";
+export const itemName = id => { if (PASS_DECOR_NAMES[id]) return PASS_DECOR_NAMES[id]; const p = parseItem(id); if (p.kind === "trophy") return (SEASON_THEMES[p.theme] || "") + " Trophy";
   const th = p.theme === "base" ? "Cozy" : THEME_NAMES[p.theme] || title(p.theme), extra = p.theme.startsWith("carpet") ? " Carpet" : p.theme.startsWith("wood") ? " Wood Floor" : "";
   return extra ? th + extra : th + " " + (KIND_NAMES[p.kind] || p.kind); };
 export const owned = st => STARTERS.concat(((st && st.roomOwned) || []).filter(id => !STARTERS.includes(id)));
