@@ -1375,3 +1375,18 @@ img.mqbob{ width:54px; height:auto; filter:drop-shadow(0 4px 3px rgba(0,0,0,.35)
 .passover{ background:linear-gradient(180deg,#ffd27a 0%,#ffe9b8 40%,#fff 100%); }
 .ttitle{ font-size:10.5px; font-weight:700; color:#b5651d; margin-top:1px; }
 .passadmin{ display:flex; flex-wrap:wrap; gap:6px; } .pa{ background:#f4efe7; border-radius:8px; padding:3px 8px; font-size:12.5px; }
+
+/* ---------- 🏛️ Hall of Fame ---------- */
+.hofcard{ background:linear-gradient(180deg,#fbf3dc,#fff); }
+.hofgroup{ margin:16px 0 8px; }
+.hofgrid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:10px; }
+.hofplaque{ display:flex; flex-direction:column; align-items:center; text-align:center; gap:3px; padding:12px 10px; border-radius:14px;
+  background:linear-gradient(180deg,#f7d774,#d9a93a); border:3px solid #b5832a; box-shadow:inset 0 2px 0 #fff3c4, 0 3px 0 #8a6220; color:#3d2a07; }
+.hofplaque.empty{ background:linear-gradient(180deg,#eee6d6,#d9cdb6); border-color:#b8aa8f; box-shadow:inset 0 2px 0 #fff, 0 3px 0 #9c8f75; color:#5c5240; }
+.hofplaque.mine{ outline:3px solid #ff7a59; outline-offset:2px; }
+.hofic{ font-size:28px; line-height:1.1; } .hofname{ font-weight:800; font-size:14px; }
+.hofwho{ font-size:14px; } .hofval{ font:700 12px var(--mono); background:rgba(255,255,255,.55); border-radius:8px; padding:2px 8px; }
+.hofleg{ display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:8px; }
+.hoflegc{ display:flex; flex-direction:column; align-items:center; text-align:center; padding:8px 6px; border-radius:12px; background:#f6efff; border:2px solid #d6c2f5; }
+.hoflegc.mine{ border-color:#ff7a59; } .hoflegc img{ width:64px; height:64px; object-fit:contain; } .hoflegc b{ font-size:12px; } .hoflegc small{ font-size:12px; color:var(--ink-2); }
+.hofparty .hofbig{ font-size:64px; position:relative; } .hofparty .hofnew{ font-size:18px; margin:4px 0; position:relative; }

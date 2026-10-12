@@ -4,8 +4,8 @@
    kind = { "YYYY-MM-DD": { to: studentId, s: starter, f: ending, e: sticker, at } }  (older ones may have m = a preset message).
    The receiver can send back a 💖 (kindThanks = { "senderId:date": true }); the sender sees "Maya loved it!".
    No XP and no badges: it's just for kindness. Ms. Ariana can hide one (cls.kindHide) or turn the board off (cls.kindOff). */
-import { esc, companionOf } from "./game.js?v=20261010c";
-import { azToday } from "./collect.js?v=20261010c";
+import { esc, companionOf } from "./game.js?v=20261010d";
+import { azToday } from "./collect.js?v=20261010d";
 
 export const KIND_DAYS = 7;
 // Sentence starters, each with its own endings. {name} = the classmate, {pet} = their companion's name.
