@@ -8,8 +8,8 @@
    Saved on the student: doors = { "YYYY-MM-DD": { "0": { st: "wait"|"ok"|"no"|"open", at, r }, g: { st: "open", r } } }
    plus lastDoor = "YYYY-MM-DD/<door>" (which door the last save touched; the save rules check it).
    Class: doorsOn (on/off), doorList (default list), doorDays = { "YYYY-MM-DD": [..] } (one-day lists). */
-import { azToday } from "./collect.js?v=20261013a";
-import { SEASON, eventMode, esc, dayXP, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261013a";
+import { azToday } from "./collect.js?v=20261013b";
+import { SEASON, eventMode, esc, dayXP, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261013b";
 
 // A door that starts with "!" is always open (not locked behind the first doors). The "!" isn't shown.
 export const DOOR_DEFAULT = [
@@ -17,15 +17,16 @@ export const DOOR_DEFAULT = [
   "Get 25 Math XP",
   "Get 25 Reading XP",
   "Get 25 Language XP",
-  "Close your Fast Math Ring",
+  "Show Ms. Ariana your math notes!",
   "Earn 50 XP in your Goal Subject",
   "Earn 75 XP in your Goal Subject",
   "Earn 100 XP in your Goal Subject",
   "Earn 125 XP in your Goal Subject",
-  "Earn 240 XP today"
+  "Earn 150 XP today"
 ];
 // Earlier default lists: a class still using one of these gets the new default automatically.
 const OLD_DEFAULTS = [
+  ["!Earn 25 XP Before School Starts", "Get 25 Math XP", "Get 25 Reading XP", "Get 25 Language XP", "Close your Fast Math Ring", "Earn 50 XP in your Goal Subject", "Earn 75 XP in your Goal Subject", "Earn 100 XP in your Goal Subject", "Earn 125 XP in your Goal Subject", "Earn 240 XP today"],
   ["!Earn 25 XP Before School Starts", "Get 25 Math XP", "Get 25 Reading XP", "Get 25 Language XP", "Close your Fast Math Ring", "Earn 60 XP in your Goal Subject", "Earn 75 XP in your Goal Subject", "Earn 100 XP in your Goal Subject", "Earn 125 XP in your Goal Subject", "Earn 240 XP today"],
   ["!Earn 25 XP Before School Starts", "Get 25 Math XP", "Get 25 Reading XP", "Get 25 Language XP", "Close your Fast Math Ring", "Close your Vocab Ring", "Close your Science or Writing Ring", "Earn 240 XP today", "Close all Rings", "Earn 25 extra XP in Math, Language or Reading (close ALL 3 first)"],
   ["Get 25 Math XP", "Get 25 Reading XP", "Get 25 Language XP", "Close your Fast Math Ring", "Close your Vocab Ring", "Close your Science or Writing Ring", "Earn 240 XP today", "Close all Rings", "Earn 25 extra XP in Math, Language or Reading (close ALL 3 first)"]
