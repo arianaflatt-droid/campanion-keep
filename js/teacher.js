@@ -1,25 +1,25 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261013f";
-import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261013f";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261013f";
-import { cpEarnedCalc } from "./room.js?v=20261013f";
-import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261013f";
-import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP } from "./doors.js?v=20261013f";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261013f";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261013g";
+import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261013g";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261013g";
+import { cpEarnedCalc } from "./room.js?v=20261013g";
+import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261013g";
+import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP } from "./doors.js?v=20261013g";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261013g";
 import {
   applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   boss2Of, boss2Prize, simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, isFrost, isHeart, heartUnlocked, saveProblems, yetiUnlocked, wallMarks, WALL_BLOCK, BOSS_START_HP, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261013f";
-import { MQ_CUTOFF } from "./morning.js?v=20261013f";
-import { kindAdmin } from "./kindness.js?v=20261013f";
-import { surpriseAdmin, surpriseAction, shoutTicker } from "./surprise.js?v=20261013f";
-import { passAdmin } from "./pass.js?v=20261013f";
-import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261013f";
+} from "./game.js?v=20261013g";
+import { MQ_CUTOFF } from "./morning.js?v=20261013g";
+import { kindAdmin } from "./kindness.js?v=20261013g";
+import { surpriseAdmin, surpriseAction, shoutTicker } from "./surprise.js?v=20261013g";
+import { passAdmin } from "./pass.js?v=20261013g";
+import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261013g";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef
-} from "./db.js?v=20261013f";
+} from "./db.js?v=20261013g";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -477,7 +477,7 @@ function render(force) {
   else if (mode === "denied") h += '<div class="card"><h2>This console is for the teacher</h2><p class="lede" style="margin-top:8px;">' + esc(user && user.email) + ' isn’t on the teacher list.</p><div class="row" style="margin-top:14px;"><button class="btn ghost" data-act="signOut">Use a different account</button></div></div>';
   else if (mode === "setup") h += viewSetup();
   else if (mode === "class") h += shoutTicker(students, cls) + keepHTML(cls, students, popIds, badgeShout());
-  else if (mode === "battle") h += battleHTML(cls, students, battleFx) + ghost2Card() + (isFrost(cls) ? "" : healControls());
+  else if (mode === "battle") h += shoutTicker(students, cls) + battleHTML(cls, students, battleFx) + ghost2Card() + (isFrost(cls) ? "" : healControls());
   else {
     const np = prizesOpen(), nd = waitingDoors(students, cls).length;
     const tabs = [["daily", "\u{1F4C5} Daily"], ["students", "\u{1F43E} Students"], ["collector", "\u{1F95A} Collector" + (newIdeas() ? ' <span class="tbadge" aria-label="new creature ideas">' + newIdeas() + "</span>" : "")], ["events", "\u2728 Events" + (eventMode(cls) ? " " + SEASON.icon : "") + (np + nd ? ' <span class="tbadge" aria-label="' + (np + nd) + ' to check">' + (np + nd) + "</span>" : "")], ["quest", "\u{1F5FA}\uFE0F Quest"], ["settings", "\u2699\uFE0F Settings"]];
