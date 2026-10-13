@@ -1,5 +1,5 @@
 // Creature Collector: pulls, XP bank, levels, evolutions, lorebook and arena battles.
-import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261012c";
+import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261013a";
 
 export const PULL_XP = 120;          // every 120 XP (all-time since the collector started) = 1 pull
 export const LEVEL_XP = 120;         // 120 banked XP = 1 level
@@ -36,7 +36,11 @@ export function xpTotal(st, cls) {
   let n = 0;
   Object.keys(hist).forEach(date => {
     if (date < start) return;
-    const h = hist[date] || {}, v = h.d != null ? h.d : h.l != null ? h.l : 0;
+    // The best number saved for that day: end-of-day, lunch or morning paste (XP only goes up during a day, so a
+    // student who hits 120 in the morning or at lunch gets their eggs right away). A day Ms. Ariana marked as a hit
+    // by hand (h) or as Lunch Hero (lh) counts as at least the goal.
+    const h = hist[date] || {}, goal = (cls && Number(cls.goal)) || 120;
+    const v = Math.max(Number(h.d) || 0, Number(h.l) || 0, Number(h.mo) || 0, h.h || h.lh ? goal : 0);
     n += Math.max(0, Number(v) || 0);
   });
   return Math.round(n);
@@ -47,7 +51,11 @@ export function dayXPs(st, cls) {
   const start = (cls && cls.collectorStart) || "0000-00-00", hist = st.xpHist || {}, out = [];
   Object.keys(hist).sort().forEach(date => {
     if (date < start) return;
-    const h = hist[date] || {}, v = h.d != null ? h.d : h.l != null ? h.l : 0;
+    // The best number saved for that day: end-of-day, lunch or morning paste (XP only goes up during a day, so a
+    // student who hits 120 in the morning or at lunch gets their eggs right away). A day Ms. Ariana marked as a hit
+    // by hand (h) or as Lunch Hero (lh) counts as at least the goal.
+    const h = hist[date] || {}, goal = (cls && Number(cls.goal)) || 120;
+    const v = Math.max(Number(h.d) || 0, Number(h.l) || 0, Number(h.mo) || 0, h.h || h.lh ? goal : 0);
     out.push({ date, xp: Math.max(0, Math.round(Number(v) || 0)) });
   });
   return out;
@@ -67,7 +75,7 @@ export function pullsEarned(st, cls) {
 }
 // How much more XP today (the latest day with data) until the next egg.
 export function todayXP(st, cls) {
-  const t = new Date(), iso = t.getFullYear() + "-" + String(t.getMonth() + 1).padStart(2, "0") + "-" + String(t.getDate()).padStart(2, "0");
+  const iso = azToday();
   const d = dayXPs(st, cls).find(x => x.date === iso); return d ? d.xp : 0;
 }
 export function pullsLeft(st, cls) { return Math.max(0, pullsEarned(st, cls) - (Number(st.pullsUsed) || 0)); }
