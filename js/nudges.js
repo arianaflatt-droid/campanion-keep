@@ -1,13 +1,13 @@
 // Nudge messages: short, friendly "you're close!" notes at the top of a student's page.
 // Each rule returns a nudge or null; the most useful few are shown (lower pri = shown first).
-import { seasonOf, dayXP, simulate, GEAR, goalXP, arr5, esc, isHaunt, battleOn, nextAttack, companionOf, bossState } from "./game.js?v=20261013b";
-import { azToday, brewLegLeft, feastLegLeft, gingerLegLeft, snowLegLeft, candyLegLeft, ghostEggLeft, BOSS2_LIST, boss2EggLeft, vaultLegLeft, pickleLeft, birthdayLeft, EVENTS, eventOpen, eventUnlocked, hasEvent, eventStreak, creature, family, azNow, pullsLeft, legendaryLeft, bankXP, LEVEL_XP, PULL_XP, hasStarter, owned, MAX_LEVEL } from "./collect.js?v=20261013b";
-import { badgeState } from "./badges.js?v=20261013b";
-import { mqReady } from "./morning.js?v=20261013b";
-import { unthanked } from "./kindness.js?v=20261013b";
-import { pettedToday } from "./bond.js?v=20261013b";
-import { passReady } from "./pass.js?v=20261013b";
-import { doorsLive, goldenReady, doorName } from "./doors.js?v=20261013b";
+import { seasonOf, dayXP, simulate, GEAR, goalXP, arr5, esc, isHaunt, battleOn, nextAttack, companionOf, bossState } from "./game.js?v=20261013e";
+import { azToday, brewLegLeft, feastLegLeft, gingerLegLeft, snowLegLeft, candyLegLeft, ghostEggLeft, BOSS2_LIST, boss2EggLeft, vaultLegLeft, pickleLeft, birthdayLeft, EVENTS, eventOpen, eventUnlocked, hasEvent, eventStreak, creature, family, azNow, pullsLeft, legendaryLeft, bankXP, LEVEL_XP, PULL_XP, hasStarter, owned, MAX_LEVEL } from "./collect.js?v=20261013e";
+import { badgeState } from "./badges.js?v=20261013e";
+import { mqReady } from "./morning.js?v=20261013e";
+import { unthanked } from "./kindness.js?v=20261013e";
+import { pettedToday } from "./bond.js?v=20261013e";
+import { passReady } from "./pass.js?v=20261013e";
+import { doorsLive, goldenReady, doorName } from "./doors.js?v=20261013e";
 
 const MAX_SHOWN = 3;
 const WEEKDAY = { Mon: 0, Tue: 1, Wed: 2, Thu: 3, Fri: 4 };

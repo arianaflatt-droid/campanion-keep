@@ -1,24 +1,25 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261013b";
-import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261013b";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261013b";
-import { cpEarnedCalc } from "./room.js?v=20261013b";
-import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261013b";
-import { GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP } from "./doors.js?v=20261013b";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261013b";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261013e";
+import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261013e";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261013e";
+import { cpEarnedCalc } from "./room.js?v=20261013e";
+import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261013e";
+import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP } from "./doors.js?v=20261013e";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261013e";
 import {
   applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   boss2Of, boss2Prize, simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, isFrost, isHeart, heartUnlocked, saveProblems, yetiUnlocked, wallMarks, WALL_BLOCK, BOSS_START_HP, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261013b";
-import { MQ_CUTOFF } from "./morning.js?v=20261013b";
-import { kindAdmin } from "./kindness.js?v=20261013b";
-import { passAdmin } from "./pass.js?v=20261013b";
-import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261013b";
+} from "./game.js?v=20261013e";
+import { MQ_CUTOFF } from "./morning.js?v=20261013e";
+import { kindAdmin } from "./kindness.js?v=20261013e";
+import { surpriseAdmin, surpriseAction, shoutTicker } from "./surprise.js?v=20261013e";
+import { passAdmin } from "./pass.js?v=20261013e";
+import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261013e";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef
-} from "./db.js?v=20261013b";
+} from "./db.js?v=20261013e";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -475,7 +476,7 @@ function render(force) {
   else if (mode === "signin") h += '<div class="card"><div class="card-head"><h2>Teacher sign-in</h2></div><p class="lede">Sign in with your school Google account.</p><div class="row" style="margin-top:14px;"><button class="btn" data-act="signIn">Sign in with Google</button></div><p class="lede" style="margin-top:12px;font-size:13.5px;">Students: use the student link your teacher sent.</p></div>';
   else if (mode === "denied") h += '<div class="card"><h2>This console is for the teacher</h2><p class="lede" style="margin-top:8px;">' + esc(user && user.email) + ' isn’t on the teacher list.</p><div class="row" style="margin-top:14px;"><button class="btn ghost" data-act="signOut">Use a different account</button></div></div>';
   else if (mode === "setup") h += viewSetup();
-  else if (mode === "class") h += keepHTML(cls, students, popIds, badgeShout());
+  else if (mode === "class") h += shoutTicker(students, cls) + keepHTML(cls, students, popIds, badgeShout());
   else if (mode === "battle") h += battleHTML(cls, students, battleFx) + ghost2Card() + (isFrost(cls) ? "" : healControls());
   else {
     const np = prizesOpen(), nd = waitingDoors(students, cls).length;
@@ -484,7 +485,7 @@ function render(force) {
     if (nd && nd > doorHidden) h += '<div class="banner prizealert"><span>\u{1F6AA} <b>' + nd + " door" + (nd === 1 ? "" : "s") + "</b> to check" + doorNames() + '</span><span class="row" style="gap:8px;"><button class="btn small" data-act="goDoors">Check doors</button><button class="btn ghost small" data-act="hideDoors">Hide</button></span></div>';
     if (np && np > prizeHidden) h += '<div class="banner prizealert"><span>\u{1F381} <b>' + np + " prize" + (np === 1 ? "" : "s") + "</b> to order or give" + prizeNames() + '</span><span class="row" style="gap:8px;"><button class="btn small" data-act="goPrizes">View prizes</button><button class="btn ghost small" data-act="hidePrizes">Hide</button></span></div>';
     h += '<div class="tabs ctabs" role="tablist">' + tabs.map(([k, l]) => '<button role="tab" class="tab' + (ctab === k ? " on" : "") + '" data-ctab="' + k + '" aria-selected="' + (ctab === k) + '">' + l + "</button>").join("") + "</div>";
-    if (ctab === "daily") h += viewDaily() + viewWeekDoor() + viewRewards();
+    if (ctab === "daily") h += viewDaily() + surpriseAdmin(students, cls) + viewWeekDoor() + viewRewards();
     else if (ctab === "students") h += viewStandings() + passAdmin(students, cls) + kindAdmin(students, cls) + viewAssign() + viewLosses() + viewLinks();
     else if (ctab === "collector") h += viewLiveBattles() + viewIdeas() + teacherCollectorCard() + viewCollector();
     else if (ctab === "quest") h += questTracker(students);
@@ -761,6 +762,16 @@ function viewDoors() {
       wait.map(r => '<div class="dcheck"><span class="who">' + esc(r.s.name) + '</span><span class="what"><b>Door ' + (r.i + 1) + ":</b> " + esc(r.task) + (r.date !== today ? ' <span class="muted small">(' + md(r.date) + ")</span>" : "") + "</span>" +
         '<button class="btn small" data-doorok="' + r.s.id + ":" + r.date + ":" + r.i + '">\u2705 Approve</button><button class="btn ghost small" data-doorno="' + r.s.id + ":" + r.date + ":" + r.i + '">\u21A9\uFE0F Not yet</button></div>').join("");
   } else if (on) h += '<p class="muted small">Nothing to check right now.</p>';
+  // Quick check: doors Ms. Ariana checks herself ("Show Ms. Ariana ..."), one tap per student, no "I did it!" needed
+  if (on) doorsFor(cls, today).forEach((task, i) => {
+    if (!isTeacherCheck(task)) return;
+    const team = students.filter(x => x.companionId).slice().sort((a, b) => String(a.name).localeCompare(String(b.name)));
+    const stOf = x => ((((x.doors || {})[today] || {})[String(i)]) || {}).st || "";
+    const n = team.filter(x => ["ok", "open"].includes(stOf(x))).length;
+    h += '<div class="qcheck"><h3 style="margin-top:12px;">\u{1F4D3} Quick check: Door ' + (i + 1) + '</h3><p class="muted small" style="margin:2px 0 6px;">' + esc(task.replace(/^!\s*/, "")) + " \u00b7 tap a name when they show you. Their present appears right away. <b>" + n + "/" + team.length + "</b> checked</p>" +
+      '<div class="qgrid">' + team.map(x => { const v = stOf(x), done = v === "ok" || v === "open";
+        return '<button class="btn small' + (done ? "" : " ghost") + '" data-qdoor="' + x.id + ":" + today + ":" + i + '"' + (v === "open" ? " disabled" : "") + ">" + (done ? "\u2705 " : "") + esc(x.name) + (v === "open" ? " \u{1F381}" : "") + "</button>"; }).join("") + "</div></div>";
+  });
   // today's progress
   if (on) {
     const list = doorsFor(cls, today), team = students.filter(x => x.companionId);
@@ -1569,6 +1580,8 @@ document.addEventListener("click", async ev => {
     try { await navigator.clipboard.writeText(txt); el.textContent = "Copied!"; setTimeout(render, 1400); } catch (e) { prompt("Copy these names:", txt); }
     return;
   }
+  if ((el = ev.target.closest("[data-qdoor]"))) { const [sid, d, i] = el.dataset.qdoor.split(":"), x = sOf(sid), cur = (((((x && x.doors) || {})[d] || {})[i]) || {}).st || "";
+    if (cur === "open") return; await setDoor(sid, d, i, cur === "ok" ? "" : "ok"); return; }
   if ((el = ev.target.closest("[data-doorok]"))) { const [sid, d, i] = el.dataset.doorok.split(":"); await setDoor(sid, d, i, "ok"); return; }
   if ((el = ev.target.closest("[data-doorno]"))) { const [sid, d, i] = el.dataset.doorno.split(":"); await setDoor(sid, d, i, "no"); return; }
   if ((el = ev.target.closest("[data-evtoggle]"))) {
@@ -1784,6 +1797,11 @@ document.addEventListener("click", async ev => {
   }
   if (act === "pasteOpen") { busy.paste = true; busy.pasteDay = null; render(); const b = document.getElementById("pasteBox"); if (b) b.focus(); return; }
   if (act === "pasteClose") { busy.paste = false; render(); return; }
+  if (["snackStart", "snackStop", "targetStart", "targetReveal", "targetStop", "visitorToggle", "tickerToggle"].includes(act)) {
+    const up = surpriseAction(act, students, cls); if (!up) return;
+    try { await updateDoc(classRef, up); flash({ snackStart: "\u{1F36A} Snack dropped! Every companion is hungry.", snackStop: "Snack Drop ended.", targetStart: "\u{1F3AF} Secret Target started! Paste XP later, then tap Reveal.", targetReveal: "\u{1F389} Revealed! The number was " + (cls.target && cls.target.n) + ".", targetStop: "Secret Target cancelled.", visitorToggle: "Saved.", tickerToggle: "Saved." }[act]); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); }
+    return;
+  }
   if (act === "passStep") { const v = Number(el.dataset.v) || 25; try { await updateDoc(classRef, { passStep: v }); flash("Saved \u2014 Season Pass tiers are now " + v + " points each (" + v * 20 + " to finish)."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
   if (act === "passToggle") { try { await updateDoc(classRef, { passOff: !cls.passOff }); flash("Saved \u2014 Season Pass " + (cls.passOff ? "on" : "off") + "."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
   if (act === "kindToggle") { try { await updateDoc(classRef, { kindOff: !cls.kindOff }); flash("Saved \u2014 Kindness Board " + (cls.kindOff ? "on" : "off") + "."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }

@@ -8,8 +8,8 @@
    Saved on the student: doors = { "YYYY-MM-DD": { "0": { st: "wait"|"ok"|"no"|"open", at, r }, g: { st: "open", r } } }
    plus lastDoor = "YYYY-MM-DD/<door>" (which door the last save touched; the save rules check it).
    Class: doorsOn (on/off), doorList (default list), doorDays = { "YYYY-MM-DD": [..] } (one-day lists). */
-import { azToday } from "./collect.js?v=20261013b";
-import { SEASON, eventMode, esc, dayXP, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261013b";
+import { azToday } from "./collect.js?v=20261013e";
+import { SEASON, eventMode, esc, dayXP, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261013e";
 
 // A door that starts with "!" is always open (not locked behind the first doors). The "!" isn't shown.
 export const DOOR_DEFAULT = [
@@ -17,7 +17,7 @@ export const DOOR_DEFAULT = [
   "Get 25 Math XP",
   "Get 25 Reading XP",
   "Get 25 Language XP",
-  "Show Ms. Ariana your math notes!",
+  "!Show Ms. Ariana you have your notebook or whiteboard",
   "Earn 50 XP in your Goal Subject",
   "Earn 75 XP in your Goal Subject",
   "Earn 100 XP in your Goal Subject",
@@ -26,6 +26,7 @@ export const DOOR_DEFAULT = [
 ];
 // Earlier default lists: a class still using one of these gets the new default automatically.
 const OLD_DEFAULTS = [
+  ["!Earn 25 XP Before School Starts", "Get 25 Math XP", "Get 25 Reading XP", "Get 25 Language XP", "Show Ms. Ariana your math notes!", "Earn 50 XP in your Goal Subject", "Earn 75 XP in your Goal Subject", "Earn 100 XP in your Goal Subject", "Earn 125 XP in your Goal Subject", "Earn 150 XP today"],
   ["!Earn 25 XP Before School Starts", "Get 25 Math XP", "Get 25 Reading XP", "Get 25 Language XP", "Close your Fast Math Ring", "Earn 50 XP in your Goal Subject", "Earn 75 XP in your Goal Subject", "Earn 100 XP in your Goal Subject", "Earn 125 XP in your Goal Subject", "Earn 240 XP today"],
   ["!Earn 25 XP Before School Starts", "Get 25 Math XP", "Get 25 Reading XP", "Get 25 Language XP", "Close your Fast Math Ring", "Earn 60 XP in your Goal Subject", "Earn 75 XP in your Goal Subject", "Earn 100 XP in your Goal Subject", "Earn 125 XP in your Goal Subject", "Earn 240 XP today"],
   ["!Earn 25 XP Before School Starts", "Get 25 Math XP", "Get 25 Reading XP", "Get 25 Language XP", "Close your Fast Math Ring", "Close your Vocab Ring", "Close your Science or Writing Ring", "Earn 240 XP today", "Close all Rings", "Earn 25 extra XP in Math, Language or Reading (close ALL 3 first)"],
@@ -34,6 +35,8 @@ const OLD_DEFAULTS = [
 // Each student's Goal Subject (set by the teacher). "your Goal Subject" in a door fills in with it.
 export const GOAL_SUBJECTS = ["Math", "Reading", "Language", "Science", "Writing", "Vocabulary", "Fast Math"];
 export const DOOR_GATE = 3;   // the first 3 doors that aren't always-open ones unlock the rest
+// Doors Ms. Ariana checks herself (e.g. "Show Ms. Ariana ..."): the console has a one-tap roster for these.
+export const isTeacherCheck = task => /show\s+ms\.?\s+ariana/i.test(String(task || ""));
 export const isFree = task => String(task || "").trim().startsWith("!");
 export const doorText = (task, st) => {
   const t = String(task || "").trim().replace(/^!\s*/, ""), g = st && st.goalSubject;
