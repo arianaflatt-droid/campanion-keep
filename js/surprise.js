@@ -4,12 +4,13 @@
    Snack Drop: Ms. Ariana taps a button and every companion gets hungry. Students who gain SNACK_XP more XP (in a later
      paste that day) feed it and get 1 egg. Class: snack = { date, at, base: { id: xp } }. Student: snackGot = { date: true }.
    Secret Target: Ms. Ariana starts it and a hidden number (30–80) is picked. At her next paste she taps Reveal; everyone
-     who gained at least that much XP since the start wins a Rare egg. Class: target = { date, n, base, shown }.
+     who gained at least that much XP since the start wins a Rare egg. Class: target = { date, n, base, shown, end }.
+   Both have an End button: the XP at that moment is frozen in end = { id: xp }, and rewards are judged on it.
      Student: targetGot = { date: true }.
    Confetti: a burst the first time a student opens their page after crossing halfway and the goal. Student: confSeen = { date: [..] }.
    Shout-outs: a ticker on The Keep built from today's pastes. */
-import { esc, goalXP } from "./game.js?v=20261013g";
-import { azToday, azNow, doPull, formOf, sparkleImg, FAMILIES, RARITY_COLOR } from "./collect.js?v=20261013g";
+import { esc, goalXP } from "./game.js?v=20261013h";
+import { azToday, azNow, doPull, formOf, sparkleImg, FAMILIES, RARITY_COLOR } from "./collect.js?v=20261013h";
 
 export const SNACK_XP = 25, TARGET_MIN = 30, TARGET_MAX = 80, VISIT_SPARKLE = 0.05;
 const rng = s => { let h = 2166136261; for (const ch of s) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return () => { h += 0x6D2B79F5; let t = h; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; };
@@ -30,7 +31,10 @@ export const canCatch = (st, cls, date) => { date = date || azToday(); return !!
 
 /* ---------- Snack Drop ---------- */
 export const snackOn = cls => !!(cls && cls.snack && cls.snack.date === azToday());
-export const snackGain = (st, cls) => snackOn(cls) ? Math.max(0, xpOn(st) - (Number((cls.snack.base || {})[st.id]) || 0)) : 0;
+// Once Ms. Ariana taps End, the XP at that moment is frozen (snack.end / target.end), so later pastes don't count.
+const nowXP = (st, ev) => ev && ev.end ? Number(ev.end[st.id]) || 0 : xpOn(st);
+export const snackEnded = cls => snackOn(cls) && !!cls.snack.end;
+export const snackGain = (st, cls) => snackOn(cls) ? Math.max(0, nowXP(st, cls.snack) - (Number((cls.snack.base || {})[st.id]) || 0)) : 0;
 export const snackFed = st => !!(((st && st.snackGot) || {})[azToday()]);
 // How much XP feeds the companion: set when Ms. Ariana drops the snack (default 25)
 export const snackXP = cls => Number(snackOn(cls) ? cls.snack.xp : cls && cls.snackXP) || SNACK_XP;
@@ -38,7 +42,7 @@ export const snackReady = (st, cls) => snackOn(cls) && !snackFed(st) && snackGai
 
 /* ---------- Secret Target ---------- */
 export const targetOn = cls => !!(cls && cls.target && cls.target.date === azToday());
-export const targetGain = (st, cls) => targetOn(cls) ? Math.max(0, xpOn(st) - (Number((cls.target.base || {})[st.id]) || 0)) : 0;
+export const targetGain = (st, cls) => targetOn(cls) ? Math.max(0, nowXP(st, cls.target) - (Number((cls.target.base || {})[st.id]) || 0)) : 0;
 export const targetWon = (st, cls) => targetOn(cls) && cls.target.shown && targetGain(st, cls) >= cls.target.n;
 export const targetReady = (st, cls) => targetWon(st, cls) && !(((st && st.targetGot) || {})[azToday()]);
 
@@ -62,14 +66,15 @@ export function surpriseCards(st, cls, petName) {
     const fed = snackFed(st), g = Math.min(snackXP(cls), snackGain(st, cls)), ready = snackReady(st, cls);
     h += '<div class="card spcard sp-snack"><div class="spemoji">' + (fed ? "\u{1F60B}" : "\u{1F36A}") + '</div><div class="sptxt"><h3>\u{1F36A} Snack Drop!</h3>' +
       (fed ? "<p>" + esc(petName) + " is full and happy! You got an egg.</p>"
+        : snackEnded(cls) && !ready ? "<p>Snack time is over! You earned " + g + " of " + snackXP(cls) + " XP. Watch for the next Snack Drop!</p>"
         : ready ? "<p>" + esc(petName) + " smells the snack!</p><button class=\"btn gold\" data-sp=\"snack\">\u{1F36A} Feed " + esc(petName) + "!</button>"
-        : "<p><b>" + esc(petName) + " is hungry!</b> Earn " + snackXP(cls) + " more XP to feed it. It counts at Ms. Ariana’s next XP check.</p>" +
+        : "<p><b>" + esc(petName) + " is hungry!</b> Earn " + snackXP(cls) + " more XP before snack time ends to feed it!</p>" +
           '<div class="spbar"><span style="width:' + (g / snackXP(cls) * 100) + '%"></span><b>' + g + " / " + snackXP(cls) + " XP</b></div>") + "</div></div>";
   }
   if (targetOn(cls)) {
     const T = cls.target, got = ((st.targetGot || {})[today]), won = targetWon(st, cls), gain = targetGain(st, cls);
     h += '<div class="card spcard sp-target"><div class="spemoji">\u{1F3AF}</div><div class="sptxt"><h3>\u{1F3AF} Secret Target</h3>' +
-      (!T.shown ? "<p>Ms. Ariana picked a <b>secret XP number</b> between " + TARGET_MIN + " and " + TARGET_MAX + ". Earn at least that much before the reveal to win a prize! You’ve gained <b>" + gain + " XP</b> so far.</p>"
+      (!T.shown ? "<p>Ms. Ariana picked a <b>secret XP number</b> between " + TARGET_MIN + " and " + TARGET_MAX + ". Earn at least that much before Ms. Ariana ends it to win a prize! You’ve gained <b>" + gain + " XP</b> so far.</p>"
         : got ? "<p>The secret number was <b>" + T.n + "</b>. ✅ You won!</p>"
         : won ? "<p>The secret number was <b>" + T.n + "</b> and you gained <b>" + gain + "</b>! \u{1F389}</p><button class=\"btn gold\" data-sp=\"target\">\u{1F381} Claim your prize!</button>"
         : "<p>The secret number was <b>" + T.n + "</b>. You gained " + gain + ". So close! There’s always next time.</p>") + "</div></div>";
@@ -139,8 +144,8 @@ export function shoutTicker(students, cls) {
     if ((s.snackGot || {})[today]) out.push("\u{1F36A} " + n + " fed their hungry companion!");
     if ((s.targetGot || {})[today]) out.push("\u{1F3AF} " + n + " hit the Secret Target!");
   });
-  if (snackOn(cls)) out.unshift("\u{1F36A} SNACK DROP! Every companion is hungry. Earn " + snackXP(cls) + " more XP to feed yours!");
-  if (targetOn(cls) && !cls.target.shown) out.unshift("\u{1F3AF} A Secret Target is on! Keep earning XP before the reveal!");
+  if (snackOn(cls) && !snackEnded(cls)) out.unshift("\u{1F36A} SNACK DROP! Every companion is hungry. Earn " + snackXP(cls) + " more XP to feed yours!");
+  if (targetOn(cls) && !cls.target.shown) out.unshift("\u{1F3AF} A Secret Target is on! Keep earning XP until Ms. Ariana ends it!");
   if (V && azNow().h < 12) out.unshift("\u{1F984} A Mystery Visitor is here! Hit " + goal + " before lunch to catch it!");
   if (!out.length) return "";
   const line = out.map(t => "<span>" + t + "</span>").join("");
@@ -156,13 +161,15 @@ export function surpriseAdmin(students, cls) {
     ' <button class="btn ghost small" data-act="visitorToggle">' + (cls.visitorOff ? "Turn on" : "Turn off") + "</button></p>" +
     '<p class="small"><b>\u{1F4E3} Shout-out ticker on The Keep:</b> ' + (cls.tickerOn ? "on" : "off") + ' <button class="btn ghost small" data-act="tickerToggle">' + (cls.tickerOn ? "Turn off" : "Turn on") + "</button></p>";
   h += '<div class="row" style="gap:8px;flex-wrap:wrap;margin:8px 0;align-items:center;"><b>\u{1F36A} Snack Drop</b>' + (snackOn(cls)
-    ? '<span class="small">On since ' + new Date(cls.snack.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + " · " + kids.filter(snackFed).length + " fed, " + kids.filter(s => snackReady(s, cls)).length + " ready</span><button class=\"btn ghost small\" data-act=\"snackStop\">End it</button>"
-    : '<span class="small muted">Every companion gets hungry. Students who earn this much more XP (counted at your next paste) feed it and get 1 egg.</span>' +
+    ? (snackEnded(cls)
+      ? '<span class="small">Ended \u00b7 ' + kids.filter(s => snackFed(s) || snackGain(s, cls) >= snackXP(cls)).length + " reached " + snackXP(cls) + " XP (" + kids.filter(snackFed).length + " fed so far)</span><button class=\"btn ghost small\" data-act=\"snackStop\">Clear it</button>"
+      : '<span class="small">On since ' + new Date(cls.snack.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + " \u00b7 needs " + snackXP(cls) + " XP \u00b7 " + kids.filter(s => snackFed(s) || snackReady(s, cls)).length + " reached it so far. Paste XP right before you end it.</span><button class=\"btn small\" data-act=\"snackEnd\">\u23F9\uFE0F End snack time</button>")
+    : '<span class="small muted">Every companion gets hungry. Students who earn this much more XP before you tap End feed it and get 1 egg.</span>' +
       '<label class="small" for="snackXP">XP to feed:</label><input id="snackXP" type="number" min="5" max="200" step="5" style="width:70px;" value="' + snackXP(cls) + '"><button class="btn small" data-act="snackStart">\u{1F36A} Drop a snack!</button>') + "</div>";
   h += '<div class="row" style="gap:8px;flex-wrap:wrap;margin:8px 0;align-items:center;"><b>\u{1F3AF} Secret Target</b>';
   if (targetOn(cls) && cls.target.shown) h += '<span class="small">The number was <b>' + cls.target.n + "</b> · " + kids.filter(s => targetWon(s, cls)).length + " winner(s)</span><button class=\"btn ghost small\" data-act=\"targetStart\">Start a new one</button>";
-  else if (targetOn(cls)) h += '<span class="small">Running. Paste XP first, then reveal. (The number is hidden from you too!)</span><button class="btn small" data-act="targetReveal">\u{1F389} Reveal</button><button class="btn ghost small" data-act="targetStop">Cancel</button>';
-  else h += '<span class="small muted">A hidden number from ' + TARGET_MIN + " to " + TARGET_MAX + " is picked. After your next paste, tap Reveal: everyone who gained that much XP wins a Rare egg.</span><button class=\"btn small\" data-act=\"targetStart\">\u{1F3AF} Start</button>";
+  else if (targetOn(cls)) h += '<span class="small">Running since ' + new Date(cls.target.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + '. The number is hidden from you too! Paste XP right before you end it.</span><button class="btn small" data-act="targetReveal">\u23F9\uFE0F End &amp; reveal</button><button class="btn ghost small" data-act="targetStop">Cancel</button>';
+  else h += '<span class="small muted">A hidden number from ' + TARGET_MIN + " to " + TARGET_MAX + " is picked. When you tap End, everyone who gained that much XP since the start wins a Rare egg.</span><button class=\"btn small\" data-act=\"targetStart\">\u{1F3AF} Start</button>";
   return h + "</div></div>";
 }
 // Teacher actions: returns the class update to save, or null
@@ -171,7 +178,8 @@ export function surpriseAction(act, students, cls) {
   if (act === "snackStart") { const el = typeof document !== "undefined" && document.getElementById("snackXP"), xp = Math.max(5, Math.round(Number(el && el.value) || SNACK_XP)); return { snack: { date: today, at: new Date().toISOString(), base, xp }, snackXP: xp }; }
   if (act === "snackStop") return { snack: null };
   if (act === "targetStart") return { target: { date: today, at: new Date().toISOString(), base, n: TARGET_MIN + Math.floor(Math.random() * (TARGET_MAX - TARGET_MIN + 1)), shown: false } };
-  if (act === "targetReveal") return cls.target ? { "target.shown": true } : null;
+  if (act === "targetReveal") return cls.target ? { "target.shown": true, "target.end": base, "target.endAt": new Date().toISOString() } : null;
+  if (act === "snackEnd") return cls.snack ? { "snack.end": base, "snack.endAt": new Date().toISOString() } : null;
   if (act === "targetStop") return { target: null };
   if (act === "visitorToggle") return { visitorOff: !cls.visitorOff };
   if (act === "tickerToggle") return { tickerOn: !cls.tickerOn };
