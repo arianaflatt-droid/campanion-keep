@@ -1,27 +1,27 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261013s";
-import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261013s";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261013s";
-import { cpEarnedCalc } from "./room.js?v=20261013s";
-import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261013s";
-import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP } from "./doors.js?v=20261013s";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261013s";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261014a";
+import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261014a";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261014a";
+import { cpEarnedCalc } from "./room.js?v=20261014a";
+import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261014a";
+import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP } from "./doors.js?v=20261014a";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261014a";
 import {
   applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   boss2Of, boss2Prize, simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, isFrost, isHeart, heartUnlocked, saveProblems, yetiUnlocked, wallMarks, WALL_BLOCK, BOSS_START_HP, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261013s";
-import { MQ_CUTOFF } from "./morning.js?v=20261013s";
-import { kindAdmin } from "./kindness.js?v=20261013s";
-import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261013s";
-import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261013s";
-import { surpriseAdmin, surpriseAction, shoutTicker } from "./surprise.js?v=20261013s";
-import { passAdmin } from "./pass.js?v=20261013s";
-import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261013s";
+} from "./game.js?v=20261014a";
+import { MQ_CUTOFF } from "./morning.js?v=20261014a";
+import { kindAdmin } from "./kindness.js?v=20261014a";
+import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261014a";
+import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261014a";
+import { surpriseAdmin, surpriseAction, shoutTicker } from "./surprise.js?v=20261014a";
+import { passAdmin } from "./pass.js?v=20261014a";
+import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261014a";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef
-} from "./db.js?v=20261013s";
+} from "./db.js?v=20261014a";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -1267,12 +1267,18 @@ export function parsePasted(text) {
   });
   return out;
 }
+// Before noon on a school day, end-of-day data is almost always the day before's, so the paste box starts on the
+// previous school day (Friday on a Monday). Ms. Ariana can still tap any day. Lunch data stays on today unless she picks.
+function morningPasteDay() {
+  const wd = new Date().getDay(); if (wd === 0 || wd === 6 || azNow().h >= 12) return null;
+  return wd === 1 ? -3 : todayIndex() - 1;
+}
 function pasteBox() {
   if (!busy.paste) return "";
   const rows = parsePasted(busy.pasteText || ""), matched = rows.filter(r => matchStudent(r.name));
   // Which day this data is for. Picked here on purpose: a new day's console opens on today, and yesterday's file pasted
   // onto today would be overwritten by today's real numbers later (and yesterday's eggs would never count).
-  const pd = busy.pasteDay != null ? busy.pasteDay : day, ti = todayIndex(), wd = new Date().getDay(), monday = wd === 1;
+  const mpd = morningPasteDay(), pd = busy.pasteDay != null ? busy.pasteDay : mpd != null ? mpd : day, ti = todayIndex(), wd = new Date().getDay(), monday = wd === 1;
   // Weekend buttons are always there: on the weekend = this Sat/Sun; Mon-Fri = last weekend (+ last Friday on Monday)
   const wkend = wd === 0 || wd === 6, extra = monday ? [-3, -2, -1] : wkend ? [5, 6] : [-2, -1];
   const prev = monday ? -3 : ti - 1, nm = i => PASTE_NAME[i] || DAYS[i];
@@ -1283,6 +1289,7 @@ function pasteBox() {
     (!wkend ? extra.map(i => '<button class="btn small' + (pd === i ? "" : " ghost") + '" data-pday="' + i + '">' + PASTE_CHIP[i] + "</button>").join("") : "") +
     DAYS.map((n, i) => '<button class="btn small' + (i === pd ? "" : " ghost") + '" data-pday="' + i + '">' + n + (i === ti && wd >= 1 && wd <= 5 ? " (today)" : "") + "</button>").join("") +
     (wkend ? extra.map(i => '<button class="btn small' + (pd === i ? "" : " ghost") + '" data-pday="' + i + '">' + PASTE_CHIP[i] + "</button>").join("") : "") + "</div>" +
+    (busy.pasteDay == null && mpd != null ? '<p class="small" style="margin:-2px 0 6px;color:var(--accent);"><b>\u{1F305} It\u2019s morning, so end-of-day data goes on ' + (PASTE_NAME[mpd] || DAYS[mpd]) + ".</b> Tap a different day if this file is for another day.</p>" : "") +
     (extra.length ? '<p class="muted small" style="margin:-2px 0 6px;">\u{1F4C5} Weekend work counts toward the week it finished (Weekly Door + Treasure Vault), and for eggs and creature XP.</p>' : "") +
     (warnPrev ? '<div class="banner warn" style="margin:6px 0;">\u26A0\uFE0F <b>' + cap(nm(prev)) + " doesn\u2019t have end-of-day XP yet.</b> If this file is " + nm(prev) + "\u2019s data, pick <b>" + (PASTE_CHIP[prev] || DAYS[prev]) +
       '</b> above \u2014 saving it on today would get replaced by today\u2019s numbers later, and ' + nm(prev) + "\u2019s eggs wouldn\u2019t count.</div>" : "") +
@@ -1839,7 +1846,7 @@ document.addEventListener("click", async ev => {
   }
   if (act === "pasteLunch" || act === "pasteDay") {
     const rows = parsePasted(busy.pasteText || ""); if (!rows.length) return;
-    const pd = busy.pasteDay != null ? busy.pasteDay : day;
+    const mpd = act === "pasteDay" ? morningPasteDay() : null, pd = busy.pasteDay != null ? busy.pasteDay : mpd != null ? mpd : day;
     if (pd !== day && pd >= 0 && pd <= 4) day = pd;   // the console moves to the day the data was saved on
     const up = { kind: act === "pasteLunch" ? "lunch" : "day", day: pd, file: "pasted data", rows, nameKey: "name", xpKey: "completed", guideKey: null };
     busy.lastUpload = up; busy.paste = false; busy.pasteText = ""; busy.pasteDay = null;

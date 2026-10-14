@@ -2,29 +2,29 @@ import {
   checkVersion, hitOn, gearInSeason, applyDisplayNames, companionOf, petCreatures, pinnedBadgeHTML, DAYS, SHORT, ROSTER, GEAR, SIDEKICKS, BANNER, bannerFor, isHaunt, battleOn, candyOf, basketHTML, CANDY_FULL, bossState, attacksReady, bossBarHTML, GHOST_IMG, ghostUnlocked, turkeyUnlocked, grinchUnlocked, isJingle, isFrost, isHeart, heartUnlocked, attackRefusal, saveProblems, yetiUnlocked, eventMode, isGobble, setSeason, SEASON, seasonOf, STORE, candyLeft, candySpent, ownedCount, ownsItem, storeArt, nextAttack, dmgOf, HAT_BONUS, BREW_BONUS, teamHTML, wallHTML, WHEEL, pickSlice, wheelHTML, spinTo, PRIZES, prizeSlices, bucketState, bucketHTML, baseDamage, EAT_PER_DAY, dayEaten, dayXP, byId, esc, arr5, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, sidekickSVG, petHTML as petBase, vipStage, withVipHat, vipWorn, petWithHead, OUTFITS, itemArt, potionFx, bondLevel,
   ghost2Unlocked, starterFam, boss2Of, BOSS2, BOSS2_LIST, creditCompanion, compKey, compLevel, compFill, COMP_DAYS, creatureCompanion
-} from "./game.js?v=20261013s";
-import { EVENT_LIST, TEAM_EVENTS, eventOn, teamCard, teamOf as tevTeamOf } from "./teams.js?v=20261013s";
-import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=20261013s";
-import { kindCard } from "./kindness.js?v=20261013s";
-import { partyCards, partyOverlay, partyClick, partyBusy, partyTicker, partySync } from "./party.js?v=20261013s";
-import { kitchenCard, kitchenOverlay, kitchenClick, kitchenBusy, kitchenPointer } from "./meals.js?v=20261013s";
-import { miniCard, miniOverlay, miniClick, miniBusy, miniSync } from "./mini.js?v=20261013s";
-import { surpriseCards, surpriseOverlay, surpriseClick, surpriseBusy } from "./surprise.js?v=20261013s";
-import { hofTab, hofParty, hofClick } from "./hof.js?v=20261013s";
-import { passTab, passOverlay, passClick, passBusy, passReady } from "./pass.js?v=20261013s";
-import { bondHTML, moodBubble, playTrick, burst, unlockAt } from "./bond.js?v=20261013s";
-import { morningTab, morningOverlay, morningClick, morningBusy, mqReady } from "./morning.js?v=20261013s";
-import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261013s";
-import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20261013s";
-import { nudgeCard } from "./nudges.js?v=20261013s";
-import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261013s";
-import { teacherPlayer, hasStarter, MOVES, formOf } from "./collect.js?v=20261013s";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261013s";
-import { goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked, weekGoal, weekKey, weekTotal, weekDoorState, vaultState, oldReady, vaultLessonsLeft, VAULT_XP, VAULT_BONUS_XP, VAULT_EGGS } from "./doors.js?v=20261013s";
-import { azToday } from "./collect.js?v=20261013s";
+} from "./game.js?v=20261014a";
+import { EVENT_LIST, TEAM_EVENTS, eventOn, teamCard, teamOf as tevTeamOf } from "./teams.js?v=20261014a";
+import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=20261014a";
+import { kindCard, gotKindToday } from "./kindness.js?v=20261014a";
+import { partyCards, partyOverlay, partyClick, partyBusy, partyTicker, partySync } from "./party.js?v=20261014a";
+import { kitchenCard, kitchenOverlay, kitchenClick, kitchenBusy, kitchenPointer } from "./meals.js?v=20261014a";
+import { miniCard, miniOverlay, miniClick, miniBusy, miniSync } from "./mini.js?v=20261014a";
+import { surpriseCards, surpriseOverlay, surpriseClick, surpriseBusy } from "./surprise.js?v=20261014a";
+import { hofTab, hofParty, hofClick } from "./hof.js?v=20261014a";
+import { passTab, passOverlay, passClick, passBusy, passReady } from "./pass.js?v=20261014a";
+import { bondHTML, moodBubble, playTrick, burst, unlockAt } from "./bond.js?v=20261014a";
+import { morningTab, morningOverlay, morningClick, morningBusy, mqReady } from "./morning.js?v=20261014a";
+import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261014a";
+import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20261014a";
+import { nudgeCard } from "./nudges.js?v=20261014a";
+import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261014a";
+import { teacherPlayer, hasStarter, MOVES, formOf } from "./collect.js?v=20261014a";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261014a";
+import { goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked, weekGoal, weekKey, weekTotal, weekDoorState, vaultState, oldReady, vaultLessonsLeft, VAULT_XP, VAULT_BONUS_XP, VAULT_EGGS } from "./doors.js?v=20261014a";
+import { azToday } from "./collect.js?v=20261014a";
 import { roomHTML, FIT_SLOTS, slotKind, KIND_NAMES, KIND_ICON, EVERYDAY_PRICE, THEMED_PRICE, TROPHY_PRICE, TYPE_THEMES, SEASON_THEMES, THEME_NAMES, TROPHIES,
-  itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId } from "./room.js?v=20261013s";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261013s";
+  itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId } from "./room.js?v=20261014a";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261014a";
 
 let fxFor = null;   // the student whose companion is being drawn (for the potion glow)
 const petHTML = (c, worn, held) => { const h = petBase(c, worn, held), fx = fxFor ? potionFx(fxFor) : ""; return fx ? h.replace('class="petwrap', 'class="petwrap' + fx) : h; };
@@ -809,6 +809,7 @@ document.addEventListener("click", async ev => {
   if ((el = ev.target.closest("[data-ksend]"))) {
     const s = students.find(x => x.id === me), date = azToday(), u = kindUI;
     if (!s || !u.to || u.s == null || u.f == null || u.e == null || (s.kind || {})[date] || PREVIEW) return;
+    if (gotKindToday(students, date)[u.to]) { flash("That classmate already got a shout-out today \u2014 pick someone else!"); return; }
     const k = { to: u.to, s: u.s, f: u.f, e: u.e, at: new Date().toISOString() };
     await patch({ ["kind." + date]: k });
     s.kind = Object.assign({}, s.kind || {}, { [date]: k }); kindUI.to = ""; kindUI.s = kindUI.f = kindUI.e = null;

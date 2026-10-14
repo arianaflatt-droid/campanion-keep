@@ -1065,7 +1065,7 @@ td .emo, .ic .emo{ display:inline-block; vertical-align:middle; font-size:1.3em;
   .seenrow + .seenrow{ border-top:1px solid var(--line-2); }
 
   /* ---------- Weekly Door ---------- */
-  .weekdoor{ border:2px solid #E9A91C; background:linear-gradient(135deg, var(--panel), #FFF6DA); }
+  .weekdoor{ border:2px solid #E9A91C; background:linear-gradient(135deg, var(--panel), var(--panel-2)); }
   .weekdoor .wdrow{ display:flex; gap:16px; align-items:center; }
   .weekdoor .wdpic{ position:relative; flex:0 0 auto; width:84px; height:104px; border-radius:42px 42px 10px 10px; background:linear-gradient(#8B5A2B,#5E3A17); border:4px solid #E9A91C; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 0 #B07A10; }
   .weekdoor .wdicon{ font-size:44px; }
@@ -1679,3 +1679,8 @@ body.mini-fest::before{ background-image:radial-gradient(4px 3px at 60px 40px,#D
 body.mini-xmas .wrap, body.mini-tot .wrap, body.mini-fest .wrap{ position:relative; z-index:1; }
 body.mini-xmas .tile{ box-shadow:0 0 0 2px #E8B923; } body.mini-tot .tile{ box-shadow:0 0 0 2px #E8740C; } body.mini-fest .tile{ box-shadow:0 0 0 2px #C4521E; }
 @media (prefers-reduced-motion: reduce){ .mdoor, .mpeek, .mspot, .mpump, .mvisit img, body.mini-xmas::before, body.mini-tot::before, body.mini-fest::before{ animation:none; } }
+/* Light cards keep dark text even when the device is in dark mode */
+.spcard, .spcard h3, .spcard p, .spcard b, .spcard small, .card.kitchen, .card.kitchen h2, .card.kitchen h3, .card.kitchen p, .card.kitchen b, .card.kitchen .lede, .kmeal, .kmeal b, .kmeal small, .kmeal div,
+.pcard:not(.p120), .pcard:not(.p120) h3, .pcard:not(.p120) p, .mc-fest, .mc-fest h3, .mc-fest p{ color:#2B1B12; }
+.spcard .muted, .card.kitchen .muted, .kmeal .muted{ color:#6B5A4A; }
+.spbar b{ color:#2B1B12; }

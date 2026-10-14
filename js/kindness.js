@@ -4,10 +4,10 @@
    kind = { "YYYY-MM-DD": { to: studentId, s: starter, f: ending, e: sticker, at } }  (older ones may have m = a preset message).
    The receiver can send back a 💖 (kindThanks = { "senderId:date": true }); the sender sees "Maya loved it!".
    No XP and no badges: it's just for kindness. Ms. Ariana can hide one (cls.kindHide) or turn the board off (cls.kindOff). */
-import { esc, companionOf } from "./game.js?v=20261013s";
-import { azToday } from "./collect.js?v=20261013s";
+import { esc, companionOf } from "./game.js?v=20261014a";
+import { azToday } from "./collect.js?v=20261014a";
 
-export const KIND_DAYS = 7;
+export const KIND_DAYS = 1;   // shout-outs show for today and yesterday, then disappear
 // Sentence starters, each with its own endings. {name} = the classmate, {pet} = their companion's name.
 export const KIND_STARTERS = [
   { t: "I'm proud of you for", pet: "{pet} must be so proud of you too!",
@@ -46,6 +46,8 @@ export function recentKind(students, cls) {
   }));
   return out.sort((a, b) => String(b.at).localeCompare(String(a.at)));
 }
+// Each student can get 1 shout-out a day: the ids of everyone who already got one today
+export function gotKindToday(students, today) { const o = {}; students.forEach(s => { const k = (s.kind || {})[today]; if (k && k.to) o[k.to] = true; }); return o; }
 export const inboxFor = (s, students, cls) => recentKind(students, cls).filter(k => k.to === s.id);
 export const unthanked = (s, students, cls) => inboxFor(s, students, cls).filter(k => !(s.kindThanks || {})[k.key]);
 const note = (t, extra) => '<span class="kindic">' + t.sticker + '</span><div>“' + esc(t.main) + "”" + (t.pet ? ' <span class="kindpet">' + esc(t.pet) + "</span>" : "") + (extra || "") + "</div>";
@@ -53,12 +55,13 @@ const note = (t, extra) => '<span class="kindic">' + t.sticker + '</span><div>�
 export function kindCard(s, students, cls, ui) {
   if (cls && cls.kindOff) return "";
   const today = azToday(), mine = (s.kind || {})[today], mates = students.filter(x => x.id !== s.id && x.companionId).sort((a, b) => String(a.name).localeCompare(String(b.name)));
+  const gotToday = gotKindToday(students, today);
   const inbox = inboxFor(s, students, cls), byId = id => students.find(y => y.id === id);
   let h = '<div class="card kindcard"><div class="card-head"><h2>\u{1F48C} Kindness Board</h2><span class="fact">1 shout-out a day</span></div>';
   if (inbox.length) h += '<div class="kindinbox">' + inbox.map(k => { const done = (s.kindThanks || {})[k.key];
     return '<div class="kindnote' + (done ? " seen" : " new") + '">' + note(kindText(k.k, s), "<small>from <b>" + esc(k.from.name) + "</b> · " + (k.date === today ? "today" : k.date.slice(5).replace("-", "/")) + "</small>") +
       (done ? '<span class="kindok" title="You sent a heart back">\u{1F496}</span>' : '<button class="btn small" data-kthanks="' + esc(k.key) + '">\u{1F496} Send a heart back</button>') + "</div>"; }).join("") + "</div>";
-  else h += '<p class="small muted">No shout-outs yet this week — send one and spread the kindness!</p>';
+  else h += '<p class="small muted">No shout-outs in the last 2 days — send one and spread the kindness!</p>';
   if (mine) {
     const to = byId(mine.to), loved = to && (to.kindThanks || {})[s.id + ":" + today];
     h += '<div class="kindsent">✅ You sent <b>' + esc(to ? to.name : "a classmate") + "</b>: " + '<div class="kindnote">' + note(kindText(mine, to)) + "</div>" +
@@ -67,7 +70,7 @@ export function kindCard(s, students, cls, ui) {
     const to = byId(ui.to), S = ui.s != null ? KIND_STARTERS[ui.s] : null, ready = to && ui.s != null && ui.f != null && ui.e != null;
     h += '<h3 style="margin-top:12px;">Write a shout-out</h3>' +
       '<p class="small"><b>1.</b> Who is it for? <select id="kindTo"><option value="">Pick a classmate…</option>' +
-      mates.map(x => '<option value="' + x.id + '"' + (ui.to === x.id ? " selected" : "") + ">" + esc(x.name) + "</option>").join("") + "</select></p>" +
+      mates.map(x => '<option value="' + x.id + '"' + (ui.to === x.id ? " selected" : "") + (gotToday[x.id] ? " disabled" : "") + ">" + esc(x.name) + (gotToday[x.id] ? " (already got one today)" : "") + "</option>").join("") + "</select></p>" +
       '<p class="small" style="margin-top:8px;"><b>2.</b> Start your message:</p><div class="kindmsgs">' + KIND_STARTERS.map((x, i) => '<button class="kindmsg' + (ui.s === i ? " on" : "") + '" data-kstart="' + i + '">' + esc(x.t) + "…</button>").join("") + "</div>" +
       (S ? '<p class="small"><b>3.</b> Finish it:</p><div class="kindmsgs">' + S.f.map((x, i) => '<button class="kindmsg' + (ui.f === i ? " on" : "") + '" data-kend="' + i + '">…' + esc(x) + "</button>").join("") + "</div>" : "") +
       (S && ui.f != null ? '<p class="small"><b>4.</b> Pick a sticker:</p><div class="kindmsgs">' + KIND_STICKERS.map((x, i) => '<button class="kindmsg kindstk' + (ui.e === i ? " on" : "") + '" data-kstk="' + i + '">' + x + "</button>").join("") + "</div>" : "") +
@@ -77,13 +80,13 @@ export function kindCard(s, students, cls, ui) {
   return h + "</div>";
 }
 
-// Teacher: this week's shout-outs, with a Hide button
+// Teacher: the last 2 days of shout-outs, with a Hide button
 export function kindAdmin(students, cls) {
   const list = recentKind(students, cls), byId = id => students.find(y => y.id === id);
-  return '<div class="card"><div class="card-head"><h2>\u{1F48C} Kindness Board</h2><span class="fact">' + list.length + " this week</span></div>" +
+  return '<div class="card"><div class="card-head"><h2>\u{1F48C} Kindness Board</h2><span class="fact">' + list.length + " in the last 2 days</span></div>" +
     '<p class="lede" style="font-size:13px;">Once a day students build a shout-out from sentence pieces (no typing), personalized with the classmate’s name and companion. Just for kindness — no XP or badges.</p>' +
     '<div class="row" style="margin:6px 0;"><button class="btn ghost small" data-act="kindToggle">' + (cls.kindOff ? "▶️ Turn the Kindness Board on" : "⏸️ Turn the Kindness Board off") + "</button></div>" +
     (list.length ? '<div class="kindadmin">' + list.map(k => { const to = byId(k.to);
       return '<div class="kindnote">' + note(kindText(k.k, to), "<small><b>" + esc(k.from.name) + "</b> → <b>" + esc(to ? to.name : "?") + "</b> · " + k.date.slice(5).replace("-", "/") + "</small>") +
-        '<button class="btn ghost small" data-khide="' + esc(k.key) + '">Hide</button></div>'; }).join("") + "</div>" : '<p class="small muted">No shout-outs yet this week.</p>') + "</div>";
+        '<button class="btn ghost small" data-khide="' + esc(k.key) + '">Hide</button></div>'; }).join("") + "</div>" : '<p class="small muted">No shout-outs in the last 2 days.</p>') + "</div>";
 }
