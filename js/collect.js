@@ -1,5 +1,5 @@
 // Creature Collector: pulls, XP bank, levels, evolutions, lorebook and arena battles.
-import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261013h";
+import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261013q";
 
 export const PULL_XP = 120;          // every 120 XP (all-time since the collector started) = 1 pull
 export const LEVEL_XP = 120;         // 120 banked XP = 1 level
@@ -308,7 +308,7 @@ export function doPull(st, rarity, cls, opts) {
   const event = opts.force ? (family(opts.force) || {}).event || null : ev ? ev.key : null;
   const fam = opts.force || (ev ? ev.fam : pick(pool).id);
   const coll = Object.assign({}, owned(st));
-  const had = coll[fam], sparkle = !!opts.sparkle || Math.random() < SPARKLE_CHANCE;   // opts.sparkle: the Treasure Vault's Sparkle Legendary egg
+  const had = coll[fam], sparkle = !!opts.sparkle || Math.random() < (opts.sparkleChance || SPARKLE_CHANCE);   // opts.sparkle: the Treasure Vault's Sparkle Legendary egg
   if (had) coll[fam] = Object.assign({}, had, { lvl: Math.min(MAX_LEVEL, (had.lvl || 1) + 1) });
   else coll[fam] = { lvl: 1, at: new Date().toISOString() };
   // a Sparkle hatch turns the family Sparkle for good (a duplicate Sparkle still levels up too)
@@ -378,7 +378,18 @@ export function arenaOpenFor(st, cls, date) {
    A battle doc: { a:{id,name}, b:{id,name}, status: invite|team|lead|done|declined, n, turn:"A"|"B",
      team:{A:[fighter],B:[fighter]}, active:{A:idx|null,B:idx|null}, log:[event], winner }
    fighter = { fam, id, lvl, name, img, type, weak, attack, hp, df, dmg, cur } */
+// Campfire Kitchen meal boosts (meals.js) for today: Power Up +20% damage, Shield +25% Defense, Hearty Meal +20% health
+export function mealBoostsToday(st) { const d = ((st && st.meals) || {})[azToday()] || {}; return ["b", "l"].map(k => d[k] && d[k].boost).filter(Boolean); }
 export function fighterFrom(st, fam) {
+  const f = fighterBase(st, fam); if (!f) return f;
+  const b = mealBoostsToday(st);
+  if (b.includes("power")) f.dmg = Math.round(f.dmg * 1.2);
+  if (b.includes("shield")) f.df = Math.round(f.df * 1.25);
+  if (b.includes("hearty")) { f.hp = Math.round(f.hp * 1.2); f.cur = f.hp; }
+  if (b.length) f.boosts = b.filter(x => ["power", "shield", "hearty"].includes(x));
+  return f;
+}
+function fighterBase(st, fam) {
   const e = owned(st)[fam]; if (!e) return null;
   const c = formOf(fam, e.lvl || 1), s = statsOf(c, e.lvl || 1);
   return { fam, id: c.id, lvl: e.lvl || 1, name: e.nick || c.name, species: c.name, img: e.sparkle ? sparkleImg(c) : c.img, sparkle: !!e.sparkle, face: c.face || "R", type: c.types[0], types: c.types, weak: c.weak, attack: c.attack, hp: s.hp, df: s.df, dmg: s.dmg, cur: s.hp, dodge: c.dodge || 0,

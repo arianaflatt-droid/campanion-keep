@@ -5,9 +5,9 @@
    Saved on the student: cpEarned (teacher writes), cpSpent, roomOwned [item ids], roomFit { slot: id }, roomBuys [{ id, cost, at }].
    Item ids are "{kind}_{theme}" (e.g. bed_dragon); art is assets/room/{id}.webp. Trophies are trophy_{season}.
    The room picture is 1536x1024; everything below is placed in % of that. */
-import { azToday } from "./collect.js?v=20261013h";
-import { questCP } from "./quest.js?v=20261013h";
-import { esc } from "./game.js?v=20261013h";
+import { azToday } from "./collect.js?v=20261013q";
+import { questCP } from "./quest.js?v=20261013q";
+import { esc } from "./game.js?v=20261013q";
 
 // Themes that have art so far. Add a theme name here once its 9 pieces are in assets/room/.
 export const TYPE_THEMES = ["fire", "water", "nature", "rock", "sky", "electric", "ice", "light", "dark", "ghost", "poison", "steel", "arcane", "crystal", "dragon"];
@@ -75,7 +75,7 @@ export function cpEarnedCalc(st, cls) {
   Object.values((st && st.doors) || {}).forEach(day => Object.values(day || {}).forEach(e => { if (e && e.st === "open" && e.r && GOAL[e.r.id]) cp += GOAL[e.r.id]; }));
   return cp;
 }
-export const cpEarned = (st, cls) => Math.max(Number(st && st.cpEarned) || 0, 0);
+export const cpEarned = (st, cls) => Math.max(Number(st && st.cpEarned) || 0, 0) + (Number(st && st.cpBonus) || 0);   // cpBonus: Campfire Kitchen Cozy Points
 export const cpLeft = (st, cls) => Math.max(0, cpEarned(st, cls) - (Number(st && st.cpSpent) || 0));
 
 /* ---------- the shop ---------- */

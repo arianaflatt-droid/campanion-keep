@@ -1,27 +1,29 @@
 import {
   checkVersion, hitOn, gearInSeason, applyDisplayNames, companionOf, petCreatures, pinnedBadgeHTML, DAYS, SHORT, ROSTER, GEAR, SIDEKICKS, BANNER, bannerFor, isHaunt, battleOn, candyOf, basketHTML, CANDY_FULL, bossState, attacksReady, bossBarHTML, GHOST_IMG, ghostUnlocked, turkeyUnlocked, grinchUnlocked, isJingle, isFrost, isHeart, heartUnlocked, attackRefusal, saveProblems, yetiUnlocked, eventMode, isGobble, setSeason, SEASON, seasonOf, STORE, candyLeft, candySpent, ownedCount, ownsItem, storeArt, nextAttack, dmgOf, HAT_BONUS, BREW_BONUS, teamHTML, wallHTML, WHEEL, pickSlice, wheelHTML, spinTo, PRIZES, prizeSlices, bucketState, bucketHTML, baseDamage, EAT_PER_DAY, dayEaten, dayXP, byId, esc, arr5, recordedDays, goalXP,
-  simulate, wornItem, tier, boardDay, sidekickToday, sidekickSVG, petHTML as petBase, itemArt, potionFx, bondLevel,
+  simulate, wornItem, tier, boardDay, sidekickToday, sidekickSVG, petHTML as petBase, vipStage, withVipHat, vipWorn, itemArt, potionFx, bondLevel,
   ghost2Unlocked, starterFam, boss2Of, BOSS2, BOSS2_LIST, creditCompanion, compKey, compLevel, compFill, COMP_DAYS, creatureCompanion
-} from "./game.js?v=20261013h";
-import { EVENT_LIST, TEAM_EVENTS, eventOn, teamCard, teamOf as tevTeamOf } from "./teams.js?v=20261013h";
-import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=20261013h";
-import { kindCard } from "./kindness.js?v=20261013h";
-import { surpriseCards, surpriseOverlay, surpriseClick, surpriseBusy } from "./surprise.js?v=20261013h";
-import { hofTab, hofParty, hofClick } from "./hof.js?v=20261013h";
-import { passTab, passOverlay, passClick, passBusy, passReady } from "./pass.js?v=20261013h";
-import { bondHTML, moodBubble, playTrick, burst, unlockAt } from "./bond.js?v=20261013h";
-import { morningTab, morningOverlay, morningClick, morningBusy, mqReady } from "./morning.js?v=20261013h";
-import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261013h";
-import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20261013h";
-import { nudgeCard } from "./nudges.js?v=20261013h";
-import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261013h";
-import { teacherPlayer, hasStarter, MOVES, formOf } from "./collect.js?v=20261013h";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261013h";
-import { goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked, weekGoal, weekKey, weekTotal, weekDoorState, vaultState, oldReady, vaultLessonsLeft, VAULT_XP, VAULT_BONUS_XP, VAULT_EGGS } from "./doors.js?v=20261013h";
-import { azToday } from "./collect.js?v=20261013h";
+} from "./game.js?v=20261013q";
+import { EVENT_LIST, TEAM_EVENTS, eventOn, teamCard, teamOf as tevTeamOf } from "./teams.js?v=20261013q";
+import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=20261013q";
+import { kindCard } from "./kindness.js?v=20261013q";
+import { partyCards, partyOverlay, partyClick, partyBusy, partyTicker, partySync } from "./party.js?v=20261013q";
+import { kitchenCard, kitchenOverlay, kitchenClick, kitchenBusy, kitchenPointer } from "./meals.js?v=20261013q";
+import { surpriseCards, surpriseOverlay, surpriseClick, surpriseBusy } from "./surprise.js?v=20261013q";
+import { hofTab, hofParty, hofClick } from "./hof.js?v=20261013q";
+import { passTab, passOverlay, passClick, passBusy, passReady } from "./pass.js?v=20261013q";
+import { bondHTML, moodBubble, playTrick, burst, unlockAt } from "./bond.js?v=20261013q";
+import { morningTab, morningOverlay, morningClick, morningBusy, mqReady } from "./morning.js?v=20261013q";
+import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261013q";
+import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20261013q";
+import { nudgeCard } from "./nudges.js?v=20261013q";
+import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261013q";
+import { teacherPlayer, hasStarter, MOVES, formOf } from "./collect.js?v=20261013q";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261013q";
+import { goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked, weekGoal, weekKey, weekTotal, weekDoorState, vaultState, oldReady, vaultLessonsLeft, VAULT_XP, VAULT_BONUS_XP, VAULT_EGGS } from "./doors.js?v=20261013q";
+import { azToday } from "./collect.js?v=20261013q";
 import { roomHTML, FIT_SLOTS, slotKind, KIND_NAMES, KIND_ICON, EVERYDAY_PRICE, THEMED_PRICE, TROPHY_PRICE, TYPE_THEMES, SEASON_THEMES, THEME_NAMES, TROPHIES,
-  itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId } from "./room.js?v=20261013h";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261013h";
+  itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId } from "./room.js?v=20261013q";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261013q";
 
 let fxFor = null;   // the student whose companion is being drawn (for the potion glow)
 const petHTML = (c, worn, held) => { const h = petBase(c, worn, held), fx = fxFor ? potionFx(fxFor) : ""; return fx ? h.replace('class="petwrap', 'class="petwrap' + fx) : h; };
@@ -218,13 +220,14 @@ function render(force) {
   }
   const cur = students.find(x => x.id === me);
   if (cur && cur.companionId && cls) lockBadges(cur);
-  const bday = !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() && !questBusy() && !morningBusy() && !passBusy() && !surpriseBusy() ? birthdayParty(cur) : "";
-  const cape = !bday && !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() && !questBusy() && !morningBusy() && !passBusy() && !surpriseBusy() ? capeParty(cur) : "";
-  const party = !bday && !cape && !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() && !questBusy() && !morningBusy() && !passBusy() && !surpriseBusy() ? badgeParty(cur) : "";
-  const hof = !bday && !cape && !party && !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() && !questBusy() && !morningBusy() && !passBusy() && !surpriseBusy() ? hofParty(cur, students, cls) : "";
+  const bday = !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() && !questBusy() && !morningBusy() && !passBusy() && !surpriseBusy() && !kitchenBusy() && !partyBusy() ? birthdayParty(cur) : "";
+  const cape = !bday && !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() && !questBusy() && !morningBusy() && !passBusy() && !surpriseBusy() && !kitchenBusy() && !partyBusy() ? capeParty(cur) : "";
+  const party = !bday && !cape && !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() && !questBusy() && !morningBusy() && !passBusy() && !surpriseBusy() && !kitchenBusy() && !partyBusy() ? badgeParty(cur) : "";
+  const hof = !bday && !cape && !party && !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() && !questBusy() && !morningBusy() && !passBusy() && !surpriseBusy() && !kitchenBusy() && !partyBusy() ? hofParty(cur, students, cls) : "";
   const fields = liveNow ? saveFields(app) : {};
-  app.innerHTML = h + (cur && cur.companionId && cls && !PREVIEW && !bday && !cape && !party && !hof ? surpriseOverlay(cur, cls) : "") + passOverlay() + presentOverlay() + vaultOverlay() + prizeOverlay() + (cur && cur.companionId && cls ? collectorOverlays(collectorCtx(cur)) + questOverlay(cur) + morningOverlay(cur, cls) : "") + party + cape + bday + hof;
+  app.innerHTML = h + partyOverlay(cur && cur.companionId ? cur : null, cls) + (cur && cur.companionId && cls ? kitchenOverlay(cur) : "") + (cur && cur.companionId && cls && !PREVIEW && !bday && !cape && !party && !hof ? surpriseOverlay(cur, cls) : "") + passOverlay() + presentOverlay() + vaultOverlay() + prizeOverlay() + (cur && cur.companionId && cls ? collectorOverlays(collectorCtx(cur)) + questOverlay(cur) + morningOverlay(cur, cls) : "") + party + cape + bday + hof;
   restoreFields(fields);
+  if (cls) partySync(collectorCtx(cur && cur.companionId && !PREVIEW ? cur : null));
   if (bday && !bdayChimed) { bdayChimed = true; birthdayTune(); }
   if (party) { const key = unseenBadges(cur).join(","); if (key !== partyKey) { partyKey = key; badgeChime(); } }
   if (keep) { const n = document.getElementById(keep.id); if (n) { n.focus(); try { n.setSelectionRange(keep.pos, keep.pos); } catch (e) {} } }
@@ -286,7 +289,9 @@ function viewMine(s) {
   if (tab === "hof") return h + hofTab(s, students, cls);
   if (tab === "quest") return h + questTab(s, petHTML(c, worn, heldWeapon(s)));
   if (tab === "room") return h + roomTab(s, c, worn);
+  h += partyCards(s, cls);
   h += surpriseCards(s, cls, s.petName || c.name);
+  h += kitchenCard(s, cls, s.petName || c.name);
   h += nudgeCard(s, cls, battles, students);
   h += earlierWeeksHTML(s);
   if (!doorsOn || weekDoorState(s, cls) === "ready") h += weekDoorCard(s);
@@ -294,7 +299,7 @@ function viewMine(s) {
   h += '<div class="card"><div class="mypet t-' + t.key + '">' + pinnedBadgeHTML(s, "mine") +
     (haunt ? basketHTML(candy, "big") : "") +
     moodBubble(s, goal) +
-    '<div class="stage" aria-hidden="true">' + petHTML(c, worn, heldWeapon(s)) + (side ? sidekickSVG(side, true) : "") + "</div>" +
+    '<div class="stage' + vipStage(s) + '" aria-hidden="true">' + withVipHat(s, petHTML(c, vipWorn(s, worn), heldWeapon(s)), c) + (side ? sidekickSVG(side, true) : "") + "</div>" +
     '<div class="bigname">' + esc(s.petName || c.name) + "</div>" +
     '<div class="tspec" style="font-family:var(--mono);font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);">' + esc(c.name) + "</div>" +
     '<span class="tbar"><span style="width:' + Math.max(0, Math.min(100, sim.health / sim.max * 100)) + '%"></span></span>' +
@@ -817,6 +822,17 @@ document.addEventListener("click", async ev => {
     await patch({ ["kindThanks." + k]: true });
     flash("\u{1F496} Heart sent!", true); return;
   }
+  if ((el = ev.target.closest("[data-party]"))) {
+    const s = students.find(x => x.id === me); if (!s) return;
+    if (PREVIEW && el.dataset.party !== "music") return;
+    await partyClick(el, Object.assign(collectorCtx(s), { flash })).catch(e => flash("Something went wrong \u2014 " + (e.message || e)));
+    return;
+  }
+  if ((el = ev.target.closest("[data-kc]"))) {
+    const s = students.find(x => x.id === me); if (!s || PREVIEW) return;
+    await kitchenClick(el, Object.assign(collectorCtx(s), { flash })).catch(e => flash("Something went wrong \u2014 " + (e.message || e)));
+    return;
+  }
   if ((el = ev.target.closest("[data-sp]"))) {
     const s = students.find(x => x.id === me); if (!s || PREVIEW) return;
     await surpriseClick(el, Object.assign(collectorCtx(s), { flash })).catch(e => flash("Something went wrong \u2014 " + (e.message || e)));
@@ -989,3 +1005,9 @@ document.addEventListener("keydown", ev => {
   if (ev.target.id === "nickIn") { const b = document.querySelector('[data-cc="nickSave"]'); if (b) b.click(); }
 });
 render();
+
+// Campfire Kitchen catch game: slide (mouse or finger) or arrow keys move the pan
+["pointermove", "touchmove"].forEach(t => document.addEventListener(t, ev => kitchenPointer(ev), { passive: true }));
+document.addEventListener("keydown", ev => { if (ev.key === "ArrowLeft" || ev.key === "ArrowRight") { const b = document.querySelector('[data-kc="' + (ev.key === "ArrowLeft" ? "left" : "right") + '"]'); if (b) { ev.preventDefault(); b.click(); } } });
+
+partyTicker(() => cls, render);

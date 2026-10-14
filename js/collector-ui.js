@@ -4,13 +4,13 @@ import {
   formIndex, formOf, statsOf, seenSet, rollRarity, doPull, arenaOpen, arenaOpenFor, lunchHour, hitGoalToday, LUNCH_ARENA, ARENA_HOURS, fighterFrom, teamSize, alive, resolve, resolveRound, moveOk, MOVES, hitDamage,
   birthdayLeft, pickleLeft, PICKLE_FAM, brewLegLeft, BREW_FAM, feastLegLeft, HARVEST_FAM, gingerLegLeft, GINGER_FAM, snowLegLeft, SNOW_FAM, candyLegLeft, CANDY_FAM, ghostEggLeft, GHOST_FAM, BOSS2_LIST, boss2EggLeft, vaultLegLeft, goalLeft, nextGoal, rollRareUp, themeLeft, nextTheme, THEME_TYPES, THEME_EGG, WISH_FAM, spares, spareId, releaseXP, releaseProblem, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
   EVENTS, eventOpen, eventWindow, eventStreak, hasEvent, eventUnlocked, azToday, rollTeacherRarity, TEACHER_ODDS, LIVE, staleBattle
-} from "./collect.js?v=20261013h";
-import { newBattleRef, changeBattle as changeBattleRaw, setDoc, liveBattlesNow } from "./db.js?v=20261013h";
+} from "./collect.js?v=20261013q";
+import { newBattleRef, changeBattle as changeBattleRaw, setDoc, liveBattlesNow } from "./db.js?v=20261013q";
 // every change to a battle is stamped with the time (upd), so a battle nobody has touched in a while can be ended
 let locking = null, leaving = null;   // battle id while "Lock in team" is saving
 const changeBattle = (id, fn) => changeBattleRaw(id, bt => { const n = fn(bt); if (n) n.upd = new Date().toISOString(); return n; });
 
-import { tradeCard } from "./trade-ui.js?v=20261013h";
+import { tradeCard } from "./trade-ui.js?v=20261013q";
 
 const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const PER_PAGE = 20;
@@ -618,9 +618,15 @@ export async function onClick(el, c) {
     const leg = a === "hatchLeg", bday = a === "hatchBday";
     if (bday ? !birthdayLeft(s) : leg ? !legendaryLeft(s) : !pullsLeft(s, c.cls)) return;
     const res = bday ? doPull(s, "Legendary", c.cls, { force: WISH_FAM })
-      : doPull(s, leg ? "Legendary" : s.isTeacher ? rollTeacherRarity() : rollRarity(), c.cls, { legendaryEgg: leg });
+      : (() => { const eb = s.eggBoost || {}, plain = !leg && !s.isTeacher;
+          let r = leg ? "Legendary" : s.isTeacher ? rollTeacherRarity() : rollRarity();
+          if (plain && eb.rare > 0 && (r === "Common" || r === "Uncommon")) r = "Rare";   // VIP Party Mystery Box Rare egg: at least Rare
+          else if (plain && eb.lucky > 0 && r === "Common") r = "Uncommon";   // Campfire Kitchen Lucky Egg: at least Uncommon
+          return doPull(s, r, c.cls, { legendaryEgg: leg, sparkleChance: plain && eb.sparkle > 0 ? 0.05 : 0 }); })();
     hatch = { phase: "shake", res, legendary: leg || bday };
     const data = { coll: res.coll };
+    if (!leg && !bday && !s.isTeacher && ((s.eggBoost || {}).lucky > 0 || (s.eggBoost || {}).sparkle > 0 || (s.eggBoost || {}).rare > 0)) {   // a meal/party egg boost is used up on this egg
+      const eb = Object.assign({}, s.eggBoost); if (eb.rare > 0) eb.rare--; else if (eb.lucky > 0) eb.lucky--; if (eb.sparkle > 0) eb.sparkle--; data.eggBoost = eb; }
     if (bday) data.birthdayUsed = (Number(s.birthdayUsed) || 0) + 1;
     else if (leg) data.legendaryUsed = (Number(s.legendaryUsed) || 0) + 1; else data.pullsUsed = (Number(s.pullsUsed) || 0) + 1;
     hold(3200); c.render(true);

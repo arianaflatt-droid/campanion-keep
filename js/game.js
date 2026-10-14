@@ -1,10 +1,10 @@
-import { CREATURE_LAYOUT, CREATURE_FIT_ID } from "./creature-fit.js?v=20261013h";
-import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261013h";
-import { heldWeapon } from "./quest.js?v=20261013h";
+import { CREATURE_LAYOUT, CREATURE_FIT_ID } from "./creature-fit.js?v=20261013q";
+import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261013q";
+import { heldWeapon } from "./quest.js?v=20261013q";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261013h";
+export const APP_V = "20261013q";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -410,9 +410,9 @@ export function sidekickSVG(kind, big) {
 }
 
 // Hats sit on the head (anchored at their bottom-centre); shades centre on the eyes.
-const HAT_SCALE = { cap: 1, hat: 1.05, crown: 0.95, witch: 1.25, pilgrim: 1.2, antlers: 1.35, xmashat: 1.35, hat67: 1.3, earmuffs: 1.25, cupidcrown: 1.2 };
+const HAT_SCALE = { phat: 1.1, pcrown: 0.95, cap: 1, hat: 1.05, crown: 0.95, witch: 1.25, pilgrim: 1.2, antlers: 1.35, xmashat: 1.35, hat67: 1.3, earmuffs: 1.25, cupidcrown: 1.2 };
 // How far up each hat is lifted from its anchor point (the cap emoji has empty space under its brim, so it sits lower).
-const HAT_LIFT = { cap: 72, hat: 88, crown: 88, witch: 88, pilgrim: 88, antlers: 70, xmashat: 78, hat67: 76, earmuffs: 45, cupidcrown: 80 };
+const HAT_LIFT = { phat: 90, pcrown: 86, cap: 72, hat: 88, crown: 88, witch: 88, pilgrim: 88, antlers: 70, xmashat: 78, hat67: 76, earmuffs: 45, cupidcrown: 80 };
 const GLYPH_W = 1.25;   // emoji box is 1.25em wide x 1em tall
 const pos = (x, y) => "left:" + (x / GLYPH_W * 100).toFixed(1) + "%;top:" + (y * 100).toFixed(1) + "%;";
 export function gearStyle(c, worn) {
@@ -490,7 +490,7 @@ export function creatureCompanion(st, fam) {
   // The picture is sized from its outline so the creature fills the box (wide ones spill out to the sides) and stands on the ground
   const glyph = L ? '<span class="crbox"><img class="crpet crfit" src="' + img + '" alt="" style="left:' + L[0] + "em;top:" + L[1] + "em;width:" + L[2] + "em;height:" + L[2] + 'em"></span>'
     : '<img class="crpet" src="' + img + '" alt="">';
-  return { id: "cr:" + fam, fam, name: c.name, creature: true, sparkle: !!e.sparkle, glyph,
+  return { id: "cr:" + fam, fam, formId: c.id, name: c.name, creature: true, sparkle: !!e.sparkle, glyph,
     fit: CREATURE_FIT_ID[c.id] || CREATURE_FIT[fam] || { hat: [0.62, 0.1, 0.42, 0], eyes: [0.64, 0.34, 0.3, 0], snack: [1.1, 0.86] } };
 }
 /* ---------- Companion level bar ----------
@@ -546,6 +546,45 @@ export function petHTML(c, worn, held) {
     (held ? '<span class="held held-' + held.n + '"><img src="' + held.img + '" alt="' + esc(held.name) + '"></span>' : "") + "</span>";
 }
 
+/* 🎉 Paper party hats + the VIP day look (from the 120 XP VIP Party favor, js/party.js).
+   A hat is drawn from one white hat picture, colored and patterned by a number (seed). */
+const HAT_COLORS = [["#FF5DA2", "#FFD23F"], ["#3EC1F3", "#FFFFFF"], ["#8E5CF7", "#FFD23F"], ["#2ED47A", "#FFF3B0"], ["#FF8A3D", "#FFFFFF"],
+  ["#F44366", "#7FDBFF"], ["#FFD23F", "#FF5DA2"], ["#1E90FF", "#FFD23F"], ["#B07CFF", "#7CF5C8"], ["#FF6B6B", "#FFE66D"], ["#00C2A8", "#FF9EDB"], ["#5B6CFF", "#B9F3FF"]];
+const HAT_PATTERNS = [
+  (a, b) => a,
+  (a, b) => "repeating-linear-gradient(90deg," + a + " 0 12%," + b + " 12% 20%)",
+  (a, b) => "repeating-linear-gradient(45deg," + a + " 0 9%," + b + " 9% 15%)",
+  (a, b) => "radial-gradient(circle," + b + " 30%,transparent 33%) 0 0/24% 17%," + a,
+  (a, b) => "repeating-linear-gradient(0deg," + a + " 0 11%," + b + " 11% 18%)",
+  (a, b) => "conic-gradient(" + a + " 25%," + b + " 0 50%," + a + " 0 75%," + b + " 0) 0 0/26% 18%",
+  (a, b) => "linear-gradient(135deg," + b + " 25%,transparent 25%) -6% 0/24% 16%,linear-gradient(225deg," + b + " 25%,transparent 25%) -6% 0/24% 16%," + a
+];
+export function hatHTML(seed, extra, style) {
+  const n = Math.abs(Number(seed) || 0), c = HAT_COLORS[n % HAT_COLORS.length], pat = HAT_PATTERNS[Math.floor(n / HAT_COLORS.length) % HAT_PATTERNS.length];
+  return '<span class="phat' + (extra ? " " + extra : "") + '"' + (style ? ' style="' + style + '"' : "") + '><img src="assets/party/party-hat.webp" alt=""><i style="background:' + pat(c[0], c[1]) + '"></i></span>';
+}
+// The paper hat / VIP crown sit on the head spot hand-placed for each companion (the same spot as shop hats)
+// PARTY_FIT nudges the spot for one creature form (by picture id): [move right, move down, size ×, tilt] in em
+const PARTY_FIT = { 9: [0.18, 0, 1.25, 0], 391: [0, 0.1, 1, 0], 400: [0, 0.05, 1, 0], 402: [0.2, 0, 0.75, 0], 407: [0, 0.06, 1, 0], 412: [0, 0.1, 1, 0], 413: [0, 0.05, 1, 0], 419: [0, 0.04, 1, 0] };
+function partyStyle(c, kind) {
+  const f = (c && c.fit) || {}, [x0, y0, sz0, r0] = f.hat || [0.6, 0.2, 0.45, 0];
+  const id = c && c.creature ? (c.formId || "") : "r:" + (c && c.id), adj = PARTY_FIT[id] || [0, 0, 1, 0];
+  const size = Math.max(0.34, Math.min(0.62, sz0 * 1.1)) * (kind === "hat" ? 1 : 0.85) * adj[2];   // tiny shop-hat spots get a hat you can see; huge ones don't swallow the face
+  return pos(x0 + adj[0], y0 + adj[1]) + "font-size:" + size.toFixed(3) + "em;transform:translate(-50%,-" + (kind === "hat" ? 80 : 78) + "%) rotate(" + (r0 + adj[3] + (kind === "hat" ? -6 : 0)) + "deg);transform-origin:50% 80%;";
+}
+export const partyHat = (c, seed) => hatHTML(seed, "", c ? partyStyle(c, "hat") : "");
+export const partyCrown = c => '<span class="pcrown"' + (c ? ' style="' + partyStyle(c, "crown") + '"' : "") + ">\u{1F451}</span>";
+// While a party hat or crown is on, a shop hat comes off (shades and snacks stay)
+export const headFree = worn => (worn && (worn.id === "shades" || worn.id === "snack" || worn.slot === "snack") ? worn : null);
+export const randomHat = () => Math.floor(Math.random() * HAT_COLORS.length * HAT_PATTERNS.length);
+// Today's VIP look (vipDay = { d: date, bg: 1-6, hat: seed }), or null
+export const vipToday = st => (st && st.vipDay && st.vipDay.d === azToday() ? st.vipDay : null);
+export const vipStage = st => { const v = vipToday(st); return v ? ' vipstage" style="background-image:url(assets/party/vipbg-' + (Number(v.bg) || 1) + '.webp)' : ""; };
+// Puts something (a hat, a crown) on the companion: inside the petwrap so it moves with every trick
+export const onPet = (pet, extra) => (extra ? pet.slice(0, -7) + extra + "</span>" : pet);
+export const withVipHat = (st, pet, c) => { const v = vipToday(st); return v ? onPet(pet, partyHat(c || companionOf(st), v.hat)) : pet; };
+export const vipWorn = (st, worn) => (vipToday(st) ? headFree(worn) : worn);
+
 // One tile on The Keep (class board): the companion's name with the student's display name under it.
 export function tileHTML(st, sim, rank, day, popped, haunt) {
   const c = companionOf(st);
@@ -557,7 +596,7 @@ export function tileHTML(st, sim, rank, day, popped, haunt) {
     '<span class="rank">' + rank + "</span>" + pinnedBadgeHTML(st) +
     (haunt ? basketHTML(candyLeft(st), "corner") : "") +
     (side ? '<span class="lunch">LUNCH HERO</span>' : "") +
-    '<div class="stage' + potionFx(st) + '" aria-hidden="true">' + petHTML(c, worn, heldWeapon(st)) + (side ? sidekickSVG(side) : "") + "</div>" +
+    '<div class="stage' + potionFx(st) + vipStage(st) + '" aria-hidden="true">' + withVipHat(st, petHTML(c, vipWorn(st, worn), heldWeapon(st)), c) + (side ? sidekickSVG(side) : "") + "</div>" +
     '<div class="tname2">' + esc(st.petName || c.name) + "</div>" +
     '<div class="towner">' + esc(st.name || "") + "</div>" + (st.passTitle ? '<div class="ttitle">' + esc(st.passTitle) + "</div>" : "") +
     '<div class="tspec">' + esc(c.name) + "</div>" +

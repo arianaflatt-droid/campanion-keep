@@ -9,8 +9,9 @@
      Student: targetGot = { date: true }.
    Confetti: a burst the first time a student opens their page after crossing halfway and the goal. Student: confSeen = { date: [..] }.
    Shout-outs: a ticker on The Keep built from today's pastes. */
-import { esc, goalXP } from "./game.js?v=20261013h";
-import { azToday, azNow, doPull, formOf, sparkleImg, FAMILIES, RARITY_COLOR } from "./collect.js?v=20261013h";
+import { esc, goalXP } from "./game.js?v=20261013q";
+import { musicBtn } from "./party.js?v=20261013q";
+import { azToday, azNow, doPull, formOf, sparkleImg, FAMILIES, RARITY_COLOR } from "./collect.js?v=20261013q";
 
 export const SNACK_XP = 25, TARGET_MIN = 30, TARGET_MAX = 80, VISIT_SPARKLE = 0.05;
 const rng = s => { let h = 2166136261; for (const ch of s) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return () => { h += 0x6D2B79F5; let t = h; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; };
@@ -95,10 +96,10 @@ export function confettiDue(st, cls) { const seen = ((st.confSeen || {})[azToday
 function confettiHTML(st, cls) {
   const due = confettiDue(st, cls); if (!due.length) return "";
   const top = due[due.length - 1], g = goalXP(cls);
-  const msg = { half: ["⭐ Halfway there!", "You’re past " + g / 2 + " XP today. Keep going!"], goal: ["\u{1F3C6} You hit " + g + "!", "Your companion is so proud of you!"], double: ["\u{1F680} Double goal!", "You reached " + g * 2 + " XP today. Amazing!"] }[top];
+  const msg = { half: ["\u{1F388} You hit " + g / 2 + " XP! Party time!", "Your companion is throwing you a party. You\u2019re halfway to " + g + "!"], goal: ["\u{1F38A} You hit " + g + " XP! Party time!", "Your companion is throwing you a BIG party. You did it!"], double: ["\u{1F680} Double goal!", "You reached " + g * 2 + " XP today. Amazing!"] }[top];
   let c = ""; const cols = ["#FFD166", "#06D6A0", "#EF476F", "#118AB2", "#FFFFFF", "#F77F00"];
   for (let i = 0; i < 80; i++) c += '<i style="left:' + ((i * 37) % 100) + "%;background:" + cols[i % cols.length] + ";animation-delay:" + ((i * 0.11) % 2.4).toFixed(2) + "s;animation-duration:" + (2.4 + (i % 5) * 0.35).toFixed(2) + 's"></i>';
-  return '<div class="confparty" role="dialog" aria-label="Celebration"><div class="confbits" aria-hidden="true">' + c + '</div><div class="confbox"><h2>' + msg[0] + "</h2><p>" + msg[1] + '</p><button class="btn big" data-sp="conf" data-k="' + due.join(",") + '">Woohoo! \u{1F389}</button></div></div>';
+  return '<div class="confparty" role="dialog" aria-label="Celebration"><div class="confbits" aria-hidden="true">' + c + '</div><div class="confbox"><h2>' + msg[0] + "</h2><p>" + msg[1] + '</p><div class="confdance" aria-hidden="true">\u{1F483}\u{1F388}\u{1F57A}\u{1F389}\u{1F483}</div><p>' + musicBtn() + '</p><button class="btn big" data-sp="conf" data-k="' + due.join(",") + '">Woohoo! \u{1F389}</button></div></div>';
 }
 
 /* ---------- student clicks (c = { me, cls, patch, render, flash }) ---------- */

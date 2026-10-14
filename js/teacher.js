@@ -1,25 +1,26 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261013h";
-import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261013h";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261013h";
-import { cpEarnedCalc } from "./room.js?v=20261013h";
-import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261013h";
-import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP } from "./doors.js?v=20261013h";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261013h";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261013q";
+import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261013q";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261013q";
+import { cpEarnedCalc } from "./room.js?v=20261013q";
+import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261013q";
+import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP } from "./doors.js?v=20261013q";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261013q";
 import {
   applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   boss2Of, boss2Prize, simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, isFrost, isHeart, heartUnlocked, saveProblems, yetiUnlocked, wallMarks, WALL_BLOCK, BOSS_START_HP, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261013h";
-import { MQ_CUTOFF } from "./morning.js?v=20261013h";
-import { kindAdmin } from "./kindness.js?v=20261013h";
-import { surpriseAdmin, surpriseAction, shoutTicker } from "./surprise.js?v=20261013h";
-import { passAdmin } from "./pass.js?v=20261013h";
-import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261013h";
+} from "./game.js?v=20261013q";
+import { MQ_CUTOFF } from "./morning.js?v=20261013q";
+import { kindAdmin } from "./kindness.js?v=20261013q";
+import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261013q";
+import { surpriseAdmin, surpriseAction, shoutTicker } from "./surprise.js?v=20261013q";
+import { passAdmin } from "./pass.js?v=20261013q";
+import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261013q";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef
-} from "./db.js?v=20261013h";
+} from "./db.js?v=20261013q";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -371,6 +372,8 @@ async function tpatch(data, quiet) {
   if (!quiet) render(true);
   try { await updateDoc(classRef, up); } catch (e) { flash("That didn\u2019t save \u2014 " + (e.code || e.message)); }
 }
+// Party screen (watch only): the teacher sees the live dance floor / VIP Lounge
+function partyCtx() { return { cls, students, me: null, teacher: true, patch: async () => {}, render: () => render(), flash }; }
 function tctx() {
   const me = tplayer();
   return { cls, students: students.concat([me]), battles, trades, me, patch: tpatch, render: () => render(true), flash };
@@ -476,7 +479,7 @@ function render(force) {
   else if (mode === "signin") h += '<div class="card"><div class="card-head"><h2>Teacher sign-in</h2></div><p class="lede">Sign in with your school Google account.</p><div class="row" style="margin-top:14px;"><button class="btn" data-act="signIn">Sign in with Google</button></div><p class="lede" style="margin-top:12px;font-size:13.5px;">Students: use the student link your teacher sent.</p></div>';
   else if (mode === "denied") h += '<div class="card"><h2>This console is for the teacher</h2><p class="lede" style="margin-top:8px;">' + esc(user && user.email) + ' isn’t on the teacher list.</p><div class="row" style="margin-top:14px;"><button class="btn ghost" data-act="signOut">Use a different account</button></div></div>';
   else if (mode === "setup") h += viewSetup();
-  else if (mode === "class") h += shoutTicker(students, cls) + keepHTML(cls, students, popIds, badgeShout());
+  else if (mode === "class") h += partyBanner(students, cls) + shoutTicker(students, cls) + keepHTML(cls, students, popIds, badgeShout());
   else if (mode === "battle") h += shoutTicker(students, cls) + battleHTML(cls, students, battleFx) + ghost2Card() + (isFrost(cls) ? "" : healControls());
   else {
     const np = prizesOpen(), nd = waitingDoors(students, cls).length;
@@ -485,7 +488,7 @@ function render(force) {
     if (nd && nd > doorHidden) h += '<div class="banner prizealert"><span>\u{1F6AA} <b>' + nd + " door" + (nd === 1 ? "" : "s") + "</b> to check" + doorNames() + '</span><span class="row" style="gap:8px;"><button class="btn small" data-act="goDoors">Check doors</button><button class="btn ghost small" data-act="hideDoors">Hide</button></span></div>';
     if (np && np > prizeHidden) h += '<div class="banner prizealert"><span>\u{1F381} <b>' + np + " prize" + (np === 1 ? "" : "s") + "</b> to order or give" + prizeNames() + '</span><span class="row" style="gap:8px;"><button class="btn small" data-act="goPrizes">View prizes</button><button class="btn ghost small" data-act="hidePrizes">Hide</button></span></div>';
     h += '<div class="tabs ctabs" role="tablist">' + tabs.map(([k, l]) => '<button role="tab" class="tab' + (ctab === k ? " on" : "") + '" data-ctab="' + k + '" aria-selected="' + (ctab === k) + '">' + l + "</button>").join("") + "</div>";
-    if (ctab === "daily") h += viewDaily() + surpriseAdmin(students, cls) + viewWeekDoor() + viewRewards();
+    if (ctab === "daily") h += viewDaily() + partyAdmin(students, cls) + surpriseAdmin(students, cls) + viewWeekDoor() + viewRewards();
     else if (ctab === "students") h += viewStandings() + passAdmin(students, cls) + kindAdmin(students, cls) + viewAssign() + viewLosses() + viewLinks();
     else if (ctab === "collector") h += viewLiveBattles() + viewIdeas() + teacherCollectorCard() + viewCollector();
     else if (ctab === "quest") h += questTracker(students);
@@ -496,6 +499,7 @@ function render(force) {
   const active = document.activeElement, keep = active && active.id && active.matches("input, textarea") ? { id: active.id, v: active.value, pos: active.selectionStart } : null;
   const fields = liveNow ? saveFields(app) : {};
   app.innerHTML = h + (mode === "guide" ? '<p class="muted small" style="text-align:center;margin:18px 0 6px;opacity:.6;">Version ' + APP_V + "</p>" : "") + (mode === "guide" && ctab === "collector" && cls ? collectorOverlays(tctx()) : "");
+  if (cls) partySync(partyCtx());
   restoreFields(fields);
   if (keep) { const n = document.getElementById(keep.id); if (n) { n.value = keep.v; n.focus(); try { n.setSelectionRange(keep.pos, keep.pos); } catch (e) {} } }
   renderRules();
@@ -1472,6 +1476,8 @@ async function addIds(list, ref) {
 
 /* ================= clicks ================= */
 document.addEventListener("click", async ev => {
+  { const pb = ev.target.closest && ev.target.closest('[data-party="music"]'); if (pb) { toggleMusic(); render(); return; } }
+  { const pb = ev.target.closest && ev.target.closest("[data-party]"); if (pb) { if (cls) await partyClick(pb, partyCtx()).catch(e => showErr(e)); return; } }
   let el;
   if ((el = ev.target.closest("[data-tr]"))) { if (cls) await onTradeClick(el, tctx()).catch(e => showErr(e)); return; }
   if ((el = ev.target.closest("[data-cc]"))) { if (cls) await collectorClick(el, tctx()).catch(e => showErr(e)); return; }
@@ -1797,6 +1803,11 @@ document.addEventListener("click", async ev => {
   }
   if (act === "pasteOpen") { busy.paste = true; busy.pasteDay = null; render(); const b = document.getElementById("pasteBox"); if (b) b.focus(); return; }
   if (act === "pasteClose") { busy.paste = false; render(); return; }
+  if (["party60Start", "party60Stop", "party120On", "party120Off"].includes(act)) {
+    const up = partyAction(act, cls, students); if (!up) return;
+    try { await updateDoc(classRef, up); flash({ party60Start: "\u{1F388} The 60 XP Party is on for 10 minutes!", party60Stop: "60 XP Party ended.", party120On: "\u{1F38A} The VIP Party is on!", party120Off: "VIP Party turned off." }[act]); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); }
+    return;
+  }
   if (["snackStart", "snackStop", "snackEnd", "targetStart", "targetReveal", "targetStop", "visitorToggle", "tickerToggle"].includes(act)) {
     const up = surpriseAction(act, students, cls); if (!up) return;
     try { await updateDoc(classRef, up); flash({ snackStart: "\u{1F36A} Snack dropped! Every companion is hungry.", snackStop: "Snack Drop cleared.", snackEnd: "\u23F9\uFE0F Snack time is over! Students who reached it can still feed their companion.", targetStart: "\u{1F3AF} Secret Target started! Paste XP later, then tap Reveal.", targetReveal: "\u{1F389} Revealed! The number was " + (cls.target && cls.target.n) + ".", targetStop: "Secret Target cancelled.", visitorToggle: "Saved.", tickerToggle: "Saved." }[act]); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); }
@@ -1997,3 +2008,5 @@ document.addEventListener("keydown", ev => {
 });
 
 render();
+
+partyTicker(() => cls, () => render());

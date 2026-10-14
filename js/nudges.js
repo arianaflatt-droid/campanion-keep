@@ -1,13 +1,14 @@
 // Nudge messages: short, friendly "you're close!" notes at the top of a student's page.
 // Each rule returns a nudge or null; the most useful few are shown (lower pri = shown first).
-import { seasonOf, dayXP, simulate, GEAR, goalXP, arr5, esc, isHaunt, battleOn, nextAttack, companionOf, bossState } from "./game.js?v=20261013h";
-import { azToday, brewLegLeft, feastLegLeft, gingerLegLeft, snowLegLeft, candyLegLeft, ghostEggLeft, BOSS2_LIST, boss2EggLeft, vaultLegLeft, pickleLeft, birthdayLeft, EVENTS, eventOpen, eventUnlocked, hasEvent, eventStreak, creature, family, azNow, pullsLeft, legendaryLeft, bankXP, LEVEL_XP, PULL_XP, hasStarter, owned, MAX_LEVEL } from "./collect.js?v=20261013h";
-import { badgeState } from "./badges.js?v=20261013h";
-import { mqReady } from "./morning.js?v=20261013h";
-import { unthanked } from "./kindness.js?v=20261013h";
-import { pettedToday } from "./bond.js?v=20261013h";
-import { passReady } from "./pass.js?v=20261013h";
-import { doorsLive, goldenReady, doorName } from "./doors.js?v=20261013h";
+import { seasonOf, dayXP, simulate, GEAR, goalXP, arr5, esc, isHaunt, battleOn, nextAttack, companionOf, bossState } from "./game.js?v=20261013q";
+import { azToday, brewLegLeft, feastLegLeft, gingerLegLeft, snowLegLeft, candyLegLeft, ghostEggLeft, BOSS2_LIST, boss2EggLeft, vaultLegLeft, pickleLeft, birthdayLeft, EVENTS, eventOpen, eventUnlocked, hasEvent, eventStreak, creature, family, azNow, pullsLeft, legendaryLeft, bankXP, LEVEL_XP, PULL_XP, hasStarter, owned, MAX_LEVEL } from "./collect.js?v=20261013q";
+import { badgeState } from "./badges.js?v=20261013q";
+import { mqReady } from "./morning.js?v=20261013q";
+import { unthanked } from "./kindness.js?v=20261013q";
+import { pettedToday } from "./bond.js?v=20261013q";
+import { mealsReady } from "./meals.js?v=20261013q";
+import { passReady } from "./pass.js?v=20261013q";
+import { doorsLive, goldenReady, doorName } from "./doors.js?v=20261013q";
 
 const MAX_SHOWN = 3;
 const WEEKDAY = { Mon: 0, Tue: 1, Wed: 2, Thu: 3, Fri: 4 };
@@ -23,6 +24,7 @@ export function nudges(st, cls, battles, students) {
   const add = (pri, icon, html, tab) => out.push({ pri, icon, html, tab });
 
   if (kindN) out.push({ pri: 0, icon: "\u{1F48C}", html: "<b>" + (kindN === 1 ? "A classmate sent you a shout-out!" : kindN + " classmates sent you shout-outs!") + "</b> Read " + (kindN === 1 ? "it" : "them") + " on the Kindness Board.", tab: "pet" });
+  { const n = mealsReady(st, cls); if (n) add(0, "\u{1F525}", "<b>" + (n === 1 ? "A meal is" : "Breakfast and lunch are") + " ready to cook!</b> Cook for " + pet + " in the Campfire Kitchen for a surprise boost.", "pet"); }
   // ---- Season Pass rewards waiting ----
   { const n = passReady(st, cls); if (n) add(0, "\u{1F39F}\uFE0F", "<b>" + (n === 1 ? "A Season Pass reward is" : n + " Season Pass rewards are") + " ready!</b> Claim " + (n === 1 ? "it" : "them") + " on the Season Pass tab.", "pass"); }
   // ---- Bonding meter: a daily pet ----
