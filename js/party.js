@@ -6,7 +6,7 @@
       Dance buttons (everyone sees the moves) + one Balloon Drop each: balloons fall for 20 seconds, tap them and your
       companion jumps up to pop them (white = 1 point, gold = 3, rainbow = 5).
       Party favor when it ends: 0–4 points = +10 Comfort Points, 5–9 = Lucky Egg charm or +20 Comfort Points, 10+ = an egg.
-   🎊 120 XP VIP Party: Ms. Ariana turns it on; it ends after 10 minutes (cls.party120 = { id, end, hp }).
+   🎊 120 XP VIP Party: Ms. Ariana turns it on and it stays open until she turns it off (cls.party120 = { id, on, hp }), so students who reach 120 later can still come in.
       Gold VIP ticket, red carpet entrance, VIP lounge, crowns, an extra 🕺 Moonwalk.
       Piñata: one class health bar, unlimited hits; when it breaks candy rains and everyone who hit it gets a little of
       the event currency (Comfort Points when no event is on). Spotlight Solo (15 seconds each, one at a time, others cheer).
@@ -17,10 +17,10 @@
       pty60 / pty120 = { id, in, hat, mv, mn, pops, drop, solo, ch: { k, n }, hits }   (live party state; others read it)
       partyGot = { partyId: true, partyId + "-p": true }   partyAlbum = [ { id, d, who: [{ id, n, p }] } ]   vipDay
    Party music is made in the browser (no sound files); it only starts when someone taps 🎵. */
-import { esc, goalXP, companionOf, petHTML, wornItem, simulate, eventMode, seasonOf, hatHTML, randomHat, onPet, vipToday, partyHat, partyCrown, headFree } from "./game.js?v=20261014a";
-import { azToday } from "./collect.js?v=20261014a";
-import { heldWeapon } from "./quest.js?v=20261014a";
-import { tricksFor } from "./bond.js?v=20261014a";
+import { esc, goalXP, companionOf, petHTML, wornItem, simulate, eventMode, seasonOf, hatHTML, randomHat, onPet, vipToday, partyHat, partyCrown, headFree } from "./game.js?v=20261014b";
+import { azToday } from "./collect.js?v=20261014b";
+import { heldWeapon } from "./quest.js?v=20261014b";
+import { tricksFor } from "./bond.js?v=20261014b";
 
 export const PARTY_MIN = 10, PARTY_XP = 60;
 const DROP_MS = 20000, SOLO_MS = 15000, A = "assets/party/";
@@ -30,7 +30,9 @@ const lh = st => !!((((st && st.xpHist) || {})[today()] || {}).lh);
 export const isGuest = st => lh(st) || xpOn(st) >= PARTY_XP;
 export const isVIP = (st, cls) => lh(st) || xpOn(st) >= goalXP(cls);
 export const p60On = cls => !!(cls && cls.party60 && Date.now() < Number(cls.party60.end));
-export const p120On = cls => !!(cls && cls.party120 && cls.party120.end && Date.now() < Number(cls.party120.end));
+export const p120On = cls => !!(cls && cls.party120 && (cls.party120.on != null ? cls.party120.on : cls.party120.end && Date.now() < Number(cls.party120.end)));
+// The countdown text: the 60 XP Party shows time left, the VIP Party is open until Ms. Ariana closes it
+const timeTxt = (k, cls) => (k === "120" ? "open" : mmss(leftS(k, cls)) + " left");
 const P = (k, cls) => (cls && (k === "60" ? cls.party60 : cls.party120)) || null;
 const isOn = (k, cls) => (k === "60" ? p60On(cls) : p120On(cls));
 const F = k => "pty" + k;
@@ -78,7 +80,7 @@ export function partyCards(st, cls) {
     if (!isOn(k, cls)) return;
     const ok = canEnter(st, k, cls), x = mine(st, k, cls), goal = k === "60" ? PARTY_XP : goalXP(cls), vip = k === "120";
     h += '<div class="card pcard p' + k + '"><img class="pcardimg" src="' + A + (vip ? "vip-ticket.webp" : "invitation.webp") + '" alt=""><div class="ptxt"><h3>' +
-      (vip ? "\u{1F38A} VIP Party!" : "\u{1F388} 60 XP Party!") + ' <span class="pcount" data-pcount="' + k + '">' + mmss(leftS(k, cls)) + "</span> left</h3>" +
+      (vip ? "\u{1F38A} VIP Party!" : "\u{1F388} 60 XP Party!") + ' <span class="pcount" data-pcount="' + k + '">' + timeTxt(k, cls) + "</span></h3>" +
       (ok ? "<p>" + (vip ? "\u{1F451} You hit " + goal + " XP — you’re a VIP! Walk the red carpet into the VIP Lounge." : "\u{1F48C} You’re invited! Everyone’s companions are on the dance floor.") + "</p>" +
           '<button class="btn gold" data-party="open' + k + '">' + (x && x.in ? "\u{1F483} Back to the party" : vip ? "\u{1F39F}️ Use my VIP ticket" : "\u{1F389} Go to the party") + "</button>"
         : "<p>Hit <b>" + goal + " XP</b> to get in! You have <b>" + xpOn(st) + "</b> so far (it counts at Ms. Ariana’s next XP check).</p>" +
@@ -182,7 +184,7 @@ function update() {
   const { cls, students, me } = LAST, k = ROOM.k, vip = k === "120";
   const list = guestsOf(students, k, cls), floor = el.querySelector(".pfloor");
   el.querySelector(".pnum").textContent = list.length + (vip ? " VIP" + (list.length === 1 ? "" : "s") : " guest" + (list.length === 1 ? "" : "s"));
-  el.querySelectorAll("[data-pcount]").forEach(t => { t.textContent = mmss(leftS(k, cls)); });
+  el.querySelectorAll("[data-pcount]").forEach(t => { t.textContent = timeTxt(k, cls); });
   floor.style.setProperty("--gs", list.length <= 6 ? "1" : list.length <= 12 ? ".8" : list.length <= 20 ? ".66" : ".56");
   const ids = new Set(list.map(s => s.id));
   floor.querySelectorAll(".pguest").forEach(g => { if (!ids.has(g.dataset.g)) g.remove(); });
@@ -483,7 +485,7 @@ export function partyBanner(students, cls) {
   ["60", "120"].forEach(k => {
     if (!isOn(k, cls)) return;
     const g = guestsOf(students, k, cls), vip = k === "120";
-    h += '<div class="pbanner p' + k + '"><div><b>' + (vip ? "\u{1F451} VIP PARTY!" : "\u{1F388} 60 XP PARTY!") + '</b> <span data-pcount="' + k + '">' + mmss(leftS(k, cls)) + "</span> left · " + g.length + (vip ? " in the VIP Lounge" : " on the dance floor") + "</div>" +
+    h += '<div class="pbanner p' + k + '"><div><b>' + (vip ? "\u{1F451} VIP PARTY!" : "\u{1F388} 60 XP PARTY!") + '</b> <span data-pcount="' + k + '">' + timeTxt(k, cls) + "</span> · " + g.length + (vip ? " in the VIP Lounge" : " on the dance floor") + "</div>" +
       '<div class="pguests">' + g.map(s => "<span>" + (vip ? "\u{1F451} " : "\u{1F483} ") + esc(s.name) + "</span>").join("") + "</div>" +
       '<button class="btn small" data-party="watch' + k + '">\u{1F4FA} Open the party screen</button>' + musicBtn() + "</div>";
   });
@@ -494,24 +496,24 @@ export function partyAdmin(students, cls) {
   const row = (k, title, desc, startAct, stopAct) => {
     const on = isOn(k, cls), g = guestsOf(students, k, cls), elig = list.filter(s => (k === "60" ? isGuest(s) : isVIP(s, cls))).length;
     let stats = "";
-    if (on) stats = '<span class="small"><span data-pcount="' + k + '">' + mmss(leftS(k, cls)) + "</span> left · " + g.length + " in · " + elig + " can come" +
+    if (on) stats = '<span class="small"><span data-pcount="' + k + '">' + timeTxt(k, cls) + "</span> · " + g.length + " in · " + elig + " can come" +
       (k === "60" ? " · " + g.filter(s => (mine(s, k, cls) || {}).drop).length + " dropped balloons"
         : " · piñata " + Math.max(0, pinHP(cls) - g.reduce((n, s) => n + (Number((mine(s, k, cls) || {}).hits) || 0), 0)) + " / " + pinHP(cls)) + "</span>";
     return '<div class="row" style="gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0;"><b>' + title + "</b>" + (on
-      ? stats + '<button class="btn small" data-party="watch' + k + '">\u{1F4FA} Party screen</button><button class="btn ghost small" data-act="' + stopAct + '">End early</button>'
+      ? stats + '<button class="btn small" data-party="watch' + k + '">\u{1F4FA} Party screen</button><button class="btn ghost small" data-act="' + stopAct + '">' + (k === "120" ? "Turn off" : "End early") + "</button>"
       : '<span class="small muted">' + desc + " (" + elig + " can come right now)</span><button class=\"btn small\" data-act=\"" + startAct + '">Start</button>') + "</div>";
   };
-  return '<div class="card"><div class="card-head"><h2>\u{1F389} Party Time</h2><span class="fact">10 minutes each</span></div>' +
+  return '<div class="card"><div class="card-head"><h2>\u{1F389} Party Time</h2><span class="fact">60 XP: 10 minutes · VIP: until you turn it off</span></div>' +
     row("60", "\u{1F388} 60 XP Party", "Dance floor + Balloon Drop for everyone at 60+ XP. Favor when it ends.", "party60Start", "party60Stop") +
     row("120", "\u{1F451} " + goal + " XP VIP Party", "VIP Lounge, piñata, Spotlight Solos, group photo for everyone at " + goal + " XP. Mystery Box + VIP look for the day.", "party120On", "party120Off") +
-    '<p class="small muted">Both end by themselves after 10 minutes. Paste XP during a party so students who just made it can come in. Favors open when the party ends.</p></div>';
+    '<p class="small muted">The 60 XP Party ends by itself after 10 minutes. The VIP Party stays open until you tap Turn off, so anyone who reaches 120 later can still come in. Favors open when a party ends.</p></div>';
 }
 export function partyAction(act, cls, students) {
   const n = kids(students).length || 10;
   if (act === "party60Start") return { party60: { id: "p60-" + Date.now(), end: Date.now() + PARTY_MIN * 60000 } };
   if (act === "party60Stop") return cls.party60 ? { "party60.end": Date.now() } : null;
-  if (act === "party120On") return { party120: { id: "p120-" + Date.now(), end: Date.now() + PARTY_MIN * 60000, hp: Math.max(150, n * 15) } };
-  if (act === "party120Off") return cls.party120 ? { "party120.end": Date.now() } : null;
+  if (act === "party120On") return { party120: { id: "p120-" + Date.now(), on: true, hp: Math.max(150, n * 15) } };
+  if (act === "party120Off") return cls.party120 ? { "party120.on": false, "party120.end": Date.now() } : null;
   return null;
 }
 // Keeps the countdowns ticking; redraws once when a party ends.
