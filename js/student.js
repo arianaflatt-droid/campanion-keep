@@ -1,29 +1,30 @@
 import {
   checkVersion, hitOn, gearInSeason, applyDisplayNames, companionOf, petCreatures, pinnedBadgeHTML, DAYS, SHORT, ROSTER, GEAR, SIDEKICKS, BANNER, bannerFor, isHaunt, battleOn, candyOf, basketHTML, CANDY_FULL, bossState, attacksReady, bossBarHTML, GHOST_IMG, ghostUnlocked, turkeyUnlocked, grinchUnlocked, isJingle, isFrost, isHeart, heartUnlocked, attackRefusal, saveProblems, yetiUnlocked, eventMode, isGobble, setSeason, SEASON, seasonOf, STORE, candyLeft, candySpent, ownedCount, ownsItem, storeArt, nextAttack, dmgOf, HAT_BONUS, BREW_BONUS, teamHTML, wallHTML, WHEEL, pickSlice, wheelHTML, spinTo, PRIZES, prizeSlices, bucketState, bucketHTML, baseDamage, EAT_PER_DAY, dayEaten, dayXP, byId, esc, arr5, recordedDays, goalXP,
-  simulate, wornItem, tier, boardDay, sidekickToday, sidekickSVG, petHTML as petBase, vipStage, withVipHat, vipWorn, itemArt, potionFx, bondLevel,
+  simulate, wornItem, tier, boardDay, sidekickToday, sidekickSVG, petHTML as petBase, vipStage, withVipHat, vipWorn, petWithHead, OUTFITS, itemArt, potionFx, bondLevel,
   ghost2Unlocked, starterFam, boss2Of, BOSS2, BOSS2_LIST, creditCompanion, compKey, compLevel, compFill, COMP_DAYS, creatureCompanion
-} from "./game.js?v=20261013q";
-import { EVENT_LIST, TEAM_EVENTS, eventOn, teamCard, teamOf as tevTeamOf } from "./teams.js?v=20261013q";
-import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=20261013q";
-import { kindCard } from "./kindness.js?v=20261013q";
-import { partyCards, partyOverlay, partyClick, partyBusy, partyTicker, partySync } from "./party.js?v=20261013q";
-import { kitchenCard, kitchenOverlay, kitchenClick, kitchenBusy, kitchenPointer } from "./meals.js?v=20261013q";
-import { surpriseCards, surpriseOverlay, surpriseClick, surpriseBusy } from "./surprise.js?v=20261013q";
-import { hofTab, hofParty, hofClick } from "./hof.js?v=20261013q";
-import { passTab, passOverlay, passClick, passBusy, passReady } from "./pass.js?v=20261013q";
-import { bondHTML, moodBubble, playTrick, burst, unlockAt } from "./bond.js?v=20261013q";
-import { morningTab, morningOverlay, morningClick, morningBusy, mqReady } from "./morning.js?v=20261013q";
-import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261013q";
-import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20261013q";
-import { nudgeCard } from "./nudges.js?v=20261013q";
-import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261013q";
-import { teacherPlayer, hasStarter, MOVES, formOf } from "./collect.js?v=20261013q";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261013q";
-import { goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked, weekGoal, weekKey, weekTotal, weekDoorState, vaultState, oldReady, vaultLessonsLeft, VAULT_XP, VAULT_BONUS_XP, VAULT_EGGS } from "./doors.js?v=20261013q";
-import { azToday } from "./collect.js?v=20261013q";
+} from "./game.js?v=20261013s";
+import { EVENT_LIST, TEAM_EVENTS, eventOn, teamCard, teamOf as tevTeamOf } from "./teams.js?v=20261013s";
+import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=20261013s";
+import { kindCard } from "./kindness.js?v=20261013s";
+import { partyCards, partyOverlay, partyClick, partyBusy, partyTicker, partySync } from "./party.js?v=20261013s";
+import { kitchenCard, kitchenOverlay, kitchenClick, kitchenBusy, kitchenPointer } from "./meals.js?v=20261013s";
+import { miniCard, miniOverlay, miniClick, miniBusy, miniSync } from "./mini.js?v=20261013s";
+import { surpriseCards, surpriseOverlay, surpriseClick, surpriseBusy } from "./surprise.js?v=20261013s";
+import { hofTab, hofParty, hofClick } from "./hof.js?v=20261013s";
+import { passTab, passOverlay, passClick, passBusy, passReady } from "./pass.js?v=20261013s";
+import { bondHTML, moodBubble, playTrick, burst, unlockAt } from "./bond.js?v=20261013s";
+import { morningTab, morningOverlay, morningClick, morningBusy, mqReady } from "./morning.js?v=20261013s";
+import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261013s";
+import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20261013s";
+import { nudgeCard } from "./nudges.js?v=20261013s";
+import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261013s";
+import { teacherPlayer, hasStarter, MOVES, formOf } from "./collect.js?v=20261013s";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261013s";
+import { goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked, weekGoal, weekKey, weekTotal, weekDoorState, vaultState, oldReady, vaultLessonsLeft, VAULT_XP, VAULT_BONUS_XP, VAULT_EGGS } from "./doors.js?v=20261013s";
+import { azToday } from "./collect.js?v=20261013s";
 import { roomHTML, FIT_SLOTS, slotKind, KIND_NAMES, KIND_ICON, EVERYDAY_PRICE, THEMED_PRICE, TROPHY_PRICE, TYPE_THEMES, SEASON_THEMES, THEME_NAMES, TROPHIES,
-  itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId } from "./room.js?v=20261013q";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261013q";
+  itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId } from "./room.js?v=20261013s";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261013s";
 
 let fxFor = null;   // the student whose companion is being drawn (for the potion glow)
 const petHTML = (c, worn, held) => { const h = petBase(c, worn, held), fx = fxFor ? potionFx(fxFor) : ""; return fx ? h.replace('class="petwrap', 'class="petwrap' + fx) : h; };
@@ -220,12 +221,13 @@ function render(force) {
   }
   const cur = students.find(x => x.id === me);
   if (cur && cur.companionId && cls) lockBadges(cur);
-  const bday = !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() && !questBusy() && !morningBusy() && !passBusy() && !surpriseBusy() && !kitchenBusy() && !partyBusy() ? birthdayParty(cur) : "";
-  const cape = !bday && !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() && !questBusy() && !morningBusy() && !passBusy() && !surpriseBusy() && !kitchenBusy() && !partyBusy() ? capeParty(cur) : "";
-  const party = !bday && !cape && !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() && !questBusy() && !morningBusy() && !passBusy() && !surpriseBusy() && !kitchenBusy() && !partyBusy() ? badgeParty(cur) : "";
-  const hof = !bday && !cape && !party && !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() && !questBusy() && !morningBusy() && !passBusy() && !surpriseBusy() && !kitchenBusy() && !partyBusy() ? hofParty(cur, students, cls) : "";
+  const bday = !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() && !questBusy() && !morningBusy() && !passBusy() && !surpriseBusy() && !kitchenBusy() && !partyBusy() && !miniBusy() ? birthdayParty(cur) : "";
+  const cape = !bday && !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() && !questBusy() && !morningBusy() && !passBusy() && !surpriseBusy() && !kitchenBusy() && !partyBusy() && !miniBusy() ? capeParty(cur) : "";
+  const party = !bday && !cape && !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() && !questBusy() && !morningBusy() && !passBusy() && !surpriseBusy() && !kitchenBusy() && !partyBusy() && !miniBusy() ? badgeParty(cur) : "";
+  const hof = !bday && !cape && !party && !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() && !questBusy() && !morningBusy() && !passBusy() && !surpriseBusy() && !kitchenBusy() && !partyBusy() && !miniBusy() ? hofParty(cur, students, cls) : "";
   const fields = liveNow ? saveFields(app) : {};
-  app.innerHTML = h + partyOverlay(cur && cur.companionId ? cur : null, cls) + (cur && cur.companionId && cls ? kitchenOverlay(cur) : "") + (cur && cur.companionId && cls && !PREVIEW && !bday && !cape && !party && !hof ? surpriseOverlay(cur, cls) : "") + passOverlay() + presentOverlay() + vaultOverlay() + prizeOverlay() + (cur && cur.companionId && cls ? collectorOverlays(collectorCtx(cur)) + questOverlay(cur) + morningOverlay(cur, cls) : "") + party + cape + bday + hof;
+  miniSync(cls);
+  app.innerHTML = h + (cur && cur.companionId && cls ? miniOverlay(cur, cls) : "") + partyOverlay(cur && cur.companionId ? cur : null, cls) + (cur && cur.companionId && cls ? kitchenOverlay(cur) : "") + (cur && cur.companionId && cls && !PREVIEW && !bday && !cape && !party && !hof ? surpriseOverlay(cur, cls) : "") + passOverlay() + presentOverlay() + vaultOverlay() + prizeOverlay() + (cur && cur.companionId && cls ? collectorOverlays(collectorCtx(cur)) + questOverlay(cur) + morningOverlay(cur, cls) : "") + party + cape + bday + hof;
   restoreFields(fields);
   if (cls) partySync(collectorCtx(cur && cur.companionId && !PREVIEW ? cur : null));
   if (bday && !bdayChimed) { bdayChimed = true; birthdayTune(); }
@@ -289,6 +291,7 @@ function viewMine(s) {
   if (tab === "hof") return h + hofTab(s, students, cls);
   if (tab === "quest") return h + questTab(s, petHTML(c, worn, heldWeapon(s)));
   if (tab === "room") return h + roomTab(s, c, worn);
+  h += miniCard(s, cls);
   h += partyCards(s, cls);
   h += surpriseCards(s, cls, s.petName || c.name);
   h += kitchenCard(s, cls, s.petName || c.name);
@@ -299,7 +302,7 @@ function viewMine(s) {
   h += '<div class="card"><div class="mypet t-' + t.key + '">' + pinnedBadgeHTML(s, "mine") +
     (haunt ? basketHTML(candy, "big") : "") +
     moodBubble(s, goal) +
-    '<div class="stage' + vipStage(s) + '" aria-hidden="true">' + withVipHat(s, petHTML(c, vipWorn(s, worn), heldWeapon(s)), c) + (side ? sidekickSVG(side, true) : "") + "</div>" +
+    '<div class="stage' + vipStage(s) + '" aria-hidden="true">' + petWithHead(s, c, worn, heldWeapon(s)) + (side ? sidekickSVG(side, true) : "") + "</div>" +
     '<div class="bigname">' + esc(s.petName || c.name) + "</div>" +
     '<div class="tspec" style="font-family:var(--mono);font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);">' + esc(c.name) + "</div>" +
     '<span class="tbar"><span style="width:' + Math.max(0, Math.min(100, sim.health / sim.max * 100)) + '%"></span></span>' +
@@ -320,12 +323,18 @@ function viewMine(s) {
     '<p class="muted" style="margin-top:8px;">Streak: ' + sim.hitRun + " day" + (sim.hitRun === 1 ? "" : "s") + " · best: " + sim.bestRun + "</p></div></div>";
 
   h += '<div class="card"><div class="card-head"><h2>Gear</h2><span class="fact">one at a time</span></div><div class="gearpick">';
-  GEAR.filter(g => gearInSeason(g)).forEach(g => {
-    const ok = sim.unlocked.includes(g.id);
+  // Only the gear this student has unlocked is shown (the full list got crowded)
+  const myGear = GEAR.filter(g => gearInSeason(g) && sim.unlocked.includes(g.id));
+  if (!myGear.length) h += '<p class="lede" style="text-align:center;grid-column:1/-1;">No gear yet! Hit ' + goal + " XP days in a row to unlock your first piece.</p>";
+  myGear.forEach(g => {
+    const ok = true;
     h += "<div><button class=\"eq" + (worn && worn.id === g.id ? " on" : "") + '" data-equip="' + g.id + '"' + (ok ? "" : " disabled") + ' aria-label="' + esc(g.name) + (ok ? "" : " locked") + '">' +
       itemArt(g, "gimg") + '</button><span class="lbl">' + (ok ? esc(g.name) : g.ghost && !ghostUnlocked(cls) ? "Defeat the Ghost-olotl" : g.turkey && !turkeyUnlocked(cls) ? "Defeat the Turducken" : g.jingle && !grinchUnlocked(cls) ? "Defeat the Grinch-a-Duck" : g.frost && !yetiUnlocked(cls) ? "Defeat the Snowlotl" : g.heart && !heartUnlocked(cls) ? "Defeat the Heartbreaker-otl" : g.streak + "-day streak") + "</span></div>";
   });
-  h += '</div><p class="lede" style="margin-top:12px;font-size:13.5px;text-align:center;">Hit ' + goal + " XP days in a row to unlock more. Tap what you’re wearing to take it off.</p>";
+  h += '</div><p class="lede" style="margin-top:12px;font-size:13.5px;text-align:center;">Hit ' + goal + " XP days in a row (and beat event bosses) to unlock more. Tap what you’re wearing to take it off.</p>";
+  const myOut = OUTFITS.filter(o => (s.outfits || {})[o.id]);
+  if (myOut.length) h += '<h3 style="margin:14px 0 8px;text-align:center;">\u{1F3AD} Event outfits <span class="muted small">(tap to wear, tap again to take off)</span></h3><div class="gearpick">' +
+    myOut.map(o => '<div><button class="eq' + (s.outfitOn === o.id ? " on" : "") + '" data-outfit="' + o.id + '" aria-label="' + esc(o.name) + '"><img class="gimg" src="' + o.img + '" alt=""></button><span class="lbl">' + esc(o.name) + "</span></div>").join("") + "</div>";
   const ws = weaponsOwned(s), hw = heldWeapon(s);
   if (ws.length) h += '<h3 style="margin:14px 0 8px;text-align:center;">\u2694\uFE0F Held item <span class="muted small">(from the Grade Level Quest \u2014 works with any hat)</span></h3><div class="qweapons">' +
     ws.map(id => { const w = weapon(id); return '<button class="qw' + (hw && hw.id === id ? " on" : "") + '" data-qhold="' + id + '" title="' + esc(w.name) + '"><img src="' + esc(w.img) + '" alt=""><small>' + esc(w.name) + "</small></button>"; }).join("") + "</div>";
@@ -828,6 +837,11 @@ document.addEventListener("click", async ev => {
     await partyClick(el, Object.assign(collectorCtx(s), { flash })).catch(e => flash("Something went wrong \u2014 " + (e.message || e)));
     return;
   }
+  if ((el = ev.target.closest("[data-mini]"))) {
+    const s = students.find(x => x.id === me); if (!s || PREVIEW) return;
+    await miniClick(el, Object.assign(collectorCtx(s), { flash })).catch(e => flash("Something went wrong \u2014 " + (e.message || e)));
+    return;
+  }
   if ((el = ev.target.closest("[data-kc]"))) {
     const s = students.find(x => x.id === me); if (!s || PREVIEW) return;
     await kitchenClick(el, Object.assign(collectorCtx(s), { flash })).catch(e => flash("Something went wrong \u2014 " + (e.message || e)));
@@ -890,6 +904,7 @@ document.addEventListener("click", async ev => {
   if ((el = ev.target.closest("[data-vault]"))) { if (!PREVIEW) await openVault(el.dataset.vault); return; }
   if ((el = ev.target.closest("[data-claim]"))) { if (!PREVIEW) await claimDoor(Number(el.dataset.claim)); return; }
   if ((el = ev.target.closest("[data-open]"))) { if (!PREVIEW) { const [d, k] = el.dataset.open.split(":"); await openPresent(d, k); } return; }
+  if ((el = ev.target.closest("[data-outfit]"))) { const s = students.find(x => x.id === me); if (!s || PREVIEW) return; const id = el.dataset.outfit; return patch({ outfitOn: s.outfitOn === id ? "" : id }); }
   if ((el = ev.target.closest("[data-side]"))) return patch({ sidekick: el.dataset.side });
   if ((el = ev.target.closest("[data-equip]"))) {
     const s = students.find(x => x.id === me), worn = wornItem(s, simulate(s, cls));

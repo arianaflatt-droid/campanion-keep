@@ -1,10 +1,10 @@
-import { CREATURE_LAYOUT, CREATURE_FIT_ID } from "./creature-fit.js?v=20261013q";
-import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261013q";
-import { heldWeapon } from "./quest.js?v=20261013q";
+import { CREATURE_LAYOUT, CREATURE_FIT_ID } from "./creature-fit.js?v=20261013s";
+import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261013s";
+import { heldWeapon } from "./quest.js?v=20261013s";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261013q";
+export const APP_V = "20261013s";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -572,6 +572,19 @@ function partyStyle(c, kind) {
   const size = Math.max(0.34, Math.min(0.62, sz0 * 1.1)) * (kind === "hat" ? 1 : 0.85) * adj[2];   // tiny shop-hat spots get a hat you can see; huge ones don't swallow the face
   return pos(x0 + adj[0], y0 + adj[1]) + "font-size:" + size.toFixed(3) + "em;transform:translate(-50%,-" + (kind === "hat" ? 80 : 78) + "%) rotate(" + (r0 + adj[3] + (kind === "hat" ? -6 : 0)) + "deg);transform-origin:50% 80%;";
 }
+/* 🎭 Event outfits (mini events): head pieces bought in a mini event's shop are kept forever (outfits = { id: true }, outfitOn = id).
+   During a mini event every companion also wears that event's random costume (js/mini.js adds it through HEAD_FNS). */
+const OF = (ev, dir, list) => list.map(([k, name]) => ({ id: ev + "-" + k, ev, name, img: "assets/" + dir + "/" + (ev === "tot" ? "costume-" : "outfit-") + k + ".webp" }));
+export const OUTFITS = [].concat(
+  OF("tot", "tot", [["pumpkin", "Pumpkin Hat"], ["cat", "Black Cat Ears"], ["bat", "Bat Headband"], ["wizard", "Wizard Hat"], ["mummy", "Mummy Wrap"], ["candycorn", "Candy Corn Hat"], ["spider", "Spider Headband"], ["horns", "Little Devil Horns"]]),
+  OF("fest", "fest", [["beanie", "Knit Beanie"], ["scarecrow", "Scarecrow Hat"], ["acorn", "Acorn Cap"], ["leafcrown", "Autumn Leaf Crown"], ["sunflower", "Sunflower Headband"], ["turkey", "Turkey Feathers"], ["apple", "Apple Hat"], ["earmuffs", "Plaid Earmuffs"]]),
+  OF("xmas", "xmas", [["elfhat", "Elf Hat"], ["candycane", "Candy Cane Headband"], ["gingerbread", "Gingerbread Hat"], ["ornament", "Ornament Headband"], ["holly", "Holly Crown"], ["bow", "Present Bow"], ["star", "Star Topper"], ["nutcracker", "Nutcracker Hat"]]));
+export const outfitOf = id => OUTFITS.find(o => o.id === id) || null;
+export const headImg = (c, img) => '<span class="phat cos" style="' + (c ? partyStyle(c, "hat") : "") + '"><img src="' + img + '" alt=""></span>';
+export const HEAD_FNS = [st => { const o = st && st.outfitOn && ((st.outfits || {})[st.outfitOn]) ? outfitOf(st.outfitOn) : null; return o ? o.img : ""; }];
+// Something extra on the head (a bought outfit, then an event costume). The shop hat comes off while it's on.
+export function headExtra(st, c) { if (vipToday(st)) return ""; for (const f of HEAD_FNS) { const img = f(st, c); if (img) return headImg(c, img); } return ""; }
+export const petWithHead = (st, c, worn, held) => { const x = headExtra(st, c); return withVipHat(st, onPet(petHTML(c, x ? headFree(worn) : vipWorn(st, worn), held), x), c); };
 export const partyHat = (c, seed) => hatHTML(seed, "", c ? partyStyle(c, "hat") : "");
 export const partyCrown = c => '<span class="pcrown"' + (c ? ' style="' + partyStyle(c, "crown") + '"' : "") + ">\u{1F451}</span>";
 // While a party hat or crown is on, a shop hat comes off (shades and snacks stay)
@@ -596,7 +609,7 @@ export function tileHTML(st, sim, rank, day, popped, haunt) {
     '<span class="rank">' + rank + "</span>" + pinnedBadgeHTML(st) +
     (haunt ? basketHTML(candyLeft(st), "corner") : "") +
     (side ? '<span class="lunch">LUNCH HERO</span>' : "") +
-    '<div class="stage' + potionFx(st) + vipStage(st) + '" aria-hidden="true">' + withVipHat(st, petHTML(c, vipWorn(st, worn), heldWeapon(st)), c) + (side ? sidekickSVG(side) : "") + "</div>" +
+    '<div class="stage' + potionFx(st) + vipStage(st) + '" aria-hidden="true">' + petWithHead(st, c, worn, heldWeapon(st)) + (side ? sidekickSVG(side) : "") + "</div>" +
     '<div class="tname2">' + esc(st.petName || c.name) + "</div>" +
     '<div class="towner">' + esc(st.name || "") + "</div>" + (st.passTitle ? '<div class="ttitle">' + esc(st.passTitle) + "</div>" : "") +
     '<div class="tspec">' + esc(c.name) + "</div>" +
@@ -909,6 +922,17 @@ export const HEART_PRIZES = [
   { name: "100 XP", icon: "\u2B50", img: "", link: "", kind: "trick", xp: 100, chance: 0.30 },
   { name: "Rainbow Heart Glasses", short: "Heart Glasses", icon: "\u{1F576}\uFE0F", img: "assets/prizes/ss-glasses.png", link: "https://a.co/d/07OuLYJK", kind: "treat" },
   { name: "Light-Up Heart Cup", short: "Heart Cup", icon: "\u{1F964}", img: "assets/prizes/ss-cup.png", link: "https://a.co/d/09PUeJjI", kind: "trick", rare: true, chance: 0.01 }
+];
+// Lucky Leprechaun Hunt Rainbow Wheel (March). Chances: 4 prizes at 9.5%, 2 rares at 1%, two 100 XP slices at 30%.
+export const LUCKY_PRIZES = [
+  { name: "Lucky Charms Stickers", short: "Stickers", icon: "\u2728", img: "assets/prizes/lh-stickers.png", link: "https://a.co/d/0a5FVTBR", kind: "treat" },
+  { name: "100 XP", icon: "\u2B50", img: "", link: "", kind: "trick", xp: 100, chance: 0.30 },
+  { name: "Shamrock Fidget Spinner", short: "Fidget Spinner", icon: "\u{1F340}", img: "assets/prizes/lh-spinner.png", link: "https://a.co/d/07SkMJpY", kind: "treat" },
+  { name: "Leprechaun Duck", short: "Lucky Duck", icon: "\u{1F986}", img: "assets/prizes/lh-duck.png", link: "https://a.co/d/0cMF7EM7", kind: "trick", rare: true, chance: 0.01 },
+  { name: "Mushroom Straw Toppers", short: "Straw Toppers", icon: "\u{1F344}", img: "assets/prizes/lh-straw.png", link: "https://a.co/d/00IulxA2", kind: "treat" },
+  { name: "100 XP", icon: "\u2B50", img: "", link: "", kind: "trick", xp: 100, chance: 0.30 },
+  { name: "Shamrock Glasses", short: "Shamrock Glasses", icon: "\u{1F576}\uFE0F", img: "assets/prizes/lh-glasses.png", link: "https://a.co/d/0fskExmK", kind: "treat" },
+  { name: "Shamrock Cup", short: "Shamrock Cup", icon: "\u{1F964}", img: "assets/prizes/lh-cup.png", link: "https://a.co/d/02wZ4yE4", kind: "trick", rare: true, chance: 0.01 }
 ];
 export const PRIZES = [
   { name: "Ghost Sticker", short: "Ghost Sticker", icon: "\u{1F47B}", img: "assets/prizes/prize-1.png", link: "https://a.co/d/0bfdSD1g", kind: "treat" },
