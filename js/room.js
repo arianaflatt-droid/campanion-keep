@@ -5,9 +5,9 @@
    Saved on the student: cpEarned (teacher writes), cpSpent, roomOwned [item ids], roomFit { slot: id }, roomBuys [{ id, cost, at }].
    Item ids are "{kind}_{theme}" (e.g. bed_dragon); art is assets/room/{id}.webp. Trophies are trophy_{season}.
    The room picture is 1536x1024; everything below is placed in % of that. */
-import { azToday } from "./collect.js?v=20261015a";
-import { questCP } from "./quest.js?v=20261015a";
-import { esc } from "./game.js?v=20261015a";
+import { azToday } from "./collect.js?v=20261015b";
+import { questCP } from "./quest.js?v=20261015b";
+import { esc } from "./game.js?v=20261015b";
 
 // Themes that have art so far. Add a theme name here once its 9 pieces are in assets/room/.
 export const TYPE_THEMES = ["fire", "water", "nature", "rock", "sky", "electric", "ice", "light", "dark", "ghost", "poison", "steel", "arcane", "crystal", "dragon"];
@@ -56,6 +56,8 @@ export const bought = st => (st && st.roomOwned) || [];
 export const fitOf = st => Object.assign({ bed: "bed_base", chair: "chair_base", rug: "rug_base", ceiling: "ceiling_base", plant: "plant_base", wall_art: "wall_art_base" }, (st && st.roomFit) || {});
 
 /* ---------- Comfort Points ---------- */
+// Per full-health day (hit the daily goal), plus Lunch Hero days and 5-day streak days. Counts every day since roomStart.
+export const CP_DAY = 80, CP_LUNCH = 20, CP_STREAK = 20;
 export function cpStart(cls) { return (cls && (cls.roomStart || cls.collectorStart)) || azToday(); }
 export function cpEarnedCalc(st, cls) {
   const goal = (cls && Number(cls.goal)) || 120, start = cpStart(cls), h = (st && st.xpHist) || {};
@@ -65,9 +67,9 @@ export function cpEarnedCalc(st, cls) {
     if (x.e && !hit) return;   // excused day: no Comfort Points, but the streak isn't broken
     run = hit ? run + 1 : 0;
     if (date < start || !hit) return;
-    cp += 10;
-    if (x.lh || (x.l != null && Number(x.l) >= goal)) cp += 5;
-    if (run >= 5) cp += 5;
+    cp += CP_DAY;
+    if (x.lh || (x.l != null && Number(x.l) >= goal)) cp += CP_LUNCH;
+    if (run >= 5) cp += CP_STREAK;
   });
   cp += questCP(st);   // Grade Level Quest battles
   // Comfort Points from Goal Presents (Daily Doors)

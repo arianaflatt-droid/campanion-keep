@@ -6,8 +6,8 @@
    Boosts: battle ones last the rest of today (collect.js fighterFrom), egg ones wait for the next egg (eggBoost),
    Growth Snack gives +1 level now, Cozy Points add to the room wallet (cpBonus).
    Saved on the student: meals = { date: { b: { boost, score, game, at }, l: {...} } }, eggBoost = { sparkle, lucky }, cpBonus. */
-import { esc, goalXP, companionOf } from "./game.js?v=20261015a";
-import { azToday, owned, formOf, family, MAX_LEVEL } from "./collect.js?v=20261015a";
+import { esc, goalXP, companionOf } from "./game.js?v=20261015b";
+import { azToday, owned, formOf, family, MAX_LEVEL } from "./collect.js?v=20261015b";
 
 export const BREAKFAST_XP = 25;
 export const BOOSTS = {
