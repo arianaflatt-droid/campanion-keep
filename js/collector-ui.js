@@ -2,15 +2,15 @@
 import {
   CREATURES, FAMILIES, creature, family, xpTotal, pullsLeft, legendaryLeft, bankXP, xpToNextPull, owned, ownedFams, hasStarter,
   formIndex, formOf, statsOf, seenSet, rollRarity, doPull, arenaOpen, arenaOpenFor, lunchHour, hitGoalToday, LUNCH_ARENA, ARENA_HOURS, fighterFrom, teamSize, alive, resolve, resolveRound, moveOk, MOVES, hitDamage,
-  birthdayLeft, pickleLeft, PICKLE_FAM, brewLegLeft, BREW_FAM, feastLegLeft, HARVEST_FAM, gingerLegLeft, GINGER_FAM, snowLegLeft, SNOW_FAM, candyLegLeft, CANDY_FAM, ghostEggLeft, GHOST_FAM, BOSS2_LIST, boss2EggLeft, vaultLegLeft, goalLeft, nextGoal, rollRareUp, themeLeft, nextTheme, THEME_TYPES, THEME_EGG, WISH_FAM, spares, spareId, releaseXP, releaseProblem, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
+  birthdayLeft, pickleLeft, PICKLE_FAM, brewLegLeft, BREW_FAM, feastLegLeft, HARVEST_FAM, gingerLegLeft, GINGER_FAM, snowLegLeft, SNOW_FAM, candyLegLeft, CANDY_FAM, ghostEggLeft, GHOST_FAM, BOSS2_LIST, boss2EggLeft, vaultLegLeft, goalLeft, nextGoal, rollRareUp, themeLeft, nextTheme, THEME_TYPES, THEME_EGG, WISH_FAM, spares, spareId, releaseXP, releaseProblem, isStarterFam, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
   EVENTS, eventOpen, eventWindow, eventStreak, hasEvent, eventUnlocked, azToday, rollTeacherRarity, TEACHER_ODDS, LIVE, staleBattle
-} from "./collect.js?v=20261014b";
-import { newBattleRef, changeBattle as changeBattleRaw, setDoc, liveBattlesNow } from "./db.js?v=20261014b";
+} from "./collect.js?v=20261014e";
+import { newBattleRef, changeBattle as changeBattleRaw, setDoc, liveBattlesNow } from "./db.js?v=20261014e";
 // every change to a battle is stamped with the time (upd), so a battle nobody has touched in a while can be ended
 let locking = null, leaving = null;   // battle id while "Lock in team" is saving
 const changeBattle = (id, fn) => changeBattleRaw(id, bt => { const n = fn(bt); if (n) n.upd = new Date().toISOString(); return n; });
 
-import { tradeCard } from "./trade-ui.js?v=20261014b";
+import { tradeCard } from "./trade-ui.js?v=20261014e";
 
 const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const PER_PAGE = 20;
@@ -114,10 +114,11 @@ function starterView() {
 let naming = null;
 let releasing = null;   // "m:FAM" or "s:ID" waiting for "Yes, release"
 let releaseMsg = null;  // { key, why }: shown right on the card when a release can't happen
+let RELS = null;   // the student whose collection is on screen (for the starter warning)
 function releaseRow(key, fam, name) {
   const xp = releaseXP(fam);
   if (releaseMsg && releaseMsg.key === key) return '<small class="relwhy">\u26A0\uFE0F ' + esc(releaseMsg.why) + "</small>";
-  if (releasing === key) return '<div class="relask"><small>Release ' + esc(name) + " for <b>" + xp + ' XP</b>? It\u2019s gone for good.</small>' +
+  if (releasing === key) return '<div class="relask"><small>Release ' + esc(name) + " for <b>" + xp + ' XP</b>? It\u2019s gone for good.' + (RELS && isStarterFam(RELS, fam) ? " <b>This is your starter!</b> Your companion becomes your new starter and its companion level starts over." : "") + "</small>" +
     '<div class="row" style="gap:4px;justify-content:center;"><button class="btn small danger" data-cc="releaseOk" data-key="' + esc(key) + '">Yes, release</button><button class="btn ghost small" data-cc="releaseCancel">Keep it</button></div></div>';
   return '<button class="relbtn" data-cc="release" data-key="' + esc(key) + '" title="Release it for ' + xp + ' XP">\u{1F54A}\uFE0F Release \u00b7 ' + xp + " XP</button>";
 }
@@ -136,6 +137,7 @@ function sortedFams(s) {
 const favBtn = (f, e) => '<button class="favbtn' + (e.fav ? " on" : "") + '" data-cc="fav" data-fam="' + f + '" title="' + (e.fav ? "Remove from favorites" : "Add to favorites") + '" aria-label="Favorite">' + (e.fav ? "\u2B50" : "\u2606") + "</button>";
 const tradeBtn = (key, on) => '<button class="tradebtn' + (on ? " on" : "") + '" data-cc="forTrade" data-key="' + key + '" title="' + (on ? "Take it off the trade list" : "Put it up for trade") + '">\u{1F504} ' + (on ? "Up for trade" : "Trade?") + "</button>";
 function myCreatures(s, bank) {
+  RELS = s;
   const fams = sortedFams(s), nFav = fams.filter(f => owned(s)[f].fav).length;
   let h = '<div class="card"><div class="card-head"><h2>My creatures</h2><span class="fact">' + fams.length + " families" + (nFav ? " \u00b7 \u2B50 " + nFav : "") + "</span></div>" + '<p class="muted small" style="margin:-4px 0 10px;">Tap \u2606 to favorite a creature. Favorites show first here and when you pick a battle team.</p>' + '<div class="mygrid">';
   fams.forEach(f => {
@@ -147,7 +149,7 @@ function myCreatures(s, bank) {
       (next && evoAt ? '<small class="evo">Evolves at Lv ' + evoAt + "</small>" : "") +
       '<button class="btn small" data-cc="lvl" data-fam="' + f + '"' + (bank >= LEVEL_XP && !maxed ? "" : " disabled") + ">" + (maxed ? "Max level" : "⬆ Level up · " + LEVEL_XP + " XP") + "</button>" +
       (fams.length > 1 && !family(f).event ? (e.fav ? '<small class="muted" style="margin-top:4px;">\u2B50 Favorites can\u2019t be traded</small>' : tradeBtn("m:" + f, e.forTrade)) : "") +
-      (fams.length > 1 && !family(f).event && s.starter !== f && s.petCreature !== f ? releaseRow("m:" + f, f, e.nick || c.name) : "") + "</div>";
+      (fams.length > 1 && !family(f).event && s.petCreature !== f ? releaseRow("m:" + f, f, e.nick || c.name) : "") + "</div>";
   });
   h += "</div>";
   const sp = spares(s);
@@ -666,6 +668,8 @@ export async function onClick(el, c) {
       const coll = Object.assign({}, owned(s)); delete coll[fam];
       const dex = new Set(s.dex || []); family(fam).forms.forEach((id, i) => { if (i <= top) dex.add(id); });   // the lorebook keeps it
       data = { coll, dex: [...dex] };
+      // Releasing the starter: the current companion becomes the new starter and its companion level bar starts over
+      if (isStarterFam(s, fam)) { data.starter = s.petCreature; const bar = Object.assign({}, s.compBar || {}); delete bar.starter; delete bar[s.petCreature]; data.compBar = bar; }
     }
     const xp = releaseXP(fam); data.xpReleased = (Number(s.xpReleased) || 0) + xp;
     c.flash("Bye, " + name + "! +" + xp + " XP in your bank.", true);

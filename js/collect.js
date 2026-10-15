@@ -1,5 +1,5 @@
 // Creature Collector: pulls, XP bank, levels, evolutions, lorebook and arena battles.
-import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261014b";
+import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261014e";
 
 export const PULL_XP = 120;          // every 120 XP (all-time since the collector started) = 1 pull
 export const LEVEL_XP = 120;         // 120 banked XP = 1 level
@@ -132,6 +132,14 @@ export function nextTheme(st) { return ((st && st.themeEggs) || [])[Number(st &&
 export const RELEASE_XP = { "Common": 20, "Uncommon": 40, "Rare": 80, "Super Rare": 150, "Legendary": 300 };
 export function releaseXP(fam) { const f = FAMILIES.find(x => x.id === fam); return (f && RELEASE_XP[f.rarity]) || 0; }
 // Why this creature can't be released right now (null = it can). key is "m:FAM" (collection) or "s:ID" (spare).
+// Same as game.js starterFam (kept here so collect.js doesn't import game.js)
+function starterOf(st) {
+  const coll = (st && st.coll) || {};
+  if (st && st.starter && coll[st.starter]) return st.starter;
+  const s0 = ["C-01", "C-02", "C-03"].find(f => coll[f]); if (s0) return s0;
+  return Object.keys(coll).sort((a, b) => String(coll[a].at || "").localeCompare(String(coll[b].at || "")))[0] || null;
+}
+export const isStarterFam = (st, fam) => starterOf(st) === fam;
 export function releaseProblem(st, key, battles, trades) {
   const isSpare = String(key).startsWith("s:");
   const sp = isSpare ? spares(st).find(x => x.id === key.slice(2)) : null, fam = isSpare ? sp && sp.fam : String(key).replace(/^m:/, "");
@@ -140,7 +148,10 @@ export function releaseProblem(st, key, battles, trades) {
   if (f && f.event) return "Limited event Legendaries can\u2019t be released.";
   if (!isSpare) {
     if (Object.keys(owned(st)).length < 2) return "You can\u2019t release your last creature.";
-    if (st.starter === fam) return "Your starter creature stays with you.";
+    if (starterOf(st) === fam) {   // the starter can go once another creature is the companion
+      const pc = st.petCreature, e = pc && pc !== fam && owned(st)[pc], pf = e && FAMILIES.find(x => x.id === pc);
+      if (!e || !((Number(e.lvl) || 1) >= 5 || (pf && pf.rarity === "Legendary"))) return "Make another creature your companion first (any Legendary or a level 5+ creature). Then you can release your starter.";
+    }
     if (st.petCreature === fam) return "That creature is your companion right now.";
   }
   // only a battle started in the last hour counts (old challenges nobody answered don't block releasing)

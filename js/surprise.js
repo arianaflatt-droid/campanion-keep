@@ -9,9 +9,9 @@
      Student: targetGot = { date: true }.
    Confetti: a burst the first time a student opens their page after crossing halfway and the goal. Student: confSeen = { date: [..] }.
    Shout-outs: a ticker on The Keep built from today's pastes. */
-import { esc, goalXP } from "./game.js?v=20261014b";
-import { musicBtn } from "./party.js?v=20261014b";
-import { azToday, azNow, doPull, formOf, sparkleImg, FAMILIES, RARITY_COLOR } from "./collect.js?v=20261014b";
+import { esc, goalXP } from "./game.js?v=20261014e";
+import { musicBtn, stopMusic } from "./party.js?v=20261014e";
+import { azToday, azNow, doPull, formOf, sparkleImg, FAMILIES, RARITY_COLOR } from "./collect.js?v=20261014e";
 
 export const SNACK_XP = 25, TARGET_MIN = 30, TARGET_MAX = 80, VISIT_SPARKLE = 0.05;
 const rng = s => { let h = 2166136261; for (const ch of s) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return () => { h += 0x6D2B79F5; let t = h; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; };
@@ -106,7 +106,7 @@ function confettiHTML(st, cls) {
 export async function surpriseClick(el, c) {
   const k = el.dataset.sp, s = c.me, cls = c.cls, today = azToday();
   if (k === "ok") { fx = null; return c.render(true); }
-  if (k === "conf") { const seen = Object.assign({}, s.confSeen || {}); seen[today] = [...new Set((seen[today] || []).concat(String(el.dataset.k || "").split(",")))];
+  if (k === "conf") { stopMusic(); const seen = Object.assign({}, s.confSeen || {}); seen[today] = [...new Set((seen[today] || []).concat(String(el.dataset.k || "").split(",")))];
     Object.keys(seen).forEach(d => { if (d < today) delete seen[d]; }); s.confSeen = seen; return c.patch({ confSeen: seen }); }
   if (fx) return;
   let data = {};

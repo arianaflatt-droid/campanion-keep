@@ -17,10 +17,10 @@
       pty60 / pty120 = { id, in, hat, mv, mn, pops, drop, solo, ch: { k, n }, hits }   (live party state; others read it)
       partyGot = { partyId: true, partyId + "-p": true }   partyAlbum = [ { id, d, who: [{ id, n, p }] } ]   vipDay
    Party music is made in the browser (no sound files); it only starts when someone taps 🎵. */
-import { esc, goalXP, companionOf, petHTML, wornItem, simulate, eventMode, seasonOf, hatHTML, randomHat, onPet, vipToday, partyHat, partyCrown, headFree } from "./game.js?v=20261014b";
-import { azToday } from "./collect.js?v=20261014b";
-import { heldWeapon } from "./quest.js?v=20261014b";
-import { tricksFor } from "./bond.js?v=20261014b";
+import { esc, goalXP, companionOf, petHTML, wornItem, simulate, eventMode, seasonOf, hatHTML, randomHat, onPet, vipToday, partyHat, partyCrown, headFree } from "./game.js?v=20261014e";
+import { azToday } from "./collect.js?v=20261014e";
+import { heldWeapon } from "./quest.js?v=20261014e";
+import { tricksFor } from "./bond.js?v=20261014e";
 
 export const PARTY_MIN = 10, PARTY_XP = 60;
 const DROP_MS = 20000, SOLO_MS = 15000, A = "assets/party/";
@@ -69,7 +69,7 @@ const roll = list => { let r = Math.random() * list.reduce((n, x) => n + x[0], 0
 const pinataPrize = cls => (eventMode(cls) ? { n: 30, text: "+30 " + seasonOf(cls).cur + " " + seasonOf(cls).coin, f: "candyBonus" } : { n: 15, text: "+15 Comfort Points ⭐", f: "cpBonus" });
 // A favor waiting to be opened (the party is over and this student was in it)
 function pendingFavor(st, cls) {
-  for (const k of ["120", "60"]) { const p = P(k, cls), x = mine(st, k, cls); if (p && x && x.in && !isOn(k, cls) && !got(st, p.id)) return k; }
+  for (const k of ["120", "60"]) { const p = P(k, cls), x = mine(st, k, cls); if (p && x && x.in && (!isOn(k, cls) || (k === "120" && x.left)) && !got(st, p.id)) return k; }
   return null;
 }
 
@@ -79,6 +79,7 @@ export function partyCards(st, cls) {
   ["120", "60"].forEach(k => {
     if (!isOn(k, cls)) return;
     const ok = canEnter(st, k, cls), x = mine(st, k, cls), goal = k === "60" ? PARTY_XP : goalXP(cls), vip = k === "120";
+    if (vip && x && (x.left || got(st, P(k, cls).id))) { h += '<div class="card pcard p120"><img class="pcardimg" src="' + A + 'mystery-box-open.webp" alt=""><div class="ptxt"><h3>\u{1F451} VIP Party</h3><p>✅ You partied in the VIP Lounge and got your prize! See you at the next one.</p></div></div>'; return; }
     h += '<div class="card pcard p' + k + '"><img class="pcardimg" src="' + A + (vip ? "vip-ticket.webp" : "invitation.webp") + '" alt=""><div class="ptxt"><h3>' +
       (vip ? "\u{1F38A} VIP Party!" : "\u{1F388} 60 XP Party!") + ' <span class="pcount" data-pcount="' + k + '">' + timeTxt(k, cls) + "</span></h3>" +
       (ok ? "<p>" + (vip ? "\u{1F451} You hit " + goal + " XP — you’re a VIP! Walk the red carpet into the VIP Lounge." : "\u{1F48C} You’re invited! Everyone’s companions are on the dance floor.") + "</p>" +
@@ -164,7 +165,7 @@ function build() {
   el.className = "proom p" + k + (ROOM.watch ? " watch" : "") + (ROOM.teacher ? " teach" : "");
   el.innerHTML = '<div class="pbg" style="background-image:url(' + A + (vip ? "party-vip.webp" : "party-floor.webp") + ')"></div>' +
     '<div class="ptop"><b class="ptitle">' + (vip ? "\u{1F451} VIP Lounge" : "\u{1F388} 60 XP Party") + '</b><span class="ptime" data-pcount="' + k + '"></span><span class="pnum"></span>' +
-    musicBtn() + '<button class="btn ghost small" data-party="close">' + (ROOM.teacher ? "✕ Close" : "\u{1F6AA} Leave") + "</button></div>" +
+    musicBtn() + '<button class="btn ghost small" data-party="close">' + (ROOM.teacher || ROOM.watch ? "✕ Close" : ROOM.k === "120" ? "\u{1F381} Leave & get my prize" : "\u{1F6AA} Leave") + "</button></div>" +
     '<div class="pannounce" aria-live="polite"></div>' +
     (vip ? '<div class="ppin"><div class="php"><span></span><b></b></div><button class="ppinbtn" data-party="hit" aria-label="Hit the piñata"><img src="' + A + 'pinata.webp" alt=""></button><div class="phits"></div></div>' : "") +
     '<div class="psolo"></div><div class="pfloor"></div><div class="pdrop"></div><div class="pctl"></div><div class="pmodal"></div>';
@@ -428,7 +429,11 @@ export async function partyClick(el, c) {
     ROOM = { k, watch: true, teacher }; mineLocal = { pops: 0, hits: 0, cheer: 0 };
     partySync(LAST); return;
   }
-  if (a === "close") { closeRoom(); return c.render(true); }
+  if (a === "close") {
+    // Leaving the VIP Lounge is for good: the Mystery Box opens now and you can't come back in (saves database reads/writes).
+    if (ROOM && ROOM.k === "120" && !ROOM.teacher && !ROOM.watch && s) { const x = mine(s, "120", cls); if (x && x.in && !x.left) { flush(true); await save({ left: Date.now() }); } }
+    closeRoom(); return c.render(true);
+  }
   if (a === "favor") return openFavor(c);
   if (!ROOM || ROOM.watch || !s) return;
   const k = ROOM.k;
@@ -462,6 +467,7 @@ export async function partyClick(el, c) {
 // Walk into the party (writes pty60 / pty120 the first time; the invitation / red carpet shows once)
 async function enter(c, k) {
   const s = c.me, x = mine(s, k, c.cls);
+  if (k === "120" && x && (x.left || got(s, P(k, c.cls).id))) return;   // already partied and got the prize
   ROOM = { k, watch: false, teacher: false };
   mineLocal = { pops: Number((x || {}).pops) || 0, hits: Number((x || {}).hits) || 0, cheer: 0 };
   if (!x || !x.in) { ROOM.invite = true; await c.patch({ [F(k)]: { id: P(k, c.cls).id, in: Date.now(), hat: randomHat(), mn: 0, pops: 0, hits: 0 } }, true); }
@@ -538,10 +544,12 @@ const SONGS = [
   { b: 0.16, tune: ["C5", "E5", "G5", "E5", "D5", "C5", "D5", "E5", "C5", "G4", "A4", "C5", "G4", "E4", "G4", "C5", "F5", "E5", "D5", "C5", "D5", "E5", "G5", "-", "E5", "D5", "C5", "D5", "C5", "-", "C5", "-"], bass: ["C3", "C3", "A3", "A3", "F3", "F3", "G3", "G3"] },
   { b: 0.15, tune: ["A4", "C5", "E5", "A5", "G5", "E5", "D5", "E5", "C5", "-", "C5", "D5", "E5", "-", "G5", "E5", "F5", "E5", "D5", "C5", "D5", "-", "B4", "G4", "A4", "C5", "E5", "D5", "C5", "B4", "A4", "-"], bass: ["A3", "A3", "F3", "F3", "C3", "C3", "G3", "G3"] }
 ];
-function tone(f, t, len, type, vol) { const o = AC.createOscillator(), g = AC.createGain(); o.type = type; o.frequency.value = f; g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + len); o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t + len + 0.05); }
-function kick(t) { const o = AC.createOscillator(), g = AC.createGain(); o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(40, t + 0.15); g.gain.setValueAtTime(0.4, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.18); o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t + 0.2); }
+let OUT = null;   // all party sounds go through this, so stopping the music silences notes already lined up
+const out = () => { if (!OUT) { OUT = AC.createGain(); OUT.connect(AC.destination); } return OUT; };
+function tone(f, t, len, type, vol) { const o = AC.createOscillator(), g = AC.createGain(); o.type = type; o.frequency.value = f; g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + len); o.connect(g); g.connect(out()); o.start(t); o.stop(t + len + 0.05); }
+function kick(t) { const o = AC.createOscillator(), g = AC.createGain(); o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(40, t + 0.15); g.gain.setValueAtTime(0.4, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.18); o.connect(g); g.connect(out()); o.start(t); o.stop(t + 0.2); }
 function hat(t) { const len = 0.05, buf = AC.createBuffer(1, AC.sampleRate * len, AC.sampleRate), d = buf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
-  const s = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain(); f.type = "highpass"; f.frequency.value = 6000; g.gain.value = 0.12; s.buffer = buf; s.connect(f); f.connect(g); g.connect(AC.destination); s.start(t); }
+  const s = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain(); f.type = "highpass"; f.frequency.value = 6000; g.gain.value = 0.12; s.buffer = buf; s.connect(f); f.connect(g); g.connect(out()); s.start(t); }
 function bar() {
   const S = SONGS[song % SONGS.length], b = S.b, t0 = AC.currentTime + 0.05;
   S.tune.forEach((n, i) => { if (n !== "-") tone(N[n], t0 + i * b, b * 0.9, "square", 0.045); });
@@ -552,9 +560,10 @@ function bar() {
 export function startMusic() {
   try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === "suspended") AC.resume(); } catch (e) { return; }
   if (playing) return; playing = true; song = ROOM && ROOM.k === "120" ? 1 : 0;
+  if (OUT) { try { OUT.disconnect(); } catch (e) {} } OUT = null;   // a fresh output for this song
   let n = 0; const len = bar(); loop = setInterval(() => { if (!playing) return; if (++n % 4 === 0) song++; bar(); }, len * 1000);
   document.querySelectorAll('[data-party="music"]').forEach(b => { b.textContent = "⏸️ Stop music"; });
 }
-export function stopMusic() { playing = false; clearInterval(loop); document.querySelectorAll('[data-party="music"]').forEach(b => { b.textContent = "\u{1F3B5} Party music"; }); }
+export function stopMusic() { playing = false; clearInterval(loop); if (OUT) { try { OUT.gain.value = 0; OUT.disconnect(); } catch (e) {} OUT = null; } document.querySelectorAll('[data-party="music"]').forEach(b => { b.textContent = "\u{1F3B5} Party music"; }); }
 export function toggleMusic() { playing ? stopMusic() : startMusic(); }
 function boop(v) { try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); const t = AC.currentTime; tone(660 + v * 90, t, 0.08, "sine", 0.18); tone(990 + v * 120, t + 0.04, 0.08, "sine", 0.1); } catch (e) {} }

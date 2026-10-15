@@ -1,10 +1,10 @@
-import { CREATURE_LAYOUT, CREATURE_FIT_ID } from "./creature-fit.js?v=20261014b";
-import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261014b";
-import { heldWeapon } from "./quest.js?v=20261014b";
+import { CREATURE_LAYOUT, CREATURE_FIT_ID } from "./creature-fit.js?v=20261014e";
+import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261014e";
+import { heldWeapon } from "./quest.js?v=20261014e";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261014b";
+export const APP_V = "20261014e";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -584,7 +584,19 @@ export const headImg = (c, img) => '<span class="phat cos" style="' + (c ? party
 export const HEAD_FNS = [st => { const o = st && st.outfitOn && ((st.outfits || {})[st.outfitOn]) ? outfitOf(st.outfitOn) : null; return o ? o.img : ""; }];
 // Something extra on the head (a bought outfit, then an event costume). The shop hat comes off while it's on.
 export function headExtra(st, c) { if (vipToday(st)) return ""; for (const f of HEAD_FNS) { const img = f(st, c); if (img) return headImg(c, img); } return ""; }
-export const petWithHead = (st, c, worn, held) => { const x = headExtra(st, c); return withVipHat(st, onPet(petHTML(c, x ? headFree(worn) : vipWorn(st, worn), held), x), c); };
+/* 🎨 Paint (js/paint.js sells it): paint = color id (until changed), paints = { id: true } owned, sparkleDay = date (glow for that day).
+   Only the creature picture is recolored (CSS filter on .tglyph), never the gear. */
+export const PAINTS = [
+  ["pink", "Bubblegum Pink", "#FF6FB5"], ["gold", "Royal Gold", "#E9B531"], ["ice", "Ice Blue", "#7FD3F7"], ["mint", "Mint Green", "#5FD9A3"],
+  ["lava", "Lava Red", "#E8452F"], ["ocean", "Deep Ocean", "#2F6FD6"], ["lavender", "Lavender", "#B79BF0"], ["shadow", "Shadow Purple", "#5A2E8A"],
+  ["ghost", "Ghostly White", "#E9EEF5"], ["rainbow", "Rainbow", "linear-gradient(90deg,#f55,#fb3,#5d5,#5bf,#a6f)"]];
+export const paintClass = st => {
+  if (!st) return "";
+  const p = st.paint && (st.paints || {})[st.paint] ? " pt-" + st.paint : "", sp = st.sparkleDay === azToday() ? " pt-sparkle" : "";
+  return p + sp;
+};
+export const painted = (st, html) => { const k = paintClass(st); return k ? html.replace('class="petwrap', 'class="petwrap' + k) : html; };
+export const petWithHead = (st, c, worn, held) => { const x = headExtra(st, c); return painted(st, withVipHat(st, onPet(petHTML(c, x ? headFree(worn) : vipWorn(st, worn), held), x), c)); };
 export const partyHat = (c, seed) => hatHTML(seed, "", c ? partyStyle(c, "hat") : "");
 export const partyCrown = c => '<span class="pcrown"' + (c ? ' style="' + partyStyle(c, "crown") + '"' : "") + ">\u{1F451}</span>";
 // While a party hat or crown is on, a shop hat comes off (shades and snacks stay)
