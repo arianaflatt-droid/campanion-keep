@@ -9,9 +9,9 @@
      Student: targetGot = { date: true }.
    Confetti: a burst the first time a student opens their page after crossing halfway and the goal. Student: confSeen = { date: [..] }.
    Shout-outs: a ticker on The Keep built from today's pastes. */
-import { esc, goalXP } from "./game.js?v=20261014e";
-import { musicBtn, stopMusic } from "./party.js?v=20261014e";
-import { azToday, azNow, doPull, formOf, sparkleImg, FAMILIES, RARITY_COLOR } from "./collect.js?v=20261014e";
+import { esc, goalXP } from "./game.js?v=20261015a";
+import { musicBtn, stopMusic } from "./party.js?v=20261015a";
+import { azToday, azNow, doPull, formOf, sparkleImg, FAMILIES, RARITY_COLOR } from "./collect.js?v=20261015a";
 
 export const SNACK_XP = 25, TARGET_MIN = 30, TARGET_MAX = 80, VISIT_SPARKLE = 0.05;
 const rng = s => { let h = 2166136261; for (const ch of s) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return () => { h += 0x6D2B79F5; let t = h; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; };
@@ -35,7 +35,19 @@ export const snackOn = cls => !!(cls && cls.snack && cls.snack.date === azToday(
 // Once Ms. Ariana taps End, the XP at that moment is frozen (snack.end / target.end), so later pastes don't count.
 const nowXP = (st, ev) => ev && ev.end ? Number(ev.end[st.id]) || 0 : xpOn(st);
 export const snackEnded = cls => snackOn(cls) && !!cls.snack.end;
-export const snackGain = (st, cls) => snackOn(cls) ? Math.max(0, nowXP(st, cls.snack) - (Number((cls.snack.base || {})[st.id]) || 0)) : 0;
+const hasToday = (st, d) => { const h = ((st && st.xpHist) || {})[d]; return !!h && (h.d != null || h.l != null || h.mo != null); };
+// No starting point yet (no XP saved when the snack dropped, and no paste since) = nothing earned yet
+export const snackGain = (st, cls) => { if (!snackOn(cls)) return 0; const b = (cls.snack.base || {})[st.id]; return b == null ? 0 : Math.max(0, nowXP(st, cls.snack) - Number(b)); };
+// Called by the teacher console after a paste: students who had no XP saved when the snack / target started get
+// their starting point now (their XP in this paste), so only XP earned AFTER that counts.
+export function surpriseBaseFill(students, cls) {
+  const up = {}, today = azToday();
+  [["snack", cls && cls.snack], ["target", cls && cls.target]].forEach(([k, ev]) => {
+    if (!ev || ev.date !== today || ev.end) return;
+    students.forEach(st => { if ((ev.base || {})[st.id] == null && hasToday(st, today)) up[k + ".base." + st.id] = xpOn(st, today); });
+  });
+  return Object.keys(up).length ? up : null;
+}
 export const snackFed = st => !!(((st && st.snackGot) || {})[azToday()]);
 // How much XP feeds the companion: set when Ms. Ariana drops the snack (default 25)
 export const snackXP = cls => Number(snackOn(cls) ? cls.snack.xp : cls && cls.snackXP) || SNACK_XP;
@@ -43,7 +55,7 @@ export const snackReady = (st, cls) => snackOn(cls) && !snackFed(st) && snackGai
 
 /* ---------- Secret Target ---------- */
 export const targetOn = cls => !!(cls && cls.target && cls.target.date === azToday());
-export const targetGain = (st, cls) => targetOn(cls) ? Math.max(0, nowXP(st, cls.target) - (Number((cls.target.base || {})[st.id]) || 0)) : 0;
+export const targetGain = (st, cls) => { if (!targetOn(cls)) return 0; const b = (cls.target.base || {})[st.id]; return b == null ? 0 : Math.max(0, nowXP(st, cls.target) - Number(b)); };
 export const targetWon = (st, cls) => targetOn(cls) && cls.target.shown && targetGain(st, cls) >= cls.target.n;
 export const targetReady = (st, cls) => targetWon(st, cls) && !(((st && st.targetGot) || {})[azToday()]);
 
@@ -175,12 +187,15 @@ export function surpriseAdmin(students, cls) {
 }
 // Teacher actions: returns the class update to save, or null
 export function surpriseAction(act, students, cls) {
-  const today = azToday(), base = {}; students.forEach(s => { base[s.id] = xpOn(s, today); });
+  const today = azToday(), base = {}, end = {};
+  // The starting point only includes students who already have XP saved today. Anyone without data yet gets their
+  // starting point from the next paste (surpriseBaseFill), so a first paste of the day can't feed everyone at once.
+  students.forEach(s => { end[s.id] = xpOn(s, today); if (hasToday(s, today)) base[s.id] = xpOn(s, today); });
   if (act === "snackStart") { const el = typeof document !== "undefined" && document.getElementById("snackXP"), xp = Math.max(5, Math.round(Number(el && el.value) || SNACK_XP)); return { snack: { date: today, at: new Date().toISOString(), base, xp }, snackXP: xp }; }
   if (act === "snackStop") return { snack: null };
   if (act === "targetStart") return { target: { date: today, at: new Date().toISOString(), base, n: TARGET_MIN + Math.floor(Math.random() * (TARGET_MAX - TARGET_MIN + 1)), shown: false } };
-  if (act === "targetReveal") return cls.target ? { "target.shown": true, "target.end": base, "target.endAt": new Date().toISOString() } : null;
-  if (act === "snackEnd") return cls.snack ? { "snack.end": base, "snack.endAt": new Date().toISOString() } : null;
+  if (act === "targetReveal") return cls.target ? { "target.shown": true, "target.end": end, "target.endAt": new Date().toISOString() } : null;
+  if (act === "snackEnd") return cls.snack ? { "snack.end": end, "snack.endAt": new Date().toISOString() } : null;
   if (act === "targetStop") return { target: null };
   if (act === "visitorToggle") return { visitorOff: !cls.visitorOff };
   if (act === "tickerToggle") return { tickerOn: !cls.tickerOn };
