@@ -2,31 +2,32 @@ import {
   checkVersion, hitOn, gearInSeason, applyDisplayNames, companionOf, petCreatures, pinnedBadgeHTML, DAYS, SHORT, ROSTER, GEAR, SIDEKICKS, BANNER, bannerFor, isHaunt, battleOn, candyOf, basketHTML, CANDY_FULL, bossState, attacksReady, bossBarHTML, GHOST_IMG, ghostUnlocked, turkeyUnlocked, grinchUnlocked, isJingle, isFrost, isHeart, heartUnlocked, attackRefusal, saveProblems, yetiUnlocked, eventMode, isGobble, setSeason, SEASON, seasonOf, STORE, candyLeft, candySpent, ownedCount, ownsItem, storeArt, nextAttack, dmgOf, HAT_BONUS, BREW_BONUS, teamHTML, wallHTML, WHEEL, pickSlice, wheelHTML, spinTo, PRIZES, prizeSlices, bucketState, bucketHTML, baseDamage, EAT_PER_DAY, dayEaten, dayXP, byId, esc, arr5, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, sidekickSVG, petHTML as petBase, vipStage, withVipHat, vipWorn, petWithHead, OUTFITS, itemArt, potionFx, bondLevel,
   ghost2Unlocked, starterFam, boss2Of, BOSS2, BOSS2_LIST, creditCompanion, compKey, compLevel, compFill, COMP_DAYS, creatureCompanion
-} from "./game.js?v=20261015c";
-import { EVENT_LIST, TEAM_EVENTS, eventOn, teamCard, teamOf as tevTeamOf } from "./teams.js?v=20261015c";
-import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=20261015c";
-import { kindCard, gotKindToday } from "./kindness.js?v=20261015c";
-import { partyCards, partyOverlay, partyClick, partyBusy, partyTicker, partySync } from "./party.js?v=20261015c";
-import { kitchenCard, kitchenOverlay, kitchenClick, kitchenBusy, kitchenPointer } from "./meals.js?v=20261015c";
-import { miniCard, miniOverlay, miniClick, miniBusy, miniSync } from "./mini.js?v=20261015c";
-import { paintCard, paintClick } from "./paint.js?v=20261015c";
-import { surpriseCards, surpriseOverlay, surpriseClick, surpriseBusy } from "./surprise.js?v=20261015c";
-import { hofTab, hofParty, hofClick } from "./hof.js?v=20261015c";
-import { passTab, passOverlay, passClick, passBusy, passReady } from "./pass.js?v=20261015c";
-import { bondHTML, moodBubble, playTrick, burst, unlockAt } from "./bond.js?v=20261015c";
-import { morningTab, morningOverlay, morningClick, morningBusy, mqReady } from "./morning.js?v=20261015c";
-import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261015c";
-import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20261015c";
-import { nudgeCard } from "./nudges.js?v=20261015c";
-import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261015c";
-import { teacherPlayer, hasStarter, MOVES, formOf } from "./collect.js?v=20261015c";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261015c";
-import { goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked, weekGoal, weekKey, weekTotal, weekDoorState, vaultState, oldReady, vaultLessonsLeft, VAULT_XP, VAULT_BONUS_XP, VAULT_EGGS } from "./doors.js?v=20261015c";
-import { azToday } from "./collect.js?v=20261015c";
+} from "./game.js?v=20261016c";
+import { EVENT_LIST, TEAM_EVENTS, eventOn, teamCard, teamOf as tevTeamOf } from "./teams.js?v=20261016c";
+import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=20261016c";
+import { kindCard, gotKindToday } from "./kindness.js?v=20261016c";
+import { partyCards, partyOverlay, partyClick, partyBusy, partyTicker, partySync } from "./party.js?v=20261016c";
+import { kitchenCard, kitchenOverlay, kitchenClick, kitchenBusy, kitchenPointer } from "./meals.js?v=20261016c";
+import { miniCard, miniOverlay, miniClick, miniBusy, miniSync } from "./mini.js?v=20261016c";
+import { paintCard, paintClick } from "./paint.js?v=20261016c";
+import { surpriseCards, surpriseOverlay, surpriseClick, surpriseBusy } from "./surprise.js?v=20261016c";
+import { hofTab, hofParty, hofClick } from "./hof.js?v=20261016c";
+import { passTab, passOverlay, passClick, passBusy, passReady } from "./pass.js?v=20261016c";
+import { bondHTML, moodBubble, playTrick, burst, unlockAt } from "./bond.js?v=20261016c";
+import { morningTab, morningOverlay, morningClick, morningBusy, mqReady } from "./morning.js?v=20261016c";
+import { heroTab, heroClick, heroBusy, heroReady, heroOn, heroOf, sessionsLeft, questState, nextQuest, QUESTS } from "./hero.js?v=20261016c";
+import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261016c";
+import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20261016c";
+import { nudgeCard } from "./nudges.js?v=20261016c";
+import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261016c";
+import { teacherPlayer, hasStarter, MOVES, formOf } from "./collect.js?v=20261016c";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261016c";
+import { goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked, weekGoal, weekKey, weekTotal, weekDoorState, vaultState, oldReady, vaultLessonsLeft, VAULT_XP, VAULT_BONUS_XP, VAULT_EGGS } from "./doors.js?v=20261016c";
+import { azToday } from "./collect.js?v=20261016c";
 import { roomHTML, FIT_SLOTS, slotKind, KIND_NAMES, KIND_ICON, EVERYDAY_PRICE, THEMED_PRICE, TROPHY_PRICE, TYPE_THEMES, SEASON_THEMES, THEME_NAMES, TROPHIES,
   itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId,
-  ROOMS, EXTRA_ROOMS, ROOM_PRICE, hasRoom, roomStarters, fitIn, slotTakes, roomExtras } from "./room.js?v=20261015c";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261015c";
+  ROOMS, EXTRA_ROOMS, ROOM_PRICE, hasRoom, roomStarters, fitIn, slotTakes, roomExtras, PET_SPOT_KEYS, petSpotLabel, petSpotOf, ACTIVITY_IDS, ACTIVITY_PRICE } from "./room.js?v=20261016c";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261016c";
 
 let fxFor = null;   // the student whose companion is being drawn (for the potion glow)
 const petHTML = (c, worn, held) => { const h = petBase(c, worn, held), fx = fxFor ? potionFx(fxFor) : ""; return fx ? h.replace('class="petwrap', 'class="petwrap' + fx) : h; };
@@ -223,10 +224,10 @@ function render(force) {
   }
   const cur = students.find(x => x.id === me);
   if (cur && cur.companionId && cls) lockBadges(cur);
-  const bday = !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() && !questBusy() && !morningBusy() && !passBusy() && !surpriseBusy() && !kitchenBusy() && !partyBusy() && !miniBusy() ? birthdayParty(cur) : "";
-  const cape = !bday && !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() && !questBusy() && !morningBusy() && !passBusy() && !surpriseBusy() && !kitchenBusy() && !partyBusy() && !miniBusy() ? capeParty(cur) : "";
-  const party = !bday && !cape && !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() && !questBusy() && !morningBusy() && !passBusy() && !surpriseBusy() && !kitchenBusy() && !partyBusy() && !miniBusy() ? badgeParty(cur) : "";
-  const hof = !bday && !cape && !party && !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() && !questBusy() && !morningBusy() && !passBusy() && !surpriseBusy() && !kitchenBusy() && !partyBusy() && !miniBusy() ? hofParty(cur, students, cls) : "";
+  const bday = !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() && !questBusy() && !morningBusy() && !passBusy() && !surpriseBusy() && !kitchenBusy() && !partyBusy() && !miniBusy() && !heroBusy() ? birthdayParty(cur) : "";
+  const cape = !bday && !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() && !questBusy() && !morningBusy() && !passBusy() && !surpriseBusy() && !kitchenBusy() && !partyBusy() && !miniBusy() && !heroBusy() ? capeParty(cur) : "";
+  const party = !bday && !cape && !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() && !questBusy() && !morningBusy() && !passBusy() && !surpriseBusy() && !kitchenBusy() && !partyBusy() && !miniBusy() && !heroBusy() ? badgeParty(cur) : "";
+  const hof = !bday && !cape && !party && !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() && !questBusy() && !morningBusy() && !passBusy() && !surpriseBusy() && !kitchenBusy() && !partyBusy() && !miniBusy() && !heroBusy() ? hofParty(cur, students, cls) : "";
   const fields = liveNow ? saveFields(app) : {};
   miniSync(cls);
   app.innerHTML = h + (cur && cur.companionId && cls ? miniOverlay(cur, cls) : "") + partyOverlay(cur && cur.companionId ? cur : null, cls) + (cur && cur.companionId && cls ? kitchenOverlay(cur) : "") + (cur && cur.companionId && cls && !PREVIEW && !bday && !cape && !party && !hof ? surpriseOverlay(cur, cls) : "") + passOverlay() + presentOverlay() + vaultOverlay() + prizeOverlay() + (cur && cur.companionId && cls ? collectorOverlays(collectorCtx(cur)) + questOverlay(cur) + morningOverlay(cur, cls) : "") + party + cape + bday + hof;
@@ -278,10 +279,10 @@ function viewMine(s) {
   if (tab === "haunt" && !haunt) tab = "pet";
   const doorsOn = doorsLive(cls);
   if (tab === "doors" && !doorsOn) tab = "pet";
-  const tevs = EVENT_LIST.filter(E => eventOn(E, cls) && tevTeamOf(E, cls, s.id));
+  const tevs = [];   // team events are turned off (Oct 16) to keep the day simpler
   if (TEAM_EVENTS[tab] && !tevs.includes(TEAM_EVENTS[tab])) tab = "pet";
   let h = notYou(s) + '<div class="tabs" role="tablist">' +
-    [["pet", "\u{1F43E} My Companion"], ["collect", "\u{1F95A} Creature Collector"], ["badges", "\u{1F3C5} Badges"]].concat(haunt ? [["haunt", S.icon + " " + S.name]] : []).concat(doorsOn ? [["doors", "\u{1F6AA} " + doorName() + doorBadge(s)]] : []).concat(tevs.map(E => [E.key, E.tab])).concat(cls && cls.passOff ? [] : [["pass", "\u{1F39F}\uFE0F Season Pass" + (passReady(s, cls) ? ' <span class="tbadge">' + passReady(s, cls) + "</span>" : "")]]).concat([["hof", "\u{1F3DB}\uFE0F Hall of Fame"]]).concat([["morning", "\u{1F305} Morning Quests" + (mqReady(s, cls) ? ' <span class="tbadge">' + mqReady(s, cls) + "</span>" : "")], ["room", "\u{1F6CF}\uFE0F My Room"], ["quest", "\u{1F5FA}\uFE0F Quest" + (readyTests(s).length ? ' <span class="tbadge">' + readyTests(s).length + "</span>" : "")]])
+    [["pet", "\u{1F43E} My Companion"], ["collect", "\u{1F95A} Creature Collector"], ["badges", "\u{1F3C5} Badges"]].concat(haunt ? [["haunt", S.icon + " " + S.name]] : []).concat(doorsOn ? [["doors", "\u{1F6AA} " + doorName() + doorBadge(s)]] : []).concat(tevs.map(E => [E.key, E.tab])).concat(cls && cls.passOff ? [] : [["pass", "\u{1F39F}\uFE0F Season Pass" + (passReady(s, cls) ? ' <span class="tbadge">' + passReady(s, cls) + "</span>" : "")]]).concat([["hof", "\u{1F3DB}\uFE0F Hall of Fame"]]).concat([["morning", "\u{1F305} Morning Quests" + (mqReady(s, cls) ? ' <span class="tbadge">' + mqReady(s, cls) + "</span>" : "")], ["room", "\u{1F6CF}\uFE0F My Room"]]).concat(heroOn(cls) ? [["hero", "\u2694\uFE0F Hero Quest" + (heroReady(s, cls) ? ' <span class="tbadge">' + heroReady(s, cls) + "</span>" : "")]] : []).concat([ ["quest", "\u{1F5FA}\uFE0F Quest" + (readyTests(s).length ? ' <span class="tbadge">' + readyTests(s).length + "</span>" : "")]])
       .map(([k, t]) => '<button role="tab" class="tab' + (tab === k ? " on" : "") + '" data-tab="' + k + '" aria-selected="' + (tab === k) + '">' + t + "</button>").join("") + "</div>";
   if (tab === "collect") return h + collectorTab(collectorCtx(s));
   if (tab === "badges") return h + badgesTab(s, battles, cls);
@@ -293,6 +294,8 @@ function viewMine(s) {
   if (tab === "hof") return h + hofTab(s, students, cls);
   if (tab === "quest") return h + questTab(s, petHTML(c, worn, heldWeapon(s)));
   if (tab === "room") return h + roomTab(s, c, worn);
+  if (tab === "hero" && heroOn(cls)) return h + heroTab(s, cls);
+  h += todayCard(s, c);
   h += miniCard(s, cls);
   h += partyCards(s, cls);
   h += surpriseCards(s, cls, s.petName || c.name);
@@ -390,6 +393,7 @@ function viewMine(s) {
 let roomView = "decorate", roomSlot = "bed", roomBuy = null, roomSetPick = null, roomAt = "bedroom";
 const slotLabel = sl => (roomAt !== "bedroom" && (sl === "bed" || sl === "chair") ? KIND_NAMES[sl + "_" + roomAt] : SLOT_NAMES[sl]);
 const SLOT_NAMES = Object.assign({}, KIND_NAMES, { shelf_upper: "Top shelf", shelf_lower: "Bottom shelf" });
+const DECOR_SLOTS = FIT_SLOTS.concat(["activity"]);
 function rItemCard(id, opts) {
   const p = parseItem(id), o = opts || {}, tro = p.kind === "trophy";
   const pic = tro ? '<span class="tro">\u{1F3C6}</span>' : '<img class="' + (p.kind === "wallpaper" || p.kind === "flooring" ? "tile" : "") + '" src="' + roomArt(id) + '" alt="">';
@@ -402,7 +406,7 @@ function roomTab(s, c, worn) {
   let h = '<div class="card roomwrap"><div class="card-head"><h2>' + R0.icon + " " + esc(s.petName || c.name) + "\u2019s " + (roomAt === "bedroom" ? "Room" : R0.name) + "</h2>" + '<span class="cpwallet">\u2B50 ' + left + " Comfort Points</span></div>" +
     '<div class="slotbar roompick">' + Object.keys(ROOMS).map(r => '<button class="tpill2' + (roomAt === r ? " on" : "") + '" data-roomat="' + r + '">' + ROOMS[r].icon + " " + ROOMS[r].name + (hasRoom(s, r) ? "" : " \u{1F512}") + "</button>").join("") + "</div>" +
     roomHTML(s, petHTML(c, worn, heldWeapon(s)), { room: roomAt === "bedroom" ? null : roomAt, side: mine0 ? (() => { const k = sidekickToday(s, boardDay(cls, students)); return k ? { kind: k, html: sidekickSVG(k) } : null; })() : null }) +
-    (mine0 ? "" : '<div class="roomlock"><b>' + R0.icon + " Unlock the " + R0.name + "</b><span>Comes with all 9 pieces you see here. Themed " + esc(KIND_NAMES["bed_" + roomAt].toLowerCase()) + "s and " + esc(KIND_NAMES["chair_" + roomAt].toLowerCase()) + "s show up in the Themed sets shop once it\u2019s yours.</span>" +
+    (mine0 ? '<div class="slotbar petspots"><span class="muted small">\u{1F43E} Where is ' + esc(s.petName || c.name) + "?</span>" + PET_SPOT_KEYS.map(k => '<button class="tpill2' + (petSpotOf(s, roomAt) === k ? " on" : "") + '" data-petspot="' + k + '">' + petSpotLabel(roomAt, k) + "</button>").join("") + "</div>" : '<div class="roomlock"><b>' + R0.icon + " Unlock the " + R0.name + "</b><span>Comes with all 9 pieces you see here. Themed " + esc(KIND_NAMES["bed_" + roomAt].toLowerCase()) + "s and " + esc(KIND_NAMES["chair_" + roomAt].toLowerCase()) + "s show up in the Themed sets shop once it\u2019s yours.</span>" +
       (roomBuy === "room:" + roomAt ? '<span><button class="buybtn" data-roombuyok="room:' + roomAt + '" data-cost="' + ROOM_PRICE + '">Unlock for ' + ROOM_PRICE + ' CP</button> <button class="btn ghost small" data-roombuy="">No</button></span>'
         : '<button class="btn gold" data-roombuy="room:' + roomAt + '"' + (left < ROOM_PRICE ? " disabled" : "") + ">\u2B50 " + ROOM_PRICE + " Comfort Points" + "</button>" + (left < ROOM_PRICE ? '<small class="muted">You need ' + (ROOM_PRICE - left) + " more.</small>" : "")) + "</div>") +
     (sidekickToday(s, boardDay(cls, students)) ? '<p class="muted small" style="margin-top:6px;">\u2600\uFE0F You were Lunch Hero today, so your ' + esc(SIDEKICKS[sidekickToday(s, boardDay(cls, students))]) + " came to play!</p>" : "") +
@@ -411,7 +415,7 @@ function roomTab(s, c, worn) {
     '<button class="tab' + (roomView === k ? " on" : "") + '" data-roomview="' + k + '">' + l + "</button>").join("") + "</div>";
   if (roomView === "decorate") {
     if (!mine0) return h + '<div class="card"><p class="lede" style="margin:0;">Unlock the ' + R0.name + " to decorate it.</p></div>";
-    h += '<div class="card"><div class="slotbar">' + FIT_SLOTS.map(sl => '<button class="tpill2' + (roomSlot === sl ? " on" : "") + '" data-roomslot="' + sl + '">' + KIND_ICON[slotKind(sl)] + " " + slotLabel(sl) + (fit[sl] ? " \u2713" : "") + "</button>").join("") + "</div>";
+    h += '<div class="card"><div class="slotbar">' + DECOR_SLOTS.map(sl => '<button class="tpill2' + (roomSlot === sl ? " on" : "") + '" data-roomslot="' + sl + '">' + KIND_ICON[slotKind(sl)] + " " + slotLabel(sl) + (fit[sl] ? " \u2713" : "") + "</button>").join("") + "</div>";
     const k = slotKind(roomSlot), mine = have.filter(id => slotTakes(roomSlot, roomAt, parseItem(id).kind));
     h += mine.length ? '<div class="ownedgrid">' + rItemCard("none_x", {}).replace(/<img[^>]*>|<span class="tro">.*?<\/span>/, '<span class="tro">\u{1F6AB}</span>').replace(/<span>[^<]*<\/span>/, "<span>Nothing</span>").replace("<button", '<button data-place=""') +
         mine.map(id => rItemCard(id, { on: fit[roomSlot] === id, attr: 'data-place="' + id + '"' })).join("") + "</div>"
@@ -419,11 +423,12 @@ function roomTab(s, c, worn) {
     return h + "</div>";
   }
   if (roomView === "everyday") {
-    const list = everydayItems(s);
+    const list = everydayItems(s), buyCard = (id, pr) => roomBuy === id ? '<div class="ritem on">' + '<img src="' + roomArt(id) + '" alt=""><span>' + esc(itemName(id)) + '</span><button class="buybtn" data-roombuyok="' + id + '" data-cost="' + pr + '">Buy for ' + pr + '</button><button class="btn ghost small" data-roombuy="">No</button></div>'
+          : rItemCard(id, { price: pr, attr: 'data-roombuy="' + id + '"', locked: left < pr });
     return h + '<div class="card"><div class="card-head"><h2>\u{1F6CD}\uFE0F Everyday shop</h2><span class="fact">new items every day</span></div><div class="ownedgrid">' +
-      list.map(id => { const pr = EVERYDAY_PRICE[parseItem(id).kind];
-        return roomBuy === id ? '<div class="ritem on">' + '<img src="' + roomArt(id) + '" alt=""><span>' + esc(itemName(id)) + '</span><button class="buybtn" data-roombuyok="' + id + '" data-cost="' + pr + '">Buy for ' + pr + '</button><button class="btn ghost small" data-roombuy="">No</button></div>'
-          : rItemCard(id, { price: pr, attr: 'data-roombuy="' + id + '"', locked: left < pr }); }).join("") + "</div></div>";
+      list.map(id => buyCard(id, EVERYDAY_PRICE[parseItem(id).kind])).join("") + "</div>" +
+      '<div class="sethead" style="margin-top:14px;"><b>\u{1F9E9} Rug activities</b><span class="fact">' + ACTIVITY_PRICE + " CP each \u00b7 they sit on the rug</span></div>" +
+      '<div class="ownedgrid">' + ACTIVITY_IDS.map(id => have.includes(id) ? rItemCard(id, { note: "\u2713 yours", locked: true }) : buyCard(id, ACTIVITY_PRICE)).join("") + "</div></div>";
   }
   // themed sets: every type set, plus the event's set (and trophy) while it's on
   const season = liveSeason(cls);
@@ -519,6 +524,21 @@ function earlierDoorsHTML(s, today) {
     return '<details class="olddays"' + (waiting || n === 0 ? " open" : "") + "><summary>\u{1F4C5} <b>" + esc(nice(d)) + "</b> \u00b7 " + done + " / " + list.length + " doors approved" +
       (waiting ? ' <span class="tbadge">new</span>' : "") + "</summary>" + (rows || '<p class="arena-foot">No doors that day.</p>') + gold + "</details>";
   }).join("");
+}
+/* ---------- Today: the 3 most important things to do right now ---------- */
+function todayCard(s, c) {
+  const pet = esc(s.petName || c.name), out = [], mq = mqReady(s, cls), hero = heroOn(cls) ? heroOf(s) : null;
+  if (mq) out.push(["morning", "\u{1F305}", "Do your Morning Quests", mq + " ready before 8:15 \u2014 they also give Hero training!"]);
+  if (hero) { const qs = questState(s, cls), n = sessionsLeft(s, cls), q = nextQuest(hero);
+    if (qs.st === "ready") out.push(["hero", "\u{1F4DC}", "Start your quest", qs.q.n]);
+    if (n && q) out.push(["hero", "\u2694\uFE0F", "Train for " + q.n, n + " training session" + (n === 1 ? "" : "s") + " ready"]); }
+  else if (heroOn(cls)) out.push(["hero", "\u2694\uFE0F", "Make your hero", "Your adventure in Embervale starts here"]);
+  if (doorsLive(cls) && weekDoorState(s, cls) === "ready") out.push(["doors", "\u{1F6AA}", "Open your Weekly Door", "You reached the weekly goal!"]);
+  if (!(cls && cls.passOff) && passReady(s, cls)) out.push(["pass", "\u{1F39F}\uFE0F", "Claim Season Pass rewards", passReady(s, cls) + " ready"]);
+  const items = out.slice(0, 3);
+  if (!items.length) items.push(["pet", "\u2B50", "Hit " + ((cls && cls.goal) || 120) + " XP today", "Keep " + pet + " healthy and earn a training session"]);
+  return '<div class="card todaycard"><div class="card-head"><h2>\u2705 Today</h2></div><div class="todaylist">' + items.map(([t, i, a, b]) =>
+    '<button class="todayitem" data-tab="' + t + '"><span>' + i + "</span><b>" + esc(a) + "</b><small>" + esc(b) + "</small></button>").join("") + "</div></div>";
 }
 function doorBadge(s) { const n = presentsReady(s) + (weekDoorState(s, cls) === "ready" ? 1 : 0); return n ? ' <span class="tbadge">' + n + "</span>" : ""; }
 // The Weekly Door: separate from the daily doors. Reach WEEK_DOOR_XP XP this week to unlock a Legendary egg.
@@ -906,6 +926,7 @@ document.addEventListener("click", async ev => {
     await morningClick(el, c).catch(e => flash("Something went wrong — " + (e.message || e)));
     return;
   }
+  if ((el = ev.target.closest("[data-hero]"))) { const s = students.find(x => x.id === me); if (s && !PREVIEW) await heroClick(el, collectorCtx(s)).catch(e => showErr(e)); return; }
   if ((el = ev.target.closest("[data-qfight],[data-qhold],[data-qpick],[data-qmove],[data-qact]"))) { const s = students.find(x => x.id === me); if (s && !PREVIEW) await questClick(el, collectorCtx(s)).catch(e => showErr(e)); return; }
   if ((el = ev.target.closest("[data-cc]"))) { const s = students.find(x => x.id === me); if (s) await collectorClick(el, collectorCtx(s)).catch(e => showErr(e)); return; }
   if ((el = ev.target.closest("[data-me]"))) { me = el.dataset.me; save(me); picking = null; draftName = ""; render(); scrollTo({ top: 0 }); return; }
@@ -931,6 +952,9 @@ document.addEventListener("click", async ev => {
   }
   if ((el = ev.target.closest("[data-roomview]"))) { roomView = el.dataset.roomview; roomBuy = null; render(); return; }
   if ((el = ev.target.closest("[data-roomset]"))) { roomSetPick = el.dataset.roomset; roomBuy = null; render(); return; }
+  if ((el = ev.target.closest("[data-petspot]"))) { if (PREVIEW) return; const s = students.find(x => x.id === me), k = el.dataset.petspot;
+    if (!s || !PET_SPOT_KEYS.includes(k) || petSpotOf(s, roomAt) === k || !hasRoom(s, roomAt)) return;
+    return patch({ petSpot: Object.assign({}, s.petSpot || {}, { [roomAt]: k }) }); }
   if ((el = ev.target.closest("[data-roomat]"))) { roomAt = el.dataset.roomat; roomBuy = null; render(); return; }
   if ((el = ev.target.closest("[data-roomslot]"))) { roomSlot = el.dataset.roomslot; render(); return; }
   if ((el = ev.target.closest("[data-place]"))) { if (PREVIEW) return; const s = students.find(x => x.id === me), fit = Object.assign({}, fitIn(s, roomAt)); const id = el.dataset.place || null;

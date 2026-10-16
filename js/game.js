@@ -1,10 +1,10 @@
-import { CREATURE_LAYOUT, CREATURE_FIT_ID } from "./creature-fit.js?v=20261015c";
-import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261015c";
-import { heldWeapon } from "./quest.js?v=20261015c";
+import { CREATURE_LAYOUT, CREATURE_FIT_ID } from "./creature-fit.js?v=20261016c";
+import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261016c";
+import { heldWeapon } from "./quest.js?v=20261016c";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261015c";
+export const APP_V = "20261016c";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -232,6 +232,8 @@ export const ITEMS = [
   { id: "xmashat", name: "Aurora\u2019s Christmas Hat", glyph: "\u{1F385}", streak: 5, months: [12, 1], img: "assets/gear/aurora-christmas-hat.webp" },
   // A 5-day streak hat, any time of year.
   { id: "hat67", name: "67 Wizard Hat", glyph: "\u{1F9D9}", streak: 5, img: "assets/gear/wizard-67-hat.webp" },
+  // A 2-day streak hat, wear it any day.
+  { id: "tacohat", name: "Taco Tuesday Hat", glyph: "\u{1F32E}", streak: 2, img: "assets/gear/taco-hat.webp" },
   // Unlocked for good once the class defeats the Abominable Snowlotl for the first time (or bought in the Snow Shop).
   { id: "earmuffs", name: "Cozy Earmuffs", glyph: "\u{1F3A7}", streak: 5, frost: true, img: "assets/gear/earmuffs.webp" },
   // A snack-pack choice unlocked by defeating the Abominable Snowlotl.
@@ -410,9 +412,9 @@ export function sidekickSVG(kind, big) {
 }
 
 // Hats sit on the head (anchored at their bottom-centre); shades centre on the eyes.
-const HAT_SCALE = { phat: 1.1, pcrown: 0.95, cap: 1, hat: 1.05, crown: 0.95, witch: 1.25, pilgrim: 1.2, antlers: 1.35, xmashat: 1.35, hat67: 1.3, earmuffs: 1.25, cupidcrown: 1.2 };
+const HAT_SCALE = { phat: 1.1, pcrown: 0.95, cap: 1, hat: 1.05, crown: 0.95, witch: 1.25, pilgrim: 1.2, antlers: 1.35, xmashat: 1.35, hat67: 1.3, earmuffs: 1.25, cupidcrown: 1.2, tacohat: 1.2 };
 // How far up each hat is lifted from its anchor point (the cap emoji has empty space under its brim, so it sits lower).
-const HAT_LIFT = { phat: 90, pcrown: 86, cap: 72, hat: 88, crown: 88, witch: 88, pilgrim: 88, antlers: 70, xmashat: 78, hat67: 76, earmuffs: 45, cupidcrown: 80 };
+const HAT_LIFT = { phat: 90, pcrown: 86, cap: 72, hat: 88, crown: 88, witch: 88, pilgrim: 88, antlers: 70, xmashat: 78, hat67: 76, earmuffs: 45, cupidcrown: 80, tacohat: 80 };
 const GLYPH_W = 1.25;   // emoji box is 1.25em wide x 1em tall
 const pos = (x, y) => "left:" + (x / GLYPH_W * 100).toFixed(1) + "%;top:" + (y * 100).toFixed(1) + "%;";
 export function gearStyle(c, worn) {
