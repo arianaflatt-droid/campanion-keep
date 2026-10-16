@@ -1,31 +1,31 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261016p";
-import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261016p";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261016p";
-import { cpEarnedCalc } from "./room.js?v=20261016p";
-import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261016p";
-import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP } from "./doors.js?v=20261016p";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261016p";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261016q";
+import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261016q";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261016q";
+import { cpEarnedCalc } from "./room.js?v=20261016q";
+import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261016q";
+import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP } from "./doors.js?v=20261016q";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261016q";
 import {
   applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   boss2Of, boss2Prize, simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, isFrost, isHeart, heartUnlocked, saveProblems, yetiUnlocked, wallMarks, WALL_BLOCK, BOSS_START_HP, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261016p";
-import { MQ_CUTOFF } from "./morning.js?v=20261016p";
-import { kindAdmin } from "./kindness.js?v=20261016p";
-import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261016p";
-import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261016p";
-import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261016p";
-import { passAdmin } from "./pass.js?v=20261016p";
-import { heroTeacherCard } from "./hero.js?v=20261016p";
-import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261016p";
-import { watchLive, feederKeyRef } from "./db.js?v=20261016p";
-import { feederLink } from "./feeder.js?v=20261016p";
-import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261016p";
+} from "./game.js?v=20261016q";
+import { MQ_CUTOFF } from "./morning.js?v=20261016q";
+import { kindAdmin } from "./kindness.js?v=20261016q";
+import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261016q";
+import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261016q";
+import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261016q";
+import { passAdmin } from "./pass.js?v=20261016q";
+import { heroTeacherCard } from "./hero.js?v=20261016q";
+import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261016q";
+import { watchLive, feederKeyRef } from "./db.js?v=20261016q";
+import { feederLink } from "./feeder.js?v=20261016q";
+import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261016q";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef
-} from "./db.js?v=20261016p";
+} from "./db.js?v=20261016q";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -1202,8 +1202,9 @@ async function readRows(file) {
 // (middle names ignored, "Last, First" allowed); a roster "First L" initial; a first name that is unique on the roster.
 const normName = x => firstLast(x).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9 '\-]/g, "").replace(/\s+/g, " ").trim();
 function matchStudent(fileName) {
-  const f = normName(fileName), ft = f.split(" "), fFirst = ft[0], fLast = ft.length > 1 ? ft[ft.length - 1] : "";
+  const f = normName(fileName), ft = f.split(" "), fFirst = ft[0], fLast = ft.length > 1 ? ft[ft.length - 1].replace(/\.$/, "") : "";
   if (!f) return null;
+  { const al = (cls && cls.nameLinks || {})[f.replace(/[.#$\/\[\]]/g, "")]; if (al) { const st = students.find(x => x.id === al); if (st) return st; } }   // names you linked by hand
   const R = students.map(s => { const n = normName(s.fullName || s.name), t = n.split(" "); return { s, n, first: t[0], last: t.length > 1 ? t[t.length - 1] : "" }; });
   const tiers = [
     r => r.n === f,
@@ -1211,6 +1212,8 @@ function matchStudent(fileName) {
     r => fLast && r.last.length === 1 && r.first === fFirst && fLast[0] === r.last,
     r => fLast.length === 1 && r.last && r.first === fFirst && r.last[0] === fLast,   // sheet "Jamie R." = roster "Jamie Rodriguez"
     r => !r.last && r.first === fFirst && R.filter(x => x.first === fFirst).length === 1,
+    r => fLast.length === 1 && r.first === fFirst && r.n.split(" ").slice(1).some(t => t[0] === fLast),   // "Lynzy R." = "Lynzy Rae Smith" or "Lynzy Smith-Ruiz"
+    r => fLast.length === 1 && r.first === fFirst && R.filter(x => x.first === fFirst).length === 1,   // the only Lynzy on the roster
   ];
   for (const test of tiers) { const m = R.filter(test); if (m.length === 1) return m[0].s; if (m.length > 1) return null; }
   return null;
@@ -1404,11 +1407,11 @@ async function applyUpload(up) {
   // Team events (Potions, Feast Table): every team that now has the whole recipe/menu is done for the day
   const pots = Object.keys(subs).length ? EVENT_LIST.map(E => ({ E, r: brewRewards(E, cls, students, date) })).filter(x => x.r) : [];
   pots.forEach(({ r }) => { r.updates.forEach(u => batch.update(studentRef(u.st.id), u.data)); if (r.classData) batch.update(classRef, r.classData); });
+  if (up.auto) { const um = unmatched.map(u => u.name), was = JSON.stringify(busy.liveUnmatched || []); busy.liveUnmatched = um; if (JSON.stringify(um) !== was) liveRender(); }
   if (up.auto && !wrote && !pots.length) return 0;
   try { await batch.commit(); } catch (e) { flash("Upload didn’t save — " + (e.code || e.message)); return 0; }
   { const fill = surpriseBaseFill(students, cls); if (fill) try { await updateDoc(classRef, fill); } catch (e) {} }   // Snack Drop / Secret Target starting points
-  if (up.auto) busy.liveUnmatched = unmatched.map(u => u.name);
-  else busy.upReport = { kind: up.kind, day: d, file: up.file, matched, hit, missing, unmatched, autoN };
+  if (!up.auto) busy.upReport = { kind: up.kind, day: d, file: up.file, matched, hit, missing, unmatched, autoN };
   const weekMsg = (weekN ? " \u{1F6AA} " + weekN + " student" + (weekN === 1 ? "" : "s") + " unlocked the Weekly Door!" : "") + (vaultN ? " \u{1F48E} " + vaultN + " student" + (vaultN === 1 ? "" : "s") + " unlocked the TREASURE VAULT!" : "");
   const potMsg = pots.filter(x => x.r.newTeams.length).map(x => " " + x.E.icon + " " + x.E.done + " " + x.r.newTeams.map(t => t.name).join(", ")).join("") + weekMsg;
   if (autoN || potMsg) flash((autoN ? "\u{1F6AA} Auto-approved " + autoN + " door" + (autoN === 1 ? "" : "s") + " from the subject XP." : "") + potMsg);
@@ -1491,7 +1494,9 @@ function liveCard() {
     (liveSaved ? ' <span class="muted small">Saved ' + liveSaved.n + " change" + (liveSaved.n === 1 ? "" : "s") + " at " + liveSaved.at.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) + ".</span>" : "") +
     (stale && !cls.liveOff ? "<br>⚠️ No new numbers for a while. Check that the CK Feeder tab on Timeback is still open (on Learning Metrics \u2192 My Class, click CK Feeder twice)." : "") +
     (busy.liveErr ? "<br>⚠️ Last save failed: " + esc(busy.liveErr) : "") +
-    (um.length ? '<br><span class="small">Not on your roster: ' + um.map(esc).join(", ") + " (fix the spelling in the roster or the feeder’s renames).</span>" : "") +
+        (um.length ? '<div class="small" style="margin-top:6px;"><b>Who is this?</b> These names from Timeback didn\u2019t match your roster. Pick the student once and Companion Keep remembers.' +
+      um.map(n => '<div class="row" style="gap:6px;align-items:center;margin-top:4px;"><span class="chip">' + esc(n) + '</span> = <select class="linkpick" data-link="' + esc(n) + '"><option value="">Pick a student\u2026</option>' +
+        students.slice().sort((a, b) => String(a.fullName || a.name).localeCompare(String(b.fullName || b.name))).map(x => '<option value="' + x.id + '">' + esc(x.fullName || x.name) + "</option>").join("") + "</select></div>").join("") + "</div>" : "") +
     '<div class="row" style="margin-top:6px;"><button class="btn ghost small" data-act="liveToggle">' + (cls.liveOff ? "▶️ Turn live XP back on" : "⏸️ Pause live XP") + "</button>" + feederBox() + "</div></div>";
 }
 
@@ -1500,6 +1505,13 @@ document.addEventListener("input", ev => {
   if (ev.target.id === "pasteBox") { busy.pasteText = ev.target.value; clearTimeout(busy.pasteT); busy.pasteT = setTimeout(render, 250); }
 });
 document.addEventListener("change", async ev => {
+  if (ev.target.classList && ev.target.classList.contains("linkpick") && ev.target.value) {
+    const name = ev.target.dataset.link, k = normName(name).replace(/[.#$\/\[\]]/g, ""), st = students.find(x => x.id === ev.target.value); if (!k || !st) return;
+    try { await updateDoc(classRef, { nameLinks: Object.assign({}, cls.nameLinks || {}, { [k]: st.id }) }); } catch (e) { flash("Couldn\u2019t save \u2014 " + (e.code || e.message)); return; }
+    cls.nameLinks = Object.assign({}, cls.nameLinks || {}, { [k]: st.id });
+    busy.liveUnmatched = (busy.liveUnmatched || []).filter(n => n !== name);
+    flash("Linked " + name + " to " + (st.fullName || st.name) + ". Their live XP saves now.", true); render(); setTimeout(autoLive, 300); return;
+  }
   if (ev.target.dataset && ev.target.dataset.subswap) {
     const [sid, sub] = ev.target.dataset.subswap.split(":"), v = ev.target.value, cur = Object.assign({}, (cls.subSwap || {})[sid] || {});
     if (v) cur[sub] = v; else delete cur[sub];
