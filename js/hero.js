@@ -6,16 +6,16 @@
    - A student who misses a week keeps their training and plays that quest later.
    Saved on the student (one write per action): hero = { name, path, look, color, sk: { skill: xp }, used, done: [quest ids],
    items: [ids], title, at }. Nothing saves while a minigame or story is being played; it saves when it finishes. */
-import { esc, petHTML, companionOf, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261016c";
-import { dayXPs, azToday } from "./collect.js?v=20261016c";
-import { weekTotal, histWeekTotal, mondayOf, addDays } from "./doors.js?v=20261016c";
+import { esc, petHTML, companionOf, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261016f";
+import { dayXPs, azToday } from "./collect.js?v=20261016f";
+import { weekTotal, histWeekTotal, mondayOf, addDays } from "./doors.js?v=20261016f";
 
 export const HERO_START = "2026-10-19";
 export const heroOn = cls => !(cls && cls.heroOff);
 const startOf = cls => (cls && cls.heroStart) || HERO_START;
 
 export const SKILLS = {
-  combat: { n: "Combat", i: "\u{1F5E1}️", game: "bar", verb: "Strike!", what: "Hit the training dummy when the marker is in the gold zone." },
+  combat: { n: "Combat", i: "\u{1F5E1}️", game: "bar", pic: "assets/hero/train-dummy.webp", verb: "Strike!", what: "Hit the training dummy when the marker is in the gold zone." },
   agility: { n: "Agility", i: "\u{1F3C3}", game: "run", verb: "Jump!", what: "Jump over the hurdles on the castle obstacle course." },
   woodcut: { n: "Woodcutting", i: "\u{1FA93}", game: "bar", verb: "Chop!", what: "Chop when the marker is in the gold zone." },
   cooking: { n: "Cooking", i: "\u{1F373}", game: "seq", what: "Watch the recipe, then add the ingredients in the same order.", icons: ["\u{1F955}", "\u{1F9C5}", "\u{1F344}", "\u{1F9C0}", "\u{1F95A}", "\u{1F33F}"] },
@@ -38,13 +38,32 @@ export const PATHS = {
 };
 const PATH_BONUS = 40;   // +1 level in each path skill to start
 export const LOOKS = ["\u{1F9D1}", "\u{1F466}", "\u{1F467}", "\u{1F9D1}‍\u{1F9B1}", "\u{1F469}‍\u{1F9B0}", "\u{1F468}‍\u{1F9B1}", "\u{1F9D5}", "\u{1F9D1}‍\u{1F9B3}"];   // placeholders until portrait art
+/* ---------- the character designer (layers in assets/hero, all 640x640 and lined up) ----------
+   h-{path}-{body}.webp = outfit + head · hair-{1-10}.webp (recolored with a CSS filter) · eye-{path}-{body}.webp = iris mask
+   (tinted with a colored layer in "color" blend mode, so shading stays). Saved: body, hair (0 = none), hc, eye. */
+export const BODIES = ["boy-1", "boy-2", "boy-3", "boy-4", "girl-1", "girl-2", "girl-3", "girl-4"];
+export const SKIN = { 1: "#F6C9A5", 2: "#D9925F", 3: "#B9724A", 4: "#8A4A2C" };
+export const HAIRS = ["None", "Spiky", "Swoop", "Buzz", "Afro", "Twists", "Long", "Ponytail", "Braids", "Curly", "Space buns"];
+export const HAIR_COLORS = { black: ["Black", "#1d1410", "brightness(.32) saturate(.7)"], dark: ["Dark brown", "#3b2416", "brightness(.6)"], brown: ["Brown", "#7a4321", ""],
+  auburn: ["Red", "#9c3b1b", "saturate(1.7) hue-rotate(-14deg) brightness(.95)"], blonde: ["Blonde", "#e2b866", "sepia(.35) saturate(1.3) hue-rotate(10deg) brightness(1.6)"],
+  silver: ["Silver", "#cfd3d8", "grayscale(1) brightness(1.65)"], blue: ["Blue", "#2f6fd6", "hue-rotate(195deg) saturate(1.4) brightness(1.1)"],
+  pink: ["Pink", "#ec6fb2", "hue-rotate(310deg) saturate(1.4) brightness(1.35)"], purple: ["Purple", "#8a4fd0", "hue-rotate(250deg) saturate(1.3) brightness(1.1)"], green: ["Green", "#2f9e4f", "hue-rotate(75deg) saturate(1.2)"] };
+export const EYE_COLORS = { natural: ["As drawn", ""], brown: ["Brown", "#6b3a12"], hazel: ["Hazel", "#8f7a2a"], green: ["Green", "#1f9e4f"], blue: ["Blue", "#2f6fd6"], gray: ["Gray", "#7d8b99"], violet: ["Violet", "#8a4fd0"], gold: ["Gold", "#d4a017"] };
+const lookOf = h => ({ body: BODIES.includes(h && h.body) ? h.body : "boy-1", hair: Math.max(0, Math.min(10, Number(h && h.hair) || 0)), hc: HAIR_COLORS[h && h.hc] ? h.hc : "brown", eye: EYE_COLORS[h && h.eye] ? h.eye : "natural", path: PATHS[h && h.path] ? h.path : "knight" });
+export function heroFigure(h, cls) {
+  const L = lookOf(h), A = "assets/hero/", e = EYE_COLORS[L.eye][1], em = A + "eye-" + L.path + "-" + L.body + ".webp";
+  return '<span class="hfig ' + (cls || "") + '"><img src="' + A + "h-" + L.path + "-" + L.body + '.webp" alt="">' +
+    (e ? '<i class="heye" style="background:' + e + ";-webkit-mask-image:url(" + em + ");mask-image:url(" + em + ')"></i>' : "") +
+    (L.hair ? '<img src="' + A + "hair-" + L.hair + '.webp" alt="" style="filter:' + (HAIR_COLORS[L.hc][2] || "none") + '">' : "") + "</span>";
+}
+const hasLook = h => !!(h && h.body);
 export const COLORS = ["#C0392B", "#2E6FD8", "#2E9E5B", "#8E44AD", "#E67E22", "#1ABC9C", "#D4AC0D", "#34495E"];
 
 /* ---------- Book 1: The Shattered Crown of Embervale ----------
    wk = the Monday the quest opens. req = skill levels needed to start. Quests without a story yet show "coming". */
 export const BOOK1 = { n: "The Shattered Crown of Embervale", icon: "\u{1F451}" };
 export const QUESTS = [
-  { id: "b1q1", wk: "2026-10-19", n: "Squire's Oath", sk: ["combat", "agility"], req: { combat: 2, agility: 2 }, art: "\u{1F3F0}" },
+  { id: "b1q1", wk: "2026-10-19", n: "Squire's Oath", sk: ["combat", "agility"], req: { combat: 2, agility: 2 }, art: "\u{1F3F0}", bg: "assets/hero/quest-b1q1.webp", prize: { img: "assets/hero/item-squire-badge.webp", n: "Squire's Badge" } },
   { id: "b1q2", wk: "2026-10-26", n: "The Whispering Woods", sk: ["woodcut", "cooking"], req: { woodcut: 2, cooking: 2 }, art: "\u{1F332}" },
   { id: "b1q3", wk: "2026-11-02", n: "The Flooded Mill", sk: ["fishing", "crafting"], req: { fishing: 2, crafting: 2 }, art: "\u{1F30A}" },
   { id: "b1q4", wk: "2026-11-09", n: "The Iron Mines of Grimhold", sk: ["mining", "combat"], req: { mining: 3, combat: 3 }, art: "⛏️" },
@@ -54,20 +73,23 @@ export const QUESTS = [
   { id: "b1q8", wk: "2026-12-14", n: "The Duskwarden's Keep", sk: ["combat", "magic", "mining"], req: { combat: 4, magic: 4, mining: 3 }, art: "\u{1F311}" }
 ];
 // The stories. {P} = companion name, {H} = hero name. A choice with sk+lv needs that level; bonus choices give an extra reward.
+// Story characters: a picture once the art is in, otherwise an emoji.
+export const NPCS = { rowan: { n: "Captain Rowan", img: "assets/hero/npc-rowan.webp" }, raven: { n: "The shadow raven", img: "assets/hero/npc-raven.webp" } };
+const npcHTML = k => { const N = NPCS[k]; return N ? '<span class="hnpc">' + (N.img ? '<img src="' + N.img + '" alt="' + esc(N.n) + '">' : '<span class="hnpcemo">' + N.emo + "</span>") + "</span>" : ""; };
 export const STORIES = {
   b1q1: [
-    { t: "The bells of <b>Keepstone Castle</b> ring across the hills of Embervale. Today is your Squire Trial! Old <b>Captain Rowan</b> taps his staff in the training yard. “So you want to protect the kingdom, {H}? Show me.” {P} bounces at your heels, ready to help.",
+    { npc: "rowan", t: "The bells of <b>Keepstone Castle</b> ring across the hills of Embervale. Today is your Squire Trial! Old <b>Captain Rowan</b> taps his staff in the training yard. “So you want to protect the kingdom, {H}? Show me.” {P} bounces at your heels, ready to help.",
       c: [{ x: "Step into the training yard", go: 1 }] },
-    { t: "<b>The Trial of the Blade.</b> A straw knight stands in the center of the yard, wobbling on its post. “Knock it down,” says the Captain, “but fight with your head, not just your arms.”",
+    { npc: "rowan", t: "<b>The Trial of the Blade.</b> A straw knight stands in the center of the yard, wobbling on its post. “Knock it down,” says the Captain, “but fight with your head, not just your arms.”",
       c: [{ x: "Strike the straw knight", sk: "combat", lv: 2, r: "THWACK! The straw knight spins and topples over. The Captain nods. “Not bad.”", go: 2 },
         { x: "Disarm it with a perfect parry", sk: "combat", lv: 4, bonus: "parry", r: "You catch its wooden sword, twist, and send it flying into a hay bale. The Captain’s eyebrows shoot up. “Where did you learn THAT?”", go: 2 }] },
     { t: "<b>The Trial of the Wall.</b> Next is the obstacle course: wobbly beams, rope swings and the castle’s muddy moat. A crowd of squires is watching.",
       c: [{ x: "Race across the wobbly beams", sk: "agility", lv: 2, r: "You wobble once, steady yourself, and leap off the last beam. {P} cheers!", go: 3 },
         { x: "Clear the whole moat in one jump", sk: "agility", lv: 4, bonus: "leap", r: "You take a running start and FLY over the moat. The crowd gasps. Not one drop of mud on your boots!", go: 3 }] },
-    { t: "Suddenly a <b>black raven</b> with glowing violet eyes swoops out of the sky! It snatches the Captain’s silver ring right off his finger and flaps toward the castle roof.",
+    { npc: "raven", t: "Suddenly a <b>black raven</b> with glowing violet eyes swoops out of the sky! It snatches the Captain’s silver ring right off his finger and flaps toward the castle roof.",
       c: [{ x: "Chase it across the rooftops", sk: "agility", lv: 2, r: "You scramble up the stairs and across the roof tiles, closer… closer…", go: 4 },
         { x: "Throw your practice shield at it", sk: "combat", lv: 2, r: "Your shield spins through the air and clips its wing. The raven squawks…", go: 4 }] },
-    { t: "The raven drops the ring — and a rolled-up scroll. As it flies away it bursts into purple smoke. The scroll says, in spiky writing: <i>“The Crown of Embervale is broken. Every shard will be mine. — The Duskwarden.”</i> The Captain goes pale. “So it’s true… last night the royal crown shattered into seven pieces. We need someone brave to find them.” He looks right at you.",
+    { npc: "rowan", t: "The raven drops the ring — and a rolled-up scroll. As it flies away it bursts into purple smoke. The scroll says, in spiky writing: <i>“The Crown of Embervale is broken. Every shard will be mine. — The Duskwarden.”</i> The Captain goes pale. “So it’s true… last night the royal crown shattered into seven pieces. We need someone brave to find them.” He looks right at you.",
       c: [{ x: "Kneel and take the Squire's Oath", go: "end" }] }
   ]
 };
@@ -114,19 +136,24 @@ export function heroReady(st, cls) { if (!heroOn(cls) || !heroOf(st)) return 0; 
 const trainable = h => { const q = nextQuest(h); return q ? q.sk : SKILL_IDS; };
 
 /* ---------- the tab ---------- */
+let restyle = null;   // changing an existing hero's look (one save at the end)
 let mk = null;    // hero creator draft { name, path, look, color }
 let story = null; // { q, i, line, bonus: [] }
 export const heroBusy = () => !!story || !!game;
 const fmtDay = iso => { const [y, m, d] = iso.split("-").map(Number); return new Date(y, m - 1, d).toLocaleDateString(undefined, { month: "short", day: "numeric" }); };
 export function portrait(h, big) {
+  if (hasLook(h)) return '<span class="hportrait art' + (big ? " big" : "") + '" style="--hc:' + esc((h && h.color) || COLORS[0]) + '">' + heroFigure(h, "face") + '<i>' + ((PATHS[h && h.path] || PATHS.knight).i) + "</i></span>";
   return '<span class="hportrait' + (big ? " big" : "") + '" style="--hc:' + esc((h && h.color) || COLORS[0]) + '"><span>' + (LOOKS[(h && h.look) || 0] || LOOKS[0]) + '</span><i>' + ((PATHS[h && h.path] || PATHS.knight).i) + "</i></span>";
 }
 export function heroTab(s, cls) {
   const h = heroOf(s), c = companionOf(s), pet = s.petName || (c && c.name) || "your companion";
   if (!h) return creatorHTML(s, pet);
   if (story) return storyHTML(s, h, pet);
+  if (restyle) return '<div class="card herocard"><div class="card-head"><h2>\u2728 Change your look</h2></div><div class="hmk"><div class="hprev">' + heroFigure(Object.assign({}, h, restyle), "big") + "</div><div>" + designerHTML(restyle) +
+    '<p style="margin-top:12px;"><button class="btn gold" data-hero="restyleSave">Save my look</button> <button class="btn ghost" data-hero="restyleCancel">Cancel</button></p></div></div></div>';
   const qs = questState(s, cls), left = sessionsLeft(s, cls), tr = trainable(h);
-  let o = '<div class="card herocard"><div class="hhead">' + portrait(h, true) + '<div><h2>' + esc(h.name) + "</h2><p class=\"muted\">" + (h.title ? "\u{1F396}️ " + esc(h.title) + " · " : "") + esc(PATHS[h.path].n) + " of Embervale · with " + esc(pet) + "</p></div></div>";
+  let o = (hasLook(h) ? "" : '<div class="card todaycard"><p class="lede" style="margin:0;">\u2728 New! Design your hero\u2019s look: body, hair and eye color. <button class="btn gold small" data-hero="restyle">Design my hero</button></p></div>') +
+    '<div class="card herocard"><div class="hhead">' + (hasLook(h) ? heroFigure(h, "mid") : portrait(h, true)) + '<div><h2>' + esc(h.name) + "</h2><p class=\"muted\">" + (h.title ? "\u{1F396}️ " + esc(h.title) + " · " : "") + esc(PATHS[h.path].n) + " of Embervale \u00b7 with " + esc(pet) + "</p>" + (hasLook(h) ? '<button class="btn ghost small" data-hero="restyle">\u2728 Change look</button>' : "") + "</div></div>";
   // book map
   const done = (h.done || []).length;
   o += '<div class="hbook"><b>' + BOOK1.icon + " Book 1: " + esc(BOOK1.n) + '</b><div class="hmap">' + QUESTS.map((q, i) => '<span class="hnode' + (i < done ? " done" : i === done ? " now" : "") + '" title="' + esc(q.n) + '">' + (i < done ? "✅" : q.art) + "</span>").join('<i class="hpath"></i>') + "</div></div></div>";
@@ -149,18 +176,27 @@ export function heroTab(s, cls) {
   return o + "</div>";
 }
 function creatorHTML(s, pet) {
-  if (!mk) mk = { name: "", path: "knight", look: 0, color: COLORS[0] };
+  if (!mk) mk = { name: "", path: "knight", look: 0, color: COLORS[0], body: "boy-1", hair: 1, hc: "brown", eye: "natural" };
   return '<div class="card herocard"><div class="card-head"><h2>⚔️ Create your hero</h2></div><p class="lede">The kingdom of <b>Embervale</b> needs a new squire. Make your hero, and ' + esc(pet) + " will join you on every quest!</p>" +
-    '<div class="hmk"><div class="hprev">' + portrait(mk, true) + "</div><div>" +
+    '<div class="hmk"><div class="hprev">' + heroFigure(mk, "big") + "</div><div>" +
     '<div class="field"><label for="heroName">Hero name</label><input id="heroName" type="text" maxlength="18" value="' + esc(mk.name) + '" placeholder="Sir or Lady…"></div>' +
     '<h3 class="small">Pick your path</h3><div class="hpaths">' + Object.entries(PATHS).map(([k, p]) => '<button class="hpathbtn' + (mk.path === k ? " on" : "") + '" data-hero="path" data-k="' + k + '"><span>' + p.i + "</span><b>" + p.n + "</b><small>" + p.d + "<br>+1 " + SKILLS[p.sk[0]].n + ", +1 " + SKILLS[p.sk[1]].n + "</small></button>").join("") + "</div>" +
-    '<h3 class="small">Look</h3><div class="hlooks">' + LOOKS.map((l, i) => '<button class="hlook' + (mk.look === i ? " on" : "") + '" data-hero="look" data-k="' + i + '">' + l + "</button>").join("") + "</div>" +
+    designerHTML(mk) +
     '<h3 class="small">Cape color</h3><div class="hlooks">' + COLORS.map(c => '<button class="hcol' + (mk.color === c ? " on" : "") + '" data-hero="color" data-k="' + c + '" style="background:' + c + '"></button>').join("") + "</div>" +
     '<p style="margin-top:12px;"><button class="btn gold big" data-hero="make">\u{1F6E1}️ Begin my adventure</button></p></div></div></div>';
 }
+function designerHTML(d) {
+  const sw = (a, k, on, inner, style) => '<button class="hsw' + (on ? " on" : "") + '" data-hero="' + a + '" data-k="' + k + '"' + (style ? ' style="' + style + '"' : "") + ">" + inner + "</button>";
+  const [kind, tone] = d.body.split("-"), dot = c => "background:" + c + ";width:34px;height:34px;border-radius:50%;";
+  return '<h3 class="small">Body</h3><div class="hlooks">' + sw("kind", "boy", kind === "boy", "Boy") + sw("kind", "girl", kind === "girl", "Girl") + "</div>" +
+    '<h3 class="small">Skin</h3><div class="hlooks">' + [1, 2, 3, 4].map(t => sw("tone", t, String(t) === tone, "", dot(SKIN[t]))).join("") + "</div>" +
+    '<h3 class="small">Hair</h3><div class="hlooks hhairs">' + HAIRS.map((n, i) => sw("hair", i, d.hair === i, (i ? '<img src="assets/hero/hair-' + i + '.webp" alt="" style="filter:' + (HAIR_COLORS[d.hc][2] || "none") + '">' : "<span>\u{1F6AB}</span>") + "<small>" + n + "</small>")).join("") + "</div>" +
+    '<h3 class="small">Hair color</h3><div class="hlooks">' + Object.entries(HAIR_COLORS).map(([k, c]) => sw("hc", k, d.hc === k, "", dot(c[1]))).join("") + "</div>" +
+    '<h3 class="small">Eye color</h3><div class="hlooks">' + Object.entries(EYE_COLORS).map(([k, c]) => sw("eye", k, d.eye === k, k === "natural" ? "\u2728" : "", dot(c[1] || "#fff"))).join("") + "</div>";
+}
 function storyHTML(s, h, pet) {
   const sc = STORIES[story.q.id][story.i], fill = t => t.replace(/\{P\}/g, esc(pet)).replace(/\{H\}/g, esc(h.name));
-  let o = '<div class="card hstory"><div class="card-head"><h2>' + story.q.art + " " + esc(story.q.n) + '</h2><span class="fact">part ' + (story.i + 1) + " of " + STORIES[story.q.id].length + "</span></div>";
+  let o = '<div class="card hstory">' + (story.q.bg ? '<div class="hscene" style="background-image:url(' + story.q.bg + ')">' + heroFigure(h, "scene") + (sc.npc ? npcHTML(sc.npc) : "") + "</div>" : "") + '<div class="card-head"><h2>' + story.q.art + " " + esc(story.q.n) + '</h2><span class="fact">part ' + (story.i + 1) + " of " + STORIES[story.q.id].length + "</span></div>";
   if (story.line) o += '<p class="hres">' + fill(story.line) + "</p>";
   o += '<p class="lede">' + fill(sc.t) + '</p><div class="hchoices">' + sc.c.map((ch, j) => {
     const lock = ch.sk && skLvl(h, ch.sk) < ch.lv;
@@ -172,12 +208,20 @@ function storyHTML(s, h, pet) {
 /* ---------- clicks ---------- */
 export async function heroClick(el, c) {
   const s = c.me, a = el.dataset.hero, h = heroOf(s); if (!s) return;
-  if (a === "path" || a === "look" || a === "color") { const box = document.getElementById("heroName"); if (box) mk.name = box.value; mk[a] = a === "look" ? Number(el.dataset.k) : el.dataset.k; return c.render(true); }
+  if (["path", "look", "color", "kind", "tone", "hair", "hc", "eye"].includes(a)) {
+    const d = restyle || mk; if (!d) return; const box = document.getElementById("heroName"); if (box && d === mk) mk.name = box.value; const k = el.dataset.k;
+    if (a === "kind") d.body = k + "-" + d.body.split("-")[1]; else if (a === "tone") d.body = d.body.split("-")[0] + "-" + k;
+    else d[a] = a === "look" || a === "hair" ? Number(k) : k;
+    return c.render(true);
+  }
+  if (a === "restyle") { if (!h) return; restyle = { body: h.body || "boy-1", hair: h.hair != null ? h.hair : 1, hc: h.hc || "brown", eye: h.eye || "natural" }; return c.render(true); }
+  if (a === "restyleCancel") { restyle = null; return c.render(true); }
+  if (a === "restyleSave") { if (!h || !restyle) return; const d = restyle; restyle = null; await c.patch({ hero: Object.assign({}, h, d) }); c.flash("\u2728 Your hero has a new look!", true); return; }
   if (a === "make") {
     if (h) return; const box = document.getElementById("heroName"), name = ((box && box.value) || mk.name || "").trim().slice(0, 18);
     if (!name) { c.flash("Give your hero a name first!"); return; }
     const sk = {}; PATHS[mk.path].sk.forEach(k => { sk[k] = PATH_BONUS; });
-    const hero = { name, path: mk.path, look: mk.look, color: mk.color, sk, used: 0, done: [], items: [], title: "", at: azToday() };
+    const hero = { name, path: mk.path, look: mk.look, color: mk.color, body: mk.body, hair: mk.hair, hc: mk.hc, eye: mk.eye, sk, used: 0, done: [], items: [], title: "", at: azToday() };
     mk = null; await c.patch({ hero }); c.flash("⚔️ Welcome to Embervale, " + name + "!", true); return;
   }
   if (!h) return;
@@ -196,6 +240,8 @@ async function finishQuest(c) {
   const hero = Object.assign({}, h, { done: (h.done || []).concat([q.id]), items: (h.items || []).concat(story.bonus), title: QUEST_TITLE[q.id] || h.title || "" });
   story = null;
   await c.patch({ hero, doorEggs: (Number(s.doorEggs) || 0) + REWARD.eggs, cpBonus: (Number(s.cpBonus) || 0) + REWARD.cp + REWARD.bonusCp * b });
+  if (q.prize) { layer('<h2>\u{1F389} Quest complete!</h2><img class="hprize" src="' + q.prize.img + '" alt=""><p class="hgbig">' + esc(q.prize.n) + '</p><p class="lede">+' + REWARD.eggs + " egg \u00b7 +" + (REWARD.cp + REWARD.bonusCp * b) + " Comfort Points" + (QUEST_TITLE[q.id] ? " \u00b7 You are now a <b>" + QUEST_TITLE[q.id] + "</b>!" : "") + '</p><p><button class="btn gold" id="hgOk">Hooray!</button></p>');
+    document.getElementById("hgOk").onclick = () => closeLayer(); return; }
   c.flash("\u{1F389} Quest complete! +" + REWARD.eggs + " egg and +" + (REWARD.cp + REWARD.bonusCp * b) + " Comfort Points" + (QUEST_TITLE[q.id] ? ". You are now a " + QUEST_TITLE[q.id] + "!" : "!"), true);
 }
 
@@ -221,7 +267,7 @@ async function endGame(score) {
 // Timing bar: 6 tries; the gold zone gets smaller and the marker faster. Perfect (center) = 1, good = 0.6.
 function barGame(S) {
   const p = document.getElementById("hgPlay"); let tries = 0, pts = 0, x = 0, dir = 1, speed = 0.9, zone = 0.22, at = 0.3 + Math.random() * 0.4, last = performance.now(), raf;
-  p.innerHTML = '<div class="hgbar"><div class="hgzone"></div><div class="hgmark"></div></div><p><button class="btn big gold" id="hgHit">' + S.verb + "</button></p>";
+  p.innerHTML = (S.pic ? '<img class="hgpic" src="' + S.pic + '" alt="">' : "") + '<div class="hgbar"><div class="hgzone"></div><div class="hgmark"></div></div><p><button class="btn big gold" id="hgHit">' + S.verb + "</button></p>";
   const zEl = p.querySelector(".hgzone"), mEl = p.querySelector(".hgmark"), info = document.getElementById("hgInfo");
   const place = () => { zEl.style.left = (at - zone / 2) * 100 + "%"; zEl.style.width = zone * 100 + "%"; info.textContent = "Try " + (tries + 1) + " of 6"; };
   place();
@@ -231,7 +277,8 @@ function barGame(S) {
     if (!game || game.done) return; const d = Math.abs(x - at);
     const r = d < zone * 0.2 ? 1 : d < zone / 2 ? 0.6 : 0; pts += r; tries++;
     p.querySelector(".hgbar").classList.remove("hgok", "hgbad"); void p.offsetWidth; p.querySelector(".hgbar").classList.add(r ? "hgok" : "hgbad");
-    info.textContent = r === 1 ? "⭐ Perfect!" : r ? "Good!" : "Missed!";
+    info.textContent = r === 1 ? "\u2B50 Perfect!" : r ? "Good!" : "Missed!";
+    const pic = p.querySelector(".hgpic"); if (pic && r) { pic.classList.remove("hit"); void pic.offsetWidth; pic.classList.add("hit"); }
     if (tries >= 6) { cancelAnimationFrame(raf); setTimeout(() => endGame(pts / 6), 600); return; }
     speed += 0.18; zone = Math.max(0.1, zone - 0.02); at = 0.15 + Math.random() * 0.7; setTimeout(place, 350);
   };
@@ -240,15 +287,15 @@ function barGame(S) {
 }
 // Runner: 10 hurdles come at you; tap Jump (or Space) to hop over them.
 function runGame(S) {
-  const p = document.getElementById("hgPlay"); let y = 0, vy = 0, obs = [], spawned = 0, cleared = 0, hits = 0, next = 0.9, last = performance.now(), raf, speed = 0.45;
-  p.innerHTML = '<div class="hgrun"><div class="hghero">' + portraitMini() + '</div></div><p><button class="btn big gold" id="hgJump">' + S.verb + "</button></p>";
+  const p = document.getElementById("hgPlay"); let y = 0, vy = 0, obs = [], spawned = 0, cleared = 0, hits = 0, next = 0.9, last = performance.now(), raf, speed = 0.45, scroll = 0;
+  p.innerHTML = '<div class="hgrun course"><div class="hghero">' + portraitMini() + '</div></div><p><button class="btn big gold" id="hgJump">' + S.verb + "</button></p>";
   const box = p.querySelector(".hgrun"), me = p.querySelector(".hghero"), info = document.getElementById("hgInfo");
   const jump = () => { if (y <= 0.001 && game && !game.done) vy = 1.55; };
   const tick = t => {
     const dt = Math.min(0.05, (t - last) / 1000); last = t;
     if (vy || y > 0) { y += vy * dt; vy -= 4.2 * dt; if (y <= 0) { y = 0; vy = 0; } }
-    me.style.bottom = 8 + y * 55 + "%";
-    next -= dt; if (next <= 0 && spawned < 10) { const el = document.createElement("div"); el.className = "hgob"; el.textContent = "\u{1FAB5}"; box.appendChild(el); obs.push({ x: 1.05, el, hit: false }); spawned++; next = 1.1 + Math.random() * 0.9 - spawned * 0.04; speed += 0.025; }
+    me.style.bottom = 14 + y * 55 + "%"; scroll += speed * dt; box.style.backgroundPositionX = (-scroll * 100) + "%";
+    next -= dt; if (next <= 0 && spawned < 10) { const el = document.createElement("div"); el.className = "hgob"; el.innerHTML = '<img src="assets/hero/train-hurdle.webp" alt="">'; box.appendChild(el); obs.push({ x: 1.05, el, hit: false }); spawned++; next = 1.1 + Math.random() * 0.9 - spawned * 0.04; speed += 0.025; }
     obs.forEach(o => { o.x -= speed * dt; o.el.style.left = o.x * 100 + "%";
       if (!o.hit && o.x < 0.2 && o.x > 0.08 && y < 0.25) { o.hit = true; hits++; o.el.classList.add("bump"); }
       if (!o.done && o.x < 0.05) { o.done = true; if (!o.hit) cleared++; } });
@@ -261,7 +308,7 @@ function runGame(S) {
   document.getElementById("hgJump").onclick = jump;
   game.key = ev => { if (ev.code === "Space" || ev.code === "ArrowUp") { ev.preventDefault(); jump(); } };
 }
-const portraitMini = () => { const h = game && heroOf(game.c.me); return h ? (LOOKS[h.look] || LOOKS[0]) : "\u{1F9D1}"; };
+const portraitMini = () => { const h = game && heroOf(game.c.me); return h ? (hasLook(h) ? heroFigure(h, "run") : (LOOKS[h.look] || LOOKS[0])) : "\u{1F9D1}"; };
 // Memory sequence: 3 rounds (4, 5 and 6 steps) from 6 icons. Score = correct steps / all steps.
 function seqGame(S) {
   const p = document.getElementById("hgPlay"), lens = [4, 5, 6], total = 15; let round = 0, got = 0, seq = [], pos = 0, showing = false;

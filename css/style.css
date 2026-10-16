@@ -1760,3 +1760,26 @@ body.mini-xmas .tile{ box-shadow:0 0 0 2px #E8B923; } body.mini-tot .tile{ box-s
 .todaylist{ display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:8px; }
 .todayitem{ display:grid; grid-template-columns:auto 1fr; column-gap:10px; align-items:center; text-align:left; padding:12px; border-radius:14px; border:2px solid #e8c35a; background:#fff7de; color:#3a2a1a; cursor:pointer; }
 .todayitem span{ grid-row:span 2; font-size:28px; } .todayitem b{ font-size:15px; } .todayitem small{ color:#7a6040; }
+/* hero designer layers */
+.hfig{ position:relative; display:inline-block; width:200px; aspect-ratio:1; isolation:isolate; flex:none; }
+.hfig > img, .hfig > i{ position:absolute; inset:0; width:100%; height:100%; }
+.hfig .heye{ mix-blend-mode:color; -webkit-mask-size:100% 100%; mask-size:100% 100%; }
+.hfig.big{ width:min(300px,80vw); } .hfig.mid{ width:150px; margin:-14px -14px -20px -24px; }
+.hfig.run{ width:110px; transform:translate(-30%, 10%); }
+.hportrait.art{ overflow:hidden; } .hportrait.art .hfig.face{ position:absolute; width:260%; left:-80%; top:-28%; }
+.hhairs .hsw{ width:66px; height:74px; padding:2px; display:inline-flex; flex-direction:column; align-items:center; justify-content:center; }
+.hhairs .hsw{ overflow:hidden; } .hhairs .hsw img{ width:150px; max-width:none; height:auto; margin:-16px 0 -78px 0; } .hhairs .hsw span{ font-size:24px; } .hhairs .hsw small{ font-size:10px; }
+.hsw{ border:2px solid #e3d8c2; background:#fffaf0; color:#3a2a1a; border-radius:12px; padding:6px 12px; cursor:pointer; font-weight:700; }
+.hsw.on{ border-color:#e0a800; box-shadow:0 0 0 2px #e0a800; }
+.hgrun .hghero{ font-size:40px; }
+/* Hero Quest art */
+.hscene{ position:relative; margin:-16px -16px 12px; aspect-ratio:16/8; border-radius:14px 14px 0 0; background-size:cover; background-position:center 70%; overflow:hidden; }
+.hscene .hfig.scene{ position:absolute; left:6%; bottom:-4%; width:46%; }
+.hnpc{ position:absolute; right:6%; bottom:2%; height:78%; } .hnpc img{ height:100%; width:auto; filter:drop-shadow(0 6px 8px rgba(0,0,0,.3)); animation:hnpcin .4s ease-out; }
+.hnpcemo{ display:block; font-size:min(18vw,110px); line-height:1; } @keyframes hnpcin{ from{ transform:translateY(12px); opacity:0; } }
+.hprize{ width:180px; height:auto; margin:6px auto; display:block; animation:hgpop .6s ease-out; } @keyframes hgpop{ from{ transform:scale(.3) rotate(-20deg); opacity:0; } }
+.hgpic{ height:190px; width:auto; display:block; margin:0 auto; transform-origin:50% 100%; } .hgpic.hit{ animation:hghit .35s; }
+@keyframes hghit{ 30%{ transform:rotate(-9deg) scale(.96); } 60%{ transform:rotate(6deg); } }
+.hgrun.course{ background:url(../assets/hero/train-course.webp) 0 72%/auto 160% repeat-x; height:200px; }
+.hgrun.course .hghero{ left:16%; bottom:14%; } .hgrun.course .hghero .hfig.run{ width:120px; transform:translate(-50%, 18%); }
+.hgrun.course .hgob{ bottom:16%; width:70px; } .hgob img{ width:100%; height:auto; display:block; }
