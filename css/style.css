@@ -1784,3 +1784,4 @@ body.mini-xmas .tile{ box-shadow:0 0 0 2px #E8B923; } body.mini-tot .tile{ box-s
 .hgrun.course .hghero{ left:16%; bottom:14%; } .hgrun.course .hghero .hfig.run{ width:120px; transform:translate(-50%, 18%); }
 .hgrun.course .hgob{ bottom:16%; width:70px; } .hgob img{ width:100%; height:auto; display:block; }
 .hprize.emo{ font-size:110px; width:auto; text-align:center; filter:drop-shadow(0 0 18px gold); }
+.hgpic.small{ height:130px; }

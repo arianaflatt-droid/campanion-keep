@@ -6,9 +6,9 @@
    - A student who misses a week keeps their training and plays that quest later.
    Saved on the student (one write per action): hero = { name, path, look, color, sk: { skill: xp }, used, done: [quest ids],
    items: [ids], title, at }. Nothing saves while a minigame or story is being played; it saves when it finishes. */
-import { esc, petHTML, companionOf, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261016g";
-import { dayXPs, azToday } from "./collect.js?v=20261016g";
-import { weekTotal, histWeekTotal, mondayOf, addDays } from "./doors.js?v=20261016g";
+import { esc, petHTML, companionOf, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261016h";
+import { dayXPs, azToday } from "./collect.js?v=20261016h";
+import { weekTotal, histWeekTotal, mondayOf, addDays } from "./doors.js?v=20261016h";
 
 export const HERO_START = "2026-10-19";
 export const heroOn = cls => !(cls && cls.heroOff);
@@ -17,8 +17,8 @@ const startOf = cls => (cls && cls.heroStart) || HERO_START;
 export const SKILLS = {
   combat: { n: "Combat", i: "\u{1F5E1}️", game: "bar", pic: "assets/hero/train-dummy.webp", verb: "Strike!", what: "Hit the training dummy when the marker is in the gold zone." },
   agility: { n: "Agility", i: "\u{1F3C3}", game: "run", verb: "Jump!", what: "Jump over the hurdles on the castle obstacle course." },
-  woodcut: { n: "Woodcutting", i: "\u{1FA93}", game: "bar", verb: "Chop!", what: "Chop when the marker is in the gold zone." },
-  cooking: { n: "Cooking", i: "\u{1F373}", game: "seq", what: "Watch the recipe, then add the ingredients in the same order.", icons: ["\u{1F955}", "\u{1F9C5}", "\u{1F344}", "\u{1F9C0}", "\u{1F95A}", "\u{1F33F}"] },
+  woodcut: { n: "Woodcutting", i: "\u{1FA93}", game: "bar", pic: "assets/hero/train-tree.webp", verb: "Chop!", what: "Chop when the marker is in the gold zone." },
+  cooking: { n: "Cooking", i: "\u{1F373}", game: "seq", pic: "assets/hero/train-pot.webp", what: "Watch the recipe, then add the ingredients in the same order.", icons: ["\u{1F955}", "\u{1F9C5}", "\u{1F344}", "\u{1F9C0}", "\u{1F95A}", "\u{1F33F}"] },
   fishing: { n: "Fishing", i: "\u{1F3A3}", game: "bar", verb: "Reel!", what: "Reel in when the marker is in the gold zone." },
   crafting: { n: "Crafting", i: "\u{1F528}", game: "seq", what: "Watch the pattern, then build it in the same order.", icons: ["\u{1FAB5}", "\u{1FAA8}", "\u{1F529}", "\u{1F9F5}", "\u{1F48E}", "\u{1FA9D}"] },
   mining: { n: "Mining", i: "⛏️", game: "bar", verb: "Swing!", what: "Swing your pickaxe when the marker is in the gold zone." },
@@ -64,7 +64,7 @@ export const COLORS = ["#C0392B", "#2E6FD8", "#2E9E5B", "#8E44AD", "#E67E22", "#
 export const BOOK1 = { n: "The Shattered Crown of Embervale", icon: "\u{1F451}" };
 export const QUESTS = [
   { id: "b1q1", wk: "2026-10-19", n: "Squire's Oath", sk: ["combat", "agility"], req: { combat: 2, agility: 2 }, art: "\u{1F3F0}", bg: "assets/hero/quest-b1q1.webp", prize: { img: "assets/hero/item-squire-badge.webp", n: "Squire's Badge" } },
-  { id: "b1q2", wk: "2026-10-26", n: "The Whispering Woods", sk: ["woodcut", "cooking"], req: { woodcut: 2, cooking: 2 }, art: "\u{1F332}", prize: { emo: "\u{1F48E}", n: "Crown Shard 1 of 7" } },
+  { id: "b1q2", wk: "2026-10-26", n: "The Whispering Woods", sk: ["woodcut", "cooking"], req: { woodcut: 2, cooking: 2 }, art: "\u{1F332}", bg: "assets/hero/quest-b1q2.webp", prize: { img: "assets/hero/item-shard.webp", n: "Crown Shard 1 of 7" } },
   { id: "b1q3", wk: "2026-11-02", n: "The Flooded Mill", sk: ["fishing", "crafting"], req: { fishing: 2, crafting: 2 }, art: "\u{1F30A}" },
   { id: "b1q4", wk: "2026-11-09", n: "The Iron Mines of Grimhold", sk: ["mining", "combat"], req: { mining: 3, combat: 3 }, art: "⛏️" },
   { id: "b1q5", wk: "2026-11-16", n: "The Wizard's Tower", sk: ["magic", "agility"], req: { magic: 3, agility: 3 }, art: "\u{1F9D9}" },
@@ -74,7 +74,7 @@ export const QUESTS = [
 ];
 // The stories. {P} = companion name, {H} = hero name. A choice with sk+lv needs that level; bonus choices give an extra reward.
 // Story characters: a picture once the art is in, otherwise an emoji.
-export const NPCS = { fern: { n: "Granny Fern", emo: "\u{1F475}" }, bramble: { n: "Bramble the bear cub", emo: "\u{1F43B}" }, rowan: { n: "Captain Rowan", img: "assets/hero/npc-rowan.webp" }, raven: { n: "The shadow raven", img: "assets/hero/npc-raven.webp" } };
+export const NPCS = { fern: { n: "Granny Fern", img: "assets/hero/npc-fern.webp" }, bramble: { n: "Bramble the bear cub", img: "assets/hero/npc-bramble.webp" }, rowan: { n: "Captain Rowan", img: "assets/hero/npc-rowan.webp" }, raven: { n: "The shadow raven", img: "assets/hero/npc-raven.webp" } };
 const npcHTML = k => { const N = NPCS[k]; return N ? '<span class="hnpc">' + (N.img ? '<img src="' + N.img + '" alt="' + esc(N.n) + '">' : '<span class="hnpcemo">' + N.emo + "</span>") + "</span>" : ""; };
 export const STORIES = {
   b1q1: [
@@ -327,7 +327,7 @@ const portraitMini = () => { const h = game && heroOf(game.c.me); return h ? (ha
 // Memory sequence: 3 rounds (4, 5 and 6 steps) from 6 icons. Score = correct steps / all steps.
 function seqGame(S) {
   const p = document.getElementById("hgPlay"), lens = [4, 5, 6], total = 15; let round = 0, got = 0, seq = [], pos = 0, showing = false;
-  p.innerHTML = '<div class="hgshow" id="hgShow"></div><div class="hgpads">' + S.icons.map((ic, i) => '<button class="hgpad" data-i="' + i + '">' + ic + "</button>").join("") + "</div>";
+  p.innerHTML = (S.pic ? '<img class="hgpic small" src="' + S.pic + '" alt="">' : "") + '<div class="hgshow" id="hgShow"></div><div class="hgpads">' + S.icons.map((ic, i) => '<button class="hgpad" data-i="' + i + '">' + ic + "</button>").join("") + "</div>";
   const show = document.getElementById("hgShow"), info = document.getElementById("hgInfo"), pads = [...p.querySelectorAll(".hgpad")];
   const play = () => {
     seq = Array.from({ length: lens[round] }, () => Math.floor(Math.random() * S.icons.length)); pos = 0; showing = true; info.textContent = "Round " + (round + 1) + " of 3 — watch!";
@@ -338,7 +338,7 @@ function seqGame(S) {
   pads.forEach(b => b.onclick = () => {
     if (showing || !game || game.done) return; const i = Number(b.dataset.i);
     b.classList.add(i === seq[pos] ? "good" : "bad"); setTimeout(() => b.classList.remove("good", "bad"), 250);
-    if (i === seq[pos]) { got++; pos++; if (pos >= seq.length) { info.textContent = "⭐ Got it!"; nextRound(); } }
+    if (i === seq[pos]) { const pic = p.querySelector(".hgpic"); if (pic) { pic.classList.remove("hit"); void pic.offsetWidth; pic.classList.add("hit"); } got++; pos++; if (pos >= seq.length) { info.textContent = "⭐ Got it!"; nextRound(); } }
     else { info.textContent = "Oops! On to the next round."; showing = true; nextRound(); }
   });
   play();
