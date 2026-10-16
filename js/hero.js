@@ -6,9 +6,9 @@
    - A student who misses a week keeps their training and plays that quest later.
    Saved on the student (one write per action): hero = { name, path, look, color, sk: { skill: xp }, used, done: [quest ids],
    items: [ids], title, at }. Nothing saves while a minigame or story is being played; it saves when it finishes. */
-import { esc, petHTML, companionOf, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261016f";
-import { dayXPs, azToday } from "./collect.js?v=20261016f";
-import { weekTotal, histWeekTotal, mondayOf, addDays } from "./doors.js?v=20261016f";
+import { esc, petHTML, companionOf, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261016g";
+import { dayXPs, azToday } from "./collect.js?v=20261016g";
+import { weekTotal, histWeekTotal, mondayOf, addDays } from "./doors.js?v=20261016g";
 
 export const HERO_START = "2026-10-19";
 export const heroOn = cls => !(cls && cls.heroOff);
@@ -64,7 +64,7 @@ export const COLORS = ["#C0392B", "#2E6FD8", "#2E9E5B", "#8E44AD", "#E67E22", "#
 export const BOOK1 = { n: "The Shattered Crown of Embervale", icon: "\u{1F451}" };
 export const QUESTS = [
   { id: "b1q1", wk: "2026-10-19", n: "Squire's Oath", sk: ["combat", "agility"], req: { combat: 2, agility: 2 }, art: "\u{1F3F0}", bg: "assets/hero/quest-b1q1.webp", prize: { img: "assets/hero/item-squire-badge.webp", n: "Squire's Badge" } },
-  { id: "b1q2", wk: "2026-10-26", n: "The Whispering Woods", sk: ["woodcut", "cooking"], req: { woodcut: 2, cooking: 2 }, art: "\u{1F332}" },
+  { id: "b1q2", wk: "2026-10-26", n: "The Whispering Woods", sk: ["woodcut", "cooking"], req: { woodcut: 2, cooking: 2 }, art: "\u{1F332}", prize: { emo: "\u{1F48E}", n: "Crown Shard 1 of 7" } },
   { id: "b1q3", wk: "2026-11-02", n: "The Flooded Mill", sk: ["fishing", "crafting"], req: { fishing: 2, crafting: 2 }, art: "\u{1F30A}" },
   { id: "b1q4", wk: "2026-11-09", n: "The Iron Mines of Grimhold", sk: ["mining", "combat"], req: { mining: 3, combat: 3 }, art: "⛏️" },
   { id: "b1q5", wk: "2026-11-16", n: "The Wizard's Tower", sk: ["magic", "agility"], req: { magic: 3, agility: 3 }, art: "\u{1F9D9}" },
@@ -74,7 +74,7 @@ export const QUESTS = [
 ];
 // The stories. {P} = companion name, {H} = hero name. A choice with sk+lv needs that level; bonus choices give an extra reward.
 // Story characters: a picture once the art is in, otherwise an emoji.
-export const NPCS = { rowan: { n: "Captain Rowan", img: "assets/hero/npc-rowan.webp" }, raven: { n: "The shadow raven", img: "assets/hero/npc-raven.webp" } };
+export const NPCS = { fern: { n: "Granny Fern", emo: "\u{1F475}" }, bramble: { n: "Bramble the bear cub", emo: "\u{1F43B}" }, rowan: { n: "Captain Rowan", img: "assets/hero/npc-rowan.webp" }, raven: { n: "The shadow raven", img: "assets/hero/npc-raven.webp" } };
 const npcHTML = k => { const N = NPCS[k]; return N ? '<span class="hnpc">' + (N.img ? '<img src="' + N.img + '" alt="' + esc(N.n) + '">' : '<span class="hnpcemo">' + N.emo + "</span>") + "</span>" : ""; };
 export const STORIES = {
   b1q1: [
@@ -91,6 +91,21 @@ export const STORIES = {
         { x: "Throw your practice shield at it", sk: "combat", lv: 2, r: "Your shield spins through the air and clips its wing. The raven squawks…", go: 4 }] },
     { npc: "rowan", t: "The raven drops the ring — and a rolled-up scroll. As it flies away it bursts into purple smoke. The scroll says, in spiky writing: <i>“The Crown of Embervale is broken. Every shard will be mine. — The Duskwarden.”</i> The Captain goes pale. “So it’s true… last night the royal crown shattered into seven pieces. We need someone brave to find them.” He looks right at you.",
       c: [{ x: "Kneel and take the Squire's Oath", go: "end" }] }
+  ],
+  b1q2: [
+    { npc: "rowan", t: "Captain Rowan unrolls an old map. \u201CThe first crown shard fell somewhere in the <b>Whispering Woods</b>. A group of woodcutters went in three days ago\u2026 and never came back.\u201D At the edge of the forest, the tall trees rustle as if they are whispering secrets. {P} perks up its ears.",
+      c: [{ x: "Step into the Whispering Woods", go: 1 }] },
+    { t: "Deep in the woods, the path is blocked by a wall of <b>twisting shadow vines</b>, dark purple and covered in thorns. They feel cold, like the Duskwarden\u2019s magic. A huge fallen log lies across a stream nearby.",
+      c: [{ x: "Chop a path through the vines", sk: "woodcut", lv: 2, r: "CHOP! CHOP! The shadow vines crumble into purple dust. The path is open!", go: 2 },
+        { x: "Carve the fallen log into a bridge", sk: "woodcut", lv: 4, bonus: "bridge", r: "You shape the log into a sturdy bridge over the stream. {P} trots across first, tail wagging. Now nobody will get lost here again!", go: 2 }] },
+    { npc: "fern", t: "Smoke rises between the trees. You find the lost woodcutters\u2019 camp! Their cook, <b>Granny Fern</b>, waves a wooden spoon. \u201COh, thank goodness! We\u2019ve been lost for days, and everyone is SO hungry. The pot is empty and nobody here can cook but me\u2026 and my arms are tired.\u201D",
+      c: [{ x: "Cook a big pot of mushroom stew", sk: "cooking", lv: 2, r: "The stew bubbles and smells amazing. The woodcutters cheer and slurp up every drop!", go: 3 },
+        { x: "Bake Granny Fern\u2019s famous berry pie", sk: "cooking", lv: 4, bonus: "pie", r: "Granny Fern tastes a bite and gasps. \u201CThis is better than MINE!\u201D She tucks a little recipe card into your pocket.", go: 3 }] },
+    { npc: "bramble", t: "\u201CListen to the trees,\u201D Granny Fern whispers. The leaves rustle: <i>\u201CThe shard\u2026 the old oak\u2026\u201D</i> In the center of the woods stands a giant hollow oak glowing with golden light. But curled up in front of it is <b>Bramble</b>, a grumpy bear cub, growling at anyone who comes close.",
+      c: [{ x: "Share some of your cooking with Bramble", sk: "cooking", lv: 2, r: "Bramble sniffs\u2026 then gobbles it up and gives you a sticky, happy lick. The bear cub rolls out of the way.", go: 4 },
+        { x: "Chop firewood for a cozy campfire", sk: "woodcut", lv: 2, r: "The warm fire crackles. Bramble yawns a huge yawn, curls up beside it and falls fast asleep.", go: 4 }] },
+    { npc: "raven", t: "Inside the hollow oak, a piece of the crown glows like a tiny sun: <b>Crown Shard 1 of 7!</b> Just as you reach for it, the shadow raven swoops down, screeching! {P} leaps up and blocks it, and the raven flaps away into the trees. \u201CThe Duskwarden will know you have it now,\u201D Granny Fern warns. \u201CBe brave, young squire.\u201D",
+      c: [{ x: "Take the shard and lead everyone home", go: "end" }] }
   ]
 };
 const REWARD = { cp: 40, eggs: 1, bonusCp: 20 };
@@ -240,7 +255,7 @@ async function finishQuest(c) {
   const hero = Object.assign({}, h, { done: (h.done || []).concat([q.id]), items: (h.items || []).concat(story.bonus), title: QUEST_TITLE[q.id] || h.title || "" });
   story = null;
   await c.patch({ hero, doorEggs: (Number(s.doorEggs) || 0) + REWARD.eggs, cpBonus: (Number(s.cpBonus) || 0) + REWARD.cp + REWARD.bonusCp * b });
-  if (q.prize) { layer('<h2>\u{1F389} Quest complete!</h2><img class="hprize" src="' + q.prize.img + '" alt=""><p class="hgbig">' + esc(q.prize.n) + '</p><p class="lede">+' + REWARD.eggs + " egg \u00b7 +" + (REWARD.cp + REWARD.bonusCp * b) + " Comfort Points" + (QUEST_TITLE[q.id] ? " \u00b7 You are now a <b>" + QUEST_TITLE[q.id] + "</b>!" : "") + '</p><p><button class="btn gold" id="hgOk">Hooray!</button></p>');
+  if (q.prize) { layer('<h2>\u{1F389} Quest complete!</h2>' + (q.prize.img ? '<img class="hprize" src="' + q.prize.img + '" alt="">' : '<span class="hprize emo">' + q.prize.emo + "</span>") + '<p class="hgbig">' + esc(q.prize.n) + '</p><p class="lede">+' + REWARD.eggs + " egg \u00b7 +" + (REWARD.cp + REWARD.bonusCp * b) + " Comfort Points" + (QUEST_TITLE[q.id] ? " \u00b7 You are now a <b>" + QUEST_TITLE[q.id] + "</b>!" : "") + '</p><p><button class="btn gold" id="hgOk">Hooray!</button></p>');
     document.getElementById("hgOk").onclick = () => closeLayer(); return; }
   c.flash("\u{1F389} Quest complete! +" + REWARD.eggs + " egg and +" + (REWARD.cp + REWARD.bonusCp * b) + " Comfort Points" + (QUEST_TITLE[q.id] ? ". You are now a " + QUEST_TITLE[q.id] + "!" : "!"), true);
 }
