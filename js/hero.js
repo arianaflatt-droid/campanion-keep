@@ -6,9 +6,9 @@
    - A student who misses a week keeps their training and plays that quest later.
    Saved on the student (one write per action): hero = { name, path, look, color, sk: { skill: xp }, used, done: [quest ids],
    items: [ids], title, at }. Nothing saves while a minigame or story is being played; it saves when it finishes. */
-import { esc, petHTML, companionOf, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261016j";
-import { dayXPs, azToday } from "./collect.js?v=20261016j";
-import { weekTotal, histWeekTotal, mondayOf, addDays } from "./doors.js?v=20261016j";
+import { esc, petHTML, companionOf, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261016m";
+import { dayXPs, azToday } from "./collect.js?v=20261016m";
+import { weekTotal, histWeekTotal, mondayOf, addDays } from "./doors.js?v=20261016m";
 
 export const HERO_START = "2026-10-19";
 export const heroOn = cls => !(cls && cls.heroOff);
@@ -22,7 +22,7 @@ export const SKILLS = {
   fishing: { n: "Fishing", i: "\u{1F3A3}", game: "bar", pic: "assets/hero/train-pond.webp", verb: "Reel!", what: "Reel in when the marker is in the gold zone." },
   crafting: { n: "Crafting", i: "\u{1F528}", game: "seq", pic: "assets/hero/train-bench.webp", what: "Watch the pattern, then build it in the same order.", icons: ["\u{1FAB5}", "\u{1FAA8}", "\u{1F529}", "\u{1F9F5}", "\u{1F48E}", "\u{1FA9D}"] },
   mining: { n: "Mining", i: "⛏️", game: "bar", pic: "assets/hero/train-rock.webp", verb: "Swing!", what: "Swing your pickaxe when the marker is in the gold zone." },
-  magic: { n: "Magic", i: "\u{1F52E}", game: "seq", what: "Watch the runes light up, then cast them in the same order.", icons: ["☀️", "\u{1F319}", "⭐", "\u{1F525}", "\u{1F4A7}", "⚡"] }
+  magic: { n: "Magic", i: "\u{1F52E}", game: "seq", pic: "assets/hero/train-runes.webp", what: "Watch the runes light up, then cast them in the same order.", icons: ["☀️", "\u{1F319}", "⭐", "\u{1F525}", "\u{1F4A7}", "⚡"] }
 };
 export const SKILL_IDS = Object.keys(SKILLS);
 // Level L -> L+1 costs 30 + 10*L skill XP. A session gives 30-60 XP (score based), so 5 sessions (150+) always reach a quest.
@@ -67,14 +67,14 @@ export const QUESTS = [
   { id: "b1q2", wk: "2026-10-26", n: "The Whispering Woods", sk: ["woodcut", "cooking"], req: { woodcut: 2, cooking: 2 }, art: "\u{1F332}", bg: "assets/hero/quest-b1q2.webp", prize: { img: "assets/hero/item-shard.webp", n: "Crown Shard 1 of 7" } },
   { id: "b1q3", wk: "2026-11-02", n: "The Flooded Mill", sk: ["fishing", "crafting"], req: { fishing: 2, crafting: 2 }, art: "\u{1F30A}", bg: "assets/hero/quest-b1q3.webp", prize: { img: "assets/hero/item-shard.webp", n: "Crown Shard 2 of 7" } },
   { id: "b1q4", wk: "2026-11-09", n: "The Iron Mines of Grimhold", sk: ["mining", "combat"], req: { mining: 3, combat: 3 }, art: "⛏️", bg: "assets/hero/quest-b1q4.webp", prize: { img: "assets/hero/item-shard.webp", n: "Crown Shard 3 of 7", extra: "assets/hero/item-pickaxe.webp" } },
-  { id: "b1q5", wk: "2026-11-16", n: "The Wizard's Tower", sk: ["magic", "agility"], req: { magic: 3, agility: 3 }, art: "\u{1F9D9}" },
-  { id: "b1q6", wk: "2026-11-30", n: "The Harvest Festival Feast", sk: ["cooking", "crafting"], req: { cooking: 3, crafting: 3 }, art: "\u{1F967}" },
+  { id: "b1q5", wk: "2026-11-16", n: "The Wizard's Tower", sk: ["magic", "agility"], req: { magic: 3, agility: 3 }, art: "\u{1F9D9}", bg: "assets/hero/quest-b1q5.webp", prize: { img: "assets/hero/item-shard.webp", n: "Crown Shard 4 of 7", extra: "assets/hero/item-wand.webp" } },
+  { id: "b1q6", wk: "2026-11-30", n: "The Harvest Festival Feast", sk: ["cooking", "crafting"], req: { cooking: 3, crafting: 3 }, art: "\u{1F967}", bg: "assets/hero/quest-b1q6.webp", prize: { img: "assets/hero/item-shard.webp", n: "Crown Shard 5 of 7", extra: "assets/hero/item-ladle.webp" } },
   { id: "b1q7", wk: "2026-12-07", n: "The Dragon's Pass", sk: ["agility", "magic", "fishing"], req: { agility: 4, magic: 3, fishing: 3 }, art: "\u{1F3D4}️" },
   { id: "b1q8", wk: "2026-12-14", n: "The Duskwarden's Keep", sk: ["combat", "magic", "mining"], req: { combat: 4, magic: 4, mining: 3 }, art: "\u{1F311}" }
 ];
 // The stories. {P} = companion name, {H} = hero name. A choice with sk+lv needs that level; bonus choices give an extra reward.
 // Story characters: a picture once the art is in, otherwise an emoji.
-export const NPCS = { brick: { n: "Foreman Brick", img: "assets/hero/npc-brick.webp" }, golem: { n: "The Rock Golem", img: "assets/hero/npc-golem.webp" }, cart: { n: "Mine cart", img: "assets/hero/item-minecart.webp" }, maple: { n: "Miller Maple", img: "assets/hero/npc-maple.webp" }, gillsworth: { n: "Old Gillsworth", img: "assets/hero/npc-gillsworth.webp" }, key: { n: "The Mill Cellar Key", img: "assets/hero/item-mill-key.webp" }, fern: { n: "Granny Fern", img: "assets/hero/npc-fern.webp" }, bramble: { n: "Bramble the bear cub", img: "assets/hero/npc-bramble.webp" }, rowan: { n: "Captain Rowan", img: "assets/hero/npc-rowan.webp" }, raven: { n: "The shadow raven", img: "assets/hero/npc-raven.webp" } };
+export const NPCS = { hazel: { n: "Baker Hazel", img: "assets/hero/npc-hazel.webp" }, patches: { n: "Patches the scarecrow", img: "assets/hero/npc-patches.webp" }, pumpkin: { n: "The Golden Pumpkin", img: "assets/hero/item-golden-pumpkin.webp" }, wizzleby: { n: "Archmage Wizzleby", img: "assets/hero/npc-wizzleby.webp" }, hoot: { n: "Hoot the owl", img: "assets/hero/npc-hoot.webp" }, door: { n: "The Rune Door", img: "assets/hero/item-rune-door.webp" }, brick: { n: "Foreman Brick", img: "assets/hero/npc-brick.webp" }, golem: { n: "The Rock Golem", img: "assets/hero/npc-golem.webp" }, cart: { n: "Mine cart", img: "assets/hero/item-minecart.webp" }, maple: { n: "Miller Maple", img: "assets/hero/npc-maple.webp" }, gillsworth: { n: "Old Gillsworth", img: "assets/hero/npc-gillsworth.webp" }, key: { n: "The Mill Cellar Key", img: "assets/hero/item-mill-key.webp" }, fern: { n: "Granny Fern", img: "assets/hero/npc-fern.webp" }, bramble: { n: "Bramble the bear cub", img: "assets/hero/npc-bramble.webp" }, rowan: { n: "Captain Rowan", img: "assets/hero/npc-rowan.webp" }, raven: { n: "The shadow raven", img: "assets/hero/npc-raven.webp" } };
 const npcHTML = k => { const N = NPCS[k]; return N ? '<span class="hnpc">' + (N.img ? '<img src="' + N.img + '" alt="' + esc(N.n) + '">' : '<span class="hnpcemo">' + N.emo + "</span>") + "</span>" : ""; };
 export const STORIES = {
   b1q1: [
@@ -136,6 +136,36 @@ export const STORIES = {
         { x: "Stand guard while the golem holds up the ceiling", sk: "combat", lv: 3, r: "The golem lifts the rocks while you guard the tunnel. One by one, all five miners scramble out.", go: 4 }] },
     { npc: "brick", t: "The miners hug each other, and Brick hugs YOU. \u201CWe found something strange in the gem vein before the cave-in.\u201D It\u2019s <b>Crown Shard 3 of 7</b>, glowing between blue and purple crystals! Brick hands you a shiny golden pickaxe, too. \u201CA gift from Grimhold. Every hero needs a good pick!\u201D Far away, a tower glows on the horizon. The next shard must be there.",
       c: [{ x: "Take the shard and say goodbye to Grimhold", go: "end" }] }
+  ],
+  b1q5: [
+    { npc: "wizzleby", t: "The glowing tower on the horizon is the <b>Tower of Starfall</b>. At the door, a little old wizard is patting his pockets. \u201COh! A hero! I\u2019m <b>Archmage Wizzleby</b>. I\u2019ve lost my spectacles\u2026 oh, they\u2019re on my nose. And I\u2019ve lost my owl! <b>Hoot</b> found something shiny and flew to the very top of the tower. She won\u2019t come down, and I\u2019ve forgotten the spell to get up there!\u201D",
+      c: [{ x: "Offer to climb the tower for him", go: 1 }] },
+    { t: "Inside, the stairs don\u2019t stay still! Stone steps float in the air, sliding and spinning around the tower like a puzzle. Far above, you hear a tiny <i>hoo-hoo!</i>",
+      c: [{ x: "Jump from step to step as they move", sk: "agility", lv: 3, r: "Hop, wobble, HOP! You time each jump and land safely on the landing. {P} scrambles up right behind you.", go: 2 },
+        { x: "Run up the spinning stairs without stopping", sk: "agility", lv: 5, bonus: "stairs", r: "You sprint up the stairs as they swirl around you, faster and faster, and never miss a step. Wizzleby claps from far below. \u201CBravo! I could never do that, even when I remembered how!\u201D", go: 2 }] },
+    { npc: "door", t: "A heavy wooden door blocks the top floor. Three runes glow on it: a <b>star</b>, a <b>moon</b> and a <b>spiral</b>. They flicker one at a time, like they\u2019re waiting for an answer.",
+      c: [{ x: "Cast the runes in the same order they glow", sk: "magic", lv: 3, r: "Star\u2026 moon\u2026 spiral! The runes blaze bright blue, and the door swings open with a soft <i>whoosh</i>.", go: 3 },
+        { x: "Find the secret fourth rune and open it in one spell", sk: "magic", lv: 5, bonus: "secret", r: "You spot a tiny hidden sun rune in the wood grain. You touch it, and ALL the runes light up at once. The door doesn\u2019t just open, it bows!", go: 3 }] },
+    { npc: "hoot", t: "At the top, Hoot sits in a nest of old scrolls, guarding something glowing: a <b>Crown Shard!</b> But purple shadows are swirling at the window. The shadow raven is back, and it wants the shard!",
+      c: [{ x: "Cast a shield spell around the nest", sk: "magic", lv: 3, r: "A bubble of starlight pops up around the nest. The shadows hit it and fizzle away like smoke. The raven caws angrily and flies off.", go: 4 },
+        { x: "Dive and catch the shard before the raven does", sk: "agility", lv: 3, r: "The raven swoops, but you\u2019re faster! You grab the shard and roll across the floor while Hoot flaps and hoots in the raven\u2019s face. It flees!", go: 4 }] },
+    { npc: "wizzleby", t: "Wizzleby finally puffs up the stairs, and Hoot lands on his hat. \u201CThere you are! And you kept the shard safe.\u201D It\u2019s <b>Crown Shard 4 of 7</b>! He gives you a sparkling star wand, too. \u201CA thank-you gift. Now, where did the next shard go?\u201D He peers into his crystal ball. \u201CAha! The <b>Harvest Festival</b>. Lots of pie. Don\u2019t let me forget!\u201D",
+      c: [{ x: "Take the shard and wave goodbye to Hoot", go: "end" }] }
+  ],
+  b1q6: [
+    { npc: "hazel", t: "Wizzleby\u2019s crystal ball led you to <b>Applebrook</b>, a cozy farm village decorated for its big <b>Harvest Festival</b>. But something is wrong. A round little baker runs up with flour on her nose. \u201COh, thank goodness, a hero! I\u2019m <b>Baker Hazel</b>. Last night a black raven flew over the square, and its shadow spoiled ALL the feast food! The festival starts at sunset!\u201D",
+      c: [{ x: "Roll up your sleeves and help", go: 1 }] },
+    { npc: "hazel", t: "Hazel\u2019s kitchen is a mess of spoiled, purple-gray pies. \u201CWe need a brand-new feast,\u201D she says, handing you an apron. \u201CApples, pumpkins, carrots and herbs, all fresh from the farms.\u201D",
+      c: [{ x: "Follow Hazel\u2019s recipe step by step", sk: "cooking", lv: 3, r: "Chop, stir, sprinkle, bake! Soon the kitchen smells like warm apple pie, and {P} is drooling.", go: 2 },
+        { x: "Invent your own secret harvest recipe", sk: "cooking", lv: 5, bonus: "recipe", r: "You add a pinch of cinnamon here and a swirl of honey there… Hazel takes one taste and her eyes go wide. \u201CThat\u2019s going in my recipe book!\u201D", go: 2 }] },
+    { npc: "patches", t: "Out in the square, a friendly scarecrow waves a little hammer at you. \u201CHowdy! I\u2019m <b>Patches</b>. That raven\u2019s shadow knocked down the festival stage and the lantern arch. Can you help me fix \u2018em before the music starts?\u201D",
+      c: [{ x: "Rebuild the stage board by board", sk: "crafting", lv: 3, r: "Bang, bang, bang! You and Patches hammer the boards back in place. The stage is as good as new.", go: 3 },
+        { x: "Build an even bigger stage with a sunflower arch", sk: "crafting", lv: 5, bonus: "arch", r: "You build the stage twice as tall, with a giant arch of sunflowers and lanterns on top. The whole village gasps. Patches is so happy, straw pops out of his sleeves!", go: 3 }] },
+    { npc: "pumpkin", t: "At sunset the lanterns glow and everyone sits down to the feast. The mayor holds up this year\u2019s prize for the best dish: the <b>Golden Pumpkin</b>. A red light glows from a crack in its side\u2026 and the shadow raven swoops down to grab it!",
+      c: [{ x: "Toss a warm pie to distract the raven", sk: "cooking", lv: 3, r: "The raven can\u2019t resist the smell! It dives for the pie, and the pumpkin rolls right into your hands.", go: 4 },
+        { x: "Throw a net you made over the pumpkin", sk: "crafting", lv: 3, r: "Your net lands over the pumpkin just in time. The raven tugs and tugs, then gives up with an angry CAW and flies away.", go: 4 }] },
+    { npc: "hazel", t: "Your dish wins the Golden Pumpkin! When you lift it, the crack opens, and inside is <b>Crown Shard 5 of 7</b>. Hazel hugs you and gives you her shiny golden ladle. \u201CFor the best cook in Embervale!\u201D Patches points at the snowy mountains. \u201CThat raven flew toward <b>Dragon\u2019s Pass</b>. Folks say a real dragon lives up there\u2026\u201D",
+      c: [{ x: "Take the shard and enjoy the feast", go: "end" }] }
   ]
 };
 const REWARD = { cp: 40, eggs: 1, bonusCp: 20 };

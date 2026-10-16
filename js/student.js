@@ -2,32 +2,32 @@ import {
   checkVersion, hitOn, gearInSeason, applyDisplayNames, companionOf, petCreatures, pinnedBadgeHTML, DAYS, SHORT, ROSTER, GEAR, SIDEKICKS, BANNER, bannerFor, isHaunt, battleOn, candyOf, basketHTML, CANDY_FULL, bossState, attacksReady, bossBarHTML, GHOST_IMG, ghostUnlocked, turkeyUnlocked, grinchUnlocked, isJingle, isFrost, isHeart, heartUnlocked, attackRefusal, saveProblems, yetiUnlocked, eventMode, isGobble, setSeason, SEASON, seasonOf, STORE, candyLeft, candySpent, ownedCount, ownsItem, storeArt, nextAttack, dmgOf, HAT_BONUS, BREW_BONUS, teamHTML, wallHTML, WHEEL, pickSlice, wheelHTML, spinTo, PRIZES, prizeSlices, bucketState, bucketHTML, baseDamage, EAT_PER_DAY, dayEaten, dayXP, byId, esc, arr5, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, sidekickSVG, petHTML as petBase, vipStage, withVipHat, vipWorn, petWithHead, OUTFITS, itemArt, potionFx, bondLevel,
   ghost2Unlocked, starterFam, boss2Of, BOSS2, BOSS2_LIST, creditCompanion, compKey, compLevel, compFill, COMP_DAYS, creatureCompanion
-} from "./game.js?v=20261016j";
-import { EVENT_LIST, TEAM_EVENTS, eventOn, teamCard, teamOf as tevTeamOf } from "./teams.js?v=20261016j";
-import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=20261016j";
-import { kindCard, gotKindToday } from "./kindness.js?v=20261016j";
-import { partyCards, partyOverlay, partyClick, partyBusy, partyTicker, partySync } from "./party.js?v=20261016j";
-import { kitchenCard, kitchenOverlay, kitchenClick, kitchenBusy, kitchenPointer } from "./meals.js?v=20261016j";
-import { miniCard, miniOverlay, miniClick, miniBusy, miniSync } from "./mini.js?v=20261016j";
-import { paintCard, paintClick } from "./paint.js?v=20261016j";
-import { surpriseCards, surpriseOverlay, surpriseClick, surpriseBusy } from "./surprise.js?v=20261016j";
-import { hofTab, hofParty, hofClick } from "./hof.js?v=20261016j";
-import { passTab, passOverlay, passClick, passBusy, passReady } from "./pass.js?v=20261016j";
-import { bondHTML, moodBubble, playTrick, burst, unlockAt } from "./bond.js?v=20261016j";
-import { morningTab, morningOverlay, morningClick, morningBusy, mqReady } from "./morning.js?v=20261016j";
-import { heroTab, heroClick, heroBusy, heroReady, heroOn, heroOf, sessionsLeft, questState, nextQuest, QUESTS } from "./hero.js?v=20261016j";
-import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261016j";
-import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20261016j";
-import { nudgeCard } from "./nudges.js?v=20261016j";
-import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261016j";
-import { teacherPlayer, hasStarter, MOVES, formOf } from "./collect.js?v=20261016j";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261016j";
-import { goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked, weekGoal, weekKey, weekTotal, weekDoorState, vaultState, oldReady, vaultLessonsLeft, VAULT_XP, VAULT_BONUS_XP, VAULT_EGGS } from "./doors.js?v=20261016j";
-import { azToday } from "./collect.js?v=20261016j";
+} from "./game.js?v=20261016m";
+import { EVENT_LIST, TEAM_EVENTS, eventOn, teamCard, teamOf as tevTeamOf } from "./teams.js?v=20261016m";
+import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=20261016m";
+import { kindCard, gotKindToday } from "./kindness.js?v=20261016m";
+import { partyCards, partyOverlay, partyClick, partyBusy, partyTicker, partySync } from "./party.js?v=20261016m";
+import { kitchenCard, kitchenOverlay, kitchenClick, kitchenBusy, kitchenPointer } from "./meals.js?v=20261016m";
+import { miniCard, miniOverlay, miniClick, miniBusy, miniSync } from "./mini.js?v=20261016m";
+import { paintCard, paintClick } from "./paint.js?v=20261016m";
+import { surpriseCards, surpriseOverlay, surpriseClick, surpriseBusy } from "./surprise.js?v=20261016m";
+import { hofTab, hofParty, hofClick } from "./hof.js?v=20261016m";
+import { passTab, passOverlay, passClick, passBusy, passReady } from "./pass.js?v=20261016m";
+import { bondHTML, moodBubble, playTrick, burst, unlockAt } from "./bond.js?v=20261016m";
+import { morningTab, morningOverlay, morningClick, morningBusy, mqReady } from "./morning.js?v=20261016m";
+import { heroTab, heroClick, heroBusy, heroReady, heroOn, heroOf, sessionsLeft, questState, nextQuest, QUESTS } from "./hero.js?v=20261016m";
+import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261016m";
+import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20261016m";
+import { nudgeCard } from "./nudges.js?v=20261016m";
+import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261016m";
+import { teacherPlayer, hasStarter, MOVES, formOf } from "./collect.js?v=20261016m";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261016m";
+import { goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked, weekGoal, weekKey, weekTotal, weekDoorState, vaultState, oldReady, vaultLessonsLeft, VAULT_XP, VAULT_BONUS_XP, VAULT_EGGS } from "./doors.js?v=20261016m";
+import { azToday } from "./collect.js?v=20261016m";
 import { roomHTML, FIT_SLOTS, slotKind, KIND_NAMES, KIND_ICON, EVERYDAY_PRICE, THEMED_PRICE, TROPHY_PRICE, TYPE_THEMES, SEASON_THEMES, THEME_NAMES, TROPHIES,
   itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId,
-  ROOMS, EXTRA_ROOMS, ROOM_PRICE, hasRoom, roomStarters, fitIn, slotTakes, roomExtras, PET_SPOT_KEYS, petSpotLabel, petSpotOf, ACTIVITY_IDS, ACTIVITY_PRICE } from "./room.js?v=20261016j";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261016j";
+  ROOMS, EXTRA_ROOMS, ROOM_PRICE, hasRoom, roomStarters, fitIn, slotTakes, roomExtras, PET_SPOT_KEYS, petSpotLabel, petSpotOf, ACTIVITY_IDS, ACTIVITY_PRICE } from "./room.js?v=20261016m";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261016m";
 
 let fxFor = null;   // the student whose companion is being drawn (for the potion glow)
 const petHTML = (c, worn, held) => { const h = petBase(c, worn, held), fx = fxFor ? potionFx(fxFor) : ""; return fx ? h.replace('class="petwrap', 'class="petwrap' + fx) : h; };
@@ -282,7 +282,14 @@ function viewMine(s) {
   const tevs = [];   // team events are turned off (Oct 16) to keep the day simpler
   if (TEAM_EVENTS[tab] && !tevs.includes(TEAM_EVENTS[tab])) tab = "pet";
   let h = notYou(s) + '<div class="tabs" role="tablist">' +
-    [["pet", "\u{1F43E} My Companion"], ["collect", "\u{1F95A} Creature Collector"], ["badges", "\u{1F3C5} Badges"]].concat(haunt ? [["haunt", S.icon + " " + S.name]] : []).concat(doorsOn ? [["doors", "\u{1F6AA} " + doorName() + doorBadge(s)]] : []).concat(tevs.map(E => [E.key, E.tab])).concat(cls && cls.passOff ? [] : [["pass", "\u{1F39F}\uFE0F Season Pass" + (passReady(s, cls) ? ' <span class="tbadge">' + passReady(s, cls) + "</span>" : "")]]).concat([["hof", "\u{1F3DB}\uFE0F Hall of Fame"]]).concat([["morning", "\u{1F305} Morning Quests" + (mqReady(s, cls) ? ' <span class="tbadge">' + mqReady(s, cls) + "</span>" : "")], ["room", "\u{1F6CF}\uFE0F My Room"]]).concat(heroOn(cls) ? [["hero", "\u2694\uFE0F Hero Quest" + (heroReady(s, cls) ? ' <span class="tbadge">' + heroReady(s, cls) + "</span>" : "")]] : []).concat([ ["quest", "\u{1F5FA}\uFE0F Quest" + (readyTests(s).length ? ' <span class="tbadge">' + readyTests(s).length + "</span>" : "")]])
+    [["pet", "\u{1F43E} My Companion"]].concat(haunt ? [["haunt", S.icon + " " + S.name]] : []).concat(doorsOn ? [["doors", "\u{1F6AA} " + doorName() + doorBadge(s)]] : [])
+      .concat([["morning", "\u{1F305} Morning Quests" + (mqReady(s, cls) ? ' <span class="tbadge">' + mqReady(s, cls) + "</span>" : "")]])
+      .concat(heroOn(cls) ? [["hero", "\u2694\uFE0F Hero Quest" + (heroReady(s, cls) ? ' <span class="tbadge">' + heroReady(s, cls) + "</span>" : "")]] : [])
+      .concat(tevs.map(E => [E.key, E.tab]))
+      .concat([["collect", "\u{1F95A} Creature Collector"], ["badges", "\u{1F3C5} Badges"]])
+      .concat(cls && cls.passOff ? [] : [["pass", "\u{1F39F}\uFE0F Season Pass" + (passReady(s, cls) ? ' <span class="tbadge">' + passReady(s, cls) + "</span>" : "")]])
+      .concat([["hof", "\u{1F3DB}\uFE0F Hall of Fame"], ["room", "\u{1F6CF}\uFE0F My Room"]])
+      .concat([["quest", "\u{1F5FA}\uFE0F Quest" + (readyTests(s).length ? ' <span class="tbadge">' + readyTests(s).length + "</span>" : "")]])
       .map(([k, t]) => '<button role="tab" class="tab' + (tab === k ? " on" : "") + '" data-tab="' + k + '" aria-selected="' + (tab === k) + '">' + t + "</button>").join("") + "</div>";
   if (tab === "collect") return h + collectorTab(collectorCtx(s));
   if (tab === "badges") return h + badgesTab(s, battles, cls);
@@ -885,7 +892,7 @@ document.addEventListener("click", async ev => {
   }
   if ((el = ev.target.closest("[data-party]"))) {
     const s = students.find(x => x.id === me); if (!s) return;
-    if (PREVIEW && el.dataset.party !== "music") return;
+    if (PREVIEW && !["music", "album", "ok"].includes(el.dataset.party)) return;
     await partyClick(el, Object.assign(collectorCtx(s), { flash })).catch(e => flash("Something went wrong \u2014 " + (e.message || e)));
     return;
   }
@@ -926,7 +933,7 @@ document.addEventListener("click", async ev => {
     await morningClick(el, c).catch(e => flash("Something went wrong — " + (e.message || e)));
     return;
   }
-  if ((el = ev.target.closest("[data-hero]"))) { const s = students.find(x => x.id === me); if (s && !PREVIEW) await heroClick(el, collectorCtx(s)).catch(e => showErr(e)); return; }
+  if ((el = ev.target.closest("[data-hero]"))) { const s = students.find(x => x.id === me); if (s) await heroClick(el, collectorCtx(s)).catch(e => showErr(e)); return; }
   if ((el = ev.target.closest("[data-qfight],[data-qhold],[data-qpick],[data-qmove],[data-qact]"))) { const s = students.find(x => x.id === me); if (s && !PREVIEW) await questClick(el, collectorCtx(s)).catch(e => showErr(e)); return; }
   if ((el = ev.target.closest("[data-cc]"))) { const s = students.find(x => x.id === me); if (s) await collectorClick(el, collectorCtx(s)).catch(e => showErr(e)); return; }
   if ((el = ev.target.closest("[data-me]"))) { me = el.dataset.me; save(me); picking = null; draftName = ""; render(); scrollTo({ top: 0 }); return; }
