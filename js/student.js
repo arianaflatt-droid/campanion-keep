@@ -2,30 +2,31 @@ import {
   checkVersion, hitOn, gearInSeason, applyDisplayNames, companionOf, petCreatures, pinnedBadgeHTML, DAYS, SHORT, ROSTER, GEAR, SIDEKICKS, BANNER, bannerFor, isHaunt, battleOn, candyOf, basketHTML, CANDY_FULL, bossState, attacksReady, bossBarHTML, GHOST_IMG, ghostUnlocked, turkeyUnlocked, grinchUnlocked, isJingle, isFrost, isHeart, heartUnlocked, attackRefusal, saveProblems, yetiUnlocked, eventMode, isGobble, setSeason, SEASON, seasonOf, STORE, candyLeft, candySpent, ownedCount, ownsItem, storeArt, nextAttack, dmgOf, HAT_BONUS, BREW_BONUS, teamHTML, wallHTML, WHEEL, pickSlice, wheelHTML, spinTo, PRIZES, prizeSlices, bucketState, bucketHTML, baseDamage, EAT_PER_DAY, dayEaten, dayXP, byId, esc, arr5, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, sidekickSVG, petHTML as petBase, vipStage, withVipHat, vipWorn, petWithHead, OUTFITS, itemArt, potionFx, bondLevel,
   ghost2Unlocked, starterFam, boss2Of, BOSS2, BOSS2_LIST, creditCompanion, compKey, compLevel, compFill, COMP_DAYS, creatureCompanion
-} from "./game.js?v=20261015b";
-import { EVENT_LIST, TEAM_EVENTS, eventOn, teamCard, teamOf as tevTeamOf } from "./teams.js?v=20261015b";
-import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=20261015b";
-import { kindCard, gotKindToday } from "./kindness.js?v=20261015b";
-import { partyCards, partyOverlay, partyClick, partyBusy, partyTicker, partySync } from "./party.js?v=20261015b";
-import { kitchenCard, kitchenOverlay, kitchenClick, kitchenBusy, kitchenPointer } from "./meals.js?v=20261015b";
-import { miniCard, miniOverlay, miniClick, miniBusy, miniSync } from "./mini.js?v=20261015b";
-import { paintCard, paintClick } from "./paint.js?v=20261015b";
-import { surpriseCards, surpriseOverlay, surpriseClick, surpriseBusy } from "./surprise.js?v=20261015b";
-import { hofTab, hofParty, hofClick } from "./hof.js?v=20261015b";
-import { passTab, passOverlay, passClick, passBusy, passReady } from "./pass.js?v=20261015b";
-import { bondHTML, moodBubble, playTrick, burst, unlockAt } from "./bond.js?v=20261015b";
-import { morningTab, morningOverlay, morningClick, morningBusy, mqReady } from "./morning.js?v=20261015b";
-import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261015b";
-import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20261015b";
-import { nudgeCard } from "./nudges.js?v=20261015b";
-import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261015b";
-import { teacherPlayer, hasStarter, MOVES, formOf } from "./collect.js?v=20261015b";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261015b";
-import { goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked, weekGoal, weekKey, weekTotal, weekDoorState, vaultState, oldReady, vaultLessonsLeft, VAULT_XP, VAULT_BONUS_XP, VAULT_EGGS } from "./doors.js?v=20261015b";
-import { azToday } from "./collect.js?v=20261015b";
+} from "./game.js?v=20261015c";
+import { EVENT_LIST, TEAM_EVENTS, eventOn, teamCard, teamOf as tevTeamOf } from "./teams.js?v=20261015c";
+import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=20261015c";
+import { kindCard, gotKindToday } from "./kindness.js?v=20261015c";
+import { partyCards, partyOverlay, partyClick, partyBusy, partyTicker, partySync } from "./party.js?v=20261015c";
+import { kitchenCard, kitchenOverlay, kitchenClick, kitchenBusy, kitchenPointer } from "./meals.js?v=20261015c";
+import { miniCard, miniOverlay, miniClick, miniBusy, miniSync } from "./mini.js?v=20261015c";
+import { paintCard, paintClick } from "./paint.js?v=20261015c";
+import { surpriseCards, surpriseOverlay, surpriseClick, surpriseBusy } from "./surprise.js?v=20261015c";
+import { hofTab, hofParty, hofClick } from "./hof.js?v=20261015c";
+import { passTab, passOverlay, passClick, passBusy, passReady } from "./pass.js?v=20261015c";
+import { bondHTML, moodBubble, playTrick, burst, unlockAt } from "./bond.js?v=20261015c";
+import { morningTab, morningOverlay, morningClick, morningBusy, mqReady } from "./morning.js?v=20261015c";
+import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261015c";
+import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc } from "./db.js?v=20261015c";
+import { nudgeCard } from "./nudges.js?v=20261015c";
+import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261015c";
+import { teacherPlayer, hasStarter, MOVES, formOf } from "./collect.js?v=20261015c";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261015c";
+import { goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked, weekGoal, weekKey, weekTotal, weekDoorState, vaultState, oldReady, vaultLessonsLeft, VAULT_XP, VAULT_BONUS_XP, VAULT_EGGS } from "./doors.js?v=20261015c";
+import { azToday } from "./collect.js?v=20261015c";
 import { roomHTML, FIT_SLOTS, slotKind, KIND_NAMES, KIND_ICON, EVERYDAY_PRICE, THEMED_PRICE, TROPHY_PRICE, TYPE_THEMES, SEASON_THEMES, THEME_NAMES, TROPHIES,
-  itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId } from "./room.js?v=20261015b";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261015b";
+  itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId,
+  ROOMS, EXTRA_ROOMS, ROOM_PRICE, hasRoom, roomStarters, fitIn, slotTakes, roomExtras } from "./room.js?v=20261015c";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261015c";
 
 let fxFor = null;   // the student whose companion is being drawn (for the potion glow)
 const petHTML = (c, worn, held) => { const h = petBase(c, worn, held), fx = fxFor ? potionFx(fxFor) : ""; return fx ? h.replace('class="petwrap', 'class="petwrap' + fx) : h; };
@@ -386,7 +387,8 @@ function viewMine(s) {
 }
 
 /* ---------- My Room (decorate with Comfort Points) ---------- */
-let roomView = "decorate", roomSlot = "bed", roomBuy = null, roomSetPick = null;
+let roomView = "decorate", roomSlot = "bed", roomBuy = null, roomSetPick = null, roomAt = "bedroom";
+const slotLabel = sl => (roomAt !== "bedroom" && (sl === "bed" || sl === "chair") ? KIND_NAMES[sl + "_" + roomAt] : SLOT_NAMES[sl]);
 const SLOT_NAMES = Object.assign({}, KIND_NAMES, { shelf_upper: "Top shelf", shelf_lower: "Bottom shelf" });
 function rItemCard(id, opts) {
   const p = parseItem(id), o = opts || {}, tro = p.kind === "trophy";
@@ -395,19 +397,25 @@ function rItemCard(id, opts) {
     "<span>" + esc(tro ? (SEASON_THEMES[p.theme] || "") + " Trophy" : itemName(id)) + "</span>" + (o.price != null ? '<span class="pr">\u2B50 ' + o.price + " CP</span>" : "") + (o.note ? '<small class="muted">' + o.note + "</small>" : "") + "</button>";
 }
 function roomTab(s, c, worn) {
-  const left = cpLeft(s, cls), have = roomOwned(s), fit = fitOf(s);
-  let h = '<div class="card roomwrap"><div class="card-head"><h2>\u{1F6CF}\uFE0F ' + esc(s.petName || c.name) + "\u2019s Room</h2>" + '<span class="cpwallet">\u2B50 ' + left + " Comfort Points</span></div>" +
-    roomHTML(s, petHTML(c, worn, heldWeapon(s)), { side: (() => { const k = sidekickToday(s, boardDay(cls, students)); return k ? { kind: k, html: sidekickSVG(k) } : null; })() }) +
+  if (!ROOMS[roomAt]) roomAt = "bedroom";
+  const left = cpLeft(s, cls), have = roomOwned(s), fit = fitIn(s, roomAt), mine0 = hasRoom(s, roomAt), R0 = ROOMS[roomAt];
+  let h = '<div class="card roomwrap"><div class="card-head"><h2>' + R0.icon + " " + esc(s.petName || c.name) + "\u2019s " + (roomAt === "bedroom" ? "Room" : R0.name) + "</h2>" + '<span class="cpwallet">\u2B50 ' + left + " Comfort Points</span></div>" +
+    '<div class="slotbar roompick">' + Object.keys(ROOMS).map(r => '<button class="tpill2' + (roomAt === r ? " on" : "") + '" data-roomat="' + r + '">' + ROOMS[r].icon + " " + ROOMS[r].name + (hasRoom(s, r) ? "" : " \u{1F512}") + "</button>").join("") + "</div>" +
+    roomHTML(s, petHTML(c, worn, heldWeapon(s)), { room: roomAt === "bedroom" ? null : roomAt, side: mine0 ? (() => { const k = sidekickToday(s, boardDay(cls, students)); return k ? { kind: k, html: sidekickSVG(k) } : null; })() : null }) +
+    (mine0 ? "" : '<div class="roomlock"><b>' + R0.icon + " Unlock the " + R0.name + "</b><span>Comes with all 9 pieces you see here. Themed " + esc(KIND_NAMES["bed_" + roomAt].toLowerCase()) + "s and " + esc(KIND_NAMES["chair_" + roomAt].toLowerCase()) + "s show up in the Themed sets shop once it\u2019s yours.</span>" +
+      (roomBuy === "room:" + roomAt ? '<span><button class="buybtn" data-roombuyok="room:' + roomAt + '" data-cost="' + ROOM_PRICE + '">Unlock for ' + ROOM_PRICE + ' CP</button> <button class="btn ghost small" data-roombuy="">No</button></span>'
+        : '<button class="btn gold" data-roombuy="room:' + roomAt + '"' + (left < ROOM_PRICE ? " disabled" : "") + ">\u2B50 " + ROOM_PRICE + " Comfort Points" + "</button>" + (left < ROOM_PRICE ? '<small class="muted">You need ' + (ROOM_PRICE - left) + " more.</small>" : "")) + "</div>") +
     (sidekickToday(s, boardDay(cls, students)) ? '<p class="muted small" style="margin-top:6px;">\u2600\uFE0F You were Lunch Hero today, so your ' + esc(SIDEKICKS[sidekickToday(s, boardDay(cls, students))]) + " came to play!</p>" : "") +
     '<p class="muted small" style="margin-top:8px;">Earn Comfort Points: <b>+80</b> every day your companion stays at full health \u00b7 <b>+20</b> on Lunch Hero days \u00b7 <b>+20</b> on 5-day streak days.</p></div>';
   h += '<div class="tabs" style="margin-bottom:10px;">' + [["decorate", "\u{1F3A8} Decorate"], ["everyday", "\u{1F6CD}\uFE0F Everyday shop"], ["themed", "\u2728 Themed sets"]].map(([k, l]) =>
     '<button class="tab' + (roomView === k ? " on" : "") + '" data-roomview="' + k + '">' + l + "</button>").join("") + "</div>";
   if (roomView === "decorate") {
-    h += '<div class="card"><div class="slotbar">' + FIT_SLOTS.map(sl => '<button class="tpill2' + (roomSlot === sl ? " on" : "") + '" data-roomslot="' + sl + '">' + KIND_ICON[slotKind(sl)] + " " + SLOT_NAMES[sl] + (fit[sl] ? " \u2713" : "") + "</button>").join("") + "</div>";
-    const k = slotKind(roomSlot), mine = have.filter(id => { const p = parseItem(id); return p.kind === k || (k === "shelf" && p.kind === "trophy"); });
+    if (!mine0) return h + '<div class="card"><p class="lede" style="margin:0;">Unlock the ' + R0.name + " to decorate it.</p></div>";
+    h += '<div class="card"><div class="slotbar">' + FIT_SLOTS.map(sl => '<button class="tpill2' + (roomSlot === sl ? " on" : "") + '" data-roomslot="' + sl + '">' + KIND_ICON[slotKind(sl)] + " " + slotLabel(sl) + (fit[sl] ? " \u2713" : "") + "</button>").join("") + "</div>";
+    const k = slotKind(roomSlot), mine = have.filter(id => slotTakes(roomSlot, roomAt, parseItem(id).kind));
     h += mine.length ? '<div class="ownedgrid">' + rItemCard("none_x", {}).replace(/<img[^>]*>|<span class="tro">.*?<\/span>/, '<span class="tro">\u{1F6AB}</span>').replace(/<span>[^<]*<\/span>/, "<span>Nothing</span>").replace("<button", '<button data-place=""') +
         mine.map(id => rItemCard(id, { on: fit[roomSlot] === id, attr: 'data-place="' + id + '"' })).join("") + "</div>"
-      : '<p class="lede">You don\u2019t have any ' + esc(SLOT_NAMES[roomSlot].toLowerCase()) + (k === "shelf" ? " decor" : "") + " yet. Check the shops!</p>";
+      : '<p class="lede">You don\u2019t have any ' + esc(slotLabel(roomSlot).toLowerCase()) + (k === "shelf" ? " decor" : "") + " yet. Check the shops!</p>";
     return h + "</div>";
   }
   if (roomView === "everyday") {
@@ -432,6 +440,11 @@ function roomTab(s, c, worn) {
       '<div class="ownedgrid">' + items.map(id => have.includes(id) ? rItemCard(id, { note: "\u2713 yours", locked: true })
         : roomBuy === id ? '<div class="ritem on"><img src="' + roomArt(id) + '" alt=""><span>' + esc(itemName(id)) + '</span><button class="buybtn" data-roombuyok="' + id + '" data-cost="' + THEMED_PRICE + '">Buy for ' + THEMED_PRICE + '</button><button class="btn ghost small" data-roombuy="">No</button></div>'
         : rItemCard(id, { price: THEMED_PRICE, attr: 'data-roombuy="' + id + '"', locked: left < THEMED_PRICE })).join("") + "</div>";
+    const extras = roomExtras(s, th);
+    if (extras.length) h += '<div class="sethead" style="margin-top:12px;"><b>For your other rooms</b><span class="fact">' + THEMED_PRICE + " CP each</span></div>" +
+      '<div class="ownedgrid">' + extras.map(id => have.includes(id) ? rItemCard(id, { note: "\u2713 yours", locked: true })
+        : roomBuy === id ? '<div class="ritem on"><img src="' + roomArt(id) + '" alt=""><span>' + esc(itemName(id)) + '</span><button class="buybtn" data-roombuyok="' + id + '" data-cost="' + THEMED_PRICE + '">Buy for ' + THEMED_PRICE + '</button><button class="btn ghost small" data-roombuy="">No</button></div>'
+        : rItemCard(id, { price: THEMED_PRICE, attr: 'data-roombuy="' + id + '"', locked: left < THEMED_PRICE })).join("") + "</div>";
     if (SEASON_THEMES[th]) {
       const tid = itemId("trophy", th), t = TROPHIES[th];
       h += '<div class="ownedgrid" style="margin-top:8px;">' + (have.includes(tid) ? rItemCard(tid, { note: "\u2713 yours", locked: true })
@@ -445,16 +458,32 @@ function roomTab(s, c, worn) {
 }
 async function roomPurchase(key, cost) {
   const s = students.find(x => x.id === me); if (!s) return;
+  if (key.startsWith("room:")) return roomUnlock(s, key.slice(5));
   const have = roomOwned(s), ids = key.startsWith("set:") ? setItems(key.slice(4)).filter(id => !have.includes(id)) : [key];
   if (!ids.length || cpLeft(s, cls) < cost) { flash("Not enough Comfort Points yet!"); return; }
   const data = { cpSpent: (Number(s.cpSpent) || 0) + cost, roomOwned: roomBought(s).concat(ids), roomBuys: (s.roomBuys || []).concat([{ id: key, cost, at: new Date().toISOString() }]) };
   // put a brand-new item straight into the room if that spot is empty
   const fit = Object.assign({}, fitOf(s));
-  ids.forEach(id => { const k = parseItem(id).kind, slot = k === "trophy" || k === "shelf" ? (!fit.shelf_upper ? "shelf_upper" : !fit.shelf_lower ? "shelf_lower" : null) : k; if (slot && (!fit[slot] || ROOM_STARTERS.includes(fit[slot]))) fit[slot] = id; });
+  // a new tub, stove, fridge... goes straight into its own room if that spot still has the basic piece
+  const fits = Object.assign({}, s.roomFits || {}); let fitsChanged = false;
+  ids.forEach(id => { const k = parseItem(id).kind, m = k.match(/^(bed|chair)_(bath|kitchen|play)$/); if (!m) return;
+    const rf = fitIn(s, m[2]); if (!rf[m[1]] || rf[m[1]] === m[1] + "_" + m[2] + "_base") { fits[m[2]] = Object.assign({}, (s.roomFits || {})[m[2]] || {}, { [m[1]]: id }); fitsChanged = true; } });
+  if (fitsChanged) data.roomFits = fits;
+  ids.filter(id => !/^(bed|chair)_(bath|kitchen|play)_/.test(id)).forEach(id => { const k = parseItem(id).kind, slot = k === "trophy" || k === "shelf" ? (!fit.shelf_upper ? "shelf_upper" : !fit.shelf_lower ? "shelf_lower" : null) : k; if (slot && (!fit[slot] || ROOM_STARTERS.includes(fit[slot]))) fit[slot] = id; });
   data.roomFit = fit;
   roomBuy = null;
   await patch(data);
   flash("\u{1F389} It\u2019s yours! Check out your room.", true);
+}
+
+async function roomUnlock(s, r) {
+  if (!EXTRA_ROOMS.includes(r) || hasRoom(s, r)) return;
+  if (cpLeft(s, cls) < ROOM_PRICE) { flash("Not enough Comfort Points yet!"); return; }
+  const add = roomStarters(r).filter(id => !roomBought(s).includes(id));
+  roomBuy = null; roomView = "decorate";
+  await patch({ cpSpent: (Number(s.cpSpent) || 0) + ROOM_PRICE, rooms: Object.assign({}, s.rooms || {}, { [r]: true }), roomOwned: roomBought(s).concat(add),
+    roomBuys: (s.roomBuys || []).concat([{ id: "room:" + r, cost: ROOM_PRICE, at: new Date().toISOString() }]) });
+  flash("\u{1F389} The " + ROOMS[r].name + " is yours! Decorate it any way you like.", true);
 }
 
 /* ---------- Daily Doors ---------- */
@@ -902,10 +931,14 @@ document.addEventListener("click", async ev => {
   }
   if ((el = ev.target.closest("[data-roomview]"))) { roomView = el.dataset.roomview; roomBuy = null; render(); return; }
   if ((el = ev.target.closest("[data-roomset]"))) { roomSetPick = el.dataset.roomset; roomBuy = null; render(); return; }
+  if ((el = ev.target.closest("[data-roomat]"))) { roomAt = el.dataset.roomat; roomBuy = null; render(); return; }
   if ((el = ev.target.closest("[data-roomslot]"))) { roomSlot = el.dataset.roomslot; render(); return; }
-  if ((el = ev.target.closest("[data-place]"))) { if (PREVIEW) return; const s = students.find(x => x.id === me), fit = Object.assign({}, fitOf(s)); const id = el.dataset.place || null;
+  if ((el = ev.target.closest("[data-place]"))) { if (PREVIEW) return; const s = students.find(x => x.id === me), fit = Object.assign({}, fitIn(s, roomAt)); const id = el.dataset.place || null;
+    if (roomAt !== "bedroom" && !hasRoom(s, roomAt)) return;
     if (id && slotKind(roomSlot) === "shelf") { const other = roomSlot === "shelf_upper" ? "shelf_lower" : "shelf_upper"; if (fit[other] === id) fit[other] = null; }
-    fit[roomSlot] = id; return patch({ roomFit: fit }); }
+    fit[roomSlot] = id;
+    if (roomAt === "bedroom") return patch({ roomFit: fit });
+    return patch({ roomFits: Object.assign({}, s.roomFits || {}, { [roomAt]: fit }) }); }
   if ((el = ev.target.closest("[data-roombuyok]"))) { if (!PREVIEW) await roomPurchase(el.dataset.roombuyok, Number(el.dataset.cost)); return; }
   if ((el = ev.target.closest("[data-roombuy]"))) { roomBuy = el.dataset.roombuy || null; render(); return; }
   if ((el = ev.target.closest("[data-weekdoor]"))) { if (!PREVIEW) await openWeekDoor(el.dataset.weekdoor && el.dataset.weekdoor !== "1" ? el.dataset.weekdoor : null); return; }

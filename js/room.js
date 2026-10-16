@@ -1,22 +1,24 @@
 /* ---------- Companion Room ----------
    A decoratable bedroom for each companion, paid for with Comfort Points (CP).
    CP (computed from the saved XP history, from cls.roomStart on; the teacher console saves the total as st.cpEarned):
-     +10 every full-health day (hit the goal) · +5 if Lunch Hero that day · +5 if that day is part of a 5-day streak.
+     +80 every full-health day (hit the goal) · +20 if Lunch Hero that day · +20 if that day is part of a 5-day streak.
    Saved on the student: cpEarned (teacher writes), cpSpent, roomOwned [item ids], roomFit { slot: id }, roomBuys [{ id, cost, at }].
    Item ids are "{kind}_{theme}" (e.g. bed_dragon); art is assets/room/{id}.webp. Trophies are trophy_{season}.
    The room picture is 1536x1024; everything below is placed in % of that. */
-import { azToday } from "./collect.js?v=20261015b";
-import { questCP } from "./quest.js?v=20261015b";
-import { esc } from "./game.js?v=20261015b";
+import { azToday } from "./collect.js?v=20261015c";
+import { questCP } from "./quest.js?v=20261015c";
+import { esc } from "./game.js?v=20261015c";
 
 // Themes that have art so far. Add a theme name here once its 9 pieces are in assets/room/.
 export const TYPE_THEMES = ["fire", "water", "nature", "rock", "sky", "electric", "ice", "light", "dark", "ghost", "poison", "steel", "arcane", "crystal", "dragon"];
 export const SEASON_THEMES = { haunt: "Haunt-O-Ween", gobble: "Gobble-Palooza", jingle: "Jingle Jam", frost: "Frostbite Festival", heart: "Sweetheart Showdown" };
 export const THEME_NAMES = { arcane: "Arcane", crystal: "Crystal", dark: "Dark", dragon: "Dragon", ghost: "Ghost", light: "Light", poison: "Poison", steel: "Steel",
+  bath: "Bubble Bath", kitchen: "Cherry Kitchen", play: "Rainbow Playroom", lucky: "Lucky",
   fire: "Fire", water: "Water", nature: "Nature", rock: "Rock", sky: "Sky", electric: "Electric", ice: "Ice", haunt: "Haunt-O-Ween", gobble: "Gobble-Palooza", jingle: "Jingle Jam", frost: "Frostbite Festival", heart: "Sweetheart Showdown" };
 // The 9 kinds of item in a set, and what they cost on the Everyday tab.
 export const KINDS = ["wallpaper", "flooring", "rug", "ceiling", "bed", "chair", "plant", "wall_art", "shelf"];
-export const KIND_NAMES = { wallpaper: "Wallpaper", flooring: "Floor", rug: "Rug", ceiling: "Ceiling light", bed: "Bed", chair: "Chair", plant: "Plant", wall_art: "Wall art", shelf: "Shelf decor", trophy: "Trophy" };
+export const KIND_NAMES = { bed_bath: "Tub", chair_bath: "Sink", plant_bath: "Duck Tower", bed_kitchen: "Stove", chair_kitchen: "Fridge", plant_kitchen: "Herb Planter",
+  bed_play: "Play Tent", chair_play: "Beanbag", plant_play: "Toy Chest", wallpaper: "Wallpaper", flooring: "Floor", rug: "Rug", ceiling: "Ceiling light", bed: "Bed", chair: "Chair", plant: "Plant", wall_art: "Wall art", shelf: "Shelf decor", trophy: "Trophy" };
 export const KIND_ICON = { wallpaper: "\u{1F9F1}", flooring: "\u{1FAB5}", rug: "\u{1F7EB}", ceiling: "\u{1F4A1}", bed: "\u{1F6CF}️", chair: "\u{1FA91}", plant: "\u{1FAB4}", wall_art: "\u{1F5BC}️", shelf: "\u{1F3FA}", trophy: "\u{1F3C6}" };
 export const EVERYDAY_PRICE = { wallpaper: 50, flooring: 50, rug: 40, ceiling: 50, bed: 60, chair: 60, plant: 40, wall_art: 60, shelf: 40 };
 export const THEMED_PRICE = 75, SET_PRICE = 600, TROPHY_PRICE = 200;
@@ -44,6 +46,28 @@ export const PASS_DECOR = {
 };
 export const PASS_DECOR_NAMES = {};
 Object.entries(PASS_DECOR).forEach(([th, list]) => list.forEach(([k, n]) => { PASS_DECOR_NAMES[k + "_pass" + th] = n; }));
+/* ---------- extra rooms ----------
+   Bathroom, Kitchen and Playroom: each costs ROOM_PRICE Comfort Points and comes with its 9 basic pieces.
+   Saved on the student: rooms { bath: true, ... }, roomFits { bath: { slot: id }, ... } (the bedroom keeps using roomFit).
+   Each room has its own big pieces for the bed and chair spots ({kind}_{room}_{theme}, e.g. bed_bath_fire = Fire Tub).
+   The other pieces (walls, floors, rugs, lights, art, shelves, plants) work in every room. */
+export const ROOM_PRICE = 300;
+export const ROOMS = { bedroom: { name: "Bedroom", icon: "\u{1F6CF}\uFE0F" }, bath: { name: "Bathroom", icon: "\u{1F6C1}" }, kitchen: { name: "Kitchen", icon: "\u{1F373}" }, play: { name: "Playroom", icon: "\u{1F9F8}" } };
+export const EXTRA_ROOMS = ["bath", "kitchen", "play"];
+export const hasRoom = (st, r) => r === "bedroom" || !!(st && st.rooms && st.rooms[r]);
+export const roomStarters = r => ["wallpaper_" + r, "flooring_" + r, "rug_" + r, "ceiling_" + r, "bed_" + r + "_base", "chair_" + r + "_base", "plant_" + r + "_base", "wall_art_" + r, "shelf_" + r];
+export function roomDefaultFit(r) { const [wallpaper, flooring, rug, ceiling, bed, chair, plant, wall_art, shelf_upper] = roomStarters(r); return { wallpaper, flooring, rug, ceiling, bed, chair, plant, wall_art, shelf_upper }; }
+export const fitIn = (st, r) => (r === "bedroom" || !r ? fitOf(st) : Object.assign(roomDefaultFit(r), ((st && st.roomFits) || {})[r] || {}));
+// which owned pieces can go in a spot: bed and chair spots take that room's own big pieces; plants of any kind work anywhere
+export function slotTakes(slot, room, kind) {
+  const k = slotKind(slot);
+  if (k === "shelf") return kind === "shelf" || kind === "trophy";
+  if (k === "plant") return kind === "plant" || kind.startsWith("plant_");
+  if (k === "bed" || k === "chair") return kind === (room && room !== "bedroom" ? k + "_" + room : k);
+  return kind === k;
+}
+// themed big pieces for the extra rooms the student has, for one theme
+export const roomExtras = (st, theme) => EXTRA_ROOMS.filter(r => hasRoom(st, r)).flatMap(r => ["bed_" + r + "_" + theme, "chair_" + r + "_" + theme]);
 export const itemId = (kind, theme) => kind + "_" + theme;
 export function parseItem(id) { const i = String(id).lastIndexOf("_"); return { kind: String(id).slice(0, i), theme: String(id).slice(i + 1) }; }
 export const itemArt = id => "assets/room/" + id + ".webp";
@@ -108,8 +132,14 @@ function trophyHTML(id, style) {
   return '<div class="ri trophy" style="' + style + '"><img src="' + itemArt(id) + '" alt="" onerror="this.remove()"><span>\u{1F3C6}<small>' + (t.icon || "") + "</small></span></div>";
 }
 // petHTML is passed in (it lives in game.js) so the companion wears its gear on the bed too.
+// sizes for the extra rooms' big pieces (the art has different shapes from beds and chairs)
+const FITB = "object-fit:contain;object-position:bottom;";
+const BIG = { bed_bath: "left:3%;bottom:2%;width:38%;max-height:50%;" + FITB, bed_kitchen: "left:1.5%;bottom:3%;width:44%;max-height:52%;" + FITB, bed_play: "left:3%;bottom:2%;width:37%;max-height:64%;" + FITB,
+  chair_bath: "left:57%;bottom:15.5%;width:16%;max-height:40%;" + FITB, chair_kitchen: "left:59%;bottom:15.5%;width:12.5%;max-height:50%;" + FITB, chair_play: "left:55%;bottom:14%;width:19%;max-height:36%;" + FITB };
+const PLANT = { plant_kitchen: "width:13%;left:77.5%;", plant_play: "width:14%;left:77%;" };
+const PET_AT = { bath: "left:22%;bottom:14%;", kitchen: "left:57%;bottom:5%;", play: "left:58%;bottom:5%;" };
 export function roomHTML(st, petMarkup, opts) {
-  const f = fitOf(st), o = opts || {};
+  const o = opts || {}, f = o.room ? fitIn(st, o.room) : fitOf(st);
   // everyday tiles are mirrored 2x2 (so they repeat without seams) and drawn a bit bigger
   const tile = (id, big) => 'background-image:url(' + itemArt(id) + ");" + (parseItem(id).theme.includes("-") ? "background-size:" + big + "cqw auto;" : "");
   const wp = f.wallpaper ? tile(f.wallpaper, 40) : "", fl = f.flooring ? tile(f.flooring, 32) : "";
@@ -126,10 +156,10 @@ export function roomHTML(st, petMarkup, opts) {
   if (f.wall_art) h += img(f.wall_art, "rart", P(1352, 230) + "width:10.5%;");
   if (f.ceiling) h += img(f.ceiling, "rceil", "left:34%;top:0;height:25.4%;transform:translateX(-50%);");
   if (f.rug) h += img(f.rug, "rrug", "left:56.4%;top:89%;width:28%;height:15%;transform:translate(-50%,-50%);");
-  if (f.bed) h += img(f.bed, "rbed", "left:3%;bottom:1.4%;width:40%;");
-  if (f.chair) h += img(f.chair, "rchair", "left:54%;bottom:15.5%;width:21%;");
-  if (f.plant) h += img(f.plant, "rplant", "left:78.5%;bottom:17%;width:11%;");
-  h += '<div class="rpet">' + (petMarkup || "") + "</div>";
+  if (f.bed) h += img(f.bed, "rbed", BIG[parseItem(f.bed).kind] || "left:3%;bottom:1.4%;width:40%;");
+  if (f.chair) h += img(f.chair, "rchair", BIG[parseItem(f.chair).kind] || "left:54%;bottom:15.5%;width:21%;");
+  if (f.plant) h += img(f.plant, "rplant", "left:78.5%;bottom:17%;width:11%;" + (PLANT[parseItem(f.plant).kind] || ""));
+  h += '<div class="rpet" style="' + (PET_AT[o.room] || "") + '">' + (petMarkup || "") + "</div>";
   // Lunch Hero sidekick: on a day the student hit the goal by lunch, it runs (or floats, for the Ghost-olotl) around the room
   if (o.side) h += '<div class="rside k-' + esc(o.side.kind) + '"><div class="rside-in">' + o.side.html + "</div></div>";
   return h + "</div>";

@@ -1711,3 +1711,7 @@ body.mini-xmas .tile{ box-shadow:0 0 0 2px #E8B923; } body.mini-tot .tile{ box-s
 .pcolor.on{ box-shadow:0 0 0 3px var(--accent) inset; }
 .pown{ font-size:12px; font-weight:800; color:var(--good); }
 @media (prefers-reduced-motion: reduce){ .petwrap.pt-rainbow .tglyph, .petwrap.pt-sparkle::after, .petwrap.pt-sparkle::before{ animation:none; } }
+/* extra rooms (Bathroom, Kitchen, Playroom) */
+.roompick{ margin:0 0 10px; }
+.roomlock{ display:flex; flex-direction:column; align-items:center; gap:6px; text-align:center; margin-top:10px; padding:12px; border-radius:14px; background:var(--card-2, #FFF6E5); border:2px dashed rgba(0,0,0,.15); color:#3a2a1a; }
+.roomlock span{ font-size:13px; max-width:520px; }
