@@ -6,9 +6,9 @@
    - A student who misses a week keeps their training and plays that quest later.
    Saved on the student (one write per action): hero = { name, path, look, color, sk: { skill: xp }, used, done: [quest ids],
    items: [ids], title, at }. Nothing saves while a minigame or story is being played; it saves when it finishes. */
-import { esc, petHTML, companionOf, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261016h";
-import { dayXPs, azToday } from "./collect.js?v=20261016h";
-import { weekTotal, histWeekTotal, mondayOf, addDays } from "./doors.js?v=20261016h";
+import { esc, petHTML, companionOf, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261016j";
+import { dayXPs, azToday } from "./collect.js?v=20261016j";
+import { weekTotal, histWeekTotal, mondayOf, addDays } from "./doors.js?v=20261016j";
 
 export const HERO_START = "2026-10-19";
 export const heroOn = cls => !(cls && cls.heroOff);
@@ -19,9 +19,9 @@ export const SKILLS = {
   agility: { n: "Agility", i: "\u{1F3C3}", game: "run", verb: "Jump!", what: "Jump over the hurdles on the castle obstacle course." },
   woodcut: { n: "Woodcutting", i: "\u{1FA93}", game: "bar", pic: "assets/hero/train-tree.webp", verb: "Chop!", what: "Chop when the marker is in the gold zone." },
   cooking: { n: "Cooking", i: "\u{1F373}", game: "seq", pic: "assets/hero/train-pot.webp", what: "Watch the recipe, then add the ingredients in the same order.", icons: ["\u{1F955}", "\u{1F9C5}", "\u{1F344}", "\u{1F9C0}", "\u{1F95A}", "\u{1F33F}"] },
-  fishing: { n: "Fishing", i: "\u{1F3A3}", game: "bar", verb: "Reel!", what: "Reel in when the marker is in the gold zone." },
-  crafting: { n: "Crafting", i: "\u{1F528}", game: "seq", what: "Watch the pattern, then build it in the same order.", icons: ["\u{1FAB5}", "\u{1FAA8}", "\u{1F529}", "\u{1F9F5}", "\u{1F48E}", "\u{1FA9D}"] },
-  mining: { n: "Mining", i: "⛏️", game: "bar", verb: "Swing!", what: "Swing your pickaxe when the marker is in the gold zone." },
+  fishing: { n: "Fishing", i: "\u{1F3A3}", game: "bar", pic: "assets/hero/train-pond.webp", verb: "Reel!", what: "Reel in when the marker is in the gold zone." },
+  crafting: { n: "Crafting", i: "\u{1F528}", game: "seq", pic: "assets/hero/train-bench.webp", what: "Watch the pattern, then build it in the same order.", icons: ["\u{1FAB5}", "\u{1FAA8}", "\u{1F529}", "\u{1F9F5}", "\u{1F48E}", "\u{1FA9D}"] },
+  mining: { n: "Mining", i: "⛏️", game: "bar", pic: "assets/hero/train-rock.webp", verb: "Swing!", what: "Swing your pickaxe when the marker is in the gold zone." },
   magic: { n: "Magic", i: "\u{1F52E}", game: "seq", what: "Watch the runes light up, then cast them in the same order.", icons: ["☀️", "\u{1F319}", "⭐", "\u{1F525}", "\u{1F4A7}", "⚡"] }
 };
 export const SKILL_IDS = Object.keys(SKILLS);
@@ -65,8 +65,8 @@ export const BOOK1 = { n: "The Shattered Crown of Embervale", icon: "\u{1F451}" 
 export const QUESTS = [
   { id: "b1q1", wk: "2026-10-19", n: "Squire's Oath", sk: ["combat", "agility"], req: { combat: 2, agility: 2 }, art: "\u{1F3F0}", bg: "assets/hero/quest-b1q1.webp", prize: { img: "assets/hero/item-squire-badge.webp", n: "Squire's Badge" } },
   { id: "b1q2", wk: "2026-10-26", n: "The Whispering Woods", sk: ["woodcut", "cooking"], req: { woodcut: 2, cooking: 2 }, art: "\u{1F332}", bg: "assets/hero/quest-b1q2.webp", prize: { img: "assets/hero/item-shard.webp", n: "Crown Shard 1 of 7" } },
-  { id: "b1q3", wk: "2026-11-02", n: "The Flooded Mill", sk: ["fishing", "crafting"], req: { fishing: 2, crafting: 2 }, art: "\u{1F30A}" },
-  { id: "b1q4", wk: "2026-11-09", n: "The Iron Mines of Grimhold", sk: ["mining", "combat"], req: { mining: 3, combat: 3 }, art: "⛏️" },
+  { id: "b1q3", wk: "2026-11-02", n: "The Flooded Mill", sk: ["fishing", "crafting"], req: { fishing: 2, crafting: 2 }, art: "\u{1F30A}", bg: "assets/hero/quest-b1q3.webp", prize: { img: "assets/hero/item-shard.webp", n: "Crown Shard 2 of 7" } },
+  { id: "b1q4", wk: "2026-11-09", n: "The Iron Mines of Grimhold", sk: ["mining", "combat"], req: { mining: 3, combat: 3 }, art: "⛏️", bg: "assets/hero/quest-b1q4.webp", prize: { img: "assets/hero/item-shard.webp", n: "Crown Shard 3 of 7", extra: "assets/hero/item-pickaxe.webp" } },
   { id: "b1q5", wk: "2026-11-16", n: "The Wizard's Tower", sk: ["magic", "agility"], req: { magic: 3, agility: 3 }, art: "\u{1F9D9}" },
   { id: "b1q6", wk: "2026-11-30", n: "The Harvest Festival Feast", sk: ["cooking", "crafting"], req: { cooking: 3, crafting: 3 }, art: "\u{1F967}" },
   { id: "b1q7", wk: "2026-12-07", n: "The Dragon's Pass", sk: ["agility", "magic", "fishing"], req: { agility: 4, magic: 3, fishing: 3 }, art: "\u{1F3D4}️" },
@@ -74,7 +74,7 @@ export const QUESTS = [
 ];
 // The stories. {P} = companion name, {H} = hero name. A choice with sk+lv needs that level; bonus choices give an extra reward.
 // Story characters: a picture once the art is in, otherwise an emoji.
-export const NPCS = { fern: { n: "Granny Fern", img: "assets/hero/npc-fern.webp" }, bramble: { n: "Bramble the bear cub", img: "assets/hero/npc-bramble.webp" }, rowan: { n: "Captain Rowan", img: "assets/hero/npc-rowan.webp" }, raven: { n: "The shadow raven", img: "assets/hero/npc-raven.webp" } };
+export const NPCS = { brick: { n: "Foreman Brick", img: "assets/hero/npc-brick.webp" }, golem: { n: "The Rock Golem", img: "assets/hero/npc-golem.webp" }, cart: { n: "Mine cart", img: "assets/hero/item-minecart.webp" }, maple: { n: "Miller Maple", img: "assets/hero/npc-maple.webp" }, gillsworth: { n: "Old Gillsworth", img: "assets/hero/npc-gillsworth.webp" }, key: { n: "The Mill Cellar Key", img: "assets/hero/item-mill-key.webp" }, fern: { n: "Granny Fern", img: "assets/hero/npc-fern.webp" }, bramble: { n: "Bramble the bear cub", img: "assets/hero/npc-bramble.webp" }, rowan: { n: "Captain Rowan", img: "assets/hero/npc-rowan.webp" }, raven: { n: "The shadow raven", img: "assets/hero/npc-raven.webp" } };
 const npcHTML = k => { const N = NPCS[k]; return N ? '<span class="hnpc">' + (N.img ? '<img src="' + N.img + '" alt="' + esc(N.n) + '">' : '<span class="hnpcemo">' + N.emo + "</span>") + "</span>" : ""; };
 export const STORIES = {
   b1q1: [
@@ -106,6 +106,36 @@ export const STORIES = {
         { x: "Chop firewood for a cozy campfire", sk: "woodcut", lv: 2, r: "The warm fire crackles. Bramble yawns a huge yawn, curls up beside it and falls fast asleep.", go: 4 }] },
     { npc: "raven", t: "Inside the hollow oak, a piece of the crown glows like a tiny sun: <b>Crown Shard 1 of 7!</b> Just as you reach for it, the shadow raven swoops down, screeching! {P} leaps up and blocks it, and the raven flaps away into the trees. \u201CThe Duskwarden will know you have it now,\u201D Granny Fern warns. \u201CBe brave, young squire.\u201D",
       c: [{ x: "Take the shard and lead everyone home", go: "end" }] }
+  ],
+  b1q3: [
+    { npc: "maple", t: "Rain has poured on <b>Millbrook Village</b> for three days. The river burst over its banks, and the old water mill\u2019s giant wheel is cracked and stuck. <b>Miller Maple</b> runs up, boots squelching. \u201CWithout the mill, we can\u2019t grind flour, and without flour, nobody gets bread! And there\u2019s something glowing in our locked cellar\u2026 but the key washed away in the flood!\u201D",
+      c: [{ x: "Look at the broken water wheel", go: 1 }] },
+    { npc: "maple", t: "The mill wheel has three cracked paddles and a snapped wooden peg. Maple\u2019s toolbox sits on the dock: planks, nails, rope and a hammer. \u201CCan you fix it? I\u2019ll hold the ladder!\u201D",
+      c: [{ x: "Build new paddles and fix the wheel", sk: "crafting", lv: 2, r: "Bang, bang, BANG! You fit the new paddles in. The wheel creaks\u2026 groans\u2026 and starts to turn! Maple cheers.", go: 2 },
+        { x: "Build a sluice gate to calm the river too", sk: "crafting", lv: 4, bonus: "gate", r: "You build a wooden gate that guides the extra water away from the village. The puddles start to shrink. \u201CYou saved our whole street!\u201D Maple gasps.", go: 2 }] },
+    { npc: "gillsworth", t: "SPLASH! A giant catfish with long curly whiskers and tiny round spectacles rises out of the river. \u201CHarrumph! I am <b>Old Gillsworth</b>, guardian of this river. I found a shiny key in the flood.\u201D It dangles from his whisker. \u201CBut I only give treasures to a fisher who can catch my riddle-fish!\u201D",
+      c: [{ x: "Cast your line and catch the riddle-fish", sk: "fishing", lv: 2, r: "Your bobber dips\u2026 you wait\u2026 and REEL! A shimmering silver fish flips into your net. Gillsworth chuckles a bubbly laugh.", go: 3 },
+        { x: "Catch the rare golden riddle-fish", sk: "fishing", lv: 4, bonus: "goldfish", r: "Everyone holds their breath as you reel in a fish made of pure sparkling gold! \u201CIn two hundred years, nobody has caught that one!\u201D Gillsworth beams. He hands you a lucky fishing lure, too.", go: 3 }] },
+    { npc: "key", t: "Gillsworth drops the <b>Mill Cellar Key</b> into your hand. It\u2019s shaped like a tiny water wheel! \u201CGo on, young squire. And watch for shadows,\u201D he warns, sinking back into the river. Behind the mill, the cellar door is half underwater, and a rusty chain is wrapped around it.",
+      c: [{ x: "Make a sturdy hook to pull the chain away", sk: "crafting", lv: 2, r: "You bend a nail into a hook and tie it to the rope. One big tug, and the chain clanks away!", go: 4 },
+        { x: "Have {P} fish the chain out of the water", sk: "fishing", lv: 2, r: "{P} paddles out and grabs the chain. You reel it in together like a giant fish!", go: 4 }] },
+    { npc: "raven", t: "The key turns with a CLICK. Inside the cellar, between the flour sacks, glows <b>Crown Shard 2 of 7!</b> A shadow flickers at the window: the raven! It caws once and flies toward the mountains. \u201CIt\u2019s heading to the Iron Mines of Grimhold,\u201D Maple whispers. \u201CThat must be where the next shard is.\u201D That night, all of Millbrook eats fresh bread in your honor.",
+      c: [{ x: "Take the shard and wave goodbye to Millbrook", go: "end" }] }
+  ],
+  b1q4: [
+    { npc: "brick", t: "Following the raven, you climb into the snowy mountains to <b>Grimhold</b>, a town of dwarf miners. Bells are clanging! <b>Foreman Brick</b> stomps up, his big orange beard full of dust. \u201CA cave-in! Five of my miners are trapped deep in the Iron Mine, and something down there is ROARING. Will you help, squire?\u201D",
+      c: [{ x: "Grab a lantern and head into the mine", go: 1 }] },
+    { npc: "cart", t: "Deep in the tunnel, a wall of fallen boulders blocks the way. You can hear the miners knocking on the other side: <i>tap-tap-tap!</i> A mine cart full of ore sits on the rails nearby.",
+      c: [{ x: "Swing your pickaxe and break through the rocks", sk: "mining", lv: 3, r: "CRACK! CRACK! KRAKOOM! The boulders split apart and a tunnel opens up. The miners cheer from the other side!", go: 2 },
+        { x: "Find the weak spot and crack them all at once", sk: "mining", lv: 5, bonus: "weakspot", r: "You tap the rocks, listening\u2026 there! One perfect swing, and the whole wall crumbles into neat little pebbles. Brick\u2019s jaw drops. \u201CThat\u2019s real dwarf mining, that is!\u201D", go: 2 }] },
+    { npc: "golem", t: "RUMBLE! The ground shakes. A <b>Rock Golem</b> stomps out of the dark, its cracks glowing violet with the Duskwarden\u2019s shadow magic. It raises two giant boulder fists!",
+      c: [{ x: "Block its punches and strike back", sk: "combat", lv: 3, r: "You dodge, block and strike! The golem wobbles\u2026 and the violet glow starts to flicker.", go: 3 },
+        { x: "Aim for the glowing shadow crystal on its back", sk: "combat", lv: 5, bonus: "crystal", r: "You leap and hit the shadow crystal dead-on. It SHATTERS in a burst of purple sparks!", go: 3 }] },
+    { npc: "golem", t: "With the shadow magic gone, the golem blinks\u2026 and its eyes turn a calm, friendly gray. \u201CThank\u2026 you,\u201D it rumbles slowly. \u201CDark magic\u2026 made me angry. The miners\u2026 are this way.\u201D It points to a side tunnel, but the ceiling there is cracking!",
+      c: [{ x: "Prop up the ceiling with mine beams", sk: "mining", lv: 3, r: "You wedge strong beams under the cracks. The tunnel holds, and the miners run out safe!", go: 4 },
+        { x: "Stand guard while the golem holds up the ceiling", sk: "combat", lv: 3, r: "The golem lifts the rocks while you guard the tunnel. One by one, all five miners scramble out.", go: 4 }] },
+    { npc: "brick", t: "The miners hug each other, and Brick hugs YOU. \u201CWe found something strange in the gem vein before the cave-in.\u201D It\u2019s <b>Crown Shard 3 of 7</b>, glowing between blue and purple crystals! Brick hands you a shiny golden pickaxe, too. \u201CA gift from Grimhold. Every hero needs a good pick!\u201D Far away, a tower glows on the horizon. The next shard must be there.",
+      c: [{ x: "Take the shard and say goodbye to Grimhold", go: "end" }] }
   ]
 };
 const REWARD = { cp: 40, eggs: 1, bonusCp: 20 };
@@ -255,7 +285,7 @@ async function finishQuest(c) {
   const hero = Object.assign({}, h, { done: (h.done || []).concat([q.id]), items: (h.items || []).concat(story.bonus), title: QUEST_TITLE[q.id] || h.title || "" });
   story = null;
   await c.patch({ hero, doorEggs: (Number(s.doorEggs) || 0) + REWARD.eggs, cpBonus: (Number(s.cpBonus) || 0) + REWARD.cp + REWARD.bonusCp * b });
-  if (q.prize) { layer('<h2>\u{1F389} Quest complete!</h2>' + (q.prize.img ? '<img class="hprize" src="' + q.prize.img + '" alt="">' : '<span class="hprize emo">' + q.prize.emo + "</span>") + '<p class="hgbig">' + esc(q.prize.n) + '</p><p class="lede">+' + REWARD.eggs + " egg \u00b7 +" + (REWARD.cp + REWARD.bonusCp * b) + " Comfort Points" + (QUEST_TITLE[q.id] ? " \u00b7 You are now a <b>" + QUEST_TITLE[q.id] + "</b>!" : "") + '</p><p><button class="btn gold" id="hgOk">Hooray!</button></p>');
+  if (q.prize) { layer('<h2>\u{1F389} Quest complete!</h2>' + (q.prize.img ? '<img class="hprize" src="' + q.prize.img + '" alt="">' : '<span class="hprize emo">' + q.prize.emo + "</span>") + (q.prize.extra ? '<img class="hprize" style="width:120px" src="' + q.prize.extra + '" alt="">' : "") + '<p class="hgbig">' + esc(q.prize.n) + '</p><p class="lede">+' + REWARD.eggs + " egg \u00b7 +" + (REWARD.cp + REWARD.bonusCp * b) + " Comfort Points" + (QUEST_TITLE[q.id] ? " \u00b7 You are now a <b>" + QUEST_TITLE[q.id] + "</b>!" : "") + '</p><p><button class="btn gold" id="hgOk">Hooray!</button></p>');
     document.getElementById("hgOk").onclick = () => closeLayer(); return; }
   c.flash("\u{1F389} Quest complete! +" + REWARD.eggs + " egg and +" + (REWARD.cp + REWARD.bonusCp * b) + " Comfort Points" + (QUEST_TITLE[q.id] ? ". You are now a " + QUEST_TITLE[q.id] + "!" : "!"), true);
 }
