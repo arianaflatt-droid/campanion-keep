@@ -1,28 +1,31 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261016n";
-import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261016n";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261016n";
-import { cpEarnedCalc } from "./room.js?v=20261016n";
-import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261016n";
-import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP } from "./doors.js?v=20261016n";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261016n";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261016p";
+import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261016p";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261016p";
+import { cpEarnedCalc } from "./room.js?v=20261016p";
+import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261016p";
+import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP } from "./doors.js?v=20261016p";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261016p";
 import {
   applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   boss2Of, boss2Prize, simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, isFrost, isHeart, heartUnlocked, saveProblems, yetiUnlocked, wallMarks, WALL_BLOCK, BOSS_START_HP, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261016n";
-import { MQ_CUTOFF } from "./morning.js?v=20261016n";
-import { kindAdmin } from "./kindness.js?v=20261016n";
-import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261016n";
-import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261016n";
-import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261016n";
-import { passAdmin } from "./pass.js?v=20261016n";
-import { heroTeacherCard } from "./hero.js?v=20261016n";
-import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261016n";
+} from "./game.js?v=20261016p";
+import { MQ_CUTOFF } from "./morning.js?v=20261016p";
+import { kindAdmin } from "./kindness.js?v=20261016p";
+import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261016p";
+import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261016p";
+import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261016p";
+import { passAdmin } from "./pass.js?v=20261016p";
+import { heroTeacherCard } from "./hero.js?v=20261016p";
+import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261016p";
+import { watchLive, feederKeyRef } from "./db.js?v=20261016p";
+import { feederLink } from "./feeder.js?v=20261016p";
+import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261016p";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef
-} from "./db.js?v=20261016n";
+} from "./db.js?v=20261016p";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -167,7 +170,9 @@ else onAuthStateChanged(auth, u => {
   unsub.push(watchTrades(l => { trades = l; addIds(l, tradeRef); if (cls) settleTrades(tctx()); if (ctab === "collector") liveRender(); }, () => {}));
   unsub.push(watchStudents(list => { students = applyDisplayNames(list).sort(byAlpha); studentsLoaded = true; autoGobble(); detectEvents(); lockBadges(); liveRender(); },
     e => flash("Couldn’t load students — " + e.code)));
+  unsub.push(watchLive(d => { live = d; autoLive(); if (ctab === "daily") liveRender(); }, () => {}));
 });
+setInterval(() => { autoLive(); }, 60000);
 
 /* ================= celebrations (class view) ================= */
 let unlockWriting = false, lastHealed = null;
@@ -561,6 +566,7 @@ function viewDaily() {
     (arr5(cls.finalized, false)[day]
       ? '<button class="btn ghost" data-act="unfinalize">\u{1F512} ' + SHORT[day] + " finalized \u00b7 undo</button>"
       : '<button class="btn" data-act="finalize" style="background:var(--good);">\u2705 Finalize ' + DAYS[day] + "</button>") + "</div>" + lunchLateBox() + pasteBox() + finalizeBox() +
+    liveCard() +
     '<p class="lede" style="font-size:13px;margin-bottom:12px;">CSV or XLSX with <b>name</b> and <b>completed</b> columns. The <b>lunch</b> file marks who already hit ' + goal +
     ' (their sidekick joins them today). The <b>end-of-day</b> file decides health and turns the day on.</p>';
 
@@ -1203,6 +1209,7 @@ function matchStudent(fileName) {
     r => r.n === f,
     r => fLast && r.last && r.first === fFirst && r.last === fLast,
     r => fLast && r.last.length === 1 && r.first === fFirst && fLast[0] === r.last,
+    r => fLast.length === 1 && r.last && r.first === fFirst && r.last[0] === fLast,   // sheet "Jamie R." = roster "Jamie Rodriguez"
     r => !r.last && r.first === fFirst && R.filter(x => x.first === fFirst).length === 1,
   ];
   for (const test of tiers) { const m = R.filter(test); if (m.length === 1) return m[0].s; if (m.length > 1) return null; }
@@ -1358,14 +1365,18 @@ async function applyUpload(up) {
   // Exception: a student who isn't in the new file keeps the number they already had, so a short or partial
   // file can never take away eggs that day already earned.
   const date = pasteDate(d), key = up.kind === "lunch" ? "l" : "d", lastWk = d < 0 || d > 4;   // weekend / last week: history only
+  let wrote = 0;
+  const FIELDS = ["xp", "lunchXp", "early", "status", "xpHist", "doors", "weekDoor", "vault"];
   students.forEach(s => {
     const has = s.id in best, xp = has ? best[s.id] : null, ok = has && xp >= goal;
+    if (up.auto && !has) return;   // live data: a student who isn't in the sheet is left exactly as they are
+    const before = up.auto ? Object.fromEntries(FIELDS.map(k => [k, JSON.stringify(s[k] == null ? null : s[k])])) : null;
     if (has) { matched++; if (ok) hit++; } else missing.push(s.name);
     const status = arr5(s.status, ""), early = arr5(s.early, false);
     const hist = Object.assign({}, s.xpHist || {}), day = Object.assign({}, hist[date] || {});
     if (has) day[key] = xp;
     if (subs[s.id]) { const old = day.sub || {}, nw = {}; Object.keys(Object.assign({}, old, subs[s.id])).forEach(k => { nw[k] = Math.max(Number(old[k]) || 0, Number(subs[s.id][k]) || 0); }); day.sub = nw; }
-    if (up.kind === "lunch") delete day.lh;   // a lunch upload replaces any hand-marked Lunch Hero for that day
+    if (up.kind === "lunch" && !up.auto) delete day.lh;   // a lunch upload replaces any hand-marked Lunch Hero for that day (live data never does)
     if (Object.keys(day).length) hist[date] = day; else delete hist[date];
     let data;
     if (lastWk) data = { xpHist: hist };   // last week's numbers only go into the history (eggs + doors); this week's boxes stay as they are
@@ -1386,19 +1397,102 @@ async function applyUpload(up) {
     const wk = mondayOf(date), cur = wk === weekKey(cls), tot = cur ? weekTotal(s, cls) : histWeekTotal(s, wk);
     if (s.companionId && tot >= (cur ? weekGoal(cls) : WEEK_DOOR_XP) && !(s.weekDoor || {})[wk]) { s.weekDoor = Object.assign({}, s.weekDoor || {}, { [wk]: "ready" }); data.weekDoor = s.weekDoor; weekN++; }
     if (s.companionId && tot >= VAULT_XP && !(s.vault || {})[wk]) { s.vault = Object.assign({}, s.vault || {}, { [wk]: "ready" }); data.vault = s.vault; vaultN++; }
-    batch.update(studentRef(s.id), data);
+    if (before && Object.keys(data).every(k => JSON.stringify(data[k] == null ? null : data[k]) === before[k])) return;   // nothing new: no write
+    batch.update(studentRef(s.id), data); wrote++;
   });
-  if (up.kind === "day" && !lastWk) { const rec = recordedDays(cls); if (!rec[d]) { rec[d] = true; batch.update(classRef, { recorded: rec }); } }
+  if (up.kind === "day" && !lastWk && !up.noRecord) { const rec = recordedDays(cls); if (!rec[d]) { rec[d] = true; batch.update(classRef, { recorded: rec }); wrote++; } }
   // Team events (Potions, Feast Table): every team that now has the whole recipe/menu is done for the day
   const pots = Object.keys(subs).length ? EVENT_LIST.map(E => ({ E, r: brewRewards(E, cls, students, date) })).filter(x => x.r) : [];
   pots.forEach(({ r }) => { r.updates.forEach(u => batch.update(studentRef(u.st.id), u.data)); if (r.classData) batch.update(classRef, r.classData); });
-  try { await batch.commit(); } catch (e) { flash("Upload didn’t save — " + (e.code || e.message)); }
+  if (up.auto && !wrote && !pots.length) return 0;
+  try { await batch.commit(); } catch (e) { flash("Upload didn’t save — " + (e.code || e.message)); return 0; }
   { const fill = surpriseBaseFill(students, cls); if (fill) try { await updateDoc(classRef, fill); } catch (e) {} }   // Snack Drop / Secret Target starting points
-  busy.upReport = { kind: up.kind, day: d, file: up.file, matched, hit, missing, unmatched, autoN };
+  if (up.auto) busy.liveUnmatched = unmatched.map(u => u.name);
+  else busy.upReport = { kind: up.kind, day: d, file: up.file, matched, hit, missing, unmatched, autoN };
   const weekMsg = (weekN ? " \u{1F6AA} " + weekN + " student" + (weekN === 1 ? "" : "s") + " unlocked the Weekly Door!" : "") + (vaultN ? " \u{1F48E} " + vaultN + " student" + (vaultN === 1 ? "" : "s") + " unlocked the TREASURE VAULT!" : "");
   const potMsg = pots.filter(x => x.r.newTeams.length).map(x => " " + x.E.icon + " " + x.E.done + " " + x.r.newTeams.map(t => t.name).join(", ")).join("") + weekMsg;
   if (autoN || potMsg) flash((autoN ? "\u{1F6AA} Auto-approved " + autoN + " door" + (autoN === 1 ? "" : "s") + " from the subject XP." : "") + potMsg);
   render();
+  return wrote;
+}
+
+/* ================= 📡 Live XP from Timeback =================
+   The Class XP sheet (filled by the Timeback feeder) has a small Apps Script (CompanionKeep.gs) that copies the last
+   week of rows into classes/{CLASS_ID}/live/xp every 5 minutes, only when a number changed. While this console is open,
+   those numbers are saved for you, writing only the students whose numbers changed:
+     school day, before 8:15 AZ   -> morning XP (Morning Quest Board)
+     before the lunch cutoff      -> lunch numbers (Lunch Heroes, sidekicks)
+     after the lunch cutoff       -> end-of-day numbers; the day counts toward health from LIVE_COUNT_AT
+     earlier days this week (and last Fri-Sun) -> end-of-day numbers, so a day the console was closed for still fills in
+   Finalized days are never touched. Upload and paste still work as a backup. Pause: cls.liveOff. */
+let live = null, liveBusy = false, liveSaved = null;
+const LIVE_COUNT_AT = "15:00", LIVE_MORNING_END = "08:15";
+const hm = x => { const [h, m] = String(x).split(":").map(Number); return h * 60 + (m || 0); };
+function liveData() { if (!live || !live.json) return null; try { return JSON.parse(live.json); } catch (e) { return null; } }
+function liveAt() { const a = live && live.at; return a ? (a.toDate ? a.toDate() : new Date(a)) : null; }
+// Rows for one date: [name, total, goal, ...subjects] with the sheet's header row in P.h ("Student", "Total XP", "Goal", "Math", ...)
+function liveRows(P, date) {
+  const head = (P.h || []).map(x => String(x).trim().toLowerCase());
+  return (P.days[date] || []).map(r => {
+    const sub = {}; let any = false;
+    head.forEach((k, i) => { const c = SUB_HEAD[k] || SUB_HEAD[k.replace(/ xp$/, "")]; if (c && i > 2) { sub[c] = Number(r[i]) || 0; any = true; } });
+    return Object.assign({ name: String(r[0] || "").trim(), completed: Number(r[1]) || 0 }, any ? { sub } : {});
+  }).filter(r => r.name);
+}
+async function autoLive() {
+  if (liveBusy || !live || !cls || !clsLoaded || !studentsLoaded || cls.liveOff || mode !== "guide" && mode !== "class") return;
+  const P = liveData(); if (!P || !P.days) return;
+  liveBusy = true;
+  try {
+    const t = azNow(), now = t.h * 60 + t.m, wd = new Date().getDay(), school = wd >= 1 && wd <= 5, today = azToday();
+    const fin = arr5(cls.finalized, false), idx = {};
+    for (let d = -3; d <= 6; d++) idx[dateOfDay(d)] = d;
+    let n = 0;
+    for (const date of Object.keys(P.days).sort()) {
+      const d = idx[date]; if (d == null || date > today) continue;
+      if (d >= 0 && d <= 4 && fin[d]) continue;
+      const rows = liveRows(P, date); if (!rows.length) continue;
+      if (date === today && school) {
+        if (now < hm(LIVE_MORNING_END)) {   // morning XP for the Morning Quest Board
+          const batch = writeBatch(db); let k = 0;
+          rows.forEach(r => { const st = matchStudent(r.name); if (!st) return; const h = (st.xpHist || {})[date] || {};
+            if (Number(h.mo) === r.completed) return;
+            batch.update(studentRef(st.id), { ["xpHist." + date + ".mo"]: r.completed }); k++;
+            st.xpHist = Object.assign({}, st.xpHist || {}); st.xpHist[date] = Object.assign({}, h, { mo: r.completed }); });
+          if (k) { await batch.commit(); n += k; const fill = surpriseBaseFill(students, cls); if (fill) try { await updateDoc(classRef, fill); } catch (e) {} }
+        }
+        const lunch = now < hm(lunchCutoff());
+        n += await applyUpload({ kind: lunch ? "lunch" : "day", day: d, file: "Live XP", rows, nameKey: "name", xpKey: "completed", guideKey: null, auto: true, noRecord: now < hm(LIVE_COUNT_AT) }) || 0;
+      } else {
+        n += await applyUpload({ kind: "day", day: d, file: "Live XP", rows, nameKey: "name", xpKey: "completed", guideKey: null, auto: true }) || 0;
+      }
+    }
+    if (n) liveSaved = { at: new Date(), n };
+  } catch (e) { busy.liveErr = e.code || e.message; }
+  finally { liveBusy = false; }
+}
+function feederBox() {
+  if (!busy.feeder) return '<button class="btn small' + (live ? " ghost" : "") + '" data-act="feederMake">\u{1F4F2} ' + (live ? "Make a new feeder button" : "Set up live XP: make my feeder button") + "</button>";
+  return '<div class="pastebox" style="margin-top:8px;"><b>\u{1F4F2} Your feeder button is ready.</b><ol style="margin:6px 0 6px 18px;padding:0;">' +
+    "<li>Show your bookmarks bar (<code>Ctrl + Shift + B</code>). If you have an older \u{1F4E1} CK Feeder bookmark, delete it.</li>" +
+    '<li><b>Drag this button up to the bookmarks bar:</b> <a class="btn gold small" data-feeder="1" href="' + busy.feeder + '">\u{1F4E1} CK Feeder</a></li>' +
+    "<li>Each school morning: Timeback \u2192 <b>Learning Metrics</b> \u2192 <b>My Class</b> \u2192 click <b>CK Feeder</b>. The page changes to a nearly empty one, so click <b>CK Feeder</b> once more. A dark card says <b>Feeder running</b>. Leave that tab open.</li></ol>" +
+    '<p class="muted small" style="margin:0;">Making a new button turns the old one off. The feeder only reads from Timeback, and can only drop off XP numbers here.</p><button class="btn ghost small" data-act="feederHide">Done</button></div>';
+}
+function liveCard() {
+  if (!live) return '<div class="banner info" style="margin-bottom:12px;">\u{1F4E1} <b>Live XP from Timeback isn\u2019t connected yet.</b> Uploads and paste work as usual.<div style="margin-top:6px;">' + feederBox() + "</div></div>";
+  const at = liveAt(), mins = at ? Math.round((Date.now() - at) / 60000) : null, t = azNow(), now = t.h * 60 + t.m, wd = new Date().getDay(), school = wd >= 1 && wd <= 5;
+  const stale = school && now >= hm("07:00") && now < hm("15:30") && mins != null && mins > 40;
+  const when = mins == null ? "never" : mins < 1 ? "just now" : mins < 60 ? mins + " min ago" : at.toLocaleString("en-US", { timeZone: "America/Phoenix", weekday: "short", hour: "numeric", minute: "2-digit" });
+  const phase = !school ? "Weekend: numbers go into the week’s history." : now < hm(LIVE_MORNING_END) ? "\u{1F305} Saving <b>morning XP</b> until 8:15, and lunch numbers." : now < hm(lunchCutoff()) ? "☀️ Saving <b>lunch numbers</b> until " + fmtCut() + "." : now < hm(LIVE_COUNT_AT) ? "Saving <b>end-of-day numbers</b>. Today counts for health at 3:00." : "Saving <b>end-of-day numbers</b>. Today is counting for health.";
+  const um = (busy.liveUnmatched || []).filter(Boolean);
+  return '<div class="banner ' + (cls.liveOff || stale || busy.liveErr ? "warn" : "info") + '" style="margin-bottom:12px;">' +
+    (cls.liveOff ? "⏸️ <b>Live XP is paused.</b> Numbers aren’t being saved." : "\u{1F4E1} <b>Live XP from Timeback is on.</b> Last update: " + when + ". " + phase) +
+    (liveSaved ? ' <span class="muted small">Saved ' + liveSaved.n + " change" + (liveSaved.n === 1 ? "" : "s") + " at " + liveSaved.at.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) + ".</span>" : "") +
+    (stale && !cls.liveOff ? "<br>⚠️ No new numbers for a while. Check that the CK Feeder tab on Timeback is still open (on Learning Metrics \u2192 My Class, click CK Feeder twice)." : "") +
+    (busy.liveErr ? "<br>⚠️ Last save failed: " + esc(busy.liveErr) : "") +
+    (um.length ? '<br><span class="small">Not on your roster: ' + um.map(esc).join(", ") + " (fix the spelling in the roster or the feeder’s renames).</span>" : "") +
+    '<div class="row" style="margin-top:6px;"><button class="btn ghost small" data-act="liveToggle">' + (cls.liveOff ? "▶️ Turn live XP back on" : "⏸️ Pause live XP") + "</button>" + feederBox() + "</div></div>";
 }
 
 document.addEventListener("input", ev => {
@@ -1487,6 +1581,7 @@ async function addIds(list, ref) {
 
 /* ================= clicks ================= */
 document.addEventListener("click", async ev => {
+  if (ev.target.closest("[data-feeder]")) { ev.preventDefault(); flash("Drag this button up to your bookmarks bar (don\u2019t click it here)."); return; }
   { const pb = ev.target.closest && ev.target.closest('[data-party="music"]'); if (pb) { toggleMusic(); render(); return; } }
   { const pb = ev.target.closest && ev.target.closest("[data-party]"); if (pb) { if (cls) await partyClick(pb, partyCtx()).catch(e => showErr(e)); return; } }
   let el;
@@ -1833,6 +1928,13 @@ document.addEventListener("click", async ev => {
   if (act === "heroToggle") { try { await updateDoc(classRef, { heroOff: !cls.heroOff }); flash("Saved \u2014 Hero Quest " + (cls.heroOff ? "on" : "off") + "."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
   if (act === "passToggle") { try { await updateDoc(classRef, { passOff: !cls.passOff }); flash("Saved \u2014 Season Pass " + (cls.passOff ? "on" : "off") + "."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
   if (act === "kindToggle") { try { await updateDoc(classRef, { kindOff: !cls.kindOff }); flash("Saved \u2014 Kindness Board " + (cls.kindOff ? "on" : "off") + "."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
+  if (act === "feederMake") {
+    const a = new Uint8Array(18); crypto.getRandomValues(a); const key = [...a].map(b => b.toString(16).padStart(2, "0")).join("");
+    try { await setDoc(feederKeyRef, { key, at: new Date().toISOString() }); } catch (e) { flash("Couldn\u2019t make the feeder \u2014 " + (e.code || e.message) + ". Did you update the Firebase rules?"); return; }
+    busy.feeder = feederLink({ key, apiKey: firebaseConfig.apiKey, project: firebaseConfig.projectId, cls: CLASS_ID }); render(); return;
+  }
+  if (act === "feederHide") { busy.feeder = null; render(); return; }
+  if (act === "liveToggle") { try { await updateDoc(classRef, { liveOff: !cls.liveOff }); flash("Saved \u2014 live XP " + (cls.liveOff ? "on" : "paused") + "."); if (cls.liveOff) setTimeout(autoLive, 1500); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
   if (act === "pasteMorning") {
     const rows = parsePasted(busy.pasteText || ""); if (!rows.length) return;
     const t = azNow(), [h, m] = MQ_CUTOFF.split(":").map(Number), wd = new Date().getDay();

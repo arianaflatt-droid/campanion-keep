@@ -6,9 +6,9 @@
    - A student who misses a week keeps their training and plays that quest later.
    Saved on the student (one write per action): hero = { name, path, look, color, sk: { skill: xp }, used, done: [quest ids],
    items: [ids], title, at }. Nothing saves while a minigame or story is being played; it saves when it finishes. */
-import { esc, petHTML, companionOf, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261016n";
-import { dayXPs, azToday } from "./collect.js?v=20261016n";
-import { weekTotal, histWeekTotal, mondayOf, addDays } from "./doors.js?v=20261016n";
+import { esc, petHTML, companionOf, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261016p";
+import { dayXPs, azToday } from "./collect.js?v=20261016p";
+import { weekTotal, histWeekTotal, mondayOf, addDays } from "./doors.js?v=20261016p";
 
 export const HERO_START = "2026-10-19";
 export const heroOn = cls => !(cls && cls.heroOff);
@@ -69,12 +69,12 @@ export const QUESTS = [
   { id: "b1q4", wk: "2026-11-09", n: "The Iron Mines of Grimhold", sk: ["mining", "combat"], req: { mining: 3, combat: 3 }, art: "⛏️", bg: "assets/hero/quest-b1q4.webp", prize: { img: "assets/hero/item-shard.webp", n: "Crown Shard 3 of 7", extra: "assets/hero/item-pickaxe.webp" } },
   { id: "b1q5", wk: "2026-11-16", n: "The Wizard's Tower", sk: ["magic", "agility"], req: { magic: 3, agility: 3 }, art: "\u{1F9D9}", bg: "assets/hero/quest-b1q5.webp", prize: { img: "assets/hero/item-shard.webp", n: "Crown Shard 4 of 7", extra: "assets/hero/item-wand.webp" } },
   { id: "b1q6", wk: "2026-11-30", n: "The Harvest Festival Feast", sk: ["cooking", "crafting"], req: { cooking: 3, crafting: 3 }, art: "\u{1F967}", bg: "assets/hero/quest-b1q6.webp", prize: { img: "assets/hero/item-shard.webp", n: "Crown Shard 5 of 7", extra: "assets/hero/item-ladle.webp" } },
-  { id: "b1q7", wk: "2026-12-07", n: "The Dragon's Pass", sk: ["agility", "magic", "fishing"], req: { agility: 4, magic: 3, fishing: 3 }, art: "\u{1F3D4}️" },
+  { id: "b1q7", wk: "2026-12-07", n: "The Dragon's Pass", sk: ["agility", "magic", "fishing"], req: { agility: 4, magic: 3, fishing: 3 }, art: "\u{1F3D4}️", bg: "assets/hero/quest-b1q7.webp", prize: { img: "assets/hero/item-shard.webp", n: "Crown Shard 6 of 7", extra: "assets/hero/item-dragon-scale.webp" } },
   { id: "b1q8", wk: "2026-12-14", n: "The Duskwarden's Keep", sk: ["combat", "magic", "mining"], req: { combat: 4, magic: 4, mining: 3 }, art: "\u{1F311}" }
 ];
 // The stories. {P} = companion name, {H} = hero name. A choice with sk+lv needs that level; bonus choices give an extra reward.
 // Story characters: a picture once the art is in, otherwise an emoji.
-export const NPCS = { hazel: { n: "Baker Hazel", img: "assets/hero/npc-hazel.webp" }, patches: { n: "Patches the scarecrow", img: "assets/hero/npc-patches.webp" }, pumpkin: { n: "The Golden Pumpkin", img: "assets/hero/item-golden-pumpkin.webp" }, wizzleby: { n: "Archmage Wizzleby", img: "assets/hero/npc-wizzleby.webp" }, hoot: { n: "Hoot the owl", img: "assets/hero/npc-hoot.webp" }, door: { n: "The Rune Door", img: "assets/hero/item-rune-door.webp" }, brick: { n: "Foreman Brick", img: "assets/hero/npc-brick.webp" }, golem: { n: "The Rock Golem", img: "assets/hero/npc-golem.webp" }, cart: { n: "Mine cart", img: "assets/hero/item-minecart.webp" }, maple: { n: "Miller Maple", img: "assets/hero/npc-maple.webp" }, gillsworth: { n: "Old Gillsworth", img: "assets/hero/npc-gillsworth.webp" }, key: { n: "The Mill Cellar Key", img: "assets/hero/item-mill-key.webp" }, fern: { n: "Granny Fern", img: "assets/hero/npc-fern.webp" }, bramble: { n: "Bramble the bear cub", img: "assets/hero/npc-bramble.webp" }, rowan: { n: "Captain Rowan", img: "assets/hero/npc-rowan.webp" }, raven: { n: "The shadow raven", img: "assets/hero/npc-raven.webp" } };
+export const NPCS = { ember: { n: "Ember the dragon", img: "assets/hero/npc-ember.webp" }, pip: { n: "Pip the mountain goat", img: "assets/hero/npc-pip.webp" }, hoard: { n: "Ember\u2019s treasure", emo: "\u{1F4B0}" }, hazel: { n: "Baker Hazel", img: "assets/hero/npc-hazel.webp" }, patches: { n: "Patches the scarecrow", img: "assets/hero/npc-patches.webp" }, pumpkin: { n: "The Golden Pumpkin", img: "assets/hero/item-golden-pumpkin.webp" }, wizzleby: { n: "Archmage Wizzleby", img: "assets/hero/npc-wizzleby.webp" }, hoot: { n: "Hoot the owl", img: "assets/hero/npc-hoot.webp" }, door: { n: "The Rune Door", img: "assets/hero/item-rune-door.webp" }, brick: { n: "Foreman Brick", img: "assets/hero/npc-brick.webp" }, golem: { n: "The Rock Golem", img: "assets/hero/npc-golem.webp" }, cart: { n: "Mine cart", img: "assets/hero/item-minecart.webp" }, maple: { n: "Miller Maple", img: "assets/hero/npc-maple.webp" }, gillsworth: { n: "Old Gillsworth", img: "assets/hero/npc-gillsworth.webp" }, key: { n: "The Mill Cellar Key", img: "assets/hero/item-mill-key.webp" }, fern: { n: "Granny Fern", img: "assets/hero/npc-fern.webp" }, bramble: { n: "Bramble the bear cub", img: "assets/hero/npc-bramble.webp" }, rowan: { n: "Captain Rowan", img: "assets/hero/npc-rowan.webp" }, raven: { n: "The shadow raven", img: "assets/hero/npc-raven.webp" } };
 const npcHTML = k => { const N = NPCS[k]; return N ? '<span class="hnpc">' + (N.img ? '<img src="' + N.img + '" alt="' + esc(N.n) + '">' : '<span class="hnpcemo">' + N.emo + "</span>") + "</span>" : ""; };
 export const STORIES = {
   b1q1: [
@@ -166,6 +166,21 @@ export const STORIES = {
         { x: "Throw a net you made over the pumpkin", sk: "crafting", lv: 3, r: "Your net lands over the pumpkin just in time. The raven tugs and tugs, then gives up with an angry CAW and flies away.", go: 4 }] },
     { npc: "hazel", t: "Your dish wins the Golden Pumpkin! When you lift it, the crack opens, and inside is <b>Crown Shard 5 of 7</b>. Hazel hugs you and gives you her shiny golden ladle. \u201CFor the best cook in Embervale!\u201D Patches points at the snowy mountains. \u201CThat raven flew toward <b>Dragon\u2019s Pass</b>. Folks say a real dragon lives up there\u2026\u201D",
       c: [{ x: "Take the shard and enjoy the feast", go: "end" }] }
+  ],
+  b1q7: [
+    { npc: "pip", t: "The road to <b>Dragon\u2019s Pass</b> is buried in snow. A fluffy white goat in a striped scarf hops down from a rock. \u201CBaaah! I\u2019m <b>Pip</b>, the best mountain guide in Embervale. You\u2019re following that shadow raven? It flew straight up to the dragon\u2019s cave. Stay close, the cliffs are icy!\u201D",
+      c: [{ x: "Follow Pip up the mountain", go: 1 }] },
+    { npc: "pip", t: "The path turns into a wall of slippery ledges and dangling icicles. Pip bounces up like it\u2019s nothing. \u201CJust jump where I jump!\u201D",
+      c: [{ x: "Leap from ledge to ledge behind Pip", sk: "agility", lv: 4, r: "Jump, slide, grab, jump! You reach the top with snow in your hair. Pip gives you a proud headbutt.", go: 2 },
+        { x: "Race Pip to the top the fast way", sk: "agility", lv: 6, bonus: "race", r: "You zip up the icicles like a ladder and beat Pip to the top! \u201CBaaah?!\u201D he shouts. \u201CNobody beats me!\u201D", go: 2 }] },
+    { npc: "ember", t: "In the cave sits a young dragon, but she isn\u2019t scary at all. She\u2019s shivering under a scarf! \u201CI\u2019m <b>Ember</b>,\u201D she sniffles. \u201CA black raven flew in, and its shadow blew out my fire. Now I\u2019m so cold\u2026 and so hungry.\u201D",
+      c: [{ x: "Ice-fish in the frozen lake for her dinner", sk: "fishing", lv: 3, r: "You sit by the hole in the ice and wait\u2026 TUG! You pull up fish after fish. Ember\u2019s tummy rumbles happily.", go: 3 },
+        { x: "Catch the legendary golden ice trout", sk: "fishing", lv: 5, bonus: "trout", r: "The water glows, and you reel in a shining golden trout, the rarest fish in the mountains! Ember\u2019s eyes go huge. \u201CThat\u2019s my FAVORITE!\u201D", go: 3 }] },
+    { npc: "ember", t: "Ember gobbles up her dinner and smiles, but she\u2019s still shivering. A tiny wisp of purple shadow is curled around her heart, keeping her fire out. It\u2019s the raven\u2019s magic!",
+      c: [{ x: "Cast a warming spell to chase the shadow away", sk: "magic", lv: 3, r: "Golden sparkles swirl around Ember. The shadow wisp shrieks and pops! Ember takes a deep breath\u2026 and FWOOSH, a big happy flame lights up the whole cave.", go: 4 },
+        { x: "Teach Ember a spell to relight her own fire", sk: "magic", lv: 5, bonus: "spark", r: "You show Ember how to wiggle her claws and say the magic word. Her tail flame sparks, then ROARS to life! \u201CI did it MYSELF!\u201D", go: 4 }] },
+    { npc: "hoard", t: "Warm again, Ember shows you her treasure pile. On top, glowing between the coins, is <b>Crown Shard 6 of 7</b>! \u201CThe raven tried to take it, but I sat on it,\u201D she giggles. She gives you one of her shiny scales on a golden cord, too. \u201CSo you\u2019ll always stay warm.\u201D Far below, a dark castle sits in the fog. Only one shard is left, and the Duskwarden has it.",
+      c: [{ x: "Take the shard and hug Ember goodbye", go: "end" }] }
   ]
 };
 const REWARD = { cp: 40, eggs: 1, bonusCp: 20 };

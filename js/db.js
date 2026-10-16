@@ -6,7 +6,7 @@ import {
 import {
   getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, signInAnonymously
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { firebaseConfig, CLASS_ID, TEACHER_EMAILS } from "./firebase-config.js?v=20261016n";
+import { firebaseConfig, CLASS_ID, TEACHER_EMAILS } from "./firebase-config.js?v=20261016p";
 
 // Teacher preview (student.html?s=ID&preview=1): the page shows a student's view, but nothing is ever written.
 export const PREVIEW = typeof location !== "undefined" && new URLSearchParams(location.search).get("preview") === "1";
@@ -24,6 +24,10 @@ export const auth = app ? getAuth(app) : null;
 
 export const classRef = db ? doc(db, "classes", CLASS_ID) : null;
 export const studentsCol = db ? collection(db, "classes", CLASS_ID, "students") : null;
+// Live XP from Timeback: the Class XP sheet's Apps Script writes one doc here every few minutes (teacher only).
+export const liveRef = db ? doc(db, "classes", CLASS_ID, "live", "xp") : null;
+export const feederKeyRef = db ? doc(db, "classes", CLASS_ID, "private", "feeder") : null;
+export function watchLive(cb, onErr) { return onSnapshot(liveRef, snap => cb(snap.exists() ? snap.data() : null), onErr); }
 export const studentRef = id => doc(db, "classes", CLASS_ID, "students", id);
 export const newStudentRef = () => doc(studentsCol);
 export const battlesCol = db ? collection(db, "classes", CLASS_ID, "battles") : null;
