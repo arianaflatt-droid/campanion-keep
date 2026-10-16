@@ -1,10 +1,10 @@
-import { CREATURE_LAYOUT, CREATURE_FIT_ID } from "./creature-fit.js?v=20261016m";
-import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261016m";
-import { heldWeapon } from "./quest.js?v=20261016m";
+import { CREATURE_LAYOUT, CREATURE_FIT_ID } from "./creature-fit.js?v=20261016n";
+import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261016n";
+import { heldWeapon } from "./quest.js?v=20261016n";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261016m";
+export const APP_V = "20261016n";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -18,7 +18,7 @@ export function checkVersion(cls, isTeacher, save) {
 export const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 export const SHORT = ["Mon", "Tue", "Wed", "Thu", "Fri"];
 export const MAX_HP = 120, HALF_HP = 60;
-export const BANNER_TEXT = 'Keep Your Companion at Full Health Today and Earn <b>500 XP</b>!' +
+export const BANNER_TEXT = 'Keep Your Companion at Full Health Today and Earn <b>80 Comfort Points</b>!' +
   '<span class="rings">\u{1F6AA} Get to <b>600 XP</b> This Week and Get a <b>Legendary Egg</b>! \u{1F95A}</span>';
 export const BANNER = '<div class="hero"><h2>' + BANNER_TEXT + "</h2></div>";
 export const HAUNT_BANNER = '<div class="hero haunt"><p class="haunt-tag">\u{1F383} Haunt-O-Ween Mode \u{1F47B}</p><h2>' + BANNER_TEXT +
