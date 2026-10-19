@@ -6,8 +6,8 @@
    Boosts: battle ones last the rest of today (collect.js fighterFrom), egg ones wait for the next egg (eggBoost),
    Growth Snack gives +1 level now, Cozy Points add to the room wallet (cpBonus).
    Saved on the student: meals = { date: { b: { boost, score, game, at }, l: {...} } }, eggBoost = { sparkle, lucky }, cpBonus. */
-import { esc, goalXP, companionOf } from "./game.js?v=20261016q";
-import { azToday, owned, formOf, family, MAX_LEVEL } from "./collect.js?v=20261016q";
+import { esc, goalXP, companionOf } from "./game.js?v=20261016r";
+import { azToday, owned, formOf, family, MAX_LEVEL } from "./collect.js?v=20261016r";
 
 export const BREAKFAST_XP = 25;
 export const BOOSTS = {
@@ -60,10 +60,13 @@ export function kitchenCard(st, cls, petName) {
         : '<div class="small muted">' + need + " to cook " + M.name.toLowerCase() + ".</div>") + "</div>" +
       (ready ? '<button class="btn gold" data-kc="' + k + '">\u{1F525} Cook ' + M.name.toLowerCase() + "!</button>" : done ? '<span class="kdone">✅</span>' : "") + "</div>";
   };
+  // Only shows while a meal is ready to cook, and disappears once it's cooked (Oct 16: My Companion was too crowded)
+  const open = ["b", "l"].filter(k => !m[k] && canCook(st, cls, k));
+  if (!open.length) return "";
   const eb = st.eggBoost || {}, saved = (eb.sparkle > 0 ? '<span class="kchip">✨ Sparkle Charm ×' + eb.sparkle + "</span>" : "") + (eb.lucky > 0 ? '<span class="kchip">\u{1F340} Lucky Egg ×' + eb.lucky + "</span>" : "") + (eb.rare > 0 ? '<span class="kchip">\u{1F48E} Rare Egg ×' + eb.rare + "</span>" : "");
   return '<div class="card kitchen"><div class="card-head"><h2><img class="kcfire" src="assets/kitchen/kitchen-campfire.webp" alt=""> Campfire Kitchen</h2><span class="fact">cook for ' + esc(petName) + "</span></div>" +
-    '<p class="lede" style="font-size:14px;">Cook meals for ' + esc(petName) + " to give it a surprise boost! Breakfast and lunch each give one.</p>" +
-    row("b") + row("l") + (saved ? '<div class="small" style="margin-top:6px;">Saved for your next egg: ' + saved + "</div>" : "") + "</div>";
+    '<p class="lede" style="font-size:14px;">' + (open[0] === "b" ? "You earned breakfast! " : "You earned lunch! ") + "Cook it for " + esc(petName) + " to get a surprise boost.</p>" +
+    open.map(row).join("") + (saved ? '<div class="small" style="margin-top:6px;">Saved for your next egg: ' + saved + "</div>" : "") + "</div>";
 }
 
 /* ---------- the mini-games ---------- */
