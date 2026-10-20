@@ -2,43 +2,48 @@ import {
   checkVersion, hitOn, gearInSeason, applyDisplayNames, companionOf, petCreatures, pinnedBadgeHTML, DAYS, SHORT, ROSTER, GEAR, SIDEKICKS, BANNER, bannerFor, isHaunt, battleOn, candyOf, basketHTML, CANDY_FULL, bossState, attacksReady, bossBarHTML, GHOST_IMG, ghostUnlocked, turkeyUnlocked, grinchUnlocked, isJingle, isFrost, isHeart, heartUnlocked, attackRefusal, saveProblems, yetiUnlocked, eventMode, isGobble, setSeason, SEASON, seasonOf, STORE, candyLeft, candySpent, ownedCount, ownsItem, storeArt, nextAttack, dmgOf, HAT_BONUS, BREW_BONUS, teamHTML, wallHTML, WHEEL, pickSlice, wheelHTML, spinTo, PRIZES, prizeSlices, bucketState, bucketHTML, baseDamage, EAT_PER_DAY, dayEaten, dayXP, byId, esc, arr5, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, sidekickSVG, petHTML as petBase, vipStage, withVipHat, vipWorn, petWithHead, OUTFITS, itemArt, potionFx, bondLevel,
   ghost2Unlocked, starterFam, boss2Of, BOSS2, BOSS2_LIST, creditCompanion, compKey, compLevel, compFill, COMP_DAYS, creatureCompanion
-} from "./game.js?v=20261020a";
-import { EVENT_LIST, TEAM_EVENTS, eventOn, teamCard, teamOf as tevTeamOf } from "./teams.js?v=20261020a";
-import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=20261020a";
-import { kindCard, gotKindToday } from "./kindness.js?v=20261020a";
-import { partyCards, partyOverlay, partyClick, partyBusy, partyTicker, partySync } from "./party.js?v=20261020a";
-import { kitchenCard, kitchenOverlay, kitchenClick, kitchenBusy, kitchenPointer } from "./meals.js?v=20261020a";
-import { miniCard, miniOverlay, miniClick, miniBusy, miniSync } from "./mini.js?v=20261020a";
-import { paintCard, paintClick } from "./paint.js?v=20261020a";
-import { surpriseCards, surpriseOverlay, surpriseClick, surpriseBusy } from "./surprise.js?v=20261020a";
-import { hofTab, hofParty, hofClick } from "./hof.js?v=20261020a";
-import { passTab, passOverlay, passClick, passBusy, passReady } from "./pass.js?v=20261020a";
-import { bondHTML, moodBubble, playTrick, burst, unlockAt } from "./bond.js?v=20261020a";
-import { morningTab, morningOverlay, morningClick, morningBusy, mqReady } from "./morning.js?v=20261020a";
-import { heroTab, heroClick, heroBusy, heroReady, heroOn, heroOf, sessionsLeft, questState, nextQuest, QUESTS } from "./hero.js?v=20261020a";
-import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261020a";
-import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc, watchRewardPic } from "./db.js?v=20261020a";
-import { rewardTab, rewardBadge, rgOf, rgProgress, RG_SUBS } from "./weekgoal.js?v=20261020a";
-import { soloOn, soloCard, brewOne, freeIngredient, soloReady, soloCfg } from "./solobrew.js?v=20261020a";
+} from "./game.js?v=20261020b";
+import { EVENT_LIST, TEAM_EVENTS, eventOn, teamCard, teamOf as tevTeamOf } from "./teams.js?v=20261020b";
+import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=20261020b";
+import { kindCard, gotKindToday } from "./kindness.js?v=20261020b";
+import { partyCards, partyOverlay, partyClick, partyBusy, partyTicker, partySync } from "./party.js?v=20261020b";
+import { kitchenCard, kitchenOverlay, kitchenClick, kitchenBusy, kitchenPointer } from "./meals.js?v=20261020b";
+import { miniCard, miniOverlay, miniClick, miniBusy, miniSync } from "./mini.js?v=20261020b";
+import { paintCard, paintClick } from "./paint.js?v=20261020b";
+import { surpriseCards, surpriseOverlay, surpriseClick, surpriseBusy } from "./surprise.js?v=20261020b";
+import { hofTab, hofParty, hofClick } from "./hof.js?v=20261020b";
+import { passTab, passOverlay, passClick, passBusy, passReady } from "./pass.js?v=20261020b";
+import { bondHTML, moodBubble, playTrick, burst, unlockAt } from "./bond.js?v=20261020b";
+import { morningTab, morningOverlay, morningClick, morningBusy, mqReady } from "./morning.js?v=20261020b";
+import { heroTab, heroClick, heroBusy, heroReady, heroOn, heroOf, sessionsLeft, questState, nextQuest, QUESTS } from "./hero.js?v=20261020b";
+import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261020b";
+import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc, watchRewardPic, claimSeat, mySeat } from "./db.js?v=20261020b";
+import { rewardTab, rewardBadge, rgOf, rgProgress, RG_SUBS } from "./weekgoal.js?v=20261020b";
+import { soloOn, soloCard, brewOne, freeIngredient, soloReady, soloCfg } from "./solobrew.js?v=20261020b";
 let rpic = null;
 // The wheel's slices; with Solo Potion Brewing on, Free Attack becomes Free Ingredient (same slice id, so saves still pass)
 const slicesNow = () => soloOn(cls) ? SEASON.slices.map(x => x.id === "attack" ? Object.assign({}, x, { label: "Free Ingredient", icon: soloCfg(cls).icon, note: "A free " + (soloCfg(cls).ingFor || soloCfg(cls).one) + " ingredient!" }) : x) : SEASON.slices;
-import { nudgeCard } from "./nudges.js?v=20261020a";
-import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261020a";
-import { teacherPlayer, hasStarter, MOVES, formOf } from "./collect.js?v=20261020a";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261020a";
-import { goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked, weekGoal, weekKey, weekTotal, weekDoorState, vaultState, vaultGoal, rewardFor, oldReady, vaultLessonsLeft, VAULT_XP, VAULT_BONUS_XP, VAULT_EGGS } from "./doors.js?v=20261020a";
-import { azToday } from "./collect.js?v=20261020a";
+import { nudgeCard } from "./nudges.js?v=20261020b";
+import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261020b";
+import { teacherPlayer, hasStarter, MOVES, formOf } from "./collect.js?v=20261020b";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261020b";
+import { goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked, weekGoal, weekKey, weekTotal, weekDoorState, vaultState, vaultGoal, rewardFor, oldReady, vaultLessonsLeft, VAULT_XP, VAULT_BONUS_XP, VAULT_EGGS } from "./doors.js?v=20261020b";
+import { azToday } from "./collect.js?v=20261020b";
 import { roomHTML, FIT_SLOTS, slotKind, KIND_NAMES, KIND_ICON, EVERYDAY_PRICE, THEMED_PRICE, TROPHY_PRICE, TYPE_THEMES, SEASON_THEMES, THEME_NAMES, TROPHIES,
   itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId,
-  ROOMS, EXTRA_ROOMS, ROOM_PRICE, hasRoom, roomStarters, fitIn, slotTakes, roomExtras, PET_SPOT_KEYS, petSpotLabel, petSpotOf, ACTIVITY_IDS, ACTIVITY_PRICE } from "./room.js?v=20261020a";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261020a";
+  ROOMS, EXTRA_ROOMS, ROOM_PRICE, hasRoom, roomStarters, fitIn, slotTakes, roomExtras, PET_SPOT_KEYS, petSpotLabel, petSpotOf, ACTIVITY_IDS, ACTIVITY_PRICE } from "./room.js?v=20261020b";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261020b";
 
 let fxFor = null;   // the student whose companion is being drawn (for the potion glow)
 const petHTML = (c, worn, held) => { const h = petBase(c, worn, held), fx = fxFor ? potionFx(fxFor) : ""; return fx ? h.replace('class="petwrap', 'class="petwrap' + fx) : h; };
 let cls = null, students = [], battles = [], trades = [], loaded = { c: false, s: false };
 let tab = (() => { try { return localStorage.getItem("ck-tab") || "pet"; } catch (e) { return "pet"; } })();
-let me = new URLSearchParams(location.search).get("s") || load();
+// Personal links: student.html?s=ID&k=CODE seats this device as that student (see claimSeat in db.js).
+// After that the page always opens as that student; nobody can switch to someone else's page on this device.
+const Q = new URLSearchParams(location.search), linkK = Q.get("k");
+let seat = (() => { try { return localStorage.getItem("ck-seat"); } catch (e) { return null; } })();
+let me = PREVIEW ? Q.get("s") : seat || Q.get("s") || load();
+let seatErr = "";
 let attackFx = null, fxTimer = null;
 const busy = {};
 let wheelRot = 0, wheelBusy = false, wheelResult = null;
@@ -70,7 +75,8 @@ else {
   onAuthStateChanged(auth, u => {
     if (!u) { anonSignIn().catch(e => { error = "Couldn’t connect (" + e.code + "). Try reloading."; render(); }); return; }
     if (watching || started) return;
-    started = true; startWatch();
+    started = true;
+    seatUp().then(() => startWatch());
     // Pause when the tab has been hidden for 2 minutes (no Firebase reads while nobody is looking); catch up when it's back.
     let hideTimer = null;
     document.addEventListener("visibilitychange", () => {
@@ -81,6 +87,18 @@ else {
   });
 }
 
+// Sit this device down as a student: a fresh personal link claims the seat; otherwise ask Firebase which seat it has.
+async function seatUp() {
+  if (PREVIEW) return;
+  const sid = Q.get("s");
+  if (sid && linkK) {
+    try { await claimSeat(sid, linkK); seat = sid; }
+    catch (e) { seatErr = "This link doesn\u2019t work anymore. Ask Ms. Ariana for your new link."; me = null; save(null); }
+    history.replaceState(null, "", location.pathname + (seat ? "?s=" + encodeURIComponent(seat) : ""));   // hide the code from the address bar
+  } else if (!seat) seat = await mySeat();
+  try { seat ? localStorage.setItem("ck-seat", seat) : localStorage.removeItem("ck-seat"); } catch (e) {}
+  if (seat) { me = seat; save(seat); }
+}
 let watching = false, started = false, unsubMain = [];
 function startWatch() {
   watching = true;
@@ -224,9 +242,10 @@ function render(force) {
   else if (!loaded.c || !loaded.s) h += '<div class="card"><p class="lede">Loading your class…</p></div>';
   else if (!cls) h += '<div class="card"><p class="lede">Your teacher hasn’t opened the Keep yet. Check back soon!</p></div>';
   else {
+    if (cls.linksRequired && !seat && !PREVIEW && me) { me = null; save(null); }   // only a linked computer can open a student's page
     const s = students.find(x => x.id === me);
-    if (me && !s) { me = null; save(null); }
-    h += s ? (s.companionId ? viewMine(s) : viewChoose(s)) : viewNames();
+    if (me && !s && !seat) { me = null; save(null); }
+    h += s ? (s.companionId ? viewMine(s) : viewChoose(s)) : seat ? '<div class="card"><p class="lede">Loading your page\u2026</p></div>' : viewNames();
   }
   const cur = students.find(x => x.id === me);
   if (cur && cur.companionId && cls) lockBadges(cur);
@@ -245,7 +264,8 @@ function render(force) {
 }
 
 function viewNames() {
-  return '<div class="card"><div class="card-head"><h2>Who are you?</h2>' + (cls.className ? '<span class="fact">' + esc(cls.className) + "</span>" : "") + "</div>" +
+  if (cls.linksRequired) return '<div class="card"><div class="card-head"><h2>\u{1F511} Open your personal link</h2></div><p class="lede">' + (seatErr ? esc(seatErr) : "Companion Keep opens from your own personal link now. Ask Ms. Ariana for yours, then open it on this computer.") + "</p></div>";
+  return (seatErr ? '<div class="banner bad">' + esc(seatErr) + "</div>" : "") + '<div class="card"><div class="card-head"><h2>Who are you?</h2>' + (cls.className ? '<span class="fact">' + esc(cls.className) + "</span>" : "") + "</div>" +
     '<div class="namegrid">' + students.map(s => '<button class="namebtn" data-me="' + s.id + '">' + esc(s.name) + "</button>").join("") + "</div></div>";
 }
 
@@ -253,7 +273,7 @@ function notYou(s) {
   if (PREVIEW) return '<div class="previewbar"><span>\u{1F440} <b>Teacher preview:</b> you\u2019re seeing ' + esc(s.name) + '\u2019s page. Nothing you click here is saved.</span>' +
     '<label>View as <select id="previewPick">' + students.map(x => '<option value="' + x.id + '"' + (x.id === s.id ? " selected" : "") + ">" + esc(x.name) + "</option>").join("") + "</select></label></div>";
   return '<div class="row" style="justify-content:space-between;align-items:center;margin-bottom:12px;"><span class="lede">Hi, <b>' + esc(s.name) +
-    '</b>!</span><button class="btn ghost small" data-act="notMe">Not you?</button></div>';
+    '</b>!</span>' + (seat ? "" : '<button class="btn ghost small" data-act="notMe">Not you?</button>') + "</div>";
 }
 
 function viewChoose(s) {
@@ -945,7 +965,7 @@ document.addEventListener("click", async ev => {
   if ((el = ev.target.closest("[data-hero]"))) { const s = students.find(x => x.id === me); if (s) await heroClick(el, collectorCtx(s)).catch(e => showErr(e)); return; }
   if ((el = ev.target.closest("[data-qfight],[data-qhold],[data-qpick],[data-qmove],[data-qact]"))) { const s = students.find(x => x.id === me); if (s && !PREVIEW) await questClick(el, collectorCtx(s)).catch(e => showErr(e)); return; }
   if ((el = ev.target.closest("[data-cc]"))) { const s = students.find(x => x.id === me); if (s) await collectorClick(el, collectorCtx(s)).catch(e => showErr(e)); return; }
-  if ((el = ev.target.closest("[data-me]"))) { me = el.dataset.me; save(me); picking = null; draftName = ""; render(); scrollTo({ top: 0 }); return; }
+  if ((el = ev.target.closest("[data-me]"))) { if (seat || cls.linksRequired) return; me = el.dataset.me; save(me); picking = null; draftName = ""; render(); scrollTo({ top: 0 }); return; }
   if ((el = ev.target.closest("[data-pick]"))) { picking = el.dataset.pick; render(); return; }
   if ((el = ev.target.closest("[data-buy]"))) { busy.confirmBuy = el.dataset.buy; render(); return; }
   if ((el = ev.target.closest("[data-buyok]"))) {
@@ -1093,7 +1113,7 @@ document.addEventListener("click", async ev => {
     catch (e) { flash("That attack didn\u2019t save \u2014 show Ms. Ariana this message. (" + (e.code || e.message) + (why.length ? " \u00b7 " + why.join("; ") : "") + (bad.length ? " \u00b7 save data: " + bad.join("; ") : "") + ")"); }
     return;
   }
-  if (act === "notMe") { me = null; save(null); history.replaceState(null, "", location.pathname); render(); return; }
+  if (act === "notMe") { if (seat) return; me = null; save(null); history.replaceState(null, "", location.pathname); render(); return; }
   if (act === "choose") {
     const c = byId(ROSTER, picking); if (!c) return;
     const nm = (document.getElementById("petName").value || "").trim().slice(0, 22) || c.name;

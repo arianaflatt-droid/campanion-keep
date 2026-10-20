@@ -1,34 +1,35 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261020a";
-import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261020a";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261020a";
-import { cpEarnedCalc } from "./room.js?v=20261020a";
-import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261020a";
-import { rewardFor } from "./doors.js?v=20261020a";
-import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet } from "./doors.js?v=20261020a";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261020a";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261020b";
+import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261020b";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261020b";
+import { cpEarnedCalc } from "./room.js?v=20261020b";
+import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261020b";
+import { rewardFor } from "./doors.js?v=20261020b";
+import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet } from "./doors.js?v=20261020b";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261020b";
 import {
   applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   boss2Of, boss2Prize, simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, isFrost, isHeart, heartUnlocked, saveProblems, yetiUnlocked, wallMarks, WALL_BLOCK, BOSS_START_HP, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261020a";
-import { MQ_CUTOFF } from "./morning.js?v=20261020a";
-import { kindAdmin } from "./kindness.js?v=20261020a";
-import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261020a";
-import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261020a";
-import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261020a";
-import { passAdmin } from "./pass.js?v=20261020a";
-import { heroTeacherCard } from "./hero.js?v=20261020a";
-import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261020a";
-import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef } from "./db.js?v=20261020a";
-import { rewardAdmin, rgWaiting, rgOf, shrinkImage } from "./weekgoal.js?v=20261020a";
-import { soloAdmin, soloCfg, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261020a";
-import { feederLink } from "./feeder.js?v=20261020a";
-import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261020a";
+} from "./game.js?v=20261020b";
+import { MQ_CUTOFF } from "./morning.js?v=20261020b";
+import { kindAdmin } from "./kindness.js?v=20261020b";
+import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261020b";
+import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261020b";
+import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261020b";
+import { passAdmin } from "./pass.js?v=20261020b";
+import { heroTeacherCard } from "./hero.js?v=20261020b";
+import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261020b";
+import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef } from "./db.js?v=20261020b";
+import { rewardAdmin, rgWaiting, rgOf, shrinkImage } from "./weekgoal.js?v=20261020b";
+import { soloAdmin, soloCfg, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261020b";
+import { feederLink } from "./feeder.js?v=20261020b";
+import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261020b";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
-  teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef
-} from "./db.js?v=20261020a";
+  teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef, watchSeats
+} from "./db.js?v=20261020b";
+import { G, guardCard, guardClick, guardInput, autoSnap, personalLink } from "./guard.js?v=20261020b";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -165,14 +166,15 @@ else onAuthStateChanged(auth, u => {
   if (!u || u.isAnonymous) { mode = "signin"; render(); return; }
   if (!isTeacherEmail(u.email)) { mode = "denied"; render(); return; }
   mode = "boot"; render();
-  unsub.push(watchClass(c => { cls = c; clsLoaded = true; setSeason(c); if (c && !c.weekStart) updateDoc(classRef, { weekStart: dateOfDay(0) }).catch(() => {}); if (c && checkVersion(c, true, v => updateDoc(classRef, { appVersion: v }).catch(() => {}))) return; autoGobble(); lockBadges();
+  unsub.push(watchClass(c => { cls = c; clsLoaded = true; setSeason(c); if (studentsLoaded) autoSnap(c, students); if (c && !c.weekStart) updateDoc(classRef, { weekStart: dateOfDay(0) }).catch(() => {}); if (c && checkVersion(c, true, v => updateDoc(classRef, { appVersion: v }).catch(() => {}))) return; autoGobble(); lockBadges();
     if (c && c.haunt && !c.hauntSince) updateDoc(classRef, { hauntSince: azToday() }).catch(() => {});   // Hexaduck streaks start today if the mode was already on
     if (c && !c.collectorStart) updateDoc(classRef, { collectorStart: (() => { const t = new Date(); return t.getFullYear() + "-" + String(t.getMonth() + 1).padStart(2, "0") + "-" + String(t.getDate()).padStart(2, "0"); })() }).catch(() => {}); if (!c) mode = "setup"; else if (mode === "boot" || mode === "setup") mode = "guide"; detectEvents(); liveRender(); },
     e => flash("Couldn’t load the class — " + e.code)));
   unsub.push(watchBattles(l => { battles = l; addIds(l, battleRef); closeStale(l); lockBadges(); if (ctab === "collector") liveRender(); }, () => {}));
   unsub.push(watchTrades(l => { trades = l; addIds(l, tradeRef); if (cls) settleTrades(tctx()); if (ctab === "collector") liveRender(); }, () => {}));
-  unsub.push(watchStudents(list => { students = applyDisplayNames(list).sort(byAlpha); studentsLoaded = true; autoGobble(); detectEvents(); lockBadges(); liveRender(); },
+  unsub.push(watchStudents(list => { students = applyDisplayNames(list).sort(byAlpha); studentsLoaded = true; autoSnap(cls, students); autoGobble(); detectEvents(); lockBadges(); liveRender(); },
     e => flash("Couldn’t load students — " + e.code)));
+  unsub.push(watchSeats(l => { G.seats = l; if (ctab === "students") liveRender(); }, () => {}));
   unsub.push(watchRewardPics(m => { rpics = m; if (ctab === "rewards") liveRender(); }));
   unsub.push(watchLive(d => { live = d; autoLive(); if (ctab === "daily") liveRender(); }, () => {}));
 });
@@ -500,7 +502,7 @@ function render(force) {
     if (np && np > prizeHidden) h += '<div class="banner prizealert"><span>\u{1F381} <b>' + np + " prize" + (np === 1 ? "" : "s") + "</b> to order or give" + prizeNames() + '</span><span class="row" style="gap:8px;"><button class="btn small" data-act="goPrizes">View prizes</button><button class="btn ghost small" data-act="hidePrizes">Hide</button></span></div>';
     h += '<div class="tabs ctabs" role="tablist">' + tabs.map(([k, l]) => '<button role="tab" class="tab' + (ctab === k ? " on" : "") + '" data-ctab="' + k + '" aria-selected="' + (ctab === k) + '">' + l + "</button>").join("") + "</div>";
     if (ctab === "daily") h += viewDaily() + miniAdmin(students, cls) + partyAdmin(students, cls) + surpriseAdmin(students, cls) + viewWeekDoor() + viewRewards();
-    else if (ctab === "students") h += viewStandings() + passAdmin(students, cls) + heroTeacherCard(students, cls) + viewAssign() + viewLosses() + viewLinks();
+    else if (ctab === "students") h += viewStandings() + passAdmin(students, cls) + heroTeacherCard(students, cls) + viewAssign() + viewLosses() + viewLinks() + guardCard(students, cls);
     else if (ctab === "collector") h += viewLiveBattles() + viewIdeas() + teacherCollectorCard() + viewCollector();
     else if (ctab === "rewards") h += rewardAdmin(students, cls, rpics, busy);
     else if (ctab === "quest") h += questTracker(students);
@@ -1072,7 +1074,7 @@ function viewAssign() {
 
 function viewLinks() {
   return '<div class="card"><div class="card-head"><h2>Student link</h2></div>' +
-    '<p class="lede">Send this one link to the whole class. Students tap their name, choose a companion, name it and pick their gear.</p>' +
+    (cls.linksRequired ? '<p class="lede">\u{1F512} Personal links are required, so this shared link only shows \u201cOpen your personal link\u201d. Use the personal links below.</p>' : '<p class="lede">Send this one link to the whole class. Students tap their name, choose a companion, name it and pick their gear.</p>') +
     '<div class="row" style="margin-top:12px;"><input type="text" readonly value="' + esc(studentLink()) + '" style="flex:1;min-width:260px;font-family:var(--mono);font-size:13px;">' +
     '<button class="btn" data-copylink="">Copy link</button></div>' +
     '<p class="lede" style="margin-top:10px;font-size:13px;">Each student also has a personal link (Copy link in Full standings) that skips the name list.</p></div>';
@@ -1520,6 +1522,7 @@ document.addEventListener("input", ev => {
   if (ev.target.id === "pasteBox") { busy.pasteText = ev.target.value; clearTimeout(busy.pasteT); busy.pasteT = setTimeout(render, 250); }
 });
 document.addEventListener("change", async ev => {
+  if (guardInput(ev.target)) return;
   if (ev.target.dataset && ev.target.dataset.rgf) { const id = ev.target.id.replace(/^rg(Sub|Xp|Lib|Name)-/, ""); busy.rgDraft = busy.rgDraft || {}; rgDraftSet(id, ev.target.dataset.rgf, ev.target.value); return; }
   if (ev.target.dataset && ev.target.dataset.rgpic && ev.target.files && ev.target.files[0]) {
     const sid = ev.target.dataset.rgpic, st = students.find(x => x.id === sid);
@@ -1813,11 +1816,12 @@ document.addEventListener("click", async ev => {
   if ((el = ev.target.closest("[data-ctab]"))) { ctab = el.dataset.ctab; try { localStorage.setItem("ck-ctab", ctab); } catch (e) {} render(); scrollTo({ top: 0 }); return; }
   if ((el = ev.target.closest("[data-viewas]"))) { const u = new URL(studentLink(el.dataset.viewas)); u.searchParams.set("preview", "1"); window.open(u.toString(), "_blank"); return; }
   if ((el = ev.target.closest("[data-copylink]"))) {
-    const link = studentLink(el.dataset.copylink || null);
+    const link = el.dataset.copylink && G.keys && G.keys[el.dataset.copylink] ? personalLink(el.dataset.copylink) : studentLink(el.dataset.copylink || null);
     try { await navigator.clipboard.writeText(link); el.textContent = "Copied!"; setTimeout(render, 1400); } catch (e) { prompt("Copy this link:", link); }
     return;
   }
   if ((el = ev.target.closest("[data-pday]"))) { busy.pasteText = (document.getElementById("pasteBox") || {}).value || busy.pasteText; busy.pasteDay = Number(el.dataset.pday); render(); return; }
+  if ((el = ev.target.closest("[data-g]")) && (el.tagName !== "SELECT")) { await guardClick(el, { students, cls, flash, render }); return; }
   if (!(el = ev.target.closest("[data-act]"))) return;
   const act = el.dataset.act;
 

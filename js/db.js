@@ -1,12 +1,12 @@
 // Firebase setup shared by both pages.
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-  initializeFirestore, persistentLocalCache, persistentMultipleTabManager, getDocs, getFirestore, doc, collection, onSnapshot, query, where, setDoc as fbSetDoc, updateDoc as fbUpdateDoc, deleteDoc as fbDeleteDoc, writeBatch as fbWriteBatch, runTransaction
+  initializeFirestore, persistentLocalCache, persistentMultipleTabManager, getDocs, getDoc, getFirestore, doc, collection, onSnapshot, query, where, setDoc as fbSetDoc, updateDoc as fbUpdateDoc, deleteDoc as fbDeleteDoc, writeBatch as fbWriteBatch, runTransaction, deleteField
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {
   getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, signInAnonymously
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { firebaseConfig, CLASS_ID, TEACHER_EMAILS } from "./firebase-config.js?v=20261020a";
+import { firebaseConfig, CLASS_ID, TEACHER_EMAILS } from "./firebase-config.js?v=20261020b";
 
 // Teacher preview (student.html?s=ID&preview=1): the page shows a student's view, but nothing is ever written.
 export const PREVIEW = typeof location !== "undefined" && new URLSearchParams(location.search).get("preview") === "1";
@@ -92,6 +92,33 @@ export async function changeBattle(id, fn) {
   });
 }
 
+
+/* ---------- Personal links (Oct 2026) ----------
+   Each student's personal link carries a secret code (k). The first time a device opens it, the page saves
+   seats/{this device's sign-in id} = { sid, k }. The rules only let a device change the student it is seated as,
+   and only accept a seat whose code matches private/keys (which only the teacher can read). */
+export const seatRef = uid => doc(db, "classes", CLASS_ID, "seats", uid);
+export const seatsCol = db ? collection(db, "classes", CLASS_ID, "seats") : null;
+export const keysRef = db ? doc(db, "classes", CLASS_ID, "private", "keys") : null;
+export async function claimSeat(sid, k) {
+  if (PREVIEW || !auth.currentUser) return null;
+  await fbSetDoc(seatRef(auth.currentUser.uid), { sid, k, at: new Date().toISOString() });
+  return sid;
+}
+export async function mySeat() {
+  if (!auth.currentUser) return null;
+  try { const d = await getDoc(seatRef(auth.currentUser.uid)); return d.exists() ? d.data().sid || null : null; } catch (e) { return null; }
+}
+export async function getKeys() { const d = await getDoc(keysRef); return d.exists() ? d.data() : {}; }
+export function watchSeats(cb, onErr) { return onSnapshot(seatsCol, snap => cb(snap.docs.map(d => Object.assign({ id: d.id }, d.data()))), onErr); }
+
+/* ---------- Snapshots for rollback (teacher only) ----------
+   snaps/{stamp}__{studentId} = { sid, stamp, name, json } : the student's whole save as it was at that moment. */
+export const snapsCol = db ? collection(db, "classes", CLASS_ID, "snaps") : null;
+export const snapRef = id => doc(db, "classes", CLASS_ID, "snaps", id);
+export async function snapsFor(sid) { const q = await getDocs(query(snapsCol, where("sid", "==", sid))); return q.docs.map(d => Object.assign({ id: d.id }, d.data())); }
+export async function snapsAt(stamp) { const q = await getDocs(query(snapsCol, where("stamp", "==", stamp))); return q.docs.map(d => Object.assign({ id: d.id }, d.data())); }
+
 export function isTeacherEmail(email) {
   return !!email && TEACHER_EMAILS.map(e => e.toLowerCase()).includes(email.toLowerCase());
 }
@@ -110,7 +137,7 @@ export function watchStudents(cb, onErr) {
 export const teacherSignIn = () => signInWithPopup(auth, new GoogleAuthProvider());
 export const anonSignIn = () => signInAnonymously(auth);
 const safeBatch = d => (PREVIEW ? { set() {}, update() {}, delete() {}, commit: none } : fbWriteBatch(d));
-export { onAuthStateChanged, signOut };
+export { onAuthStateChanged, signOut, deleteField };
 export const setDoc = PREVIEW ? none : fbSetDoc;
 export const updateDoc = PREVIEW ? none : fbUpdateDoc;
 export const deleteDoc = PREVIEW ? none : fbDeleteDoc;
