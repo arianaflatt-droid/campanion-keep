@@ -17,7 +17,7 @@ import { bondHTML, moodBubble, playTrick, burst, unlockAt } from "./bond.js?v=20
 import { morningTab, morningOverlay, morningClick, morningBusy, mqReady } from "./morning.js?v=20261020c";
 import { heroTab, heroClick, heroBusy, heroReady, heroOn, heroOf, sessionsLeft, questState, nextQuest, QUESTS } from "./hero.js?v=20261020c";
 import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261020c";
-import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc, watchRewardPic, claimSeat, mySeat } from "./db.js?v=20261020c";
+import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc as saveDoc, watchRewardPic, claimSeat, mySeat } from "./db.js?v=20261020c";
 import { rewardTab, rewardBadge, rgOf, rgProgress, RG_SUBS } from "./weekgoal.js?v=20261020c";
 import { soloOn, soloCard, brewOne, freeIngredient, soloReady, soloCfg } from "./solobrew.js?v=20261020c";
 let rpic = null;
@@ -127,7 +127,16 @@ function subMine() {
 }
 function nameBattles() { battles.forEach(b => [b.a, b.b].forEach(x => { const s = x && students.find(y => y.id === x.id); if (s) x.name = s.name; })); }
 
+// Every save that changes creatures names the families it added or changed (collTouch); the rules check them one by one.
+function withTouch(data) {
+  if (!data || !data.coll || data.collTouch) return data;
+  const s = students.find(x => x.id === me), was = (s && s.coll) || {};
+  const touch = Object.keys(data.coll).filter(f => JSON.stringify(data.coll[f]) !== JSON.stringify(was[f]));
+  return Object.assign(data, { collTouch: touch });
+}
+function updateDoc(ref, data) { return saveDoc(ref, withTouch(data)); }
 async function patch(data, quiet) {
+  withTouch(data);
   const s = students.find(x => x.id === me); if (s) Object.assign(s, data);
   if (!quiet) render(true);
   try { await updateDoc(studentRef(me), data); } catch (e) { flash("That didn’t save — ask your teacher. (" + (e.code || e.message) + ")"); }

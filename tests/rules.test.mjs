@@ -101,29 +101,36 @@ test("reward pictures: each student sees only their own", async () => {
 
 /* ---------- 2. creatures ---------- */
 const coll = extra => Object.assign(amy().coll, extra);
+// what the game sends: the new creatures plus collTouch = the families it added or changed
+const withTouch = (c, base = amy().coll) => ({ coll: c, collTouch: Object.keys(c).filter(f => JSON.stringify(c[f]) !== JSON.stringify(base[f])) });
 test("normal creature saves work: hatch new (Lv 1), hatch a copy (+1), level up, train (+5), release, favorite", async () => {
   const db = as("amyDevice");
-  await assertSucceeds(updateDoc(stu(db, "amy"), { coll: coll({ "U-07": { lvl: 1, at: "t" } }), pullsUsed: 3 }));
-  await assertSucceeds(updateDoc(stu(db, "amy"), { coll: coll({ "U-07": { lvl: 2, at: "t" } }) }));
-  await assertSucceeds(updateDoc(stu(db, "amy"), { coll: coll({ "U-07": { lvl: 7, at: "t" } }) }));
-  await assertSucceeds(updateDoc(stu(db, "amy"), { coll: coll({ "U-07": { lvl: 7, at: "t", fav: true, nick: "Bub" } }) }));
+  await assertSucceeds(updateDoc(stu(db, "amy"), Object.assign(withTouch(coll({ "U-07": { lvl: 1, at: "t" } })), { pullsUsed: 3 })));
+  await assertSucceeds(updateDoc(stu(db, "amy"), withTouch(coll({ "U-07": { lvl: 2, at: "t" } }), coll({ "U-07": { lvl: 1, at: "t" } }))));
+  await assertSucceeds(updateDoc(stu(db, "amy"), withTouch(coll({ "U-07": { lvl: 7, at: "t" } }), coll({ "U-07": { lvl: 2, at: "t" } }))));
+  await assertSucceeds(updateDoc(stu(db, "amy"), withTouch(coll({ "U-07": { lvl: 7, at: "t", fav: true, nick: "Bub" } }), coll({ "U-07": { lvl: 7, at: "t" } }))));
   await assertSucceeds(updateDoc(stu(db, "amy"), { coll: { "C-01": amy().coll["C-01"] } }));   // released C-05 and U-07
+  await assertSucceeds(updateDoc(stu(db, "amy"), { petName: "Still fine" }));                   // a later save that doesn't touch creatures
 });
 test("mass unlock is refused", async () => {
   const all = {}; for (let i = 1; i <= 207; i++) all["C-" + i] = { lvl: 100 };
   await assertFails(updateDoc(stu(as("amyDevice"), "amy"), { coll: all }));
+  await assertFails(updateDoc(stu(as("amyDevice"), "amy"), withTouch(all)));
 });
 test("creature forgery is refused: Lv 100 new creature, +20 levels, Lv 101, fake ids, 2 new at once", async () => {
   const db = as("amyDevice");
-  await assertFails(updateDoc(stu(db, "amy"), { coll: coll({ "L-12": { lvl: 100 } }) }));
-  await assertFails(updateDoc(stu(db, "amy"), { coll: coll({ "C-05": { lvl: 30 } }) }));
-  await assertFails(updateDoc(stu(db, "amy"), { coll: coll({ "C-05": { lvl: 101 } }) }));
-  await assertFails(updateDoc(stu(db, "amy"), { coll: coll({ "X-99": { lvl: 1 } }) }));
-  await assertFails(updateDoc(stu(db, "amy"), { coll: coll({ "C-40": { lvl: 1 }, "C-41": { lvl: 1 } }) }));
+  await assertFails(updateDoc(stu(db, "amy"), withTouch(coll({ "L-12": { lvl: 100 } }))));
+  await assertFails(updateDoc(stu(db, "amy"), withTouch(coll({ "C-05": { lvl: 30 } }))));
+  await assertFails(updateDoc(stu(db, "amy"), withTouch(coll({ "C-05": { lvl: 101 } }))));
+  await assertFails(updateDoc(stu(db, "amy"), withTouch(coll({ "X-99": { lvl: 1 } }))));
+  await assertFails(updateDoc(stu(db, "amy"), withTouch(coll({ "C-40": { lvl: 1 }, "C-41": { lvl: 1 } }))));
   await assertFails(updateDoc(stu(db, "amy"), { coll: "lots" }));
+  // lying about which creatures changed doesn't help
+  await assertFails(updateDoc(stu(db, "amy"), { coll: coll({ "L-12": { lvl: 100 }, "C-05": { lvl: 11 } }), collTouch: ["C-05"] }));
+  await assertFails(updateDoc(stu(db, "amy"), { coll: coll({ "L-12": { lvl: 100 } }) }));
 });
 test("a creature arriving by trade keeps its level", async () => {
-  await assertSucceeds(updateDoc(stu(as("amyDevice"), "amy"), { coll: coll({ "R-03": { lvl: 25, traded: true, at: "t" } }) }));
+  await assertSucceeds(updateDoc(stu(as("amyDevice"), "amy"), withTouch(coll({ "R-03": { lvl: 25, traded: true, at: "t" } }))));
 });
 
 /* ---------- 4. trades ---------- */

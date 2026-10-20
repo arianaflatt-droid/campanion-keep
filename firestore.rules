@@ -6,8 +6,8 @@ service cloud.firestore {
     // Put your school Google email here too (same as js/firebase-config.js).
     function isTeacher() {
       return request.auth != null
-        && request.auth.token.email_verified == true
-        && request.auth.token.email in ["ariana.flatt@unbound.school"];
+        && request.auth.token.get("email_verified", false) == true
+        && request.auth.token.get("email", "") in ["ariana.flatt@unbound.school"];
     }
 
     match /classes/{classId} {
@@ -117,13 +117,18 @@ service cloud.firestore {
         // One save may change at most 3 creature families and add at most 1. Every family it touches must be a real
         // family id (C-/U-/R-/S-/L-##), at level 1-100, and a creature can go up at most 5 levels in one save
         // (hatching a copy = +1, Morning Quest training = up to +5). Releasing (removing) is always allowed.
+        // Firestore rules can't loop over the creatures that changed, so the game names them in collTouch (up to 3);
+        // the rules check that list is exactly the families that were added or changed, then check each one.
         function collOk() {
           let before = resource.data.get("coll", {});
           let after = request.resource.data.get("coll", {});
           let d = after.diff(before);
-          let touched = d.addedKeys().union(d.changedKeys()).toList();
+          let touched = d.addedKeys().union(d.changedKeys());
+          let hint = request.resource.data.get("collTouch", []);
           return after is map && d.affectedKeys().size() <= 3 && after.size() <= before.size() + 1
-            && entryOk(touched, 0, before, after) && entryOk(touched, 1, before, after) && entryOk(touched, 2, before, after);
+            && (touched.size() == 0
+                || (hint is list && hint.size() <= 3 && touched.hasOnly(hint) && hint.toSet().size() == touched.size()
+                    && entryOk(hint, 0, before, after) && entryOk(hint, 1, before, after) && entryOk(hint, 2, before, after)));
         }
         function entryOk(ks, i, before, after) {
           return ks.size() <= i || famOk(ks[i], before, after[ks[i]]);
