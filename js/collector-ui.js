@@ -4,13 +4,13 @@ import {
   formIndex, formOf, statsOf, seenSet, rollRarity, doPull, arenaOpen, arenaOpenFor, lunchHour, hitGoalToday, LUNCH_ARENA, ARENA_HOURS, fighterFrom, teamSize, alive, resolve, resolveRound, moveOk, MOVES, hitDamage,
   birthdayLeft, pickleLeft, PICKLE_FAM, brewLegLeft, BREW_FAM, feastLegLeft, HARVEST_FAM, gingerLegLeft, GINGER_FAM, snowLegLeft, SNOW_FAM, candyLegLeft, CANDY_FAM, ghostEggLeft, GHOST_FAM, BOSS2_LIST, boss2EggLeft, vaultLegLeft, goalLeft, nextGoal, rollRareUp, themeLeft, nextTheme, THEME_TYPES, THEME_EGG, WISH_FAM, spares, spareId, releaseXP, releaseProblem, isStarterFam, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
   EVENTS, eventOpen, eventWindow, eventStreak, hasEvent, eventUnlocked, azToday, rollTeacherRarity, TEACHER_ODDS, LIVE, staleBattle
-} from "./collect.js?v=20261020e";
-import { newBattleRef, changeBattle as changeBattleRaw, setDoc, liveBattlesNow } from "./db.js?v=20261020e";
+} from "./collect.js?v=20261020f";
+import { newBattleRef, changeBattle as changeBattleRaw, setDoc, liveBattlesNow, ck, ckMessage } from "./db.js?v=20261020f";
 // every change to a battle is stamped with the time (upd), so a battle nobody has touched in a while can be ended
 let locking = null, leaving = null;   // battle id while "Lock in team" is saving
 const changeBattle = (id, fn) => changeBattleRaw(id, bt => { const n = fn(bt); if (n) n.upd = new Date().toISOString(); return n; });
 
-import { tradeCard } from "./trade-ui.js?v=20261020e";
+import { tradeCard } from "./trade-ui.js?v=20261020f";
 
 const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const PER_PAGE = 20;
@@ -22,6 +22,25 @@ let battleOpen = null, picks = [], shown = {}, animated = {}, replayTimer = null
 export function isBusy() { return Date.now() < busyUntil; }
 function hold(ms) { busyUntil = Date.now() + ms; }
 function later(ms, fn) { setTimeout(() => { fn(); ctx.render(true); }, ms); }
+// Students' eggs hatch on the server (it checks the egg and rolls the creature); the egg shakes while it works.
+// The teacher's own eggs still hatch here (they're saved on the class doc).
+async function serverHatch(c, kind, k, look) {
+  const t0 = Date.now();
+  hatch = Object.assign({ phase: "shake", res: null }, look || {});
+  hold(60000); c.render(true);
+  try { hatch.res = await ck("hatch", { kind, k }); }
+  catch (e) { hatch = null; busyUntil = 0; c.flash(ckMessage(e)); return c.render(true); }
+  const wait = Math.max(0, 1900 - (Date.now() - t0));
+  hold(wait + 1400);
+  later(wait, () => { hatch.phase = "crack"; hold(1400); });
+  later(wait + 900, () => { hatch.phase = "reveal"; busyUntil = 0; });
+}
+// Other collection changes on the server: show its message if it says no.
+async function serverDo(c, op, input, ok) {
+  try { const r = await ck(op, input); if (ok) ok(r); }
+  catch (e) { c.flash(ckMessage(e)); }
+  return c.render(true);
+}
 
 function img(c, cls, sp) {
   const src = sp && !String(c.img).includes("/sparkle/") ? sparkleImg(c) : c.img;
@@ -515,9 +534,11 @@ let busyForfeit = false, busyLeave = false;
 export async function onClick(el, c) {
   ctx = c;
   const a = el.dataset.cc, s = c.me;
+  if (a === "starter" && !s.isTeacher) { if (hasStarter(s)) return; return serverDo(c, "starter", { fam: el.dataset.fam }); }
   if (a === "starter") { if (hasStarter(s)) return; return c.patch({ coll: { [el.dataset.fam]: { lvl: 1, at: new Date().toISOString() } }, starter: el.dataset.fam }); }
   if (a === "hatchPickle") {
     if (!pickleLeft(s)) return;
+    if (!s.isTeacher) return serverHatch(c, "pickle", null, { legendary: true });
     const res = doPull(s, "Legendary", c.cls, { force: PICKLE_FAM });
     hatch = { phase: "shake", res, legendary: true };
     hold(3200); c.render(true);
@@ -528,6 +549,7 @@ export async function onClick(el, c) {
   }
   if (a === "hatchVault") {
     if (!vaultLegLeft(s)) return;
+    if (!s.isTeacher) return serverHatch(c, "vault", null, { legendary: true });
     const res = doPull(s, "Legendary", c.cls, { sparkle: true, noEvent: true });
     hatch = { phase: "shake", res, legendary: true };
     hold(3200); c.render(true);
@@ -539,6 +561,7 @@ export async function onClick(el, c) {
   if (a === "hatchBoss2") {
     const B = BOSS2_LIST.find(x => x.key === el.dataset.k);
     if (!B || !boss2EggLeft(s, B)) return;
+    if (!s.isTeacher) return serverHatch(c, "boss2", B.key, { legendary: true });
     const res = doPull(s, "Legendary", c.cls, { force: B.fam });
     hatch = { phase: "shake", res, legendary: true };
     hold(3200); c.render(true);
@@ -549,6 +572,7 @@ export async function onClick(el, c) {
   }
   if (a === "hatchCandy") {
     if (!candyLegLeft(s)) return;
+    if (!s.isTeacher) return serverHatch(c, "candy", null, { legendary: true });
     const res = doPull(s, "Legendary", c.cls, { force: CANDY_FAM });
     hatch = { phase: "shake", res, legendary: true };
     hold(3200); c.render(true);
@@ -558,6 +582,7 @@ export async function onClick(el, c) {
     return;
   }  if (a === "hatchSnow") {
     if (!snowLegLeft(s)) return;
+    if (!s.isTeacher) return serverHatch(c, "snow", null, { legendary: true });
     const res = doPull(s, "Legendary", c.cls, { force: SNOW_FAM });
     hatch = { phase: "shake", res, legendary: true };
     hold(3200); c.render(true);
@@ -568,6 +593,7 @@ export async function onClick(el, c) {
   }
   if (a === "hatchGinger") {
     if (!gingerLegLeft(s)) return;
+    if (!s.isTeacher) return serverHatch(c, "ginger", null, { legendary: true });
     const res = doPull(s, "Legendary", c.cls, { force: GINGER_FAM });
     hatch = { phase: "shake", res, legendary: true };
     hold(3200); c.render(true);
@@ -578,6 +604,7 @@ export async function onClick(el, c) {
   }
   if (a === "hatchHarvest") {
     if (!feastLegLeft(s)) return;
+    if (!s.isTeacher) return serverHatch(c, "harvest", null, { legendary: true });
     const res = doPull(s, "Legendary", c.cls, { force: HARVEST_FAM });
     hatch = { phase: "shake", res, legendary: true };
     hold(3200); c.render(true);
@@ -588,6 +615,7 @@ export async function onClick(el, c) {
   }
   if (a === "hatchBrew") {
     if (!brewLegLeft(s)) return;
+    if (!s.isTeacher) return serverHatch(c, "brew", null, { legendary: true });
     const res = doPull(s, "Legendary", c.cls, { force: BREW_FAM });
     hatch = { phase: "shake", res, legendary: true };
     hold(3200); c.render(true);
@@ -598,6 +626,7 @@ export async function onClick(el, c) {
   }
   if (a === "hatchGoal") {
     const key = nextGoal(s); if (!goalLeft(s) || !key) return;
+    if (!s.isTeacher) return serverHatch(c, "goal", null, { legendary: key !== "rare" });
     const res = key === "rare" ? doPull(s, rollRareUp(), c.cls) : doPull(s, "Legendary", c.cls, { force: key });
     hatch = { phase: "shake", res, legendary: key !== "rare" };
     hold(3200); c.render(true);
@@ -608,6 +637,7 @@ export async function onClick(el, c) {
   }
   if (a === "hatchTheme") {
     const key = nextTheme(s); if (!themeLeft(s) || !key) return;
+    if (!s.isTeacher) return serverHatch(c, "theme", null, { theme: key });
     const res = doPull(s, rollRarity(), c.cls, { types: THEME_TYPES[key] || [] });
     hatch = { phase: "shake", res, theme: key };
     hold(3200); c.render(true);
@@ -619,6 +649,7 @@ export async function onClick(el, c) {
   if (a === "hatch" || a === "hatchLeg" || a === "hatchBday") {
     const leg = a === "hatchLeg", bday = a === "hatchBday";
     if (bday ? !birthdayLeft(s) : leg ? !legendaryLeft(s) : !pullsLeft(s, c.cls)) return;
+    if (!s.isTeacher) return serverHatch(c, bday ? "bday" : leg ? "leg" : "normal", null, { legendary: leg || bday });
     const res = bday ? doPull(s, "Legendary", c.cls, { force: WISH_FAM })
       : (() => { const eb = s.eggBoost || {}, plain = !leg && !s.isTeacher;
           let r = leg ? "Legendary" : s.isTeacher ? rollTeacherRarity() : rollRarity();
@@ -640,6 +671,7 @@ export async function onClick(el, c) {
   if (a === "hatchDone") { hatch = null; return c.render(true); }
   if (a === "keepSpare") {   // undo the free level and keep the duplicate as a spare instead
     const r = hatch && hatch.res; if (!r || !r.dupe || r.kept || !r.prev) return;
+    if (!s.isTeacher) return serverDo(c, "keepSpare", {}, x => { r.kept = true; r.id = x.id; });
     const coll = Object.assign({}, owned(s)); coll[r.fam] = Object.assign({}, r.prev);
     const list = spares(s).concat([{ id: spareId(), fam: r.fam, lvl: 1, at: new Date().toISOString(), ...(r.sparkle ? { sparkle: true } : {}) }]);
     r.kept = true; r.id = formOf(r.fam, 1).id;
@@ -647,6 +679,7 @@ export async function onClick(el, c) {
   }
   if (a === "useSpare") {   // turn a spare back into a free level (or make it the main one if you don't have that family)
     const sp = spares(s).find(x => x.id === el.dataset.sp); if (!sp) return;
+    if (!s.isTeacher) return serverDo(c, "useSpare", { sp: sp.id }, x => c.flash(x.had ? "Used your spare: +1 level!" : "It\u2019s part of your collection now!", true));
     const coll = Object.assign({}, owned(s)), had = coll[sp.fam];
     coll[sp.fam] = had ? Object.assign({}, had, { lvl: Math.min(MAX_LEVEL, (had.lvl || 1) + 1) }) : { lvl: sp.lvl || 1, at: new Date().toISOString(), ...(sp.sparkle ? { sparkle: true } : {}), ...(sp.traded ? { traded: true } : {}) };   // a traded spare keeps its level (the rules check the traded mark)
     c.flash(had ? "Used your spare: +1 level!" : "It\u2019s part of your collection now!", true);
@@ -658,6 +691,7 @@ export async function onClick(el, c) {
     const key = el.dataset.key; releasing = null;
     const why = releaseProblem(s, key, c.battles, c.trades);
     if (why) { releaseMsg = { key, why }; c.render(true); setTimeout(() => { if (releaseMsg && releaseMsg.key === key) { releaseMsg = null; c.render(true); } }, 5000); return; }
+    if (!s.isTeacher) return serverDo(c, "release", { key }, x => c.flash("Bye, " + x.name + "! +" + x.xp + " XP in your bank.", true));
     let fam, name, data;
     if (key.startsWith("s:")) {
       const sp = spares(s).find(x => x.id === key.slice(2)); fam = sp.fam; name = formOf(fam, sp.lvl || 1).name;
@@ -687,6 +721,7 @@ export async function onClick(el, c) {
   if (a === "nick") { naming = el.dataset.fam; c.render(true); const i = document.getElementById("nickIn"); if (i) { i.focus(); i.select(); } return; }
   if (a === "forTrade") {
     const k = el.dataset.key;
+    if (!s.isTeacher) return serverDo(c, "forTrade", { key: k });
     if (k.startsWith("s:")) { const list = spares(s).map(x => (x.id === k.slice(2) ? Object.assign({}, x, { forTrade: !x.forTrade }) : x)); return c.patch({ spares: list }); }
     const f = k.slice(2), e = owned(s)[f]; if (!e) return;
     const coll = Object.assign({}, owned(s)); coll[f] = Object.assign({}, e); if (e.forTrade) delete coll[f].forTrade; else coll[f].forTrade = true;
@@ -735,6 +770,8 @@ export async function onClick(el, c) {
   if (a === "back") { book.detail = null; book.flip = "in-prev"; return c.render(true); }
   if (a === "lvl") {
     const f = el.dataset.fam, e = owned(s)[f]; if (!e || bankXP(s, c.cls) < LEVEL_XP || (e.lvl || 1) >= MAX_LEVEL) return;
+    if (!s.isTeacher) return serverDo(c, "levelUp", { fam: f }, x => { if (book && book.detail === x.before) book.detail = x.after;
+      c.flash(x.after !== x.before ? "\u2728 " + x.beforeName + " evolved into " + x.afterName + "!" : x.beforeName + " is now Lv " + x.lvl + "!", true); });
     const before = formOf(f, e.lvl || 1), coll = Object.assign({}, owned(s), { [f]: Object.assign({}, e, { lvl: (e.lvl || 1) + 1 }) }), after = formOf(f, (e.lvl || 1) + 1);
     if (book && book.detail === before.id) book.detail = after.id;
     await c.patch({ coll, xpSpent: (Number(s.xpSpent) || 0) + LEVEL_XP });

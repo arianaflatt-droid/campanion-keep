@@ -42,14 +42,71 @@ service cloud.firestore {
         allow read, write: if isTeacher();
       }
 
-      // ---- Arena battles ---- only the two players (or the teacher) can start or change one; the players can't be swapped.
+      // ---- Arena battles ----
+      // Only the two players (or the teacher) can start or change a battle, the players can't be swapped, and each step has
+      // to follow the game: b accepts, each player locks in their OWN creatures (at their real levels, within real stats),
+      // stats can't change mid-battle, a win needs the other team knocked out (or the other player to forfeit),
+      // and a finished battle can't be rewritten. (The damage each round is still worked out on the players' computers.)
       match /battles/{battleId} {
+        function bch() { return request.resource.data.diff(resource.data).affectedKeys(); }
+        function side() { return mySid() == resource.data.a.id ? "A" : "B"; }
+        function oth(x) { return x == "A" ? "B" : "A"; }
+        function seenKey() { return "seen_" + mySid(); }
+        function capHp(l) { return (118 + 7.8 * (l - 1)) * 1.2 + 1; }
+        function capDmg(l) { return (38 + 2.9 * (l - 1)) * 1.2 + 1; }
+        function lockOk(t, i, coll) {
+          return t.size() <= i || (t[i] is map && t[i].get("fam", "") in coll && t[i].get("lvl", 0) is int
+            && t[i].lvl == coll[t[i].fam].get("lvl", 1) && t[i].get("hp", 0) is number && t[i].get("dmg", 0) is number
+            && t[i].hp <= capHp(t[i].lvl) && t[i].dmg <= capDmg(t[i].lvl) && t[i].get("cur", -1) == t[i].hp);
+        }
+        function sameF(a, b, i) {
+          return a.size() <= i || (a[i].fam == b[i].fam && a[i].lvl == b[i].lvl && a[i].hp == b[i].hp && a[i].dmg == b[i].dmg
+            && a[i].get("cur", 0) is number && a[i].get("cur", 0) <= a[i].hp);
+        }
+        function teamSame(a, b) { return a is list && b is list && a.size() == b.size() && sameF(a, b, 0) && sameF(a, b, 1) && sameF(a, b, 2) && sameF(a, b, 3); }
+        function out(t, i) { return t.size() <= i || t[i].get("cur", 0) <= 0; }
+        function allOut(t) { return out(t, 0) && out(t, 1) && out(t, 2) && out(t, 3); }
+        function step() {
+          let o = resource.data;
+          let n = request.resource.data;
+          let me = side();
+          return false
+            // a finished battle: you can only mark that you've seen it
+            || (o.status in ["done", "ended", "declined"] && n.status == o.status && bch().hasOnly([seenKey()]))
+            // either player can end a live battle
+            || (o.status in ["invite", "team", "lead", "fight"] && n.status == "ended" && n.get("endedBy", "") == mySid()
+                && bch().hasOnly(["status", "endedBy", "endedName", seenKey(), "moves", "upd"]))
+            // b accepts or declines the challenge
+            || (o.status == "invite" && me == "B" && n.status == "team" && n.get("n", 0) is int && n.n >= 0 && n.n <= 4
+                && n.team == {"A": null, "B": null} && bch().hasOnly(["status", "n", "turn", "team", "active", "log", "upd"]))
+            || (o.status == "invite" && me == "B" && n.status == "declined" && bch().hasOnly(["status", seenKey(), "upd"]))
+            // lock in your own team, once (the other team stays as it was)
+            || (o.status == "team" && o.team[me] == null && n.status in ["team", "lead"] && bch().hasOnly(["team", "status", "upd"])
+                && n.team[oth(me)] == o.team[oth(me)] && n.team[me] is list && n.team[me].size() == o.n
+                && lockOk(n.team[me], 0, get(/databases/$(database)/documents/classes/$(classId)/students/$(mySid())).data.get("coll", {}))
+                && lockOk(n.team[me], 1, get(/databases/$(database)/documents/classes/$(classId)/students/$(mySid())).data.get("coll", {}))
+                && lockOk(n.team[me], 2, get(/databases/$(database)/documents/classes/$(classId)/students/$(mySid())).data.get("coll", {}))
+                && lockOk(n.team[me], 3, get(/databases/$(database)/documents/classes/$(classId)/students/$(mySid())).data.get("coll", {}))
+                && (n.status == "team" || n.team[oth(me)] != null))
+            // send out a lead creature
+            || (o.status == "lead" && n.status in ["lead", "fight"] && bch().hasOnly(["active", "log", "status", "moves", "upd"]))
+            // pick moves / play a round: stats stay the same; a win needs the other team all knocked out
+            || (o.status == "fight" && n.status in ["fight", "done"]
+                && bch().hasOnly(["moves", "team", "active", "log", "round", "status", "winner", "turn", "upd"])
+                && teamSame(n.team.A, o.team.A) && teamSame(n.team.B, o.team.B)
+                && (n.status == "fight" || (n.get("winner", "") in ["A", "B"] && allOut(n.team[oth(n.winner)]))))
+            // forfeit: you give the win to the other player
+            || (o.status in ["lead", "fight"] && n.status == "done" && n.get("forfeit", "") == me && n.get("winner", "") == oth(me)
+                && bch().hasOnly(["status", "winner", "forfeit", "moves", "log", "upd"]));
+        }
         allow read: if member();
         allow create: if isTeacher() || (seated() && request.resource.data.ids is list && request.resource.data.ids.size() == 2
           && request.resource.data.a.id == mySid() && request.resource.data.ids[0] == request.resource.data.a.id
-          && request.resource.data.ids[1] == request.resource.data.b.id && request.resource.data.status == "invite");
+          && request.resource.data.ids[1] == request.resource.data.b.id && request.resource.data.a.id != request.resource.data.b.id
+          && request.resource.data.status == "invite" && request.resource.data.keys().hasOnly(["a", "b", "ids", "status", "created", "log", "upd"]));
         allow update: if isTeacher() || (seated() && mySid() in resource.data.ids
-          && request.resource.data.ids == resource.data.ids && request.resource.data.a.id == resource.data.a.id && request.resource.data.b.id == resource.data.b.id);
+          && request.resource.data.ids == resource.data.ids && request.resource.data.a.id == resource.data.a.id && request.resource.data.b.id == resource.data.b.id
+          && step());
         allow delete: if isTeacher();
       }
 

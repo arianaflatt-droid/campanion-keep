@@ -201,13 +201,60 @@ test("after accepting, each player can only mark their own side done, once", asy
 /* ---------- battles ---------- */
 const battle = (db, id) => doc(db, C + "/battles/" + id);
 const invite = () => ({ a: { id: "amy", name: "Amy" }, b: { id: "ben", name: "Ben" }, ids: ["amy", "ben"], status: "invite", created: "t", log: [] });
-test("only the players can start or change a battle", async () => {
+const fA = (cur = 50) => ({ fam: "C-05", lvl: 10, name: "Sprout", hp: 50, dmg: 12, cur });
+const fB = (cur = 40) => ({ fam: "C-02", lvl: 4, name: "Bubbles", hp: 40, dmg: 10, cur });
+const accepted = () => Object.assign(invite(), { status: "team", n: 1, turn: "A", team: { A: null, B: null }, active: { A: null, B: null }, log: [{ k: "coin" }] });
+const fighting = (a = fA(), b = fB()) => Object.assign(accepted(), { status: "fight", team: { A: [a], B: [b] }, active: { A: 0, B: 0 }, moves: { A: null, B: null } });
+async function seedBattle(d) { await env.withSecurityRulesDisabled(async ctx => { await setDoc(battle(ctx.firestore(), "b1"), d); }); }
+test("only the players can start a battle, as themselves", async () => {
   await assertSucceeds(setDoc(battle(as("amyDevice"), "b1"), invite()));
   await assertFails(setDoc(battle(as("benDevice"), "b2"), invite()));      // Ben starting one as Amy
   await assertFails(setDoc(battle(as("stranger"), "b3"), invite()));
-  await assertSucceeds(updateDoc(battle(as("benDevice"), "b1"), { status: "team" }));
-  await assertFails(updateDoc(battle(as("stranger"), "b1"), { status: "fight" }));
-  await assertFails(updateDoc(battle(as("benDevice"), "b1"), { ids: ["ben", "zed"] }));
+  await assertFails(setDoc(battle(as("amyDevice"), "b4"), Object.assign(invite(), { status: "done", winner: "A" })));
+});
+test("a whole normal battle works: accept, lock teams, send leads, fight, win", async () => {
+  await seedBattle(invite());
+  await assertFails(setDoc(battle(as("amyDevice"), "b1"), accepted()));      // only Ben can accept
+  await assertSucceeds(setDoc(battle(as("benDevice"), "b1"), accepted()));
+  await assertSucceeds(updateDoc(battle(as("amyDevice"), "b1"), { team: { A: [fA()], B: null }, upd: "t" }));
+  await assertSucceeds(updateDoc(battle(as("benDevice"), "b1"), { team: { A: [fA()], B: [fB()] }, status: "lead", upd: "t" }));
+  await assertSucceeds(updateDoc(battle(as("amyDevice"), "b1"), { active: { A: 0, B: null }, upd: "t" }));
+  await assertSucceeds(updateDoc(battle(as("benDevice"), "b1"), { active: { A: 0, B: 0 }, status: "fight", moves: { A: null, B: null }, upd: "t" }));
+  await assertSucceeds(updateDoc(battle(as("amyDevice"), "b1"), { moves: { A: { m: "attack" }, B: null }, upd: "t" }));
+  await assertSucceeds(updateDoc(battle(as("benDevice"), "b1"), { team: { A: [fA(30)], B: [fB(0)] }, status: "done", winner: "A", round: 1, moves: { A: null, B: null }, upd: "t" }));
+  await assertSucceeds(updateDoc(battle(as("benDevice"), "b1"), { seen_ben: true }));
+});
+test("team cheats are refused: someone else's creature, wrong level, huge stats, touching the other team", async () => {
+  await seedBattle(accepted());
+  const db = as("amyDevice");
+  await assertFails(updateDoc(battle(db, "b1"), { team: { A: [Object.assign(fA(), { fam: "L-12" })], B: null } }));
+  await assertFails(updateDoc(battle(db, "b1"), { team: { A: [Object.assign(fA(), { lvl: 100 })], B: null } }));
+  await assertFails(updateDoc(battle(db, "b1"), { team: { A: [Object.assign(fA(9999), { hp: 9999 })], B: null } }));
+  await assertFails(updateDoc(battle(db, "b1"), { team: { A: [Object.assign(fA(), { dmg: 999 })], B: null } }));
+  await assertFails(updateDoc(battle(db, "b1"), { team: { A: [fA()], B: [fB(1)] } }));
+});
+test("fight cheats are refused: changing stats mid-battle, winning without knocking them out", async () => {
+  await seedBattle(fighting());
+  const db = as("amyDevice");
+  await assertFails(updateDoc(battle(db, "b1"), { team: { A: [Object.assign(fA(), { dmg: 99 })], B: [fB()] } }));
+  await assertFails(updateDoc(battle(db, "b1"), { team: { A: [fA(500)], B: [fB()] } }));                 // healing above max
+  await assertFails(updateDoc(battle(db, "b1"), { status: "done", winner: "A" }));                         // Ben's creature still standing
+  await assertFails(updateDoc(battle(db, "b1"), { status: "done", winner: "A", forfeit: "B" }));           // forfeiting for Ben
+  await assertSucceeds(updateDoc(battle(db, "b1"), { status: "done", winner: "B", forfeit: "A", moves: { A: null, B: null } }));   // Amy forfeits
+});
+test("a finished battle can't be rewritten; strangers can't touch battles", async () => {
+  await seedBattle(Object.assign(fighting(fA(30), fB(0)), { status: "done", winner: "A" }));
+  await assertFails(updateDoc(battle(as("benDevice"), "b1"), { winner: "B" }));
+  await assertFails(updateDoc(battle(as("benDevice"), "b1"), { status: "fight" }));
+  await assertFails(updateDoc(battle(as("benDevice"), "b1"), { seen_amy: true }));
+  await assertSucceeds(updateDoc(battle(as("benDevice"), "b1"), { seen_ben: true }));
+  await assertFails(updateDoc(battle(as("stranger"), "b1"), { seen_x: true }));
+  await assertSucceeds(updateDoc(battle(teacher(), "b1"), { status: "ended" }));
+});
+test("either player can end a live battle", async () => {
+  await seedBattle(fighting());
+  await assertFails(updateDoc(battle(as("benDevice"), "b1"), { status: "ended", endedBy: "amy" }));
+  await assertSucceeds(updateDoc(battle(as("benDevice"), "b1"), { status: "ended", endedBy: "ben", endedName: "Ben", seen_ben: true, moves: { A: null, B: null } }));
 });
 
 /* ---------- live XP feeder ---------- */

@@ -6,7 +6,8 @@ import {
 import {
   getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, signInAnonymously
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { firebaseConfig, CLASS_ID, TEACHER_EMAILS } from "./firebase-config.js?v=20261020e";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
+import { firebaseConfig, CLASS_ID, TEACHER_EMAILS } from "./firebase-config.js?v=20261020f";
 
 // Teacher preview (student.html?s=ID&preview=1): the page shows a student's view, but nothing is ever written.
 export const PREVIEW = typeof location !== "undefined" && new URLSearchParams(location.search).get("preview") === "1";
@@ -151,6 +152,17 @@ export function watchMe(id, cb, onErr) {
   return onSnapshot(studentRef(id), { includeMetadataChanges: true }, snap => cb(snap.exists() ? Object.assign({ id: snap.id }, snap.data()) : null, snap.metadata.hasPendingWrites), onErr);
 }
 export const saveCard = (id, card) => (PREVIEW ? none() : fbSetDoc(cardRef(id), card));
+
+/* ---------- the Companion Keep server ----------
+   Hatching, levelling, spares, releasing and trades are decided by the server (functions/), not the page.
+   ck("hatch", { kind: "normal" }) -> what hatched. Errors come back with a message the page can show. */
+const fns = app ? getFunctions(app, "us-central1") : null;
+export async function ck(op, input) {
+  if (PREVIEW) throw Object.assign(new Error("This is a teacher preview \u2014 nothing is saved."), { code: "preview" });
+  const r = await httpsCallable(fns, "ck")(Object.assign({ op }, input || {}));
+  return r.data || {};
+}
+export const ckMessage = e => (e && e.message ? String(e.message).replace(/^(functions\/)?[a-z-]+:\s*/i, "") : "Something went wrong. Try again.");
 
 export const teacherSignIn = () => signInWithPopup(auth, new GoogleAuthProvider());
 export const anonSignIn = () => signInAnonymously(auth);

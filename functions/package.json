@@ -1,0 +1,17 @@
+{
+  "name": "companion-keep-functions",
+  "private": true,
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": "22"
+  },
+  "scripts": {
+    "copy-game": "rm -rf game && mkdir game && cp ../js/*.js game/",
+    "test": "npm run copy-game && node --test actions.test.mjs"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.6.0",
+    "firebase-functions": "^6.0.1"
+  }
+}

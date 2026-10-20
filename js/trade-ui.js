@@ -8,9 +8,9 @@
 // (spares don't count), limited event creatures (Duckarune, Hexaduck) can't be traded, and not during a battle.
 // Trading follows the same schedule as the arena (its own switches in the teacher console), and a player has to
 // tick "I'm ready to trade" (tradeReady) before anyone can send them an offer.
-import { esc } from "./game.js?v=20261020e";
-import { seenSet, owned, ownedFams, family, formOf, creature, RARITY_COLOR, hasStarter, spares, spareId, tradeOpen, tradeOpenFor, lunchHour, hitGoalToday, ARENA_HOURS, LUNCH_ARENA, LIVE, staleBattle } from "./collect.js?v=20261020e";
-import { newTradeRef, changeTrade, setDoc } from "./db.js?v=20261020e";
+import { esc } from "./game.js?v=20261020f";
+import { seenSet, owned, ownedFams, family, formOf, creature, RARITY_COLOR, hasStarter, spares, spareId, tradeOpen, tradeOpenFor, lunchHour, hitGoalToday, ARENA_HOURS, LUNCH_ARENA, LIVE, staleBattle } from "./collect.js?v=20261020f";
+import { newTradeRef, changeTrade, setDoc, ck, ckMessage } from "./db.js?v=20261020f";
 
 let pick = { who: "", theirs: "", mine: "" };
 let settling = {};
@@ -154,6 +154,13 @@ export async function onTradeClick(el, ctx) {
   }
   if (a === "accept") {
     if (!tradeOpenFor(s, ctx.cls)) return ctx.flash("Trading is closed right now \u2014 you can accept when it opens.");
+    // a student accepting: the server checks both sides and moves both creatures at once
+    if (!s.isTeacher) {
+      try { const r = await ck("acceptTrade", { tradeId: id }); if (r.declined) return ctx.flash(r.declined);
+        ctx.flash("Trade complete! Say hi to your new " + label(r.give).replace(/ \(Lv.*/, "") + "!", true); }
+      catch (e) { ctx.flash(ckMessage(e)); }
+      return ctx.render(true);
+    }
     const giver = ctx.students.find(x => x.id === t.a.id); if (!giver) return ctx.flash("That player isn’t here anymore.");
     const g = t.give.spare ? snap(giver, "s:" + t.give.spare) : snap(giver, "m:" + t.give.fam), w = t.get.spare ? snap(s, "s:" + t.get.spare) : snap(s, "m:" + t.get.fam);
     const why = problem(ctx, giver, g, s, w);
@@ -171,6 +178,10 @@ export async function settleTrades(ctx) {
   const todo = (ctx.trades || []).filter(t => t.status === "accepted" && !t["applied_" + s.id] && !settling[t.id] && t.a && t.b && (t.a.id === s.id || t.b.id === s.id));
   for (const t of todo) {
     settling[t.id] = true;
+    if (!s.isTeacher) {   // a student's side is moved by the server
+      try { await ck("settleTrade", { tradeId: t.id }); } catch (e) {} finally { delete settling[t.id]; }
+      continue;
+    }
     const iAmA = t.a.id === s.id, giveUp = iAmA ? t.give : t.get, receive = iAmA ? t.get : t.give;
     const coll = Object.assign({}, owned(s)), dex = new Set(s.dex || []);
     let sp = spares(s).slice();
