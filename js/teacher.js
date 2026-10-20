@@ -1,33 +1,34 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261019a";
-import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261019a";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261019a";
-import { cpEarnedCalc } from "./room.js?v=20261019a";
-import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261019a";
-import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet } from "./doors.js?v=20261019a";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261019a";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261020a";
+import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261020a";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261020a";
+import { cpEarnedCalc } from "./room.js?v=20261020a";
+import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261020a";
+import { rewardFor } from "./doors.js?v=20261020a";
+import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet } from "./doors.js?v=20261020a";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261020a";
 import {
   applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   boss2Of, boss2Prize, simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, isFrost, isHeart, heartUnlocked, saveProblems, yetiUnlocked, wallMarks, WALL_BLOCK, BOSS_START_HP, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261019a";
-import { MQ_CUTOFF } from "./morning.js?v=20261019a";
-import { kindAdmin } from "./kindness.js?v=20261019a";
-import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261019a";
-import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261019a";
-import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261019a";
-import { passAdmin } from "./pass.js?v=20261019a";
-import { heroTeacherCard } from "./hero.js?v=20261019a";
-import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261019a";
-import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef } from "./db.js?v=20261019a";
-import { rewardAdmin, rgWaiting, rgOf, shrinkImage } from "./weekgoal.js?v=20261019a";
-import { soloAdmin, soloCfg, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261019a";
-import { feederLink } from "./feeder.js?v=20261019a";
-import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261019a";
+} from "./game.js?v=20261020a";
+import { MQ_CUTOFF } from "./morning.js?v=20261020a";
+import { kindAdmin } from "./kindness.js?v=20261020a";
+import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261020a";
+import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261020a";
+import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261020a";
+import { passAdmin } from "./pass.js?v=20261020a";
+import { heroTeacherCard } from "./hero.js?v=20261020a";
+import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261020a";
+import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef } from "./db.js?v=20261020a";
+import { rewardAdmin, rgWaiting, rgOf, shrinkImage } from "./weekgoal.js?v=20261020a";
+import { soloAdmin, soloCfg, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261020a";
+import { feederLink } from "./feeder.js?v=20261020a";
+import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261020a";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef
-} from "./db.js?v=20261019a";
+} from "./db.js?v=20261020a";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -1433,6 +1434,14 @@ async function applyUpload(up) {
      after the lunch cutoff       -> end-of-day numbers; the day counts toward health from LIVE_COUNT_AT
      earlier days this week (and last Fri-Sun) -> end-of-day numbers, so a day the console was closed for still fills in
    Finalized days are never touched. Upload and paste still work as a backup. Pause: cls.liveOff. */
+// A change in the Vault Rewards table: kept as a draft until Save. Matching what's saved = no draft (no "unsaved" warning).
+function rgDraftSet(id, f, v) {
+  busy.rgDraft = busy.rgDraft || {};
+  const x = students.find(y => y.id === id), g = x ? rewardFor(x, cls) : null, saved = { name: g ? g.name || "" : "", sub: g ? g.sub : "", xp: g ? String(g.xp) : "" };
+  const d = Object.assign({}, busy.rgDraft[id] || {}, { [f]: v });
+  if (Object.keys(d).every(k => String(d[k]) === String(saved[k]))) delete busy.rgDraft[id]; else busy.rgDraft[id] = d;
+  const w = document.getElementById("rgUnsaved"); if (w) w.style.display = Object.keys(busy.rgDraft).length ? "" : "none";
+}
 let live = null, liveBusy = false, liveSaved = null, rpics = {}, rgHidden = 0;
 const LIVE_COUNT_AT = "15:00", LIVE_MORNING_END = "08:15";
 const hm = x => { const [h, m] = String(x).split(":").map(Number); return h * 60 + (m || 0); };
@@ -1506,12 +1515,12 @@ function liveCard() {
 }
 
 document.addEventListener("input", ev => {
-  if (ev.target.dataset && ev.target.dataset.rgf) { const id = ev.target.id.replace(/^rg(Sub|Xp|Lib|Name)-/, ""); busy.rgDraft = busy.rgDraft || {}; busy.rgDraft[id] = Object.assign({}, busy.rgDraft[id] || {}, { [ev.target.dataset.rgf]: ev.target.value }); return; }
+  if (ev.target.dataset && ev.target.dataset.rgf) { const id = ev.target.id.replace(/^rg(Sub|Xp|Lib|Name)-/, ""); busy.rgDraft = busy.rgDraft || {}; rgDraftSet(id, ev.target.dataset.rgf, ev.target.value); return; }
   if (ev.target.id === "rosterBox") busy.rosterDraft = ev.target.value;
   if (ev.target.id === "pasteBox") { busy.pasteText = ev.target.value; clearTimeout(busy.pasteT); busy.pasteT = setTimeout(render, 250); }
 });
 document.addEventListener("change", async ev => {
-  if (ev.target.dataset && ev.target.dataset.rgf) { const id = ev.target.id.replace(/^rg(Sub|Xp|Lib|Name)-/, ""); busy.rgDraft = busy.rgDraft || {}; busy.rgDraft[id] = Object.assign({}, busy.rgDraft[id] || {}, { [ev.target.dataset.rgf]: ev.target.value }); return; }
+  if (ev.target.dataset && ev.target.dataset.rgf) { const id = ev.target.id.replace(/^rg(Sub|Xp|Lib|Name)-/, ""); busy.rgDraft = busy.rgDraft || {}; rgDraftSet(id, ev.target.dataset.rgf, ev.target.value); return; }
   if (ev.target.dataset && ev.target.dataset.rgpic && ev.target.files && ev.target.files[0]) {
     const sid = ev.target.dataset.rgpic, st = students.find(x => x.id === sid);
     try { const img = await shrinkImage(ev.target.files[0]); await setDoc(rewardPicRef(sid), { img, at: new Date().toISOString() }); rpics = Object.assign({}, rpics, { [sid]: img }); flash("\u{1F4F7} Picture saved for " + (st ? st.name : "that student") + ".", true); render(); }
@@ -1964,21 +1973,21 @@ document.addEventListener("click", async ev => {
     const name = document.getElementById("rgFillName").value.trim(), sub = document.getElementById("rgFillSub").value, xp = document.getElementById("rgFillXp").value;
     busy.rgDraft = busy.rgDraft || {};
     students.forEach(x => { const d = busy.rgDraft[x.id] = Object.assign({}, busy.rgDraft[x.id] || {}); if (name) d.name = name; if (sub) d.sub = sub; if (xp) d.xp = xp; });
-    flash("Filled every row. Change any you want, then click Save.", true); return;
+    flash("Filled every row. Change any you want, then click Save.", true); { const w = document.getElementById("rgUnsaved"); if (w) w.style.display = ""; } return;
   }
   if (act === "rgSave") {
     const wk = weekKey(cls), batch = writeBatch(db); let n = 0, bad = [];
     students.forEach(x => {
       const a = document.getElementById("rgSub-" + x.id); if (!a) return;
       const sub = a.value, xp = Math.round(Number(document.getElementById("rgXp-" + x.id).value) || 0), name = document.getElementById("rgName-" + x.id).value.trim().slice(0, 40);
-      const old = x.reward && x.reward.week === wk ? x.reward : null;
+      const old = rewardFor(x, cls);
       let nw = null;
-      if (xp > 0) { if (!sub || !name) { bad.push(x.name); return; } nw = { week: wk, sub, xp, name, given: !!(old && old.given && old.sub === sub && old.xp === xp) }; }
+      if (xp > 0) { if (!sub) { bad.push(x.name); return; } nw = { week: wk, sub, xp, name, given: !!(old && old.given && old.sub === sub && old.xp === xp) }; }
       if (JSON.stringify(nw) === JSON.stringify(old) || (!nw && !old)) return;
-      if (!nw && x.reward && x.reward.week !== wk) return;   // an old week's reward: leave it
+      if (!nw && !old) return;   // an old week's reward: leave it
       batch.update(studentRef(x.id), { reward: nw }); x.reward = nw; n++;
     });
-    if (bad.length) { flash("Type a reward name and pick a subject for: " + bad.join(", ")); return; }
+    if (bad.length) { flash("Pick a subject (or All subjects) for: " + bad.join(", ")); return; }
     busy.rgDraft = {};
     if (!n) { flash("Nothing changed.", true); render(); return; }
     try { await batch.commit(); flash("Saved weekly rewards for " + n + " student" + (n === 1 ? "" : "s") + ".", true); } catch (e) { flash("Couldn\u2019t save \u2014 " + (e.code || e.message)); }

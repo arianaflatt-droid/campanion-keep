@@ -8,8 +8,8 @@
    Saved on the student: doors = { "YYYY-MM-DD": { "0": { st: "wait"|"ok"|"no"|"open", at, r }, g: { st: "open", r } } }
    plus lastDoor = "YYYY-MM-DD/<door>" (which door the last save touched; the save rules check it).
    Class: doorsOn (on/off), doorList (default list), doorDays = { "YYYY-MM-DD": [..] } (one-day lists). */
-import { azToday } from "./collect.js?v=20261019a";
-import { SEASON, eventMode, esc, dayXP, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261019a";
+import { azToday } from "./collect.js?v=20261020a";
+import { SEASON, eventMode, esc, dayXP, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261020a";
 
 // A door that starts with "!" is always open (not locked behind the first doors). The "!" isn't shown.
 export const DOOR_DEFAULT = [
@@ -235,10 +235,19 @@ export function oldReady(st, cls, field) { const wk = weekKey(cls), o = (st && s
 export const VAULT_XP = 1000, VAULT_BONUS_XP = 500, VAULT_EGGS = 3;
 // The Vault's goal for a week: the student's own Weekly Reward goal (Rewards tab: a subject + an XP amount) when
 // Ms. Ariana set one for that week, otherwise the normal 1,000 XP total. Returns { xp, n, sub, reward }.
-export function vaultGoal(st, cls, wk) {
+// A student's Vault reward for a week. It counts for the week it was saved on, and also for this calendar week
+// (so a reward saved before or after the console's "New week" button still shows up this week).
+export function rewardFor(st, cls, wk) {
   wk = wk || weekKey(cls);
   const g = st && st.reward;
-  if (g && g.week === wk && Number(g.xp) > 0 && g.sub) {
+  if (!g || !(Number(g.xp) > 0) || !g.sub) return null;
+  const cur = wk === weekKey(cls);
+  return g.week === wk || (cur && g.week === mondayOf(azToday())) ? g : null;
+}
+export function vaultGoal(st, cls, wk) {
+  wk = wk || weekKey(cls);
+  const g = rewardFor(st, cls, wk);
+  if (g) {
     let n = 0;
     if (g.sub === "all") n = wk === weekKey(cls) ? weekTotal(st, cls) : histWeekTotal(st, wk);   // a total-XP goal (like 600)
     else for (let i = 0; i < 7; i++) { const h = ((st.xpHist || {})[addDays(wk, i)]) || {}; n += Number((h.sub || {})[g.sub]) || 0; }
