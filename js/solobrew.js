@@ -8,10 +8,10 @@
    Each potion: +20 candy and a potion glow for the day. Shelf rewards at 3 / 6 / 10 / 15 potions.
    Saved on the student (student-writable): soloBrew = { days: { date: potions }, fx: { date: effect }, extra: { date: { e|b|s: n } }, got: { "3": true, ... } }
    Shelf rewards use fields the student page may write: doorEggs, candyBonus, doorXP, legendaryPulls, soloBrewLeg (counted by brewLegLeft). */
-import { esc, isHaunt, isGobble, isJingle, isFrost, isHeart } from "./game.js?v=20261020f";
-import { azToday } from "./collect.js?v=20261020f";
-import { TEAM_EVENTS, ingOf, subFor, SUB_NAMES, PER_XP, EFFECTS, effect, cauldronHTML, soloTableHTML, soloHouseHTML, soloBoxHTML, DISHES } from "./teams.js?v=20261020f";
-import { SUBJECT_KEYS } from "./doors.js?v=20261020f";
+import { esc, isHaunt, isGobble, isJingle, isFrost, isHeart } from "./game.js?v=20261020h";
+import { azToday } from "./collect.js?v=20261020h";
+import { TEAM_EVENTS, ingOf, subFor, SUB_NAMES, PER_XP, EFFECTS, effect, cauldronHTML, soloTableHTML, soloHouseHTML, soloBoxHTML, DISHES } from "./teams.js?v=20261020h";
+import { SUBJECT_KEYS } from "./doors.js?v=20261020h";
 
 export const BREW = TEAM_EVENTS.potion;
 const FEAST_ING = { key: "solofeast", ing: [
@@ -93,6 +93,15 @@ export function soloRecipe(cls, date) {
   const r = { e: 1, b: 1, s: 1, g: 2 };   // 25 Math + 25 Reading + 25 Language + 45 Goal Subject XP = 120 XP
   return r;
 }
+// Students can name their cauldron (or feast table, candy box...): saved as name on their solo save (soloBrew.name ...).
+export const NAME_MAX = 24;
+let naming = "";
+export function potNaming(field) { naming = field || ""; }
+export function potNameData(st, cls, raw) {
+  const k = soloCfg(cls), name = String(raw || "").replace(/\s+/g, " ").trim().slice(0, NAME_MAX), sb = Object.assign({}, soloOf(st, k));
+  if (name) sb.name = name; else delete sb.name;
+  return { [k.field]: sb };
+}
 export const soloOf = (st, k) => (st && st[(k || HAUNT).field]) || {};
 export const soloTotal = (st, k) => Object.values(soloOf(st, k).days || {}).reduce((a, b) => a + (Number(b) || 0), 0);
 export function soloDay(st, cls, date) {
@@ -145,7 +154,12 @@ export function soloCard(st, cls, flash) {
   const k = soloCfg(cls), d = soloDay(st, cls), fxk = (soloOf(st, k).fx || {})[d.date], fx = fxk ? effect(fxk) : null, ings = ingsFor(st, k);
   const c = { E: k.E, team: { id: "solo-" + st.id }, have: d.left, brewed: d.made > 0 && !d.ready };
   const pic = k.key === "gobble" ? soloTableHTML("solo-" + st.id, d.total, c.brewed) : k.art === "box" ? soloBoxHTML("solo-" + st.id, d.total, c.brewed) : k.art ? soloHouseHTML("solo-" + st.id, d.total, k.art === "snowman" ? "snowman" : "ginger") : cauldronHTML(c);
-  let h = '<div class="card potion tev-' + k.cls + ' solobrew"><div class="card-head"><h2>' + k.icon + " " + k.title + '</h2><span class="fact">' + d.total + " " + (d.total === 1 ? k.one : k.many) + " " + k.done + "</span></div>" +
+  const nm = soloOf(st, k).name;
+  let h = '<div class="card potion tev-' + k.cls + ' solobrew"><div class="card-head"><h2>' + k.icon + " " + (nm ? esc(nm) : k.title) + '</h2><span class="fact">' + d.total + " " + (d.total === 1 ? k.one : k.many) + " " + k.done + "</span></div>" +
+    (naming === k.field
+      ? '<div class="row potname" style="gap:8px;align-items:center;margin:4px 0 8px;"><input id="potNameIn" type="text" maxlength="' + NAME_MAX + '" placeholder="Name your ' + k.where + '" value="' + esc(nm || "") + '" style="flex:1;min-width:160px">' +
+        '<button class="btn small" data-act="potNameSave">Save</button><button class="btn ghost small" data-act="potNameCancel">Cancel</button></div>'
+      : '<p class="small" style="margin:0 0 6px;"><button class="btn ghost small" data-act="potName">\u270F\uFE0F ' + (nm ? "Rename your " + k.where : "Name your " + k.where) + "</button></p>") +
     pic +
     '<p class="lede" style="margin:8px 0;text-align:center;"><b>Today’s recipe</b>: ' + ings.filter(g => d.need[g.k]).map(g => d.need[g.k] + " " + g.icon + " " + g.name).join(" + ") + "</p>";
   h += '<div class="recipe">' + ings.filter(g => d.need[g.k]).map(g => { const sub = srcName(st, cls, g) + (g.goal ? " \u00b7 your Goal Subject" : ""), hv = Math.min(d.left[g.k], d.need[g.k]);

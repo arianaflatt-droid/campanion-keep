@@ -1818,3 +1818,19 @@ body.mini-xmas .tile{ box-shadow:0 0 0 2px #E8B923; } body.mini-tot .tile{ box-s
 .pshelf .more{ grid-column:span 2; opacity:1; color:#fff; font-weight:800; background:none; }
 .pmiles{ list-style:none; padding:0; margin:10px 0 0; display:flex; flex-direction:column; gap:4px; font-size:14px; }
 .pmiles li.done{ color:var(--good, #2E9E5B); font-weight:700; }
+
+/* ✅ Morning Checklist tab */
+.cklist{ display:flex; flex-direction:column; gap:8px; }
+.ckitem{ display:grid; grid-template-columns:34px 36px 1fr auto; align-items:center; gap:10px; width:100%; text-align:left; padding:12px 14px; border-radius:14px;
+  border:2px solid #e8c35a; background:#fff7de; color:#3a2a1a; cursor:pointer; font:inherit; }
+.ckitem:hover{ filter:brightness(1.03); transform:translateY(-1px); }
+.ckitem .ckn{ width:30px; height:30px; border-radius:50%; background:#3a2a1a; color:#fff; display:grid; place-items:center; font-weight:800; font-size:15px; }
+.ckitem .ckic{ font-size:28px; line-height:1; text-align:center; }
+.ckitem .cktxt{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+.ckitem .cktxt b{ font-size:16px; } .ckitem .cktxt small{ color:#7a6040; font-size:13px; }
+.ckitem .ckgo{ font-weight:800; color:#b0650c; white-space:nowrap; }
+.ckitem.done{ background:#eef7ee; border-color:#9fd3a3; color:#4a6a4c; }
+.ckitem.done .ckn{ background:transparent; font-size:22px; }
+.ckitem.done .cktxt b{ text-decoration:line-through; text-decoration-color:#9fd3a3; }
+.ckgoal{ margin-top:12px; padding:12px 14px; border-radius:14px; background:#f3efff; border:2px solid #c9b8f2; display:flex; flex-direction:column; gap:6px; }
+@media (max-width: 520px){ .ckitem{ grid-template-columns:28px 28px 1fr; } .ckitem .ckgo{ display:none; } .ckitem .ckic{ font-size:22px; } }

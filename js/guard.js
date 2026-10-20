@@ -4,11 +4,11 @@
    Rollback: once a day the console saves a snapshot of every student (snaps/{stamp}__{id}, teacher only).
    You can put back a student's creatures, or their whole game save, from any snapshot. Your own records
    (XP, attendance, names, the eggs and bonuses you give) are never rolled back. */
-import { esc } from "./game.js?v=20261020f";
-import { azToday } from "./collect.js?v=20261020f";
-import { cardOf, sameData } from "./card.js?v=20261020f";
-import { cardRef } from "./db.js?v=20261020f";
-import { setDoc, updateDoc, deleteDoc, writeBatch, db, classRef, studentRef, keysRef, getKeys, seatRef, snapRef, snapsFor, snapsAt, deleteField } from "./db.js?v=20261020f";
+import { esc } from "./game.js?v=20261020h";
+import { azToday } from "./collect.js?v=20261020h";
+import { cardOf, sameData } from "./card.js?v=20261020h";
+import { cardRef } from "./db.js?v=20261020h";
+import { setDoc, updateDoc, deleteDoc, writeBatch, db, classRef, studentRef, keysRef, getKeys, seatRef, snapRef, snapsFor, snapsAt, deleteField } from "./db.js?v=20261020h";
 
 // Fields only the teacher writes (same list as the rules). A rollback never touches these.
 export const TEACHER_FIELDS = ["name", "order", "goalSubject", "xp", "lunchXp", "status", "early", "xpHist", "deaths", "items",
