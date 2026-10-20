@@ -6,8 +6,8 @@
    Saved on the class (p = the event's prefix, e.g. "potion" or "feast"):
      <p>On, <p>Teams [{ id, name, members }], <p>Recipe { date: { teamId: { e, b, s } } }, <p>Brews { date: [teamId] }, <p>Top { at, teams }
    Saved on the student: <p>Days { date: { team, fx? } } (days done + rewards given), <p>LegEggs (special Legendary eggs from the top team) */
-import { isHaunt, isGobble, isJingle, isFrost, isHeart, esc } from "./game.js?v=20261017a";
-import { azToday } from "./collect.js?v=20261017a";
+import { isHaunt, isGobble, isJingle, isFrost, isHeart, esc } from "./game.js?v=20261019a";
+import { azToday } from "./collect.js?v=20261019a";
 
 export const PER_XP = 25;
 // The Feast Table: one dish shows up on a team's table for every menu it finishes (the 10th finishes the feast).
@@ -249,6 +249,18 @@ export function tableHTML(c, cls) {
     (n ? "" : '<span class="ft-empty">Cook today\u2019s dish to put it on your table!</span>') + "</div>";
 }
 
+// Solo Feast Cooking: the same table for one student; count = dishes cooked so far (the table shows the first 10).
+export function soloTableHTML(key, count, brewed) {
+  const c = { brewed }, n = Math.min(DISHES.length, count), was = seenDish[key] == null ? n : seenDish[key];
+  seenDish[key] = n;
+  const shown = DISHES.slice(0, n).map((d, i) => ({ d, i, s: DISH_SPOTS[i] })).sort((a, b) => a.s[1] - b.s[1]);
+  return '<div class="feasttable" aria-hidden="true"><img class="ft-table" src="assets/feast/table.webp" alt="">' +
+    shown.map(({ d, i, s }) => '<img class="ft-dish r' + s[1] + (i >= was ? " new" : "") + '" src="assets/feast/' + d.k + '.webp" alt="" title="' + esc(d.name) + '" style="left:' + s[0] + "%;width:" + s[2] + '%;">').join("") +
+    // the dish being cooked today: a faint picture in its spot until the team finishes it
+    (!c.brewed && n < DISHES.length ? '<img class="ft-dish ghost r' + DISH_SPOTS[n][1] + '" src="assets/feast/' + DISHES[n].k + '.webp" alt="" style="left:' + DISH_SPOTS[n][0] + "%;width:" + DISH_SPOTS[n][2] + '%;"><span class="ft-cook" style="left:' + DISH_SPOTS[n][0] + '%;bottom:' + (DISH_SPOTS[n][1] ? 40 : 54) + '%;">\u{1F373} Cooking!</span>' : "") +
+    (n ? "" : '<span class="ft-empty">Cook today\u2019s dish to put it on your table!</span>') + "</div>";
+}
+
 // Gingerbread: the team's house, one picture per finished build step. A new step pops in with sparkles.
 const seenHouse = {};
 export function houseHTML(c, cls) {
@@ -301,4 +313,26 @@ export function teamCard(E, st, cls, students) {
   h += '<h3 style="margin-top:12px;">\u{1F3C6} Team standings</h3><ol class="pstand">' + s.map(x => '<li class="' + (x.t.id === t.id ? "me" : "") + '">' + esc(x.t.name) + " — <b>" + x.n + "</b></li>").join("") + "</ol>" +
     '<p class="muted small">The team with the most ' + E.many + " at the end of " + E.seasonName + " wins a <b>special Legendary egg</b>!</p>";
   return h + "</div>";
+}
+
+// Solo Gingerbread Baking: one student's own house (count = steps baked so far; the picture stops at the finished house).
+export function soloHouseHTML(key, count, ek) {
+  const E = TEAM_EVENTS[ek || "ginger"], L = E.steps.length, n = Math.min(L, count), was = seenHouse[key] == null ? n : seenHouse[key];
+  seenHouse[key] = n;
+  return '<div class="ginghouse tb-' + E.key + (n > was ? " new" : "") + (n >= L ? " done" : "") + '" aria-hidden="true">' +
+    (n > was ? '<img class="gh-old" src="' + E.art + was + '.webp" alt="">' : "") +
+    '<img class="gh-now" src="' + E.art + n + '.webp" alt="">' +
+    (n > was ? '<span class="gh-spark s1">\u2728</span><span class="gh-spark s2">\u2728</span><span class="gh-spark s3">\u2728</span>' : "") +
+    '<span class="gh-step">' + (n >= L ? "\u{1F3C6} Finished!" : "Step " + n + " / " + L) + "</span></div>";
+}
+
+// Solo Chocolate Making: one student's own candy box (count = chocolates made so far).
+export function soloBoxHTML(key, count, brewed) {
+  const E = TEAM_EVENTS.candybox, c = { brewed }, L = E.steps.length, n = Math.min(L, count), was = seenBox[key] == null ? n : seenBox[key];
+  seenBox[key] = n;
+  const choc = (i, extra) => '<img class="cb-choc' + extra + '" src="assets/heart/box/choc-' + (i + 1) + '.webp" alt="" title="' + esc(E.steps[i].name) + '" style="left:' + (BOX_SPOTS[i][0] * 100) + "%;top:" + (BOX_SPOTS[i][1] * 100) + "%;width:" + (BOX_SPOTS[i][2] * 100) + '%;">';
+  let h = '<div class="candybox' + (n >= L ? " done" : "") + '" aria-hidden="true"><img class="cb-box" src="assets/heart/box/candy-box.webp" alt="">';
+  for (let i = 0; i < n; i++) h += choc(i, i >= was ? " new" : "");
+  if (!c.brewed && n < L) h += choc(n, " ghost");
+  return h + '<span class="cb-step">' + (n >= L ? "\u{1F3C6} Box full!" : n + " / " + L + " chocolates") + "</span></div>";
 }

@@ -1,5 +1,5 @@
 // Creature Collector: pulls, XP bank, levels, evolutions, lorebook and arena battles.
-import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261017a";
+import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261019a";
 
 export const PULL_XP = 120;          // every 120 XP (all-time since the collector started) = 1 pull
 export const LEVEL_XP = 120;         // 120 banked XP = 1 level
@@ -105,12 +105,12 @@ export const GHOST_FAM = "L-41";
 export function vaultLegLeft(st) { return Math.max(0, (Number(st && st.vaultLegEggs) || 0) - (Number(st && st.vaultLegUsed) || 0)); }   // Treasure Vault: Sparkle Legendary eggs
 export function ghostEggLeft(st) { return boss2EggLeft(st, BOSS2.haunt); }
 export const CANDY_FAM = "L-40";   // Candivora: the top Candy Box team's special egg
-export function candyLegLeft(st) { return Math.max(0, (Number(st && st.candyboxLegEggs) || 0) - (Number(st && st.candyboxLegUsed) || 0)); }
-export function snowLegLeft(st) { return Math.max(0, (Number(st && st.snowmanLegEggs) || 0) - (Number(st && st.snowmanLegUsed) || 0)); }
+export function candyLegLeft(st) { return Math.max(0, (Number(st && st.candyboxLegEggs) || 0) + (Number(st && st.soloBoxLeg) || 0) - (Number(st && st.candyboxLegUsed) || 0)); }
+export function snowLegLeft(st) { return Math.max(0, (Number(st && st.snowmanLegEggs) || 0) + (Number(st && st.soloSnowLeg) || 0) - (Number(st && st.snowmanLegUsed) || 0)); }
 export const GINGER_FAM = "L-36";   // Gingermischief: the top Gingerbread House team's special egg
-export function gingerLegLeft(st) { return Math.max(0, (Number(st && st.gingerLegEggs) || 0) - (Number(st && st.gingerLegUsed) || 0)); }
+export function gingerLegLeft(st) { return Math.max(0, (Number(st && st.gingerLegEggs) || 0) + (Number(st && st.soloGingerLeg) || 0) - (Number(st && st.gingerLegUsed) || 0)); }
 export const HARVEST_FAM = "L-35";   // Cornucopia: the top Feast Table Team's special egg
-export function feastLegLeft(st) { return Math.max(0, (Number(st && st.feastLegEggs) || 0) - (Number(st && st.feastLegUsed) || 0)); }
+export function feastLegLeft(st) { return Math.max(0, (Number(st && st.feastLegEggs) || 0) + (Number(st && st.soloFeastLeg) || 0) - (Number(st && st.feastLegUsed) || 0)); }
 export function pickleLeft(st) { return Math.max(0, (Number(st && st.pickleEggs) || 0) - (Number(st && st.pickleUsed) || 0)); }
 export function birthdayLeft(st) { return Math.max(0, (Number(st.birthdayEggs) || 0) - (Number(st.birthdayUsed) || 0)); }
 export function legendaryLeft(st) { return Math.max(0, (Number(st.legendaryPulls) || 0) - (Number(st.legendaryUsed) || 0)); }

@@ -1,11 +1,11 @@
-import { owned as roomOwned, fitOf as roomFit, FIT_SLOTS, setItems as roomSet } from "./room.js?v=20261017a";
-import { presentsOpened } from "./doors.js?v=20261017a";
-import { PASS_THEMES, passDone } from "./pass.js?v=20261017a";
+import { owned as roomOwned, fitOf as roomFit, FIT_SLOTS, setItems as roomSet } from "./room.js?v=20261019a";
+import { presentsOpened } from "./doors.js?v=20261019a";
+import { PASS_THEMES, passDone } from "./pass.js?v=20261019a";
 // Badges: worked out from each student's saved data, so nothing extra is stored and no rules change.
 // To add a badge: add an entry with a check(st) that returns how far along the student is,
 // and a goal. Put its picture in assets/badges/ (a transparent WEBP or PNG). Without a picture, the emoji shows.
-import { esc, goalXP, candyOf, ghostUnlocked } from "./game.js?v=20261017a";
-import { seenSet, ownedFams, owned, family, formIndex, formOf, STARTERS, CREATURES } from "./collect.js?v=20261017a";
+import { esc, goalXP, candyOf, ghostUnlocked } from "./game.js?v=20261019a";
+import { seenSet, ownedFams, owned, family, formIndex, formOf, STARTERS, CREATURES } from "./collect.js?v=20261019a";
 
 export const hatches = st => (Number(st.pullsUsed) || 0) + (Number(st.legendaryUsed) || 0);
 
@@ -198,8 +198,8 @@ export const BADGES = [
   { id: "ghost-2",  group: "haunt", name: "Ghost Buster II", desc: "Help defeat the Ghost-olotl a 2nd time", goal: 1, img: "assets/badges/ghost-2.webp", emoji: "\u{1F47B}", check: st => (st.ghost2 ? 1 : 0) },
   { id: "ghost-10", group: "haunt", name: "Ghost Buster 10", desc: "Attack the Ghost-olotl 10 times", goal: 10, img: "assets/badges/ghost-10.webp", emoji: "\u{1F47B}", check: attacks },
   { id: "master-brewer", group: "haunt", name: "Master Brewer", desc: "Brew 3 potions with your Potion Team, or 10 on your own", goal: 3, img: "assets/badges/master-brewer.webp", emoji: "\u{1F9EA}", check: st => { const n = Object.values((st.soloBrew || {}).days || {}).reduce((a, b) => a + (Number(b) || 0), 0); return Math.max(Object.keys(st.potionDays || {}).length, n >= 10 ? 3 : n >= 6 ? 2 : n >= 3 ? 1 : 0); } },
-  { id: "feast-master", group: "gobble", name: "Feast Master", desc: "Cook 3 Feast Table menus with your team", goal: 3, img: "assets/badges/feast-master.webp", emoji: "\u{1F983}", check: st => Object.keys(st.feastDays || {}).length },
-  { id: "master-baker", group: "jingle", name: "Master Baker", desc: "Finish all 10 steps of your team\u2019s Gingerbread House", goal: 10, img: "assets/badges/master-baker.webp", emoji: "\u{1F36A}", check: st => Object.keys(st.gingerDays || {}).length },
+  { id: "feast-master", group: "gobble", name: "Feast Master", desc: "Cook 3 Feast Table menus with your team, or 10 dishes on your own", goal: 3, img: "assets/badges/feast-master.webp", emoji: "\u{1F983}", check: st => { const n = Object.values((st.soloFeast || {}).days || {}).reduce((a, b) => a + (Number(b) || 0), 0); return Math.max(Object.keys(st.feastDays || {}).length, n >= 10 ? 3 : n >= 6 ? 2 : n >= 3 ? 1 : 0); } },
+  { id: "master-baker", group: "jingle", name: "Master Baker", desc: "Finish all 10 steps of your team\u2019s Gingerbread House, or bake 10 on your own", goal: 10, img: "assets/badges/master-baker.webp", emoji: "\u{1F36A}", check: st => Math.max(Object.keys(st.gingerDays || {}).length, Math.min(10, Object.values((st.soloGinger || {}).days || {}).reduce((a, b) => a + (Number(b) || 0), 0))) },
   { id: "sweet-tooth", group: "haunt", name: "Sweet Tooth", desc: "Earn 1,000 candy", goal: 1000, img: "assets/badges/sweet-tooth.webp", emoji: "\u{1F36C}", check: candyEarned },
   { id: "big-spender", group: "haunt", name: "Big Spender", desc: "Spend 500 candy at the shop", goal: 500, img: "assets/badges/big-spender.webp", emoji: "\u{1F6CD}\uFE0F", check: candySpentBest },
   { id: "witchy",      group: "haunt", name: "Witchy",      desc: "Buy the Witch\u2019s Hat", goal: 1, img: "assets/badges/witchy.webp", emoji: "\u{1F9D9}", check: st => (st.witchHat ? 1 : 0) },
@@ -220,11 +220,11 @@ export const BADGES = [
   { id: "yeti-tamer",    group: "frost", name: "Yeti Tamer", desc: "Help defeat the Abominable Snowlotl", goal: 1, img: "assets/badges/yeti-tamer.webp", emoji: "\u26C4", check: yetiHelped },
   { id: "yeti-2", group: "frost", name: "Snowlotl Smasher II", desc: "Help defeat the Snowlotl a 2nd time", goal: 1, img: "assets/badges/yeti-2.webp", emoji: "\u2744\uFE0F", check: st => (st.yeti2 ? 1 : 0) },
   { id: "ev-frost",      group: "frost", name: "Midniduck", desc: "Catch the limited Midniduck during Frostbite Festival", goal: 1, img: "assets/badges/ev-frost.webp", emoji: "\u{1F386}", check: st => (owned(st)["L-37"] ? 1 : 0) },
-  { id: "snow-sculptor", group: "frost", name: "Snow Sculptor", desc: "Finish all 10 steps of your team\u2019s snowman", goal: 10, img: "assets/badges/snow-sculptor.webp", emoji: "\u2603\uFE0F", check: st => Object.keys(st.snowmanDays || {}).length },
+  { id: "snow-sculptor", group: "frost", name: "Snow Sculptor", desc: "Finish all 10 steps of your team\u2019s snowman, or build 10 on your own", goal: 10, img: "assets/badges/snow-sculptor.webp", emoji: "\u2603\uFE0F", check: st => Math.max(Object.keys(st.snowmanDays || {}).length, Math.min(10, Object.values((st.soloSnow || {}).days || {}).reduce((a, b) => a + (Number(b) || 0), 0))) },
   { id: "heart-mender",  group: "heart", name: "Heart Mender", desc: "Help defeat the Heartbreaker-otl", goal: 1, img: "assets/badges/heart-mender.webp", emoji: "\u{1F498}", check: heartHelped },
   { id: "heart-2", group: "heart", name: "Heart Mender II", desc: "Help defeat the Heartbreaker-otl a 2nd time", goal: 1, img: "assets/badges/heart-2.webp", emoji: "\u{1F498}", check: st => (st.heart2 ? 1 : 0) },
   { id: "ev-heart",      group: "heart", name: "Amorduck", desc: "Catch the limited Amorduck during Sweetheart Showdown", goal: 1, img: "assets/badges/ev-heart.webp", emoji: "\u{1F986}", check: st => (owned(st)["L-39"] ? 1 : 0) },
-  { id: "master-chocolatier", group: "heart", name: "Master Chocolatier", desc: "Fill all 10 slots of your team\u2019s candy box", goal: 10, img: "assets/badges/master-chocolatier.webp", emoji: "\u{1F36B}", check: st => Object.keys(st.candyboxDays || {}).length },
+  { id: "master-chocolatier", group: "heart", name: "Master Chocolatier", desc: "Fill all 10 slots of your team\u2019s candy box, or make 10 chocolates on your own", goal: 10, img: "assets/badges/master-chocolatier.webp", emoji: "\u{1F36B}", check: st => Math.max(Object.keys(st.candyboxDays || {}).length, Math.min(10, Object.values((st.soloBox || {}).days || {}).reduce((a, b) => a + (Number(b) || 0), 0))) },
   // Daily Doors (Haunted Doors / Harvest Doors / Advent Calendar).
   { id: "door-1",    group: "doors", name: "Knock Knock",    desc: "Open your first Daily Doors present", goal: 1,   img: "assets/badges/door-1.webp", emoji: "\u{1F6AA}", check: st => presentsOpened(st).doors },
   { id: "door-25",   group: "doors", name: "Door Dasher",    desc: "Open 25 Daily Doors presents",        goal: 25,  img: "assets/badges/door-25.webp", emoji: "\u{1F381}", check: st => presentsOpened(st).doors },
