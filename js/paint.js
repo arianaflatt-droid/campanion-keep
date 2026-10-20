@@ -4,8 +4,8 @@
    then switch between your colors (or no paint) for free, any time.
    Saved on the student: paints = { id: true }, paint = id or "", sparkleDay = date. Spending uses candySpent like the shop.
    Just for looks: no battle changes. */
-import { esc, PAINTS, eventMode, seasonOf, candyLeft, companionOf, petHTML } from "./game.js?v=20261020c";
-import { azToday } from "./collect.js?v=20261020c";
+import { esc, PAINTS, eventMode, seasonOf, candyLeft, companionOf, petHTML } from "./game.js?v=20261020d";
+import { azToday } from "./collect.js?v=20261020d";
 
 export const SPARKLE_COST = 40, COLOR_COST = 150;
 const sw = c => (c.startsWith("linear") ? "background:" + c : "background:" + c);

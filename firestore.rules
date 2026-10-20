@@ -111,7 +111,33 @@ service cloud.firestore {
                "streakCarry", "streakWeek", "candyBank", "bonusXP", "bonusPulls", "cpEarned", "questPass",
                "birthdayEggs", "pickleEggs", "ghostEggs", "ghost2", "turkeyEggs", "turkey2", "grinchEggs", "grinch2", "yetiEggs", "yeti2", "heartEggs", "heart2", "potionLegEggs", "feastLegEggs", "gingerLegEggs", "snowmanLegEggs", "candyboxLegEggs",
                "potionDays", "feastDays", "gingerDays", "snowmanDays", "candyboxDays", "isTeacher", "reward"])
-          && collOk());
+          && collOk() && countsOk(request.resource.data.diff(resource.data).affectedKeys()));
+
+        // ---- Rewards and counters ----
+        // What a student earns can only go up a little per save (the biggest single real reward, plus room to spare),
+        // and what they've used or spent can never go back down. Only fields this save actually changes are checked.
+        function wasNum(k) { let v = resource.data.get(k, 0); return v is number ? v : 0; }
+        function upTo(ch, k, most) { return !(k in ch) || (request.resource.data.get(k, 0) is number && request.resource.data.get(k, 0) <= wasNum(k) + most); }
+        function notDown(ch, k) { return !(k in ch) || (request.resource.data.get(k, 0) is number && request.resource.data.get(k, 0) >= wasNum(k)); }
+        function wasLen(k) { let v = resource.data.get(k, []); return v is list ? v.size() : 0; }
+        function listUp(ch, k) { return !(k in ch) || (request.resource.data.get(k, []) is list && request.resource.data.get(k, []).size() <= wasLen(k) + 1); }
+        function countsOk(ch) {
+          return upTo(ch, "doorEggs", 3) && upTo(ch, "legendaryPulls", 1) && upTo(ch, "vaultLegEggs", 1)
+            && upTo(ch, "soloBrewLeg", 1) && upTo(ch, "soloFeastLeg", 1) && upTo(ch, "soloGingerLeg", 1) && upTo(ch, "soloSnowLeg", 1) && upTo(ch, "soloBoxLeg", 1)
+            && upTo(ch, "doorXP", 600) && upTo(ch, "questXP", 250) && upTo(ch, "xpPrize", 500) && upTo(ch, "xpReleased", 300)
+            && upTo(ch, "candyBonus", 200) && upTo(ch, "stolen", 50) && upTo(ch, "cpBonus", 200)
+            && upTo(ch, "spins", 1) && upTo(ch, "extraAttacks", 1) && upTo(ch, "brews", 1) && upTo(ch, "starterLvl", 5)
+            && listUp(ch, "themeEggs") && listUp(ch, "goalEggs")
+            && notDown(ch, "pullsUsed") && notDown(ch, "legendaryUsed") && notDown(ch, "birthdayUsed") && notDown(ch, "pickleUsed")
+            && notDown(ch, "potionLegUsed") && notDown(ch, "feastLegUsed") && notDown(ch, "gingerLegUsed") && notDown(ch, "snowmanLegUsed")
+            && notDown(ch, "candyboxLegUsed") && notDown(ch, "vaultLegUsed") && notDown(ch, "themeUsed") && notDown(ch, "goalUsed")
+            && notDown(ch, "ghostEggsUsed") && notDown(ch, "turkeyEggsUsed") && notDown(ch, "grinchEggsUsed") && notDown(ch, "yetiEggsUsed") && notDown(ch, "heartEggsUsed")
+            && notDown(ch, "xpSpent") && notDown(ch, "candySpent") && notDown(ch, "cpSpent")
+            // the companion level bar: its start day is set once, and the last counted day only moves forward
+            && (!("compStart" in ch) || resource.data.get("compStart", null) == null)
+            && (!("compThru" in ch) || (request.resource.data.get("compThru", "") is string
+                  && request.resource.data.get("compThru", "") >= (resource.data.get("compThru", "") is string ? resource.data.get("compThru", "") : "")));
+        }
 
         // ---- Creatures ----
         // One save may change at most 3 creature families and add at most 1. Every family it touches must be a real

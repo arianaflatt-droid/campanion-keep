@@ -4,9 +4,9 @@
    Rollback: once a day the console saves a snapshot of every student (snaps/{stamp}__{id}, teacher only).
    You can put back a student's creatures, or their whole game save, from any snapshot. Your own records
    (XP, attendance, names, the eggs and bonuses you give) are never rolled back. */
-import { esc } from "./game.js?v=20261020c";
-import { azToday } from "./collect.js?v=20261020c";
-import { setDoc, updateDoc, deleteDoc, writeBatch, db, classRef, studentRef, keysRef, getKeys, seatRef, snapRef, snapsFor, snapsAt, deleteField } from "./db.js?v=20261020c";
+import { esc } from "./game.js?v=20261020d";
+import { azToday } from "./collect.js?v=20261020d";
+import { setDoc, updateDoc, deleteDoc, writeBatch, db, classRef, studentRef, keysRef, getKeys, seatRef, snapRef, snapsFor, snapsAt, deleteField } from "./db.js?v=20261020d";
 
 // Fields only the teacher writes (same list as the rules). A rollback never touches these.
 export const TEACHER_FIELDS = ["name", "order", "goalSubject", "xp", "lunchXp", "status", "early", "xpHist", "deaths", "items",
@@ -94,6 +94,9 @@ function rollbackCard(students, cls) {
       h += ch.length ? '<table class="tbl" style="margin-top:8px;"><tbody>' + ch.map(c => "<tr><td>" + (odd(c) ? "\u{1F6A9} " : "") + "<b>" + esc(c.s.name) + '</b></td><td class="small">now ' + summary(c.s) + " → back to " + summary(c.d) + (odd(c) ? " · <b>unusual jump</b>" : "") + "</td></tr>").join("") + "</tbody></table>" +
         '<div class="row" style="margin-top:8px;"><button class="btn" data-g="classUndo">' + (G.confirm === "class" ? "Yes, put back creatures for these " + ch.length : "Put back creatures for these " + ch.length) + "</button></div>"
         : '<p class="small" style="margin-top:8px;">✅ Nobody’s creatures changed since then.</p>';
+      const rj = rewardJumps(students);
+      h += rj.length ? '<div class="banner warn" style="margin-top:10px;"><b>\u{1F6A9} Unusually big reward jumps since then:</b><br>' + rj.map(r => "<b>" + esc(r.s.name) + "</b>: " + r.big.join(", ")).join("<br>") +
+        '<br><small>To undo, pick that student above, Show their snapshots, then Whole game save.</small></div>' : "";
     }
     h += "</div>";
   }
@@ -104,6 +107,13 @@ const lv = (d, f) => Number((((d && d.coll) || {})[f] || {}).lvl) || 0;
 function odd(c) {
   const now = Object.keys(c.s.coll || {}), was = c.d.coll || {};
   return now.filter(f => !was[f]).length >= 4 || now.some(f => was[f] && lv(c.s, f) - lv(c.d, f) >= 10);
+}
+// Rewards that grew more than a normal day allows since the snapshot (the rules cap each save; this catches many saves in a row).
+const JUMPS = [["legendaryPulls", 3, "Legendary eggs"], ["doorEggs", 10, "eggs"], ["doorXP", 2000, "bonus XP"], ["candyBonus", 1000, "candy"], ["cpBonus", 500, "Comfort Points"], ["spins", 10, "spins"], ["extraAttacks", 10, "extra attacks"]];
+function rewardJumps(students) {
+  return (G.classSnaps || []).map(x => { const d = JSON.parse(x.json || "{}"), s = students.find(y => y.id === x.sid); if (!s) return null;
+    const big = JUMPS.map(([k, most, label]) => [(Number(s[k]) || 0) - (Number(d[k]) || 0), most, label]).filter(([n, most]) => n > most).map(([n, , label]) => "+" + n.toLocaleString() + " " + label);
+    return big.length ? { s, big } : null; }).filter(Boolean);
 }
 function classChanges(students) {
   return (G.classSnaps || []).map(x => ({ x, d: JSON.parse(x.json || "{}"), s: students.find(s => s.id === x.sid) })).filter(c => c.s && JSON.stringify(c.s.coll || {}) !== JSON.stringify(c.d.coll || {}) && summary(c.s) !== summary(c.d));

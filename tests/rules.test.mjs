@@ -191,3 +191,41 @@ test("the feeder can write live/xp only with the class key", async () => {
   await assertSucceeds(setDoc(doc(as("feeder"), C + "/live/xp"), { json: "{}", key: "feedkey" }));
   await assertFails(getDoc(doc(as("feeder"), C + "/live/xp")));
 });
+
+/* ---------- 2b. reward counters ---------- */
+test("normal rewards save: +1 legendary egg, +3 eggs (vault), +500 XP (golden present), +75 candy, +1 spin, hatch counters up", async () => {
+  const db = as("amyDevice");
+  await assertSucceeds(updateDoc(stu(db, "amy"), { legendaryPulls: 1 }));
+  await assertSucceeds(updateDoc(stu(db, "amy"), { doorEggs: 3, doorXP: 500, vaultLegEggs: 1 }));
+  await assertSucceeds(updateDoc(stu(db, "amy"), { candyBonus: 75, spins: 1 }));
+  await assertSucceeds(updateDoc(stu(db, "amy"), { pullsUsed: 3, xpSpent: 120, themeEggs: ["haunt"] }));
+  await assertSucceeds(updateDoc(stu(db, "amy"), { compStart: "2026-10-01", compThru: "" }));
+  await assertSucceeds(updateDoc(stu(db, "amy"), { compThru: "2026-10-19" }));
+});
+test("giving yourself piles of rewards is refused", async () => {
+  const db = as("amyDevice");
+  await assertFails(updateDoc(stu(db, "amy"), { legendaryPulls: 50 }));
+  await assertFails(updateDoc(stu(db, "amy"), { doorEggs: 4 }));
+  await assertFails(updateDoc(stu(db, "amy"), { doorXP: 5000 }));
+  await assertFails(updateDoc(stu(db, "amy"), { candyBonus: 5000 }));
+  await assertFails(updateDoc(stu(db, "amy"), { spins: 10 }));
+  await assertFails(updateDoc(stu(db, "amy"), { themeEggs: ["haunt", "haunt"] }));
+  await assertFails(updateDoc(stu(db, "amy"), { candyBonus: "lots" }));
+});
+test("un-using eggs or un-spending XP/candy is refused", async () => {
+  const db = as("amyDevice");
+  await assertFails(updateDoc(stu(db, "amy"), { pullsUsed: 0 }));        // was 2
+  await assertSucceeds(updateDoc(stu(db, "amy"), { xpSpent: 240, candySpent: 60 }));
+  await assertFails(updateDoc(stu(db, "amy"), { xpSpent: 0 }));
+  await assertFails(updateDoc(stu(db, "amy"), { candySpent: 0 }));
+});
+test("the companion level bar can't be rewound", async () => {
+  const db = as("amyDevice");
+  await assertSucceeds(updateDoc(stu(db, "amy"), { compStart: "2026-10-01", compThru: "2026-10-15" }));
+  await assertFails(updateDoc(stu(db, "amy"), { compThru: "" }));
+  await assertFails(updateDoc(stu(db, "amy"), { compStart: "2020-01-01" }));
+});
+test("an odd old value in a save doesn't block other saves", async () => {
+  await env.withSecurityRulesDisabled(async ctx => { await updateDoc(stu(ctx.firestore(), "amy"), { candyBonus: "oops", doorEggs: null }); });
+  await assertSucceeds(updateDoc(stu(as("amyDevice"), "amy"), { petName: "Still saves" }));
+});
