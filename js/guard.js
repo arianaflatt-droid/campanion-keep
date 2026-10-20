@@ -4,9 +4,9 @@
    Rollback: once a day the console saves a snapshot of every student (snaps/{stamp}__{id}, teacher only).
    You can put back a student's creatures, or their whole game save, from any snapshot. Your own records
    (XP, attendance, names, the eggs and bonuses you give) are never rolled back. */
-import { esc } from "./game.js?v=20261020b";
-import { azToday } from "./collect.js?v=20261020b";
-import { setDoc, updateDoc, deleteDoc, writeBatch, db, classRef, studentRef, keysRef, getKeys, seatRef, snapRef, snapsFor, snapsAt, deleteField } from "./db.js?v=20261020b";
+import { esc } from "./game.js?v=20261020c";
+import { azToday } from "./collect.js?v=20261020c";
+import { setDoc, updateDoc, deleteDoc, writeBatch, db, classRef, studentRef, keysRef, getKeys, seatRef, snapRef, snapsFor, snapsAt, deleteField } from "./db.js?v=20261020c";
 
 // Fields only the teacher writes (same list as the rules). A rollback never touches these.
 export const TEACHER_FIELDS = ["name", "order", "goalSubject", "xp", "lunchXp", "status", "early", "xpHist", "deaths", "items",
@@ -91,13 +91,19 @@ function rollbackCard(students, cls) {
       '<button class="btn ghost small" data-g="classFind">Check who changed</button></div>';
     if (G.classSnaps) {
       const ch = classChanges(students);
-      h += ch.length ? '<table class="tbl" style="margin-top:8px;"><tbody>' + ch.map(c => "<tr><td><b>" + esc(c.s.name) + '</b></td><td class="small">now ' + summary(c.s) + " → back to " + summary(c.d) + "</td></tr>").join("") + "</tbody></table>" +
+      h += ch.length ? '<table class="tbl" style="margin-top:8px;"><tbody>' + ch.map(c => "<tr><td>" + (odd(c) ? "\u{1F6A9} " : "") + "<b>" + esc(c.s.name) + '</b></td><td class="small">now ' + summary(c.s) + " → back to " + summary(c.d) + (odd(c) ? " · <b>unusual jump</b>" : "") + "</td></tr>").join("") + "</tbody></table>" +
         '<div class="row" style="margin-top:8px;"><button class="btn" data-g="classUndo">' + (G.confirm === "class" ? "Yes, put back creatures for these " + ch.length : "Put back creatures for these " + ch.length) + "</button></div>"
         : '<p class="small" style="margin-top:8px;">✅ Nobody’s creatures changed since then.</p>';
     }
     h += "</div>";
   }
   return h + "</div>";
+}
+// More than a day's worth of change: 4+ new creature families, or a creature 10+ levels higher than in the snapshot.
+const lv = (d, f) => Number((((d && d.coll) || {})[f] || {}).lvl) || 0;
+function odd(c) {
+  const now = Object.keys(c.s.coll || {}), was = c.d.coll || {};
+  return now.filter(f => !was[f]).length >= 4 || now.some(f => was[f] && lv(c.s, f) - lv(c.d, f) >= 10);
 }
 function classChanges(students) {
   return (G.classSnaps || []).map(x => ({ x, d: JSON.parse(x.json || "{}"), s: students.find(s => s.id === x.sid) })).filter(c => c.s && JSON.stringify(c.s.coll || {}) !== JSON.stringify(c.d.coll || {}) && summary(c.s) !== summary(c.d));
