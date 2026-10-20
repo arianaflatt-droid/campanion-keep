@@ -6,7 +6,7 @@ import {
 import {
   getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, signInAnonymously
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { firebaseConfig, CLASS_ID, TEACHER_EMAILS } from "./firebase-config.js?v=20261020d";
+import { firebaseConfig, CLASS_ID, TEACHER_EMAILS } from "./firebase-config.js?v=20261020e";
 
 // Teacher preview (student.html?s=ID&preview=1): the page shows a student's view, but nothing is ever written.
 export const PREVIEW = typeof location !== "undefined" && new URLSearchParams(location.search).get("preview") === "1";
@@ -133,6 +133,24 @@ export function watchStudents(cb, onErr) {
     cb(list);
   }, onErr);
 }
+
+/* ---------- Public cards (Oct 2026) ----------
+   cards/{id} = a student's save WITHOUT the private parts (see PRIVATE in card.js), with name = their display name.
+   Classmates' pages read cards; a student's full save can only be read by that student and the teacher. */
+export const cardsCol = db ? collection(db, "classes", CLASS_ID, "cards") : null;
+export const cardRef = id => doc(db, "classes", CLASS_ID, "cards", id);
+export function watchCards(cb, onErr) {
+  return onSnapshot(cardsCol, snap => {
+    const list = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
+    list.sort((a, b) => (a.order || 0) - (b.order || 0) || String(a.name).localeCompare(String(b.name)));
+    cb(list);
+  }, onErr);
+}
+// One student's own full save. pending = it still has saves on their way to Firebase.
+export function watchMe(id, cb, onErr) {
+  return onSnapshot(studentRef(id), { includeMetadataChanges: true }, snap => cb(snap.exists() ? Object.assign({ id: snap.id }, snap.data()) : null, snap.metadata.hasPendingWrites), onErr);
+}
+export const saveCard = (id, card) => (PREVIEW ? none() : fbSetDoc(cardRef(id), card));
 
 export const teacherSignIn = () => signInWithPopup(auth, new GoogleAuthProvider());
 export const anonSignIn = () => signInAnonymously(auth);

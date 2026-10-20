@@ -86,12 +86,38 @@ test("nobody but the teacher can read the codes, other seats or snapshots", asyn
 });
 
 /* ---------- 6. reading ---------- */
-test("only linked class members (and the teacher) can read students", async () => {
-  await assertFails(getDocs(collection(as("stranger"), C + "/students")));
+test("a full save is private: only that student and the teacher can read it", async () => {
   await assertFails(getDoc(stu(as("stranger"), "amy")));
-  await assertSucceeds(getDocs(collection(as("amyDevice"), C + "/students")));
+  await assertFails(getDoc(stu(as("benDevice"), "amy")));
+  await assertFails(getDocs(collection(as("amyDevice"), C + "/students")));
+  await assertSucceeds(getDoc(stu(as("amyDevice"), "amy")));
   await assertSucceeds(getDocs(collection(teacher(), C + "/students")));
   await assertSucceeds(getDoc(doc(as("stranger"), C)));   // the class settings stay readable (the page needs them)
+});
+
+/* ---------- public cards ---------- */
+const card = () => { const c = Object.assign({}, amy()); delete c.name; c.name = "Amy"; c.pubName = "Amy"; return c; };
+async function withPub() { await env.withSecurityRulesDisabled(async ctx => { await updateDoc(stu(ctx.firestore(), "amy"), { pubName: "Amy", questPass: { "3-m": "x" }, goalSubject: "Math", reward: { name: "Slime Day" } }); }); }
+test("classmates can read cards (not strangers)", async () => {
+  await env.withSecurityRulesDisabled(async ctx => { await setDoc(doc(ctx.firestore(), C + "/cards/ben"), { name: "Ben", petName: "Ott" }); });
+  await assertSucceeds(getDocs(collection(as("amyDevice"), C + "/cards")));
+  await assertFails(getDocs(collection(as("stranger"), C + "/cards")));
+});
+test("a student can write their own card when it matches their save (without the private parts)", async () => {
+  await withPub();
+  await assertSucceeds(setDoc(doc(as("amyDevice"), C + "/cards/amy"), card()));
+});
+test("fake cards are refused: other student, fake creatures, private parts, wrong name", async () => {
+  await withPub();
+  await assertFails(setDoc(doc(as("benDevice"), C + "/cards/amy"), card()));
+  await assertFails(setDoc(doc(as("amyDevice"), C + "/cards/amy"), Object.assign(card(), { coll: { "L-12": { lvl: 100 } } })));
+  await assertFails(setDoc(doc(as("amyDevice"), C + "/cards/amy"), Object.assign(card(), { questPass: { "3-m": "x" } })));
+  await assertFails(setDoc(doc(as("amyDevice"), C + "/cards/amy"), Object.assign(card(), { name: "Amy Test" })));
+  await assertFails(setDoc(doc(as("amyDevice"), C + "/cards/amy"), Object.assign(card(), { badges: { "fake": "t" } })));
+  await assertSucceeds(setDoc(doc(teacher(), C + "/cards/amy"), card()));
+});
+test("a student can't change their own display name", async () => {
+  await assertFails(updateDoc(stu(as("amyDevice"), "amy"), { pubName: "Queen Amy" }));
 });
 test("reward pictures: each student sees only their own", async () => {
   await env.withSecurityRulesDisabled(async ctx => { await setDoc(doc(ctx.firestore(), C + "/rewards/ben"), { img: "x" }); });
@@ -228,4 +254,12 @@ test("the companion level bar can't be rewound", async () => {
 test("an odd old value in a save doesn't block other saves", async () => {
   await env.withSecurityRulesDisabled(async ctx => { await updateDoc(stu(ctx.firestore(), "amy"), { candyBonus: "oops", doorEggs: null }); });
   await assertSucceeds(updateDoc(stu(as("amyDevice"), "amy"), { petName: "Still saves" }));
+});
+test("several rewards in one day still save, one at a time (3 quest tests passed, 3 spins bought and spun)", async () => {
+  const db = as("amyDevice");
+  for (let i = 1; i <= 3; i++) await assertSucceeds(updateDoc(stu(db, "amy"), { legendaryPulls: i, questXP: i * 250 }));
+  for (let i = 1; i <= 3; i++) {
+    await assertSucceeds(updateDoc(stu(db, "amy"), { spins: 1, candySpent: i * 60 }));               // buy a spin
+    await assertSucceeds(updateDoc(stu(db, "amy"), { spins: 0, candyBonus: i * 75 }));               // spin it: +75 candy
+  }
 });

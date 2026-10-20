@@ -99,9 +99,28 @@ service cloud.firestore {
         allow write: if isTeacher();
       }
 
-      match /students/{studentId} {
-        // Only linked class members (and the teacher) can see the class's saves.
+      // ---- Public cards ---- what classmates see of each other: the save WITHOUT the private parts, under the display name.
+      // A student can only write their own card, and it has to match their real save exactly (except the private parts),
+      // so nobody can show fake creatures, levels or badges. Keep PRIVATE in step with js/card.js.
+      match /cards/{sid} {
+        function privateKeys() { return ["name", "fullName", "questPass", "questDone", "questXP", "reward", "goalSubject",
+          "birthdayEggs", "birthdayUsed", "bdaySeen", "ideas", "spinLog"]; }
+        function cardOk() {
+          let st = get(/databases/$(database)/documents/classes/$(classId)/students/$(sid)).data;
+          let c = request.resource.data;
+          return !c.keys().hasAny(["fullName", "questPass", "questDone", "questXP", "reward", "goalSubject", "birthdayEggs", "birthdayUsed", "bdaySeen", "ideas", "spinLog"])
+            && c.get("name", "") == st.get("pubName", "")
+            && c.diff(st).affectedKeys().hasOnly(privateKeys());
+        }
         allow read: if member();
+        allow create, update: if isTeacher() || (seated() && mySid() == sid && cardOk());
+        allow delete: if isTeacher();
+      }
+
+      match /students/{studentId} {
+        // A full save (with full name, test results, personal reward...) is private: only that student's linked computer
+        // and the teacher can read it. Classmates see the public card instead.
+        allow read: if isTeacher() || (seated() && mySid() == studentId);
         allow create, delete: if isTeacher();
         // A linked computer can save ONLY its own student, never the things that come from Ms. Ariana
         // (names, XP, the daily record, the special eggs and bonuses she gives out), and creatures only change a little at a time.
@@ -110,7 +129,7 @@ service cloud.firestore {
                "name", "order", "goalSubject", "xp", "lunchXp", "status", "early", "xpHist", "deaths", "items",
                "streakCarry", "streakWeek", "candyBank", "bonusXP", "bonusPulls", "cpEarned", "questPass",
                "birthdayEggs", "pickleEggs", "ghostEggs", "ghost2", "turkeyEggs", "turkey2", "grinchEggs", "grinch2", "yetiEggs", "yeti2", "heartEggs", "heart2", "potionLegEggs", "feastLegEggs", "gingerLegEggs", "snowmanLegEggs", "candyboxLegEggs",
-               "potionDays", "feastDays", "gingerDays", "snowmanDays", "candyboxDays", "isTeacher", "reward"])
+               "potionDays", "feastDays", "gingerDays", "snowmanDays", "candyboxDays", "isTeacher", "reward", "pubName"])
           && collOk() && countsOk(request.resource.data.diff(resource.data).affectedKeys()));
 
         // ---- Rewards and counters ----

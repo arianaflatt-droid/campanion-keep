@@ -4,19 +4,21 @@
    Rollback: once a day the console saves a snapshot of every student (snaps/{stamp}__{id}, teacher only).
    You can put back a student's creatures, or their whole game save, from any snapshot. Your own records
    (XP, attendance, names, the eggs and bonuses you give) are never rolled back. */
-import { esc } from "./game.js?v=20261020d";
-import { azToday } from "./collect.js?v=20261020d";
-import { setDoc, updateDoc, deleteDoc, writeBatch, db, classRef, studentRef, keysRef, getKeys, seatRef, snapRef, snapsFor, snapsAt, deleteField } from "./db.js?v=20261020d";
+import { esc } from "./game.js?v=20261020e";
+import { azToday } from "./collect.js?v=20261020e";
+import { cardOf, sameData } from "./card.js?v=20261020e";
+import { cardRef } from "./db.js?v=20261020e";
+import { setDoc, updateDoc, deleteDoc, writeBatch, db, classRef, studentRef, keysRef, getKeys, seatRef, snapRef, snapsFor, snapsAt, deleteField } from "./db.js?v=20261020e";
 
 // Fields only the teacher writes (same list as the rules). A rollback never touches these.
 export const TEACHER_FIELDS = ["name", "order", "goalSubject", "xp", "lunchXp", "status", "early", "xpHist", "deaths", "items",
   "streakCarry", "streakWeek", "candyBank", "bonusXP", "bonusPulls", "cpEarned", "questPass",
   "birthdayEggs", "pickleEggs", "ghostEggs", "ghost2", "turkeyEggs", "turkey2", "grinchEggs", "grinch2", "yetiEggs", "yeti2", "heartEggs", "heart2",
   "potionLegEggs", "feastLegEggs", "gingerLegEggs", "snowmanLegEggs", "candyboxLegEggs",
-  "potionDays", "feastDays", "gingerDays", "snowmanDays", "candyboxDays", "isTeacher", "reward", "fullName"];
+  "potionDays", "feastDays", "gingerDays", "snowmanDays", "candyboxDays", "isTeacher", "reward", "fullName", "pubName"];
 export const CREATURE_FIELDS = ["coll", "starter", "petCreature", "spares", "dex"];
 
-export const G = { keys: null, seats: [], snaps: {}, pick: "", confirm: "", stamp: "", classSnaps: null, msg: "" };
+export const G = { cards: null, keys: null, seats: [], snaps: {}, pick: "", confirm: "", stamp: "", classSnaps: null, msg: "" };
 const code = () => { const a = new Uint8Array(12); crypto.getRandomValues(a); return Array.from(a, b => "abcdefghjkmnpqrstuvwxyz23456789"[b % 31]).join(""); };
 export function personalLink(id) {
   const u = new URL("student.html", location.href);
@@ -191,3 +193,29 @@ export async function guardClick(el, ctx) {
   return false;
 }
 export function guardInput(el) { if (el.id === "gPick") { G.pick = el.value; return true; } if (el.id === "gStamp") { G.stamp = el.value; G.classSnaps = null; return true; } return false; }
+
+/* ----- public cards ----- (the console keeps every student's card and display name up to date; teacher writes only) */
+let carding = false, cardAgain = false;
+export async function syncCards(students) {
+  if (!G.cards || !students.length) return;
+  if (carding) { cardAgain = true; return; }
+  carding = true;
+  try {
+    const have = {}; G.cards.forEach(c => { const x = Object.assign({}, c); delete x.id; have[c.id] = x; });
+    const ops = [];
+    students.forEach(s => {
+      const pub = s.name || "";   // the console's display name (first name, + last initial if two share it)
+      if (s.pubName !== pub) ops.push(["u", studentRef(s.id), { pubName: pub }]);
+      const want = cardOf(Object.assign({}, s, { pubName: pub }));
+      if (!have[s.id] || !sameData(want, have[s.id])) ops.push(["s", cardRef(s.id), want]);
+    });
+    Object.keys(have).forEach(id => { if (!students.some(s => s.id === id)) ops.push(["d", cardRef(id)]); });
+    for (let i = 0; i < ops.length; i += 400) {
+      const b = writeBatch(db);
+      ops.slice(i, i + 400).forEach(([t, r, v]) => (t === "u" ? b.update(r, v) : t === "s" ? b.set(r, v) : b.delete(r)));
+      await b.commit();
+    }
+  } catch (e) { console.warn("cards", e); }
+  carding = false;
+  if (cardAgain) { cardAgain = false; setTimeout(() => syncCards(students), 2000); }
+}

@@ -6,9 +6,9 @@
    and at tier 20 a Legendary egg + the pass badge + a title on The Keep.
    Saved on the student: pass = { "YYYY-MM": [claimed tiers] }, passTitle (the newest title), mqDays { date: quests finished }.
    Ms. Ariana can switch it off (cls.passOff). */
-import { esc, goalXP } from "./game.js?v=20261020d";
-import { azToday, doPull, formOf, sparkleImg } from "./collect.js?v=20261020d";
-import { PASS_DECOR, itemArt as roomArt } from "./room.js?v=20261020d";
+import { esc, goalXP } from "./game.js?v=20261020e";
+import { azToday, doPull, formOf, sparkleImg } from "./collect.js?v=20261020e";
+import { PASS_DECOR, itemArt as roomArt } from "./room.js?v=20261020e";
 
 export const PASS_START = "2026-10";          // the first pass
 export const PASS_TIERS = 20, PASS_STEP = 25;   // points per tier (Ms. Ariana can change it: cls.passStep)
