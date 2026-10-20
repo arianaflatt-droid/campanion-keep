@@ -6,15 +6,15 @@
    Each potion: +20 candy and a potion glow for the day. Shelf rewards at 3 / 6 / 10 / 15 potions.
    Saved on the student (student-writable): soloBrew = { days: { date: potions }, fx: { date: effect }, extra: { date: { e|b|s: n } }, got: { "3": true, ... } }
    Shelf rewards use fields the student page may write: doorEggs, candyBonus, doorXP, legendaryPulls, soloBrewLeg (counted by brewLegLeft). */
-import { esc, isHaunt } from "./game.js?v=20261016z";
-import { azToday } from "./collect.js?v=20261016z";
-import { TEAM_EVENTS, ingOf, subFor, SUB_NAMES, PER_XP, EFFECTS, effect, cauldronHTML } from "./teams.js?v=20261016z";
-import { SUBJECT_KEYS } from "./doors.js?v=20261016z";
+import { esc, isHaunt } from "./game.js?v=20261017a";
+import { azToday } from "./collect.js?v=20261017a";
+import { TEAM_EVENTS, ingOf, subFor, SUB_NAMES, PER_XP, EFFECTS, effect, cauldronHTML } from "./teams.js?v=20261017a";
+import { SUBJECT_KEYS } from "./doors.js?v=20261017a";
 
 export const BREW = TEAM_EVENTS.potion;
 // The 4th ingredient comes from each student's own Goal Subject (the one their Daily Doors use, set in the Students tab).
 export const GOAL_ING = { k: "g", name: "Pumpkin Seeds", icon: "\u{1F383}", goal: true };
-export const SEED_XP = 20;   // Goal Subject XP per Pumpkin Seed
+export const SEED_XP = 22.5;   // Goal Subject XP per Pumpkin Seed: 2 seeds = 45 XP, so a potion = 25 + 25 + 25 + 45 = 120 XP
 export const goalKey = st => SUBJECT_KEYS[String((st && st.goalSubject) || "").trim().toLowerCase()] || null;
 const ALL_ING = () => BREW.ing.concat([GOAL_ING]);
 // The ingredients a student uses: the 3 potion ingredients, plus Pumpkin Seeds when they have a Goal Subject.
@@ -32,8 +32,8 @@ const seed = str => { let h = 2166136261; for (let i = 0; i < str.length; i++) h
 // Today's recipe: 1 of each potion ingredient (25 XP each) + 1 Pumpkin Seed (20 Goal Subject XP). Ms. Ariana can change it (cls.soloRecipe[date]).
 export function soloRecipe(cls, date) {
   const o = ((cls && cls.soloRecipe) || {})[date];
-  if (o) return { e: Math.max(0, Number(o.e) || 0), b: Math.max(0, Number(o.b) || 0), s: Math.max(0, Number(o.s) || 0), g: o.g == null ? 1 : Math.max(0, Number(o.g) || 0) };
-  const r = { e: 1, b: 1, s: 1, g: 1 };   // 25 Math + 25 Reading + 25 Language + 20 Goal Subject XP
+  if (o) return { e: Math.max(0, Number(o.e) || 0), b: Math.max(0, Number(o.b) || 0), s: Math.max(0, Number(o.s) || 0), g: o.g == null ? 2 : Math.max(0, Number(o.g) || 0) };
+  const r = { e: 1, b: 1, s: 1, g: 2 };   // 25 Math + 25 Reading + 25 Language + 45 Goal Subject XP = 120 XP
   return r;
 }
 export const soloOf = st => (st && st.soloBrew) || {};
@@ -94,7 +94,7 @@ export function soloCard(st, cls, flash) {
       '<b class="ri-n">' + d.left[g.k] + " / " + d.need[g.k] + (d.left[g.k] >= d.need[g.k] ? " ✅" : "") + "</b></div>"; }).join("") + "</div>";
   if (d.ready) h += '<div style="text-align:center;margin:12px 0;"><button class="attackbtn" data-act="soloBrew">\u{1F9EA} Brew a potion!' + (d.ready > 1 ? " (" + d.ready + " ready)" : "") + "</button></div>";
   else {
-    const g = ingsFor(st).filter(x => d.need[x.k] && d.left[x.k] < d.need[x.k]).map(x => ((d.need[x.k] - d.left[x.k]) * (x.goal ? SEED_XP : PER_XP)) + " more " + srcName(st, cls, x) + " XP");
+    const g = ingsFor(st).filter(x => d.need[x.k] && d.left[x.k] < d.need[x.k]).map(x => Math.ceil((d.need[x.k] - d.left[x.k]) * (x.goal ? SEED_XP : PER_XP)) + " more " + srcName(st, cls, x) + " XP");
     h += '<p class="small" style="text-align:center;margin:10px 0;">' + (d.made ? "✨ You brewed " + d.made + " potion" + (d.made === 1 ? "" : "s") + " today! " : "") + "Next potion: earn <b>" + g.join("</b> and <b>") + "</b>.</p>";
   }
   if (fx) h += '<div class="banner info" style="margin:8px 0;">✨ Your companion is glowing with a <b>' + fx.icon + " " + esc(fx.name) + "</b> today!</div>";
@@ -105,7 +105,7 @@ export function soloCard(st, cls, flash) {
   h += '<ul class="pmiles">' + SHELF.map(m => '<li class="' + (d.total >= m.n ? "done" : "") + '"><b>' + m.n + " potions</b>: " + m.icon + " " + m.label + (d.total >= m.n ? " ✅" : " (" + (m.n - d.total) + " to go)") + "</li>").join("") + "</ul>";
   const mySw = BREW.ing.filter(g => subFor(cls, st, g.sub) !== g.sub);
   if (mySw.length) h += '<p class="small" style="margin-top:8px;">\u{1F501} <b>Just for you:</b> ' + mySw.map(g => g.icon + " " + g.name + " come from <b>" + SUB_NAMES[subFor(cls, st, g.sub)] + "</b>").join(" · ") + ".</p>";
-  h += '<p class="muted small" style="margin-top:8px;">Every ' + PER_XP + " XP = 1 ingredient: " + ingsFor(st).filter(g => !g.goal).map(g => esc(srcName(st, cls, g)) + " = " + g.icon + " " + g.name).join(", ") + (goalKey(st) ? ". Every " + SEED_XP + " " + esc(srcName(st, cls, GOAL_ING)) + " XP (your Goal Subject) = " + GOAL_ING.icon + " " + GOAL_ING.name + (BREW.ing.some(g => subFor(cls, st, g.sub) === goalKey(st)) ? ", counted after the XP your other ingredient needs" : "") : "") +
+  h += '<p class="muted small" style="margin-top:8px;">Every ' + PER_XP + " XP = 1 ingredient: " + ingsFor(st).filter(g => !g.goal).map(g => esc(srcName(st, cls, g)) + " = " + g.icon + " " + g.name).join(", ") + (goalKey(st) ? ". Every " + (2 * SEED_XP) + " " + esc(srcName(st, cls, GOAL_ING)) + " XP (your Goal Subject) = 2 " + GOAL_ING.icon + " " + GOAL_ING.name + (BREW.ing.some(g => subFor(cls, st, g.sub) === goalKey(st)) ? ", counted after the XP your other ingredient needs" : "") : "") +
     ". Each potion gives +" + POTION_CANDY + " candy. Brew as many as you can! A new recipe comes every day, and leftover ingredients don’t carry over.</p>";
   return h + "</div>";
 }
@@ -119,7 +119,7 @@ export function soloAdmin(students, cls, today) {
   if (!on) return h + "</div>";
   h += '<h3 style="margin-top:14px;">Today’s recipe</h3><div class="row" style="gap:10px;align-items:center;">' +
     ALL_ING().map(g => '<label class="small">' + g.icon + " " + g.name + (g.goal ? " (Goal Subject)" : "") + ' <input id="soloR-' + g.k + '" type="number" min="0" max="9" value="' + r[g.k] + '" style="width:60px"></label>').join("") +
-    '<button class="btn small" data-act="soloRecipe">Save today’s recipe</button></div><p class="muted small">Every ' + PER_XP + " XP in Math, Reading or Language = 1 ingredient, and every " + SEED_XP + " Goal Subject XP = 1 \u{1F383} Pumpkin Seed (counted after the first 25 if the Goal Subject is Math, Reading or Language). About 95 XP = 1 potion.</p>";
+    '<button class="btn small" data-act="soloRecipe">Save today’s recipe</button></div><p class="muted small">Every ' + PER_XP + " XP in Math, Reading or Language = 1 ingredient, and every " + (2 * SEED_XP) + " Goal Subject XP = 2 \u{1F383} Pumpkin Seeds (counted after the first 25 if the Goal Subject is Math, Reading or Language). The normal recipe is 120 XP = 1 potion.</p>";
   h += '<h3 style="margin-top:14px;">Students</h3><div class="scroll-x"><table class="tbl"><thead><tr><th>Student</th><th>Potions</th><th>Today</th>' + BREW.ing.map(g => "<th>" + g.icon + " from</th>").join("") + "<th>" + GOAL_ING.icon + " Goal Subject</th></tr></thead><tbody>" +
     kids.map(x => { const d = soloDay(x, cls, today), t = d.total;
       return "<tr><td><b>" + esc(x.name) + "</b></td><td>" + t + " " + SHELF.filter(m => t >= m.n).map(m => m.icon).join("") + "</td><td>" + d.made + (d.ready ? " (+" + d.ready + " ready)" : "") + "</td>" +
