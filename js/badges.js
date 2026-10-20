@@ -1,11 +1,11 @@
-import { owned as roomOwned, fitOf as roomFit, FIT_SLOTS, setItems as roomSet } from "./room.js?v=20261016r";
-import { presentsOpened } from "./doors.js?v=20261016r";
-import { PASS_THEMES, passDone } from "./pass.js?v=20261016r";
+import { owned as roomOwned, fitOf as roomFit, FIT_SLOTS, setItems as roomSet } from "./room.js?v=20261016x";
+import { presentsOpened } from "./doors.js?v=20261016x";
+import { PASS_THEMES, passDone } from "./pass.js?v=20261016x";
 // Badges: worked out from each student's saved data, so nothing extra is stored and no rules change.
 // To add a badge: add an entry with a check(st) that returns how far along the student is,
 // and a goal. Put its picture in assets/badges/ (a transparent WEBP or PNG). Without a picture, the emoji shows.
-import { esc, goalXP, candyOf, ghostUnlocked } from "./game.js?v=20261016r";
-import { seenSet, ownedFams, owned, family, formIndex, formOf, STARTERS, CREATURES } from "./collect.js?v=20261016r";
+import { esc, goalXP, candyOf, ghostUnlocked } from "./game.js?v=20261016x";
+import { seenSet, ownedFams, owned, family, formIndex, formOf, STARTERS, CREATURES } from "./collect.js?v=20261016x";
 
 export const hatches = st => (Number(st.pullsUsed) || 0) + (Number(st.legendaryUsed) || 0);
 
@@ -197,7 +197,7 @@ export const BADGES = [
   // Ghost Buster II: helped beat the 2nd Ghost-olotl (Ms. Ariana gave them its rewards). Art: assets/badges/ghost-2.webp
   { id: "ghost-2",  group: "haunt", name: "Ghost Buster II", desc: "Help defeat the Ghost-olotl a 2nd time", goal: 1, img: "assets/badges/ghost-2.webp", emoji: "\u{1F47B}", check: st => (st.ghost2 ? 1 : 0) },
   { id: "ghost-10", group: "haunt", name: "Ghost Buster 10", desc: "Attack the Ghost-olotl 10 times", goal: 10, img: "assets/badges/ghost-10.webp", emoji: "\u{1F47B}", check: attacks },
-  { id: "master-brewer", group: "haunt", name: "Master Brewer", desc: "Brew 3 potions with your Potion Team", goal: 3, img: "assets/badges/master-brewer.webp", emoji: "\u{1F9EA}", check: st => Object.keys(st.potionDays || {}).length },
+  { id: "master-brewer", group: "haunt", name: "Master Brewer", desc: "Brew 3 potions with your Potion Team, or 10 on your own", goal: 3, img: "assets/badges/master-brewer.webp", emoji: "\u{1F9EA}", check: st => { const n = Object.values((st.soloBrew || {}).days || {}).reduce((a, b) => a + (Number(b) || 0), 0); return Math.max(Object.keys(st.potionDays || {}).length, n >= 10 ? 3 : n >= 6 ? 2 : n >= 3 ? 1 : 0); } },
   { id: "feast-master", group: "gobble", name: "Feast Master", desc: "Cook 3 Feast Table menus with your team", goal: 3, img: "assets/badges/feast-master.webp", emoji: "\u{1F983}", check: st => Object.keys(st.feastDays || {}).length },
   { id: "master-baker", group: "jingle", name: "Master Baker", desc: "Finish all 10 steps of your team\u2019s Gingerbread House", goal: 10, img: "assets/badges/master-baker.webp", emoji: "\u{1F36A}", check: st => Object.keys(st.gingerDays || {}).length },
   { id: "sweet-tooth", group: "haunt", name: "Sweet Tooth", desc: "Earn 1,000 candy", goal: 1000, img: "assets/badges/sweet-tooth.webp", emoji: "\u{1F36C}", check: candyEarned },

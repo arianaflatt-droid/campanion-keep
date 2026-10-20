@@ -1785,3 +1785,36 @@ body.mini-xmas .tile{ box-shadow:0 0 0 2px #E8B923; } body.mini-tot .tile{ box-s
 .hgrun.course .hgob{ bottom:16%; width:70px; } .hgob img{ width:100%; height:auto; display:block; }
 .hprize.emo{ font-size:110px; width:auto; text-align:center; filter:drop-shadow(0 0 18px gold); }
 .hgpic.small{ height:130px; }
+
+/* 🎁 Weekly Reward */
+.rgmain{ display:flex; gap:24px; align-items:center; flex-wrap:wrap; }
+.rgpic{ width:min(240px,70vw); aspect-ratio:1; object-fit:cover; border-radius:18px; box-shadow:0 6px 18px rgba(0,0,0,.15); flex:none; }
+.rgemo{ display:grid; place-items:center; font-size:96px; background:var(--card-2, #f4efe4); }
+.rgtext{ flex:1; min-width:220px; }
+.rgname{ font-size:28px; margin:0 0 6px; }
+.rgbar{ height:22px; border-radius:99px; background:rgba(0,0,0,.08); overflow:hidden; margin:12px 0 6px; }
+.rgbar span{ display:block; height:100%; background:linear-gradient(90deg,#F2B544,#E8873A); border-radius:99px; transition:width .6s; }
+.rgcard.done .rgbar span{ background:linear-gradient(90deg,#3FB66A,#2E9E5B); }
+.rgnum{ font-family:var(--mono); font-size:14px; }
+.rgmsg{ margin-top:10px; font-weight:800; font-size:18px; }
+.rglist{ display:flex; flex-direction:column; gap:10px; }
+.rgrow{ display:flex; gap:12px; align-items:center; } .rgrow > div{ flex:1; }
+.rgthumb{ width:56px; height:56px; object-fit:cover; border-radius:10px; flex:none; } .rgthumb.rgemo{ font-size:30px; }
+.rgtable{ display:flex; flex-direction:column; gap:0; }
+.rgtr{ display:flex; gap:12px; align-items:center; padding:8px 0; border-bottom:1px solid rgba(0,0,0,.06); } .rgtr .rgn{ width:120px; font-weight:700; }
+.rgcol{ flex:1; min-width:0; } .rgpicbtn{ cursor:pointer; flex:none; } .rgpicbtn .rgthumb{ width:64px; height:64px; outline:2px dashed rgba(0,0,0,.15); outline-offset:2px; }
+.rgbar.sm{ height:12px; margin:0; flex:1; max-width:340px; } .rgbar.full span{ background:linear-gradient(90deg,#3FB66A,#2E9E5B); } .rgnn{ white-space:nowrap; }
+.rgweek{ margin-top:12px; font-weight:800; font-size:15px; }
+.rglib{ display:flex; gap:12px; flex-wrap:wrap; }
+.rglibitem{ display:flex; flex-direction:column; align-items:center; gap:4px; width:120px; text-align:center; }
+.rglibitem img{ width:110px; height:110px; object-fit:cover; border-radius:12px; }
+.vaultreward{ display:flex; gap:14px; align-items:center; justify-content:center; margin:6px auto 10px; background:rgba(242,181,68,.16); border:2px solid rgba(242,181,68,.55); border-radius:16px; padding:10px 16px; max-width:460px; }
+.vaultreward img, .vaultreward .rgemo{ width:84px; height:84px; object-fit:cover; border-radius:12px; flex:none; font-size:48px; }
+.vaultreward div{ display:flex; flex-direction:column; } .vaultreward b{ font-size:20px; }
+/* 🧪 Solo Potion Brewing */
+.pshelf{ display:grid; grid-template-columns:repeat(15,1fr); gap:4px; background:linear-gradient(#5b3d24,#3e2814); border-radius:10px; padding:8px 8px 12px; box-shadow:inset 0 -6px 0 rgba(0,0,0,.3); }
+.pshelf span{ aspect-ratio:1; display:grid; place-items:center; font-size:clamp(14px,2.6vw,24px); border-radius:6px; background:rgba(255,255,255,.06); opacity:.45; }
+.pshelf span.on{ opacity:1; background:rgba(199,125,255,.25); } .pshelf span.goal{ outline:2px dashed rgba(242,181,68,.7); outline-offset:-2px; }
+.pshelf .more{ grid-column:span 2; opacity:1; color:#fff; font-weight:800; background:none; }
+.pmiles{ list-style:none; padding:0; margin:10px 0 0; display:flex; flex-direction:column; gap:4px; font-size:14px; }
+.pmiles li.done{ color:var(--good, #2E9E5B); font-weight:700; }

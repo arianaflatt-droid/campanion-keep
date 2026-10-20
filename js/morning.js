@@ -5,9 +5,9 @@
    mystery nest (pick 1 of 3 eggs) and training (level up a creature). Higher quests = rarer creatures and a better Sparkle chance.
    Every finished quest also pays a bonus (MQ_BONUS). Saved on the student: mq = { date, done: { tier: {...} }, hunt: { tier: [dug squares] } },
    mqCatch (creatures caught here), mqFull (whole boards finished). */
-import { esc, eventMode, seasonOf } from "./game.js?v=20261016r";
-import { CREATURES, FAMILIES } from "./creatures.js?v=20261016r";
-import { azToday, azNow, owned, ownedFams, formOf, fighterFrom, resolveRound, hitDamage, MOVES, doPull, MAX_LEVEL, sparkleImg, RARITY_COLOR } from "./collect.js?v=20261016r";
+import { esc, eventMode, seasonOf } from "./game.js?v=20261016x";
+import { CREATURES, FAMILIES } from "./creatures.js?v=20261016x";
+import { azToday, azNow, owned, ownedFams, formOf, fighterFrom, resolveRound, hitDamage, MOVES, doPull, MAX_LEVEL, sparkleImg, RARITY_COLOR } from "./collect.js?v=20261016x";
 
 export const MQ_TIERS = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120];
 export const MQ_CUTOFF = "08:30";        // morning data for today is only accepted before this (Arizona time)

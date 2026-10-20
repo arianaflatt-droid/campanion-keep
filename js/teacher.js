@@ -1,31 +1,33 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261016r";
-import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261016r";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261016r";
-import { cpEarnedCalc } from "./room.js?v=20261016r";
-import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261016r";
-import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP } from "./doors.js?v=20261016r";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261016r";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261016x";
+import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261016x";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261016x";
+import { cpEarnedCalc } from "./room.js?v=20261016x";
+import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261016x";
+import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet } from "./doors.js?v=20261016x";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261016x";
 import {
   applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   boss2Of, boss2Prize, simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, isFrost, isHeart, heartUnlocked, saveProblems, yetiUnlocked, wallMarks, WALL_BLOCK, BOSS_START_HP, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261016r";
-import { MQ_CUTOFF } from "./morning.js?v=20261016r";
-import { kindAdmin } from "./kindness.js?v=20261016r";
-import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261016r";
-import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261016r";
-import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261016r";
-import { passAdmin } from "./pass.js?v=20261016r";
-import { heroTeacherCard } from "./hero.js?v=20261016r";
-import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261016r";
-import { watchLive, feederKeyRef } from "./db.js?v=20261016r";
-import { feederLink } from "./feeder.js?v=20261016r";
-import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261016r";
+} from "./game.js?v=20261016x";
+import { MQ_CUTOFF } from "./morning.js?v=20261016x";
+import { kindAdmin } from "./kindness.js?v=20261016x";
+import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261016x";
+import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261016x";
+import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261016x";
+import { passAdmin } from "./pass.js?v=20261016x";
+import { heroTeacherCard } from "./hero.js?v=20261016x";
+import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261016x";
+import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef } from "./db.js?v=20261016x";
+import { rewardAdmin, rgWaiting, rgOf, shrinkImage } from "./weekgoal.js?v=20261016x";
+import { soloAdmin, BREW as SOLO_BREW } from "./solobrew.js?v=20261016x";
+import { feederLink } from "./feeder.js?v=20261016x";
+import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261016x";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef
-} from "./db.js?v=20261016r";
+} from "./db.js?v=20261016x";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -170,6 +172,7 @@ else onAuthStateChanged(auth, u => {
   unsub.push(watchTrades(l => { trades = l; addIds(l, tradeRef); if (cls) settleTrades(tctx()); if (ctab === "collector") liveRender(); }, () => {}));
   unsub.push(watchStudents(list => { students = applyDisplayNames(list).sort(byAlpha); studentsLoaded = true; autoGobble(); detectEvents(); lockBadges(); liveRender(); },
     e => flash("Couldn’t load students — " + e.code)));
+  unsub.push(watchRewardPics(m => { rpics = m; if (ctab === "rewards") liveRender(); }));
   unsub.push(watchLive(d => { live = d; autoLive(); if (ctab === "daily") liveRender(); }, () => {}));
 });
 setInterval(() => { autoLive(); }, 60000);
@@ -490,7 +493,7 @@ function render(force) {
   else if (mode === "battle") h += shoutTicker(students, cls) + battleHTML(cls, students, battleFx) + ghost2Card() + (isFrost(cls) ? "" : healControls());
   else {
     const np = prizesOpen(), nd = waitingDoors(students, cls).length;
-    const tabs = [["daily", "\u{1F4C5} Daily"], ["students", "\u{1F43E} Students"], ["collector", "\u{1F95A} Collector" + (newIdeas() ? ' <span class="tbadge" aria-label="new creature ideas">' + newIdeas() + "</span>" : "")], ["events", "\u2728 Events" + (eventMode(cls) ? " " + SEASON.icon : "") + (np + nd ? ' <span class="tbadge" aria-label="' + (np + nd) + ' to check">' + (np + nd) + "</span>" : "")], ["quest", "\u{1F5FA}\uFE0F Quest"], ["settings", "\u2699\uFE0F Settings"]];
+    const tabs = [["daily", "\u{1F4C5} Daily"], ["students", "\u{1F43E} Students"], ["collector", "\u{1F95A} Collector" + (newIdeas() ? ' <span class="tbadge" aria-label="new creature ideas">' + newIdeas() + "</span>" : "")], ["events", "\u2728 Events" + (eventMode(cls) ? " " + SEASON.icon : "") + (np + nd ? ' <span class="tbadge" aria-label="' + (np + nd) + ' to check">' + (np + nd) + "</span>" : "")], ["rewards", "\u{1F48E} Vault Rewards"], ["quest", "\u{1F5FA}\uFE0F Quest"], ["settings", "\u2699\uFE0F Settings"]];
     if (!tabs.some(x => x[0] === ctab)) ctab = "daily";
     if (nd && nd > doorHidden) h += '<div class="banner prizealert"><span>\u{1F6AA} <b>' + nd + " door" + (nd === 1 ? "" : "s") + "</b> to check" + doorNames() + '</span><span class="row" style="gap:8px;"><button class="btn small" data-act="goDoors">Check doors</button><button class="btn ghost small" data-act="hideDoors">Hide</button></span></div>';
     if (np && np > prizeHidden) h += '<div class="banner prizealert"><span>\u{1F381} <b>' + np + " prize" + (np === 1 ? "" : "s") + "</b> to order or give" + prizeNames() + '</span><span class="row" style="gap:8px;"><button class="btn small" data-act="goPrizes">View prizes</button><button class="btn ghost small" data-act="hidePrizes">Hide</button></span></div>';
@@ -498,8 +501,9 @@ function render(force) {
     if (ctab === "daily") h += viewDaily() + miniAdmin(students, cls) + partyAdmin(students, cls) + surpriseAdmin(students, cls) + viewWeekDoor() + viewRewards();
     else if (ctab === "students") h += viewStandings() + passAdmin(students, cls) + heroTeacherCard(students, cls) + viewAssign() + viewLosses() + viewLinks();
     else if (ctab === "collector") h += viewLiveBattles() + viewIdeas() + teacherCollectorCard() + viewCollector();
+    else if (ctab === "rewards") h += rewardAdmin(students, cls, rpics, busy);
     else if (ctab === "quest") h += questTracker(students);
-    else if (ctab === "events") h += ghost2Card() + prize2Card() + viewModes() + viewSaveCheck() + viewBossHits() + (eventMode(cls) || waitingDoors(students, cls).length ? viewDoors() : "") + duckAdmin() + (eventMode(cls) ? viewBucket() + viewPrizes() + viewShop() : prizeRows().length ? viewPrizes() : "");
+    else if (ctab === "events") h += (isHaunt(cls) ? soloAdmin(students, cls, azToday()) : "") + ghost2Card() + prize2Card() + viewModes() + viewSaveCheck() + viewBossHits() + (eventMode(cls) || waitingDoors(students, cls).length ? viewDoors() : "") + duckAdmin() + (eventMode(cls) ? viewBucket() + viewPrizes() + viewShop() : prizeRows().length ? viewPrizes() : "");
     else h += viewClassSettings();
   }
 
@@ -827,8 +831,8 @@ function viewWeekDoor() {
     '<button class="btn small" data-act="saveWeekGoal">Save for this week</button>' + (custom ? '<button class="btn ghost small" data-act="resetWeekGoal">Back to ' + WEEK_DOOR_XP + "</button>" : "") +
     '<button class="btn ghost small" data-act="weekCheck">\u{1F504} Unlock for everyone who made it</button></div>' +
     '<p class="muted small" style="margin-top:6px;">A short-week goal only lasts this week \u2014 starting a new week goes back to ' + WEEK_DOOR_XP + ".</p>";
-  const vst = x => ((x.vault || {})[wk]) || (weekTotal(x, cls) >= VAULT_XP ? "ready" : ""), vOpen = kids.filter(x => vst(x) === "open"), vReady = kids.filter(x => vst(x) === "ready");
-  h += '<p class="small" style="margin-top:10px;">\u{1F48E} <b>Treasure Vault</b> (' + VAULT_XP.toLocaleString() + " XP in a week, weekend included): " + vOpen.length + " opened · " + vReady.length + " ready" +
+  const vst = x => ((x.vault || {})[wk]) || (vaultMet(x, cls) ? "ready" : ""), vOpen = kids.filter(x => vst(x) === "open"), vReady = kids.filter(x => vst(x) === "ready");
+  h += '<p class="small" style="margin-top:10px;">\u{1F48E} <b>Treasure Vault</b> (each student\u2019s Rewards goal, or ' + VAULT_XP.toLocaleString() + " XP in a week): " + vOpen.length + " opened · " + vReady.length + " ready" +
     (vOpen.length || vReady.length ? " — " + vOpen.map(x => "✅ " + esc(x.name)).concat(vReady.map(x => "\u{1F48E} " + esc(x.name))).join(", ") : "") + "</p>";
   if (opened.length || ready.length) h += '<div class="inv" style="margin-top:8px;">' +
     opened.map(x => "<span>\u2705 " + esc(x.name) + "</span>").join("") + ready.map(x => "<span>\u{1F31F} " + esc(x.name) + " (ready)</span>").join("") +
@@ -839,7 +843,7 @@ async function weekCheck(goalNow) {
   const wk = weekKey(cls), goal = goalNow || weekGoal(cls), batch = writeBatch(db); let n = 0;
   students.forEach(x => { if (!x.companionId) return; const t = weekTotal(x, cls), up = {};
     if (t >= goal && !(x.weekDoor || {})[wk]) { up.weekDoor = Object.assign({}, x.weekDoor || {}, { [wk]: "ready" }); n++; }
-    if (t >= VAULT_XP && !(x.vault || {})[wk]) up.vault = Object.assign({}, x.vault || {}, { [wk]: "ready" });
+    if (vaultMet(x, cls) && !(x.vault || {})[wk]) up.vault = Object.assign({}, x.vault || {}, { [wk]: "ready" });
     if (Object.keys(up).length) batch.update(studentRef(x.id), up); });
   if (n) await batch.commit();
   return n;
@@ -925,7 +929,8 @@ function viewPrizes() {
   h += '<div class="scroll-x"><table class="tbl"><thead><tr><th>Done</th><th>Student</th><th>Prize</th><th>Link</th><th>When</th></tr></thead><tbody>';
   shown.forEach(r => {
     const p = prizeInfo(r.e);
-    const art = p.img ? '<img src="' + esc(p.img) + '" alt="" style="height:28px;vertical-align:middle;border-radius:6px;">' : p.icon;
+    const pimg = r.e.src === "reward" && rpics[r.s.id] ? rpics[r.s.id] : p.img;
+    const art = pimg ? '<img src="' + esc(pimg) + '" alt="" style="height:28px;vertical-align:middle;border-radius:6px;">' : p.icon;
     h += "<tr" + (r.e.ordered ? ' style="opacity:.55"' : "") + '><td><input type="checkbox" ' + (r.door ? 'data-doordone="' + r.s.id + ":" + r.door + '"' : 'data-ordered="' + r.s.id + ":" + r.idx + '"') + '' + (r.e.ordered ? " checked" : "") +
       ' aria-label="Ordered" style="width:20px;height:20px;"></td><td><b>' + esc(r.s.name) + "</b></td><td>" + art + " " + esc(r.e.prizeName || p.name) + "</td><td>" +
       (p.link ? '<a href="' + esc(p.link) + '" target="_blank" rel="noopener">Open link</a>' : p.xp ? (r.e.xp || r.e.doorXP ? '<span class="muted">\u2705 added to their XP</span>' : '<span class="muted">give ' + p.xp + " XP</span>") : '<span class="muted">\u2014</span>') + '</td><td class="eff">' +
@@ -1399,7 +1404,7 @@ async function applyUpload(up) {
     // Weekend work pasted on Monday belongs to the week it finished, so that (older) week's door can unlock late.
     const wk = mondayOf(date), cur = wk === weekKey(cls), tot = cur ? weekTotal(s, cls) : histWeekTotal(s, wk);
     if (s.companionId && tot >= (cur ? weekGoal(cls) : WEEK_DOOR_XP) && !(s.weekDoor || {})[wk]) { s.weekDoor = Object.assign({}, s.weekDoor || {}, { [wk]: "ready" }); data.weekDoor = s.weekDoor; weekN++; }
-    if (s.companionId && tot >= VAULT_XP && !(s.vault || {})[wk]) { s.vault = Object.assign({}, s.vault || {}, { [wk]: "ready" }); data.vault = s.vault; vaultN++; }
+    if (s.companionId && vaultMet(s, cls, wk) && !(s.vault || {})[wk]) { s.vault = Object.assign({}, s.vault || {}, { [wk]: "ready" }); data.vault = s.vault; vaultN++; }
     if (before && Object.keys(data).every(k => JSON.stringify(data[k] == null ? null : data[k]) === before[k])) return;   // nothing new: no write
     batch.update(studentRef(s.id), data); wrote++;
   });
@@ -1428,7 +1433,7 @@ async function applyUpload(up) {
      after the lunch cutoff       -> end-of-day numbers; the day counts toward health from LIVE_COUNT_AT
      earlier days this week (and last Fri-Sun) -> end-of-day numbers, so a day the console was closed for still fills in
    Finalized days are never touched. Upload and paste still work as a backup. Pause: cls.liveOff. */
-let live = null, liveBusy = false, liveSaved = null;
+let live = null, liveBusy = false, liveSaved = null, rpics = {}, rgHidden = 0;
 const LIVE_COUNT_AT = "15:00", LIVE_MORNING_END = "08:15";
 const hm = x => { const [h, m] = String(x).split(":").map(Number); return h * 60 + (m || 0); };
 function liveData() { if (!live || !live.json) return null; try { return JSON.parse(live.json); } catch (e) { return null; } }
@@ -1501,10 +1506,18 @@ function liveCard() {
 }
 
 document.addEventListener("input", ev => {
+  if (ev.target.dataset && ev.target.dataset.rgf) { const id = ev.target.id.replace(/^rg(Sub|Xp|Lib|Name)-/, ""); busy.rgDraft = busy.rgDraft || {}; busy.rgDraft[id] = Object.assign({}, busy.rgDraft[id] || {}, { [ev.target.dataset.rgf]: ev.target.value }); return; }
   if (ev.target.id === "rosterBox") busy.rosterDraft = ev.target.value;
   if (ev.target.id === "pasteBox") { busy.pasteText = ev.target.value; clearTimeout(busy.pasteT); busy.pasteT = setTimeout(render, 250); }
 });
 document.addEventListener("change", async ev => {
+  if (ev.target.dataset && ev.target.dataset.rgf) { const id = ev.target.id.replace(/^rg(Sub|Xp|Lib|Name)-/, ""); busy.rgDraft = busy.rgDraft || {}; busy.rgDraft[id] = Object.assign({}, busy.rgDraft[id] || {}, { [ev.target.dataset.rgf]: ev.target.value }); return; }
+  if (ev.target.dataset && ev.target.dataset.rgpic && ev.target.files && ev.target.files[0]) {
+    const sid = ev.target.dataset.rgpic, st = students.find(x => x.id === sid);
+    try { const img = await shrinkImage(ev.target.files[0]); await setDoc(rewardPicRef(sid), { img, at: new Date().toISOString() }); rpics = Object.assign({}, rpics, { [sid]: img }); flash("\u{1F4F7} Picture saved for " + (st ? st.name : "that student") + ".", true); render(); }
+    catch (e) { flash("Couldn\u2019t save the picture \u2014 " + (e.code || e.message)); }
+    ev.target.value = ""; return;
+  }
   if (ev.target.classList && ev.target.classList.contains("linkpick") && ev.target.value) {
     const name = ev.target.dataset.link, k = normName(name).replace(/[.#$\/\[\]]/g, ""), st = students.find(x => x.id === ev.target.value); if (!k || !st) return;
     try { await updateDoc(classRef, { nameLinks: Object.assign({}, cls.nameLinks || {}, { [k]: st.id }) }); } catch (e) { flash("Couldn\u2019t save \u2014 " + (e.code || e.message)); return; }
@@ -1940,6 +1953,38 @@ document.addEventListener("click", async ev => {
   if (act === "heroToggle") { try { await updateDoc(classRef, { heroOff: !cls.heroOff }); flash("Saved \u2014 Hero Quest " + (cls.heroOff ? "on" : "off") + "."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
   if (act === "passToggle") { try { await updateDoc(classRef, { passOff: !cls.passOff }); flash("Saved \u2014 Season Pass " + (cls.passOff ? "on" : "off") + "."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
   if (act === "kindToggle") { try { await updateDoc(classRef, { kindOff: !cls.kindOff }); flash("Saved \u2014 Kindness Board " + (cls.kindOff ? "on" : "off") + "."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
+  if (act === "soloToggle") { try { await updateDoc(classRef, { brewSolo: !cls.brewSolo }); flash(cls.brewSolo ? "\u{1F47B} Back to the Ghost-olotl battle." : "\u{1F9EA} Solo Potion Brewing is on! Students see their cauldrons on the Haunt-O-Ween tab.", true); } catch (e) { flash("Couldn\u2019t save \u2014 " + (e.code || e.message)); } return; }
+  if (act === "soloRecipe") {
+    const r = {}; SOLO_BREW.ing.forEach(g => { r[g.k] = Math.max(0, Math.min(9, Math.round(Number(document.getElementById("soloR-" + g.k).value) || 0))); });
+    if (!Object.values(r).some(Boolean)) { flash("The recipe needs at least one ingredient."); return; }
+    try { await updateDoc(classRef, { ["soloRecipe." + azToday()]: r }); flash("Saved today\u2019s recipe.", true); } catch (e) { flash("Couldn\u2019t save \u2014 " + (e.code || e.message)); } return;
+  }
+  if (act === "rgHide") { rgHidden = rgWaiting(students, cls).length; render(); return; }
+  if (act === "rgFill") {
+    const name = document.getElementById("rgFillName").value.trim(), sub = document.getElementById("rgFillSub").value, xp = document.getElementById("rgFillXp").value;
+    busy.rgDraft = busy.rgDraft || {};
+    students.forEach(x => { const d = busy.rgDraft[x.id] = Object.assign({}, busy.rgDraft[x.id] || {}); if (name) d.name = name; if (sub) d.sub = sub; if (xp) d.xp = xp; });
+    flash("Filled every row. Change any you want, then click Save.", true); return;
+  }
+  if (act === "rgSave") {
+    const wk = weekKey(cls), batch = writeBatch(db); let n = 0, bad = [];
+    students.forEach(x => {
+      const a = document.getElementById("rgSub-" + x.id); if (!a) return;
+      const sub = a.value, xp = Math.round(Number(document.getElementById("rgXp-" + x.id).value) || 0), name = document.getElementById("rgName-" + x.id).value.trim().slice(0, 40);
+      const old = x.reward && x.reward.week === wk ? x.reward : null;
+      let nw = null;
+      if (xp > 0) { if (!sub || !name) { bad.push(x.name); return; } nw = { week: wk, sub, xp, name, given: !!(old && old.given && old.sub === sub && old.xp === xp) }; }
+      if (JSON.stringify(nw) === JSON.stringify(old) || (!nw && !old)) return;
+      if (!nw && x.reward && x.reward.week !== wk) return;   // an old week's reward: leave it
+      batch.update(studentRef(x.id), { reward: nw }); x.reward = nw; n++;
+    });
+    if (bad.length) { flash("Type a reward name and pick a subject for: " + bad.join(", ")); return; }
+    busy.rgDraft = {};
+    if (!n) { flash("Nothing changed.", true); render(); return; }
+    try { await batch.commit(); flash("Saved weekly rewards for " + n + " student" + (n === 1 ? "" : "s") + ".", true); } catch (e) { flash("Couldn\u2019t save \u2014 " + (e.code || e.message)); }
+    render(); return;
+  }
+  if (act === "rgGiven") { const x = students.find(y => y.id === el.dataset.id); if (!x || !x.reward) return; try { await updateDoc(studentRef(x.id), { "reward.given": true }); x.reward = Object.assign({}, x.reward, { given: true }); flash("✅ Marked as given.", true); } catch (e) { flash("Couldn’t save — " + (e.code || e.message)); } render(); return; }
   if (act === "feederMake") {
     const a = new Uint8Array(18); crypto.getRandomValues(a); const key = [...a].map(b => b.toString(16).padStart(2, "0")).join("");
     try { await setDoc(feederKeyRef, { key, at: new Date().toISOString() }); } catch (e) { flash("Couldn\u2019t make the feeder \u2014 " + (e.code || e.message) + ". Did you update the Firebase rules?"); return; }

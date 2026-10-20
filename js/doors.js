@@ -8,8 +8,8 @@
    Saved on the student: doors = { "YYYY-MM-DD": { "0": { st: "wait"|"ok"|"no"|"open", at, r }, g: { st: "open", r } } }
    plus lastDoor = "YYYY-MM-DD/<door>" (which door the last save touched; the save rules check it).
    Class: doorsOn (on/off), doorList (default list), doorDays = { "YYYY-MM-DD": [..] } (one-day lists). */
-import { azToday } from "./collect.js?v=20261016r";
-import { SEASON, eventMode, esc, dayXP, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261016r";
+import { azToday } from "./collect.js?v=20261016x";
+import { SEASON, eventMode, esc, dayXP, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261016x";
 
 // A door that starts with "!" is always open (not locked behind the first doors). The "!" isn't shown.
 export const DOOR_DEFAULT = [
@@ -229,14 +229,28 @@ export function weekDoorState(st, cls) {
 export function oldReady(st, cls, field) { const wk = weekKey(cls), o = (st && st[field]) || {}; return Object.keys(o).filter(k => k !== wk && o[k] === "ready").sort(); }
 
 /* ---------- Treasure Vault ----------
-   Reach VAULT_XP XP in one week (weekend included) and that week's Treasure Vault unlocks: vault = { "<Monday>": "ready" | "open" }.
+   Reach the week's Vault goal (the student's own Weekly Reward goal, or VAULT_XP XP; weekend included) and that week's Treasure Vault unlocks: vault = { "<Monday>": "ready" | "open" }.
    Inside: a Sparkle Legendary egg (vaultLegEggs / vaultLegUsed), a prize spin, 500 XP (doorXP), 3 eggs (doorEggs)
    and one more Vault Breaker lesson (vaultMoves = families that know it; one per Vault opened). */
 export const VAULT_XP = 1000, VAULT_BONUS_XP = 500, VAULT_EGGS = 3;
+// The Vault's goal for a week: the student's own Weekly Reward goal (Rewards tab: a subject + an XP amount) when
+// Ms. Ariana set one for that week, otherwise the normal 1,000 XP total. Returns { xp, n, sub, reward }.
+export function vaultGoal(st, cls, wk) {
+  wk = wk || weekKey(cls);
+  const g = st && st.reward;
+  if (g && g.week === wk && Number(g.xp) > 0 && g.sub) {
+    let n = 0;
+    if (g.sub === "all") n = wk === weekKey(cls) ? weekTotal(st, cls) : histWeekTotal(st, wk);   // a total-XP goal (like 600)
+    else for (let i = 0; i < 7; i++) { const h = ((st.xpHist || {})[addDays(wk, i)]) || {}; n += Number((h.sub || {})[g.sub]) || 0; }
+    return { xp: Number(g.xp), n: Math.round(n), sub: g.sub, reward: g };
+  }
+  return { xp: VAULT_XP, n: wk === weekKey(cls) ? weekTotal(st, cls) : histWeekTotal(st, wk), sub: null, reward: null };
+}
+export const vaultMet = (st, cls, wk) => { const v = vaultGoal(st, cls, wk); return v.n >= v.xp; };
 export function vaultState(st, cls) {
   const v = ((st && st.vault) || {})[weekKey(cls)];
   if (v === "open" || v === "ready") return v;
-  return weekTotal(st, cls) >= VAULT_XP ? "ready" : "locked";
+  return vaultMet(st, cls) ? "ready" : "locked";
 }
 export function vaultsOpened(st) { return Object.values((st && st.vault) || {}).filter(v => v === "open").length; }
 export function vaultLessonsLeft(st) { return Math.max(0, vaultsOpened(st) - ((st && st.vaultMoves) || []).length); }

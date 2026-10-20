@@ -6,7 +6,7 @@ import {
 import {
   getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, signInAnonymously
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { firebaseConfig, CLASS_ID, TEACHER_EMAILS } from "./firebase-config.js?v=20261016r";
+import { firebaseConfig, CLASS_ID, TEACHER_EMAILS } from "./firebase-config.js?v=20261016x";
 
 // Teacher preview (student.html?s=ID&preview=1): the page shows a student's view, but nothing is ever written.
 export const PREVIEW = typeof location !== "undefined" && new URLSearchParams(location.search).get("preview") === "1";
@@ -26,6 +26,10 @@ export const classRef = db ? doc(db, "classes", CLASS_ID) : null;
 export const studentsCol = db ? collection(db, "classes", CLASS_ID, "students") : null;
 // Live XP from Timeback: the Class XP sheet's Apps Script writes one doc here every few minutes (teacher only).
 export const liveRef = db ? doc(db, "classes", CLASS_ID, "live", "xp") : null;
+// Weekly Reward pictures: one small doc per student (teacher writes, everyone signed in reads)
+export const rewardPicRef = id => doc(db, "classes", CLASS_ID, "rewards", id);
+export function watchRewardPic(id, cb) { return onSnapshot(rewardPicRef(id), snap => cb(snap.exists() ? snap.data() : null), () => {}); }
+export function watchRewardPics(cb) { return onSnapshot(collection(db, "classes", CLASS_ID, "rewards"), snap => { const m = {}; snap.docs.forEach(d => { const x = d.data(); if (x && x.img) m[d.id] = x.img; }); cb(m); }, () => {}); }
 export const feederKeyRef = db ? doc(db, "classes", CLASS_ID, "private", "feeder") : null;
 export function watchLive(cb, onErr) { return onSnapshot(liveRef, snap => cb(snap.exists() ? snap.data() : null), onErr); }
 export const studentRef = id => doc(db, "classes", CLASS_ID, "students", id);

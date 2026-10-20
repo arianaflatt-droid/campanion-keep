@@ -1,14 +1,14 @@
 // Nudge messages: short, friendly "you're close!" notes at the top of a student's page.
 // Each rule returns a nudge or null; the most useful few are shown (lower pri = shown first).
-import { seasonOf, dayXP, simulate, GEAR, goalXP, arr5, esc, isHaunt, battleOn, nextAttack, companionOf, bossState } from "./game.js?v=20261016r";
-import { azToday, brewLegLeft, feastLegLeft, gingerLegLeft, snowLegLeft, candyLegLeft, ghostEggLeft, BOSS2_LIST, boss2EggLeft, vaultLegLeft, pickleLeft, birthdayLeft, EVENTS, eventOpen, eventUnlocked, hasEvent, eventStreak, creature, family, azNow, pullsLeft, legendaryLeft, bankXP, LEVEL_XP, PULL_XP, hasStarter, owned, MAX_LEVEL } from "./collect.js?v=20261016r";
-import { badgeState } from "./badges.js?v=20261016r";
-import { mqReady } from "./morning.js?v=20261016r";
-import { unthanked } from "./kindness.js?v=20261016r";
-import { pettedToday } from "./bond.js?v=20261016r";
-import { mealsReady } from "./meals.js?v=20261016r";
-import { passReady } from "./pass.js?v=20261016r";
-import { doorsLive, goldenReady, doorName } from "./doors.js?v=20261016r";
+import { seasonOf, dayXP, simulate, GEAR, goalXP, arr5, esc, isHaunt, battleOn, nextAttack, companionOf, bossState } from "./game.js?v=20261016x";
+import { azToday, brewLegLeft, feastLegLeft, gingerLegLeft, snowLegLeft, candyLegLeft, ghostEggLeft, BOSS2_LIST, boss2EggLeft, vaultLegLeft, pickleLeft, birthdayLeft, EVENTS, eventOpen, eventUnlocked, hasEvent, eventStreak, creature, family, azNow, pullsLeft, legendaryLeft, bankXP, LEVEL_XP, PULL_XP, hasStarter, owned, MAX_LEVEL } from "./collect.js?v=20261016x";
+import { badgeState } from "./badges.js?v=20261016x";
+import { mqReady } from "./morning.js?v=20261016x";
+import { unthanked } from "./kindness.js?v=20261016x";
+import { pettedToday } from "./bond.js?v=20261016x";
+import { mealsReady } from "./meals.js?v=20261016x";
+import { passReady } from "./pass.js?v=20261016x";
+import { doorsLive, goldenReady, doorName } from "./doors.js?v=20261016x";
 
 const MAX_SHOWN = 3;
 const WEEKDAY = { Mon: 0, Tue: 1, Wed: 2, Thu: 3, Fri: 4 };
@@ -96,7 +96,7 @@ export function nudges(st, cls, battles, students) {
   // ---- Haunt-O-Ween / Gobble-Palooza ----
   if (battleOn(cls) && !bossState(cls, students).defeated) {
     const atk = nextAttack(st, cls).count;
-    if (atk) add(1, "⚔️", "You have <b>" + plural(atk, "attack") + "</b> ready for the " + seasonOf(cls).boss + "!", "haunt");
+    if (atk && !(cls && cls.brewSolo)) add(1, "⚔️", "You have <b>" + plural(atk, "attack") + "</b> ready for the " + seasonOf(cls).boss + "!", "haunt");
   }
 
   return out.sort((a, b) => a.pri - b.pri).slice(0, MAX_SHOWN);

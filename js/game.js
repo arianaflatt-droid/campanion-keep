@@ -1,10 +1,10 @@
-import { CREATURE_LAYOUT, CREATURE_FIT_ID } from "./creature-fit.js?v=20261016r";
-import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261016r";
-import { heldWeapon } from "./quest.js?v=20261016r";
+import { CREATURE_LAYOUT, CREATURE_FIT_ID } from "./creature-fit.js?v=20261016x";
+import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261016x";
+import { heldWeapon } from "./quest.js?v=20261016x";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261016r";
+export const APP_V = "20261016x";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -541,7 +541,7 @@ export function pinnedBadgeHTML(st, cls) {
   return '<img class="pinbadge' + (cls ? " " + cls : "") + '" src="assets/badges/' + esc(id) + '.webp" alt="" title="Pinned badge" onerror="this.remove()">';
 }
 // Potion Brewing Teams: the companion glows the color of today's potion.
-export function potionFx(st) { const d = ((st && st.potionDays) || {})[azToday()]; return d && d.fx ? " pfx pfx-" + String(d.fx).replace(/[^a-z]/g, "") : ""; }
+export function potionFx(st) { const t = azToday(), d = ((st && st.potionDays) || {})[t], f = (d && d.fx) || (((st && st.soloBrew) || {}).fx || {})[t]; return f ? " pfx pfx-" + String(f).replace(/[^a-z]/g, "") : ""; }
 export function petHTML(c, worn, held) {
   return '<span class="petwrap"><span class="tglyph">' + (c.creature ? c.glyph : emojiImg("pet-" + c.id)) + "</span>" +
     (worn ? '<span class="gear" style="' + gearStyle(c, worn) + '">' + itemArt(worn, "gimg") + "</span>" : "") +

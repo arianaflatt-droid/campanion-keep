@@ -1,5 +1,5 @@
 // Creature Collector: pulls, XP bank, levels, evolutions, lorebook and arena battles.
-import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261016r";
+import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261016x";
 
 export const PULL_XP = 120;          // every 120 XP (all-time since the collector started) = 1 pull
 export const LEVEL_XP = 120;         // 120 banked XP = 1 level
@@ -85,7 +85,7 @@ export const WISH_FAM = "L-28";
 // Once a student has Cluckledill, it can also hatch from their Legendary eggs. Students who never got one can't hatch it.
 export const PICKLE_FAM = "L-31";
 export const BREW_FAM = "L-33";   // Brewraith: the top Potion Brewing Team's special egg
-export function brewLegLeft(st) { return Math.max(0, (Number(st && st.potionLegEggs) || 0) - (Number(st && st.potionLegUsed) || 0)); }
+export function brewLegLeft(st) { return Math.max(0, (Number(st && st.potionLegEggs) || 0) + (Number(st && st.soloBrewLeg) || 0) - (Number(st && st.potionLegUsed) || 0)); }   // soloBrewLeg: 15 solo potions
 export const SNOW_FAM = "L-38";   // Snowmorrow: the top Build-a-Snowman team's special egg
 /* ---------- 2nd boss wins ----------
    Beat an event boss a 2nd time and Ms. Ariana gives every student who attacked it (stu = true):
