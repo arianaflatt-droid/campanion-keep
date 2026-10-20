@@ -17,10 +17,10 @@
       pty60 / pty120 = { id, in, hat, mv, mn, pops, drop, solo, ch: { k, n }, hits }   (live party state; others read it)
       partyGot = { partyId: true, partyId + "-p": true }   partyAlbum = [ { id, d, who: [{ id, n, p }] } ]   vipDay
    Party music is made in the browser (no sound files); it only starts when someone taps 🎵. */
-import { esc, goalXP, companionOf, petHTML, wornItem, simulate, eventMode, seasonOf, hatHTML, randomHat, onPet, vipToday, partyHat, partyCrown, headFree } from "./game.js?v=20261016x";
-import { azToday } from "./collect.js?v=20261016x";
-import { heldWeapon } from "./quest.js?v=20261016x";
-import { tricksFor } from "./bond.js?v=20261016x";
+import { esc, goalXP, companionOf, petHTML, wornItem, simulate, eventMode, seasonOf, hatHTML, randomHat, onPet, vipToday, partyHat, partyCrown, headFree } from "./game.js?v=20261016z";
+import { azToday } from "./collect.js?v=20261016z";
+import { heldWeapon } from "./quest.js?v=20261016z";
+import { tricksFor } from "./bond.js?v=20261016z";
 
 export const PARTY_MIN = 10, PARTY_XP = 60;
 const DROP_MS = 20000, SOLO_MS = 15000, A = "assets/party/";

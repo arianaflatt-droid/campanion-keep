@@ -1,33 +1,33 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261016x";
-import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261016x";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261016x";
-import { cpEarnedCalc } from "./room.js?v=20261016x";
-import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261016x";
-import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet } from "./doors.js?v=20261016x";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261016x";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261016z";
+import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261016z";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261016z";
+import { cpEarnedCalc } from "./room.js?v=20261016z";
+import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261016z";
+import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet } from "./doors.js?v=20261016z";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261016z";
 import {
   applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   boss2Of, boss2Prize, simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, isFrost, isHeart, heartUnlocked, saveProblems, yetiUnlocked, wallMarks, WALL_BLOCK, BOSS_START_HP, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261016x";
-import { MQ_CUTOFF } from "./morning.js?v=20261016x";
-import { kindAdmin } from "./kindness.js?v=20261016x";
-import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261016x";
-import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261016x";
-import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261016x";
-import { passAdmin } from "./pass.js?v=20261016x";
-import { heroTeacherCard } from "./hero.js?v=20261016x";
-import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261016x";
-import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef } from "./db.js?v=20261016x";
-import { rewardAdmin, rgWaiting, rgOf, shrinkImage } from "./weekgoal.js?v=20261016x";
-import { soloAdmin, BREW as SOLO_BREW } from "./solobrew.js?v=20261016x";
-import { feederLink } from "./feeder.js?v=20261016x";
-import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261016x";
+} from "./game.js?v=20261016z";
+import { MQ_CUTOFF } from "./morning.js?v=20261016z";
+import { kindAdmin } from "./kindness.js?v=20261016z";
+import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261016z";
+import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261016z";
+import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261016z";
+import { passAdmin } from "./pass.js?v=20261016z";
+import { heroTeacherCard } from "./hero.js?v=20261016z";
+import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261016z";
+import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef } from "./db.js?v=20261016z";
+import { rewardAdmin, rgWaiting, rgOf, shrinkImage } from "./weekgoal.js?v=20261016z";
+import { soloAdmin, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261016z";
+import { feederLink } from "./feeder.js?v=20261016z";
+import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261016z";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef
-} from "./db.js?v=20261016x";
+} from "./db.js?v=20261016z";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -1955,7 +1955,7 @@ document.addEventListener("click", async ev => {
   if (act === "kindToggle") { try { await updateDoc(classRef, { kindOff: !cls.kindOff }); flash("Saved \u2014 Kindness Board " + (cls.kindOff ? "on" : "off") + "."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
   if (act === "soloToggle") { try { await updateDoc(classRef, { brewSolo: !cls.brewSolo }); flash(cls.brewSolo ? "\u{1F47B} Back to the Ghost-olotl battle." : "\u{1F9EA} Solo Potion Brewing is on! Students see their cauldrons on the Haunt-O-Ween tab.", true); } catch (e) { flash("Couldn\u2019t save \u2014 " + (e.code || e.message)); } return; }
   if (act === "soloRecipe") {
-    const r = {}; SOLO_BREW.ing.forEach(g => { r[g.k] = Math.max(0, Math.min(9, Math.round(Number(document.getElementById("soloR-" + g.k).value) || 0))); });
+    const r = {}; SOLO_BREW.ing.concat([SOLO_GOAL]).forEach(g => { r[g.k] = Math.max(0, Math.min(9, Math.round(Number(document.getElementById("soloR-" + g.k).value) || 0))); });
     if (!Object.values(r).some(Boolean)) { flash("The recipe needs at least one ingredient."); return; }
     try { await updateDoc(classRef, { ["soloRecipe." + azToday()]: r }); flash("Saved today\u2019s recipe.", true); } catch (e) { flash("Couldn\u2019t save \u2014 " + (e.code || e.message)); } return;
   }
