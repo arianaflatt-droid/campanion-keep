@@ -1832,17 +1832,19 @@ body.mini-xmas .tile{ box-shadow:0 0 0 2px #E8B923; } body.mini-tot .tile{ box-s
 .ckitem.done{ background:#eef7ee; border-color:#9fd3a3; color:#4a6a4c; }
 .ckitem.done .ckn{ background:transparent; font-size:22px; }
 .ckitem.done .cktxt b{ text-decoration:line-through; text-decoration-color:#9fd3a3; }
-.ckgoal{ margin-top:12px; padding:12px 14px; border-radius:14px; background:#f3efff; border:2px solid #c9b8f2; display:flex; flex-direction:column; gap:6px; }
+.ckgoal{ margin-top:12px; padding:12px 14px; border-radius:14px; background:#f3efff; border:2px solid #c9b8f2; display:flex; flex-direction:column; gap:6px; color:#2d2150; }
+.ckgoal .pbar{ background:#ddd2f5; }   /* light box: keep dark text in dark mode too */
 @media (max-width: 520px){ .ckitem{ grid-template-columns:28px 28px 1fr; } .ckitem .ckgo{ display:none; } .ckitem .ckic{ font-size:22px; } }
 
 /* 📣 Announcement (top of every student's page) */
-.newscard { display: flex; gap: 16px; align-items: center; background: linear-gradient(135deg, #FFF6D6, #FFE7B8); border: 2px solid #F2C46B; }
+.newscard { color: #3a2a10; display: flex; gap: 16px; align-items: center; background: linear-gradient(135deg, #FFF6D6, #FFE7B8); border: 2px solid #F2C46B; }
 .newscard .newspic { width: 160px; max-height: 160px; object-fit: cover; border-radius: 12px; flex-shrink: 0; }
-.newscard h2 { margin: 0 0 4px; font-size: 22px; }
-.newscard p { margin: 0; font-size: 16px; line-height: 1.4; }
+.newscard h2 { margin: 0 0 4px; font-size: 22px; color: #3a2a10; }
+.newscard p { margin: 0; font-size: 16px; line-height: 1.4; color: #4a3a1c; }
 .newsadmin textarea { width: 100%; box-sizing: border-box; }
 .newsadmin .field input { width: 100%; box-sizing: border-box; }
 @media (max-width: 560px) { .newscard { flex-direction: column; text-align: center; } .newscard .newspic { width: 100%; max-height: 220px; } }
 /* 🍎 Battle Ms. Ariana */
-.tbcard { border: 2px solid #E05A47; background: #FFF4F1; }
+.tbcard { border: 2px solid #E05A47; background: #FFF4F1; color: #3a1f18; }
+.tbcard h2, .tbcard .lede { color: #3a1f18; }
 .tbcard .btn { margin-left: 6px; }

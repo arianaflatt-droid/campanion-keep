@@ -8,8 +8,8 @@
    Saved on the student: doors = { "YYYY-MM-DD": { "0": { st: "wait"|"ok"|"no"|"open", at, r }, g: { st: "open", r } } }
    plus lastDoor = "YYYY-MM-DD/<door>" (which door the last save touched; the save rules check it).
    Class: doorsOn (on/off), doorList (default list), doorDays = { "YYYY-MM-DD": [..] } (one-day lists). */
-import { azToday } from "./collect.js?v=20261020j";
-import { SEASON, eventMode, esc, dayXP, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261020j";
+import { azToday } from "./collect.js?v=20261020l";
+import { SEASON, eventMode, esc, dayXP, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261020l";
 
 // A door that starts with "!" is always open (not locked behind the first doors). The "!" isn't shown.
 export const DOOR_DEFAULT = [
@@ -108,8 +108,8 @@ export function goalTier(task) {
   const n = Number(m[1]);
   return n >= 125 ? 4 : n >= 100 ? 3 : n >= 75 ? 2 : 1;
 }
-export const GOAL_CP = { g1: 20, g2: 20, g3: 20, g4: 40 };
-export const GOAL_CANDY = { g1: 75, g2: 25 };
+export const GOAL_CP = { g1: 20, g2: 20, g3: 20, g4: 40, g2i: 20, g3i: 20 };   // g2i/g3i = g2/g3 in potion mode (a free ingredient instead of the brew/attack)
+export const GOAL_CANDY = { g1: 75, g2: 25, g2i: 25 };
 export const GOAL_LEG_CHANCE = 0.01;
 export const SEASON_LEGENDARY = { haunt: "L-27", gobble: "L-29", jingle: "L-30", frost: "L-37", heart: "L-39" };
 // Comfort Points from opened Goal Presents (added to Comfort Points by the teacher console).
@@ -139,6 +139,9 @@ export function rewardText(r, S) {
     case "g1": return { icon: S.coin, big: "+75 " + S.Cur + " & +20 Comfort Points", sub: "Candy is in your " + S.basket + ". Comfort Points are for your room!" };
     case "g2": return { icon: S.brewIcon, big: S.brewName + ", +25 " + S.Cur + " & +20 Comfort Points", sub: "Your next attack does +10 damage. Comfort Points are for your room!" };
     case "g3": return { icon: "⚔️", big: "Extra attack, an egg & +20 Comfort Points", sub: "One more attack on the " + S.boss + " and an egg to hatch in the Creature Collector!" };
+    case "ing": return { icon: r.ing.icon, big: "Free ingredient: " + r.ing.name, sub: "+1 " + r.ing.name + " for your " + r.ing.where + "!" };
+    case "g2i": return { icon: r.ing.icon, big: "Free " + r.ing.name + ", +25 " + S.Cur + " & +20 Comfort Points", sub: "+1 " + r.ing.name + " for your " + r.ing.where + ". Comfort Points are for your room!" };
+    case "g3i": return { icon: r.ing.icon, big: "Free " + r.ing.name + ", an egg & +20 Comfort Points", sub: "+1 " + r.ing.name + " for your " + r.ing.where + " and an egg to hatch in the Creature Collector!" };
     case "g4": return r.leg
       ? { icon: "\u{1F31F}", big: "A LEGENDARY egg!!", sub: "WOW \u2014 1 in 100! It hatches the " + S.name + " Legendary early. +40 Comfort Points too!" }
       : { icon: "\u{1F3AF}", big: "A Rare-or-better egg & +40 Comfort Points", sub: "Hatch your Goal egg in the Creature Collector \u2014 it\u2019s at least Rare!" };

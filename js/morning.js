@@ -5,9 +5,10 @@
    mystery nest (pick 1 of 3 eggs) and training (level up a creature). Higher quests = rarer creatures and a better Sparkle chance.
    Every finished quest also pays a bonus (MQ_BONUS). Saved on the student: mq = { date, done: { tier: {...} }, hunt: { tier: [dug squares] } },
    mqCatch (creatures caught here), mqFull (whole boards finished). */
-import { esc, eventMode, seasonOf } from "./game.js?v=20261020j";
-import { CREATURES, FAMILIES } from "./creatures.js?v=20261020j";
-import { azToday, azNow, owned, ownedFams, formOf, fighterFrom, resolveRound, hitDamage, MOVES, doPull, MAX_LEVEL, sparkleImg, RARITY_COLOR } from "./collect.js?v=20261020j";
+import { esc, eventMode, seasonOf } from "./game.js?v=20261020l";
+import { soloOn, soloCfg, freeIngredient } from "./solobrew.js?v=20261020l";
+import { CREATURES, FAMILIES } from "./creatures.js?v=20261020l";
+import { azToday, azNow, owned, ownedFams, formOf, fighterFrom, resolveRound, hitDamage, MOVES, doPull, MAX_LEVEL, sparkleImg, RARITY_COLOR } from "./collect.js?v=20261020l";
 
 export const MQ_TIERS = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120];
 export const MQ_CUTOFF = "08:30";        // morning data for today is only accepted before this (Arizona time)
@@ -46,7 +47,7 @@ export function bonusText(tier, cls) {
   if (b.golden) return "✨ a Golden Present";
   if (b.egg) return "\u{1F95A} an egg";
   if (b.cur && ev) return S.coin + " +" + b.cur + " " + S.cur;
-  if (b.attack && ev) return "⚔️ an extra attack";
+  if (b.attack && ev) return soloOn(cls) ? soloCfg(cls).icon + " a free ingredient" : "⚔️ an extra attack";
   if (b.spin && ev) return "\u{1F3A1} a free wheel spin";
   return "⭐ +" + b.xp + " XP";
 }
@@ -56,6 +57,7 @@ export function applyBonus(s, tier, cls, data, golden) {
   if (b.golden) return golden(data);
   if (b.egg) data.doorEggs = base("doorEggs") + 1;
   else if (b.cur && ev) data.candyBonus = base("candyBonus") + b.cur;
+  else if (b.attack && ev && soloOn(cls)) Object.assign(data, freeIngredient(Object.assign({}, s, data), cls).data);   // potion mode: no boss to attack
   else if (b.attack && ev) data.extraAttacks = base("extraAttacks") + 1;
   else if (b.spin && ev) data.spins = base("spins") + 1;
   else data.doorXP = base("doorXP") + b.xp;

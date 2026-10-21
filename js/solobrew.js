@@ -8,10 +8,10 @@
    Each potion: +20 candy and a potion glow for the day. Shelf rewards at 3 / 6 / 10 / 15 potions.
    Saved on the student (student-writable): soloBrew = { days: { date: potions }, fx: { date: effect }, extra: { date: { e|b|s: n } }, got: { "3": true, ... } }
    Shelf rewards use fields the student page may write: doorEggs, candyBonus, doorXP, legendaryPulls, soloBrewLeg (counted by brewLegLeft). */
-import { esc, isHaunt, isGobble, isJingle, isFrost, isHeart } from "./game.js?v=20261020j";
-import { azToday } from "./collect.js?v=20261020j";
-import { TEAM_EVENTS, ingOf, subFor, SUB_NAMES, PER_XP, EFFECTS, effect, cauldronHTML, soloTableHTML, soloHouseHTML, soloBoxHTML, DISHES } from "./teams.js?v=20261020j";
-import { SUBJECT_KEYS } from "./doors.js?v=20261020j";
+import { esc, isHaunt, isGobble, isJingle, isFrost, isHeart } from "./game.js?v=20261020l";
+import { azToday } from "./collect.js?v=20261020l";
+import { TEAM_EVENTS, ingOf, subFor, SUB_NAMES, PER_XP, EFFECTS, effect, cauldronHTML, soloTableHTML, soloHouseHTML, soloBoxHTML, DISHES } from "./teams.js?v=20261020l";
+import { SUBJECT_KEYS } from "./doors.js?v=20261020l";
 
 export const BREW = TEAM_EVENTS.potion;
 const FEAST_ING = { key: "solofeast", ing: [
@@ -140,6 +140,17 @@ export function brewOne(st, cls) {
     if (m.n === 15) data[k.legField] = (Number(st[k.legField]) || 0) + 1;
   });
   return { data, n, fx: fx ? effect(fx) : null, won, cfg: k };
+}
+// In solo mode there's no boss, so prizes that power boss attacks (an extra attack, a +10-damage brew) give a Free Ingredient instead.
+// Swaps the present in place (r is what gets saved, so it shows the same later), adds the ingredient to data. Returns true if swapped.
+export function soloSwap(r, st, cls, data) {
+  if (!soloOn(cls) || !r) return false;
+  const map = { attack: "ing", brew: "ing", g2: "g2i", g3: "g3i" };
+  if (!map[r.id]) return false;
+  const k = soloCfg(cls), fi = freeIngredient(Object.assign({}, st, data), cls);
+  Object.assign(data, fi.data);
+  r.from = r.id; r.id = map[r.id]; r.ing = { icon: fi.g.icon, name: fi.g.name, where: k.where };
+  return true;
 }
 // A Free Ingredient from the wheel: the one the student needs most for their next potion/dish.
 export function freeIngredient(st, cls) {
