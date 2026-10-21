@@ -119,6 +119,16 @@ test("fake cards are refused: other student, fake creatures, private parts, wron
 test("a student can't change their own display name", async () => {
   await assertFails(updateDoc(stu(as("amyDevice"), "amy"), { pubName: "Queen Amy" }));
 });
+test("Battle Ms. Ariana: a student can ask, but can't reset the battles they've used", async () => {
+  await assertSucceeds(updateDoc(stu(as("amyDevice"), "amy"), { tbAsk: "2026-10-21T09:00:00Z" }));
+  await assertFails(updateDoc(stu(as("amyDevice"), "amy"), { tbUsed: [] }));
+  await assertSucceeds(updateDoc(stu(teacher(), "amy"), { tbUsed: ["2026-10-19"] }));
+});
+test("announcement picture: everyone can see it, only the teacher can change it", async () => {
+  await assertSucceeds(setDoc(doc(teacher(), C + "/news/pic"), { img: "data:x" }));
+  await assertSucceeds(getDoc(doc(as("amyDevice"), C + "/news/pic")));
+  await assertFails(setDoc(doc(as("amyDevice"), C + "/news/pic"), { img: "data:y" }));
+});
 test("reward pictures: each student sees only their own", async () => {
   await env.withSecurityRulesDisabled(async ctx => { await setDoc(doc(ctx.firestore(), C + "/rewards/ben"), { img: "x" }); });
   await assertFails(getDoc(doc(as("amyDevice"), C + "/rewards/ben")));

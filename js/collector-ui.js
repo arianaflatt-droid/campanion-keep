@@ -4,13 +4,13 @@ import {
   formIndex, formOf, statsOf, seenSet, rollRarity, doPull, arenaOpen, arenaOpenFor, lunchHour, hitGoalToday, LUNCH_ARENA, ARENA_HOURS, fighterFrom, teamSize, alive, resolve, resolveRound, moveOk, MOVES, hitDamage,
   birthdayLeft, pickleLeft, PICKLE_FAM, brewLegLeft, BREW_FAM, feastLegLeft, HARVEST_FAM, gingerLegLeft, GINGER_FAM, snowLegLeft, SNOW_FAM, candyLegLeft, CANDY_FAM, ghostEggLeft, GHOST_FAM, BOSS2_LIST, boss2EggLeft, vaultLegLeft, goalLeft, nextGoal, rollRareUp, themeLeft, nextTheme, THEME_TYPES, THEME_EGG, WISH_FAM, spares, spareId, releaseXP, releaseProblem, isStarterFam, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
   EVENTS, eventOpen, eventWindow, eventStreak, hasEvent, eventUnlocked, azToday, rollTeacherRarity, TEACHER_ODDS, LIVE, staleBattle
-} from "./collect.js?v=20261020h";
-import { newBattleRef, changeBattle as changeBattleRaw, setDoc, liveBattlesNow, ck, ckMessage } from "./db.js?v=20261020h";
+} from "./collect.js?v=20261020j";
+import { newBattleRef, changeBattle as changeBattleRaw, setDoc, liveBattlesNow, ck, ckMessage } from "./db.js?v=20261020j";
 // every change to a battle is stamped with the time (upd), so a battle nobody has touched in a while can be ended
 let locking = null, leaving = null;   // battle id while "Lock in team" is saving
 const changeBattle = (id, fn) => changeBattleRaw(id, bt => { const n = fn(bt); if (n) n.upd = new Date().toISOString(); return n; });
 
-import { tradeCard } from "./trade-ui.js?v=20261020h";
+import { tradeCard } from "./trade-ui.js?v=20261020j";
 
 const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const PER_PAGE = 20;
@@ -265,7 +265,9 @@ function arenaCard(s) {
   if (lunchOnly) h += '<p class="lede" style="margin-bottom:10px;">' + (ctx.cls && ctx.cls.goalArena ? "\u2B50 <b>120 XP battlers</b> \u2014 you hit 120 XP today, so you can battle other players who did too!" : "\u2600\uFE0F <b>Lunch arena</b> until 1 pm \u2014 you hit 120 XP today, so you can battle other players who did too!") + "</p>";
   const ready = !!s.arenaReady, busy = busyIds();
   h += '<label class="modebox" style="margin-bottom:12px;"><input type="checkbox" data-cc="ready"' + (ready ? " checked" : "") + "><span><b>I’m ready to battle</b><small>Other ready players can challenge you, and you can challenge them.</small></span></label>";
-  const others = ctx.students.filter(x => x.id !== s.id && x.arenaReady && hasStarter(x) && arenaOpenFor(x, ctx.cls));   // during the lunch arena, only other 120 XP players
+  // Ms. Ariana isn't in the open challenge list: students earn a battle with her (Weekly Door) and she starts it
+  if (s.isTeacher) return h + '<p class="lede">Students ask you for battles when they reach the Weekly Door goal. Start them from <b>\u{1F34E} Battle requests</b> above.</p></div>';
+  const others = ctx.students.filter(x => x.id !== s.id && !x.isTeacher && x.arenaReady && hasStarter(x) && arenaOpenFor(x, ctx.cls));   // during the lunch arena, only other 120 XP players
   if (!ready) return h + "</div>";
   if (!others.length) return h + '<p class="lede">Nobody else is ready yet. Hang tight!</p></div>';
   h += '<div class="readylist">' + others.map(o => {

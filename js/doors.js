@@ -8,8 +8,8 @@
    Saved on the student: doors = { "YYYY-MM-DD": { "0": { st: "wait"|"ok"|"no"|"open", at, r }, g: { st: "open", r } } }
    plus lastDoor = "YYYY-MM-DD/<door>" (which door the last save touched; the save rules check it).
    Class: doorsOn (on/off), doorList (default list), doorDays = { "YYYY-MM-DD": [..] } (one-day lists). */
-import { azToday } from "./collect.js?v=20261020h";
-import { SEASON, eventMode, esc, dayXP, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261020h";
+import { azToday } from "./collect.js?v=20261020j";
+import { SEASON, eventMode, esc, dayXP, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261020j";
 
 // A door that starts with "!" is always open (not locked behind the first doors). The "!" isn't shown.
 export const DOOR_DEFAULT = [
@@ -233,6 +233,8 @@ export function oldReady(st, cls, field) { const wk = weekKey(cls), o = (st && s
    Inside: a Sparkle Legendary egg (vaultLegEggs / vaultLegUsed), a prize spin, 500 XP (doorXP), 3 eggs (doorEggs)
    and one more Vault Breaker lesson (vaultMoves = families that know it; one per Vault opened). */
 export const VAULT_XP = 1000, VAULT_BONUS_XP = 500, VAULT_EGGS = 3;
+// Every vault also needs VAULT_MIN XP in total that week (weekend included), whatever the student's own goal is (Oct 20)
+export const VAULT_MIN = 600;
 // The Vault's goal for a week: the student's own Weekly Reward goal (Rewards tab: a subject + an XP amount) when
 // Ms. Ariana set one for that week, otherwise the normal 1,000 XP total. Returns { xp, n, sub, reward }.
 // A student's Vault reward for a week. It counts for the week it was saved on, and also for this calendar week
@@ -251,15 +253,22 @@ export function vaultGoal(st, cls, wk) {
     let n = 0;
     if (g.sub === "all") n = wk === weekKey(cls) ? weekTotal(st, cls) : histWeekTotal(st, wk);   // a total-XP goal (like 600)
     else for (let i = 0; i < 7; i++) { const h = ((st.xpHist || {})[addDays(wk, i)]) || {}; n += Number((h.sub || {})[g.sub]) || 0; }
-    return { xp: Number(g.xp), n: Math.round(n), sub: g.sub, reward: g };
+    const tot = g.sub === "all" ? Math.round(n) : wk === weekKey(cls) ? weekTotal(st, cls) : histWeekTotal(st, wk);
+    return { xp: Number(g.xp), n: Math.round(n), sub: g.sub, reward: g, tot, min: VAULT_MIN };
   }
-  return { xp: VAULT_XP, n: wk === weekKey(cls) ? weekTotal(st, cls) : histWeekTotal(st, wk), sub: null, reward: null };
+  const tot = wk === weekKey(cls) ? weekTotal(st, cls) : histWeekTotal(st, wk);
+  return { xp: VAULT_XP, n: tot, sub: null, reward: null, tot, min: VAULT_MIN };
 }
-export const vaultMet = (st, cls, wk) => { const v = vaultGoal(st, cls, wk); return v.n >= v.xp; };
+// Goal reached AND at least VAULT_MIN XP in total that week
+export const vaultMet = (st, cls, wk) => { const v = vaultGoal(st, cls, wk); return v.n >= v.xp && v.tot >= v.min; };
+// The 600-XP rule needs its own line when the goal itself doesn't already cover it (a subject goal, or a total under 600)
+// A week that's over: its saved "ready" stands (its goal may have changed since), but it still needs VAULT_MIN XP total
+export const vaultMinOk = (st, cls, wk) => (wk === weekKey(cls) ? weekTotal(st, cls) : histWeekTotal(st, wk)) >= VAULT_MIN;
+export const vaultNeedsMin = v => (v.sub && v.sub !== "all") || v.xp < v.min;
 export function vaultState(st, cls) {
   const v = ((st && st.vault) || {})[weekKey(cls)];
-  if (v === "open" || v === "ready") return v;
-  return vaultMet(st, cls) ? "ready" : "locked";
+  if (v === "open") return v;
+  return vaultMet(st, cls) ? "ready" : "locked";   // a saved "ready" still has to meet today's rule (600 XP total)
 }
 export function vaultsOpened(st) { return Object.values((st && st.vault) || {}).filter(v => v === "open").length; }
 export function vaultLessonsLeft(st) { return Math.max(0, vaultsOpened(st) - ((st && st.vaultMoves) || []).length); }

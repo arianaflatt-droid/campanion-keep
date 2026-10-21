@@ -7,7 +7,7 @@ import {
   getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, signInAnonymously
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
-import { firebaseConfig, CLASS_ID, TEACHER_EMAILS } from "./firebase-config.js?v=20261020h";
+import { firebaseConfig, CLASS_ID, TEACHER_EMAILS } from "./firebase-config.js?v=20261020j";
 
 // Teacher preview (student.html?s=ID&preview=1): the page shows a student's view, but nothing is ever written.
 export const PREVIEW = typeof location !== "undefined" && new URLSearchParams(location.search).get("preview") === "1";
@@ -31,6 +31,9 @@ export const liveRef = db ? doc(db, "classes", CLASS_ID, "live", "xp") : null;
 export const rewardPicRef = id => doc(db, "classes", CLASS_ID, "rewards", id);
 export function watchRewardPic(id, cb) { return onSnapshot(rewardPicRef(id), snap => cb(snap.exists() ? snap.data() : null), () => {}); }
 export function watchRewardPics(cb) { return onSnapshot(collection(db, "classes", CLASS_ID, "rewards"), snap => { const m = {}; snap.docs.forEach(d => { const x = d.data(); if (x && x.img) m[d.id] = x.img; }); cb(m); }, () => {}); }
+// The announcement picture (Ms. Ariana's top-of-page news, like who's winning the duck race). Everyone can read it.
+export const newsPicRef = db ? doc(db, "classes", CLASS_ID, "news", "pic") : null;
+export function watchNewsPic(cb) { return onSnapshot(newsPicRef, snap => cb(snap.exists() ? snap.data() : null), () => {}); }
 export const feederKeyRef = db ? doc(db, "classes", CLASS_ID, "private", "feeder") : null;
 export function watchLive(cb, onErr) { return onSnapshot(liveRef, snap => cb(snap.exists() ? snap.data() : null), onErr); }
 export const studentRef = id => doc(db, "classes", CLASS_ID, "students", id);

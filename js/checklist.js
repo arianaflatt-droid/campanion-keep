@@ -3,18 +3,19 @@
    Each step checks itself off from the student's save; tapping a step opens the tab where it's done.
    The Treasure Vault step is "check your progress", so it counts as done once the student opens it today
    (remembered on this computer only). */
-import { esc, simulate, companionOf, goalXP } from "./game.js?v=20261020h";
+import { tbLeft, tbLive } from "./teachbattle.js?v=20261020j";
+import { esc, simulate, companionOf, goalXP } from "./game.js?v=20261020j";
 import { azToday, azNow, todayXP, pullsLeft, legendaryLeft, birthdayLeft, pickleLeft, vaultLegLeft, BOSS2_LIST, boss2EggLeft, candyLegLeft, snowLegLeft,
-  gingerLegLeft, feastLegLeft, brewLegLeft, goalLeft, themeLeft, hasStarter, bankXP, LEVEL_XP } from "./collect.js?v=20261020h";
-import { mqReady } from "./morning.js?v=20261020h";
-import { heroOn, heroOf, heroReady } from "./hero.js?v=20261020h";
-import { doorsLive, doorName, goldenReady, weekDoorState, vaultState, vaultGoal } from "./doors.js?v=20261020h";
-import { soloOn, soloReady, soloCfg } from "./solobrew.js?v=20261020h";
-import { passReady } from "./pass.js?v=20261020h";
-import { pettedToday } from "./bond.js?v=20261020h";
-import { mealsReady } from "./meals.js?v=20261020h";
-import { readyTests } from "./quest.js?v=20261020h";
-import { unthanked } from "./kindness.js?v=20261020h";
+  gingerLegLeft, feastLegLeft, brewLegLeft, goalLeft, themeLeft, hasStarter, bankXP, LEVEL_XP } from "./collect.js?v=20261020j";
+import { mqReady } from "./morning.js?v=20261020j";
+import { heroOn, heroOf, heroReady } from "./hero.js?v=20261020j";
+import { doorsLive, doorName, goldenReady, weekDoorState, vaultState, vaultGoal } from "./doors.js?v=20261020j";
+import { soloOn, soloReady, soloCfg } from "./solobrew.js?v=20261020j";
+import { passReady } from "./pass.js?v=20261020j";
+import { pettedToday } from "./bond.js?v=20261020j";
+import { mealsReady } from "./meals.js?v=20261020j";
+import { readyTests } from "./quest.js?v=20261020j";
+import { unthanked } from "./kindness.js?v=20261020j";
 
 const seenKey = (id, what) => "ck-seen-" + azToday() + "-" + id + "-" + what;
 export function markSeen(id, what) { try { localStorage.setItem(seenKey(id, what), "1"); } catch (e) {} }
@@ -33,7 +34,7 @@ function presentsReady(s, cls) {
 }
 
 // The steps: [id, tab, icon, title, status text, done?]
-export function steps(s, cls, students) {
+export function steps(s, cls, students, battles) {
   const out = [], add = (id, tab, icon, title, text, done) => out.push({ id, tab, icon, title, text, done: !!done });
   const c = companionOf(s), pet = s.petName || (c && c.name) || "your companion", sim = simulate(s, cls);
   const school = !["Sat", "Sun"].includes(azNow().day);
@@ -60,7 +61,7 @@ export function steps(s, cls, students) {
   // 7. Treasure Vault
   { const st = vaultState(s, cls), v = vaultGoal(s, cls), unit = v.sub && v.sub !== "all" ? "XP in your goal subject" : "XP";
     add("vault", doorsLive(cls) ? "doors" : "pet", "\u{1F48E}", "Check your Treasure Vault",
-      st === "open" ? "Opened this week ✅" : st === "ready" ? "Your vault is ready to open!" : v.n.toLocaleString() + " / " + v.xp.toLocaleString() + " " + unit + " this week" + (v.reward && v.reward.name ? " for " + v.reward.name : ""),
+      st === "open" ? "Opened this week ✅" : st === "ready" ? "Your vault is ready to open!" : v.n >= v.xp ? "Goal reached! Now " + v.tot.toLocaleString() + " / " + v.min + " XP total this week to open it" : v.n.toLocaleString() + " / " + v.xp.toLocaleString() + " " + unit + " this week" + (v.reward && v.reward.name ? " for " + v.reward.name : ""),
       st === "open" || (st !== "ready" && seen(s.id, "vault"))); }
   // 8. potion cauldron
   if (soloOn(cls)) { const k = soloCfg(cls), n = soloReady(s, cls);
@@ -68,14 +69,17 @@ export function steps(s, cls, students) {
   // 9. Season Pass
   if (!(cls && cls.passOff)) { const n = passReady(s, cls); add("pass", "pass", "\u{1F39F}️", "Claim Season Pass rewards", n ? plural(n, "reward") + " ready!" : "No rewards waiting.", !n); }
   // extras (only when there's something to do)
-  { const n = readyTests(s).length; if (n) add("tests", "quest", "\u{1F5FA}️", "Battle a test guardian", "You passed " + plural(n, "test") + " — claim your Legendary egg!", false); }
+  { const n = readyTests(s).length; if (n) add("tests", "quest", "\u{1F5FA}️", "Grade Level Quest: battle a guardian", "You passed " + plural(n, "test") + "! A guardian battle is waiting. Win it for a Legendary egg!", false); }
+  { const n = tbLeft(s, cls, battles).length, live = tbLive(s, battles);
+    if (live && live.status === "invite") add("tbattle", "collect", "\u{1F34E}", "Ms. Ariana started your battle!", "Go to the Battle Arena and tap Accept.", false);
+    else if (n && !s.tbAsk && !live) add("tbattle", "collect", "\u{1F34E}", "Ask Ms. Ariana for a battle", "You reached the weekly goal, so you earned a battle with her!", false); }
   { const n = students ? unthanked(s, students, cls).length : 0; if (n) add("kind", "pet", "\u{1F48C}", "Read your shout-outs", plural(n, "classmate") + " sent you kind words!", false); }
   return out;
 }
-export const todoCount = (s, cls, students) => steps(s, cls, students).filter(x => !x.done).length;
+export const todoCount = (s, cls, students, battles) => steps(s, cls, students, battles).filter(x => !x.done).length;
 
-export function checklistTab(s, cls, students) {
-  const list = steps(s, cls, students), left = list.filter(x => !x.done).length, goal = goalXP(cls), xp = todayXP(s, cls);
+export function checklistTab(s, cls, students, battles) {
+  const list = steps(s, cls, students, battles), left = list.filter(x => !x.done).length, goal = goalXP(cls), xp = todayXP(s, cls);
   const hi = azNow().h < 12 ? "Good morning" : "Welcome back";
   let h = '<div class="card checklist"><div class="card-head"><h2>✅ ' + hi + ", " + esc(s.name) + '!</h2><span class="fact">' + (left ? left + " to do" : "all done!") + "</span></div>" +
     '<p class="lede" style="margin-bottom:10px;">Go down your list. Tap a step to go do it, then come back here.</p><div class="cklist">' +

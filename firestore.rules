@@ -151,6 +151,12 @@ service cloud.firestore {
           && request.resource.data.key == get(/databases/$(database)/documents/classes/$(classId)/private/feeder).data.key);
       }
       // Weekly Reward pictures: each student sees only their own; only the teacher changes them.
+      // Ms. Ariana's announcement picture: like the class doc, nothing about any one student
+      match /news/{docId} {
+        allow read: if request.auth != null;
+        allow write: if isTeacher();
+      }
+
       match /rewards/{docId} {
         allow read: if isTeacher() || (seated() && mySid() == docId);
         allow write: if isTeacher();
@@ -186,7 +192,7 @@ service cloud.firestore {
                "name", "order", "goalSubject", "xp", "lunchXp", "status", "early", "xpHist", "deaths", "items",
                "streakCarry", "streakWeek", "candyBank", "bonusXP", "bonusPulls", "cpEarned", "questPass",
                "birthdayEggs", "pickleEggs", "ghostEggs", "ghost2", "turkeyEggs", "turkey2", "grinchEggs", "grinch2", "yetiEggs", "yeti2", "heartEggs", "heart2", "potionLegEggs", "feastLegEggs", "gingerLegEggs", "snowmanLegEggs", "candyboxLegEggs",
-               "potionDays", "feastDays", "gingerDays", "snowmanDays", "candyboxDays", "isTeacher", "reward", "pubName"])
+               "potionDays", "feastDays", "gingerDays", "snowmanDays", "candyboxDays", "isTeacher", "reward", "pubName", "tbUsed"])
           && collOk() && countsOk(request.resource.data.diff(resource.data).affectedKeys()));
 
         // ---- Rewards and counters ----

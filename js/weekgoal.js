@@ -4,9 +4,9 @@
    Each student's picture is its own small doc, classes/{class}/rewards/{studentId} = { img: "data:image/webp;base64,..." },
    so a student's page reads only its own picture (and the class roster stays small).
    Progress = that subject's XP this week (Mon-Sun, from xpHist[date].sub). The reward only counts in its own week. */
-import { esc, weekKey } from "./game.js?v=20261020h";
-import { SUB_NAMES } from "./teams.js?v=20261020h";
-import { addDays, weekTotal, histWeekTotal, rewardFor } from "./doors.js?v=20261020h";
+import { esc, weekKey } from "./game.js?v=20261020j";
+import { SUB_NAMES } from "./teams.js?v=20261020j";
+import { addDays, weekTotal, histWeekTotal, rewardFor } from "./doors.js?v=20261020j";
 
 // "all" = every subject added up (the week's total XP), for students whose goal is total XP (like 600)
 const NAMES = Object.assign({ all: "Total" }, SUB_NAMES);
@@ -63,12 +63,12 @@ function subWeek(st, wk, sub, cls) {
 }
 
 // Shrinks a picture to at most 280px so each student's picture doc stays small (kept small to save space and reads).
-export function shrinkImage(file) {
+export function shrinkImage(file, max) {
   return new Promise((ok, bad) => {
     const r = new FileReader();
     r.onerror = () => bad(new Error("Couldn’t read that picture."));
     r.onload = () => { const im = new Image(); im.onerror = () => bad(new Error("That file isn’t a picture.")); im.onload = () => {
-      const s = Math.min(1, 280 / Math.max(im.width, im.height)), c = document.createElement("canvas"); c.width = Math.round(im.width * s); c.height = Math.round(im.height * s);
+      const s = Math.min(1, (max || 280) / Math.max(im.width, im.height)), c = document.createElement("canvas"); c.width = Math.round(im.width * s); c.height = Math.round(im.height * s);
       c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
       let url = c.toDataURL("image/webp", 0.8); if (!/^data:image\/webp/.test(url)) url = c.toDataURL("image/jpeg", 0.8);
       ok(url); }; im.src = r.result; };

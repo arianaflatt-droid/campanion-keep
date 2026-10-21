@@ -1,10 +1,10 @@
-import { CREATURE_LAYOUT, CREATURE_FIT_ID } from "./creature-fit.js?v=20261020h";
-import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261020h";
-import { heldWeapon } from "./quest.js?v=20261020h";
+import { CREATURE_LAYOUT, CREATURE_FIT_ID } from "./creature-fit.js?v=20261020j";
+import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261020j";
+import { heldWeapon } from "./quest.js?v=20261020j";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261020h";
+export const APP_V = "20261020j";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -35,6 +35,13 @@ export const FROST_BANNER = '<div class="hero haunt frost"><p class="haunt-tag">
   '</h2><p class="haunt-sub">Every 120 XP day packs a snowball for the Snowlotl \u2014 every XP over 120 is a snowflake for your snow globe!</p></div>';
 export const HEART_BANNER = '<div class="hero haunt heart"><p class="haunt-tag">\u{1F498} Sweetheart Showdown \u{1F36C}</p><h2>' + BANNER_TEXT +
   '</h2><p class="haunt-sub">Every XP is a candy heart! Your companion eats the first 120 each day to power its attack \u2014 the rest fills your candy jar.</p></div>';
+// Ms. Ariana's announcement (cls.news = { on, title, text, pic }), shown under the top banner on every student's page.
+// The picture lives in its own doc (news/pic) so the class doc stays small.
+export function newsHTML(cls, pic) {
+  const n = cls && cls.news; if (!n || !n.on || !(n.title || n.text || pic)) return "";
+  return '<div class="card newscard">' + (n.pic && pic ? '<img class="newspic" src="' + esc(pic) + '" alt="">' : "") + '<div class="newstxt">' +
+    (n.title ? "<h2>" + esc(n.title) + "</h2>" : "") + (n.text ? "<p>" + esc(n.text).replace(/\n/g, "<br>") + "</p>" : "") + "</div></div>";
+}
 export function bannerFor(cls) {
   const b = isHeart(cls) ? HEART_BANNER : isFrost(cls) ? FROST_BANNER : isJingle(cls) ? JINGLE_BANNER : isGobble(cls) ? GOBBLE_BANNER : isHaunt(cls) ? HAUNT_BANNER : BANNER;
   // The 2nd boss (already beaten once, 2nd-win rewards not given yet): the prize promise (Ms. Ariana can change it: cls.prize2)
