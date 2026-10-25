@@ -1855,3 +1855,50 @@ body.mini-xmas .tile{ box-shadow:0 0 0 2px #E8B923; } body.mini-tot .tile{ box-s
 .vaultcard .subreq { justify-content: center; }
 .subrule summary { cursor: pointer; }
 .subrule td .good { color: var(--good); } .subrule td .bad { color: var(--bad); }
+
+/* 🗺️ Reading Treasure Map */
+.rmapcard .lede { margin-bottom: 10px; }
+.rmap { position: relative; aspect-ratio: 16 / 9; min-height: 380px; border-radius: 18px; overflow: hidden;
+  background: #1d6c99 url(../assets/readmap/map-ocean.webp) center / cover no-repeat; }
+.rmpath { position: absolute; inset: 0; width: 100%; height: 100%; } .rmpath.port { display: none; }
+.rmpath polyline { fill: none; stroke: #fff6d6; stroke-dasharray: 10 8; vector-effect: non-scaling-stroke; stroke-width: 3; opacity: .85; }
+.rmisle { position: absolute; left: var(--x); top: var(--y); transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; width: 120px; color: #3a2a10; }
+.rmisle .rmland { position: relative; width: 76px; height: 70px; display: grid; place-items: center; }
+.rmisle .rmland img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 4px 4px rgba(0,0,0,.35)); }
+.rmisle .rmland i { position: absolute; right: -4px; top: -2px; font-style: normal; font-size: 18px; background: rgba(255,248,225,.95); border-radius: 50%; width: 28px; height: 28px; display: grid; place-items: center; box-shadow: 0 1px 3px rgba(0,0,0,.3); }
+.rmisle b { font-size: 11.5px; background: rgba(255,248,225,.92); padding: 1px 6px; border-radius: 8px; }
+.rmisle small { font-size: 11px; background: rgba(255,248,225,.85); padding: 0 6px; border-radius: 8px; color: #5a4520; }
+.rmisle.locked .rmland img { filter: grayscale(.55) brightness(.85) drop-shadow(0 4px 4px rgba(0,0,0,.35)); }
+.rmisle.ready .rmland img { animation: rmglow 1.1s ease-in-out infinite alternate; }
+@keyframes rmglow { from { filter: drop-shadow(0 0 4px #fff3b0); } to { filter: drop-shadow(0 0 16px #ffd84d); } }
+.rmisle.final .rmland { width: 120px; height: 96px; }
+.rmisle .btn { padding: 3px 10px; font-size: 12px; }
+.rmboat img { width: 54px; height: auto; display: block; }
+.rmboat { position: absolute; left: var(--x); top: var(--y); transform: translate(-50%, -50%); font-size: 30px; z-index: 2; transition: left .8s, top .8s; filter: drop-shadow(0 3px 2px rgba(0,0,0,.35)); animation: rmbob 2s ease-in-out infinite; }
+@keyframes rmbob { 50% { margin-top: -4px; } }
+.rmbar { margin-top: 10px; height: 12px; } .rmbar > span { background: linear-gradient(90deg, #2b8fc0, #5fd0f0); }
+.rmpop { display: flex; align-items: center; gap: 12px; padding: 10px 14px; margin-bottom: 10px; border-radius: 14px; background: #fff3cf; border: 2px solid #e8c35a; color: #3a2a10; }
+.rmpop img { width: 72px; height: 72px; object-fit: contain; } .rmpop .rmpopic { font-size: 40px; } .rmpop div { flex: 1; }
+@media (max-width: 560px) { .rmap { aspect-ratio: auto; height: 720px; } .rmpath.land { display: none; } .rmpath.port { display: block; } .rmisle, .rmboat { left: var(--px); top: var(--py); } .rmisle { width: 84px; } .rmisle b { font-size: 10px; } .rmisle .rmland { width: 52px; height: 48px; } .rmisle.final .rmland { width: 84px; height: 68px; } .rmboat img { width: 40px; } }
+
+/* 📚 Library After Dark (mini event) */
+.mstage.libstage { background-color: #120c20; }
+.libbook { position: absolute; height: 9.8%; aspect-ratio: 143 / 220; transform: translate(-50%, -100%) rotate(var(--t)); transform-origin: 50% 100%; background: none; border: 0; padding: 0; cursor: pointer;
+  filter: drop-shadow(0 0 6px rgba(255,214,120,.55)); animation: libglow 2.2s ease-in-out infinite alternate; animation-delay: var(--d); transition: transform .15s; }
+.libbook img { width: 100%; height: 100%; display: block; }
+.libbook:hover:not(:disabled) { transform: translate(-50%, -112%) rotate(var(--t)) scale(1.08); }
+.libbook:disabled { filter: grayscale(.8) brightness(.6); animation: none; cursor: default; }
+@keyframes libglow { to { filter: drop-shadow(0 0 14px rgba(255,214,120,.95)); } }
+.libcard { position: absolute; left: 50%; top: 80%; transform: translateX(-50%); padding: 6px 14px; border-radius: 999px; background: rgba(18,12,32,.8); white-space: nowrap; text-align: center; color: #f3e6c8; font-size: 14px; }
+.lantic { height: 1.2em; vertical-align: -0.25em; }
+.libcard span { display: inline-block; width: 24px; } .libcard span.on { filter: drop-shadow(0 0 4px #ffd27a); }
+.libpop { background: rgba(255,248,230,.97); color: #2d2150; }
+.libq { font-weight: 700; margin: 10px 0 6px; } .libq.ok { color: #1f6a2a; } .libq.no { color: #8a3a1a; }
+.libans { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 8px; }
+.libgold { font-size: 54px; filter: drop-shadow(0 0 12px gold); }
+.minibanner.mb-lib { background: linear-gradient(90deg, #241a3a, #4a3a6e); color: #ffe7a8; }
+.mc-lib { background: linear-gradient(135deg, #2b1f45, #4a3a6e); color: #f6ecd4; } .mc-lib h3, .mc-lib p { color: #f6ecd4; }
+.libpop h2 { color: #8a5a00; } .libpop .mgot { color: #8a5a00; text-shadow: none; }
+@media (max-width: 640px) { .mstage.libstage { overflow: visible; margin-bottom: 96px; } .libstage .libcard { top: 102%; } .libstage .mhint { bottom: auto; top: 112%; white-space: nowrap; font-size: 13px; } .libbook { height: 11%; } }
+.mshoph { margin: 14px 0 8px; color: #f6ecd4; } .mshoph small { font-weight: 400; opacity: .8; }
+.mitem.furn img { width: 96px; height: 84px; }

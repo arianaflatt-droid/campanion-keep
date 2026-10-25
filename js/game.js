@@ -1,10 +1,10 @@
-import { CREATURE_LAYOUT, CREATURE_FIT_ID } from "./creature-fit.js?v=20261020o";
-import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261020o";
-import { heldWeapon } from "./quest.js?v=20261020o";
+import { CREATURE_LAYOUT, CREATURE_FIT_ID } from "./creature-fit.js?v=20261020t";
+import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261020t";
+import { heldWeapon } from "./quest.js?v=20261020t";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261020o";
+export const APP_V = "20261020t";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -587,7 +587,8 @@ const OF = (ev, dir, list) => list.map(([k, name]) => ({ id: ev + "-" + k, ev, n
 export const OUTFITS = [].concat(
   OF("tot", "tot", [["pumpkin", "Pumpkin Hat"], ["cat", "Black Cat Ears"], ["bat", "Bat Headband"], ["wizard", "Wizard Hat"], ["mummy", "Mummy Wrap"], ["candycorn", "Candy Corn Hat"], ["spider", "Spider Headband"], ["horns", "Little Devil Horns"]]),
   OF("fest", "fest", [["beanie", "Knit Beanie"], ["scarecrow", "Scarecrow Hat"], ["acorn", "Acorn Cap"], ["leafcrown", "Autumn Leaf Crown"], ["sunflower", "Sunflower Headband"], ["turkey", "Turkey Feathers"], ["apple", "Apple Hat"], ["earmuffs", "Plaid Earmuffs"]]),
-  OF("xmas", "xmas", [["elfhat", "Elf Hat"], ["candycane", "Candy Cane Headband"], ["gingerbread", "Gingerbread Hat"], ["ornament", "Ornament Headband"], ["holly", "Holly Crown"], ["bow", "Present Bow"], ["star", "Star Topper"], ["nutcracker", "Nutcracker Hat"]]));
+  OF("xmas", "xmas", [["elfhat", "Elf Hat"], ["candycane", "Candy Cane Headband"], ["gingerbread", "Gingerbread Hat"], ["ornament", "Ornament Headband"], ["holly", "Holly Crown"], ["bow", "Present Bow"], ["star", "Star Topper"], ["nutcracker", "Nutcracker Hat"]]),
+  OF("lib", "lib", [["candles", "Candle Crown"], ["nightcap", "Starry Nightcap"], ["wizard", "Wizard Reading Cap"], ["bookhat", "Book Hat"], ["bun", "Ghost Librarian Bun"], ["scholar", "Moonlight Scholar Cap"], ["owl", "Owl Ear Headband"], ["bookworm", "Bookworm Antennae"]]));
 export const outfitOf = id => OUTFITS.find(o => o.id === id) || null;
 export const headImg = (c, img) => '<span class="phat cos" style="' + (c ? partyStyle(c, "hat") : "") + '"><img src="' + img + '" alt=""></span>';
 export const HEAD_FNS = [st => { const o = st && st.outfitOn && ((st.outfits || {})[st.outfitOn]) ? outfitOf(st.outfitOn) : null; return o ? o.img : ""; }];

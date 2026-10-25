@@ -3,19 +3,20 @@
    Each step checks itself off from the student's save; tapping a step opens the tab where it's done.
    The Treasure Vault step is "check your progress", so it counts as done once the student opens it today
    (remembered on this computer only). */
-import { tbLeft, tbLive } from "./teachbattle.js?v=20261020o";
-import { esc, simulate, companionOf, goalXP } from "./game.js?v=20261020o";
+import { mapOn, mapState, todayReading, PER_ISLAND } from "./readmap.js?v=20261020t";
+import { tbLeft, tbLive } from "./teachbattle.js?v=20261020t";
+import { esc, simulate, companionOf, goalXP } from "./game.js?v=20261020t";
 import { azToday, azNow, todayXP, pullsLeft, legendaryLeft, birthdayLeft, pickleLeft, vaultLegLeft, BOSS2_LIST, boss2EggLeft, candyLegLeft, snowLegLeft,
-  gingerLegLeft, feastLegLeft, brewLegLeft, goalLeft, themeLeft, hasStarter, bankXP, LEVEL_XP } from "./collect.js?v=20261020o";
-import { mqReady } from "./morning.js?v=20261020o";
-import { heroOn, heroOf, heroReady } from "./hero.js?v=20261020o";
-import { doorsLive, doorName, goldenReady, weekDoorState, vaultState, vaultGoal, subReq } from "./doors.js?v=20261020o";
-import { soloOn, soloReady, soloCfg } from "./solobrew.js?v=20261020o";
-import { passReady } from "./pass.js?v=20261020o";
-import { pettedToday } from "./bond.js?v=20261020o";
-import { mealsReady } from "./meals.js?v=20261020o";
-import { readyTests } from "./quest.js?v=20261020o";
-import { unthanked } from "./kindness.js?v=20261020o";
+  gingerLegLeft, feastLegLeft, brewLegLeft, goalLeft, themeLeft, hasStarter, bankXP, LEVEL_XP } from "./collect.js?v=20261020t";
+import { mqReady } from "./morning.js?v=20261020t";
+import { heroOn, heroOf, heroReady } from "./hero.js?v=20261020t";
+import { doorsLive, doorName, goldenReady, weekDoorState, vaultState, vaultGoal, subReq } from "./doors.js?v=20261020t";
+import { soloOn, soloReady, soloCfg } from "./solobrew.js?v=20261020t";
+import { passReady } from "./pass.js?v=20261020t";
+import { pettedToday } from "./bond.js?v=20261020t";
+import { mealsReady } from "./meals.js?v=20261020t";
+import { readyTests } from "./quest.js?v=20261020t";
+import { unthanked } from "./kindness.js?v=20261020t";
 
 const seenKey = (id, what) => "ck-seen-" + azToday() + "-" + id + "-" + what;
 export function markSeen(id, what) { try { localStorage.setItem(seenKey(id, what), "1"); } catch (e) {} }
@@ -66,6 +67,11 @@ export function steps(s, cls, students, battles) {
   // 8. potion cauldron
   if (soloOn(cls)) { const k = soloCfg(cls), n = soloReady(s, cls);
     add("brew", "haunt", k.icon, k.verb + " in your " + k.where, n ? plural(n, k.one) + " ready to " + k.verb.toLowerCase() + "!" : "Earn XP to collect ingredients for your next " + k.one + ".", !n); }
+  // 📚 Reading Map (when Ms. Ariana has it on)
+  if (mapOn(cls)) { const M = mapState(s, cls), r = todayReading(s, cls);
+    add("rmap", "rmap", "\u{1F4DA}", M.ready.length ? "Claim your Reading Map treasure" : "Read for your Reading Map",
+      M.ready.length ? plural(M.ready.length, "island") + " reached \u2014 tap to claim!" : M.next ? (r >= PER_ISLAND ? "You read today! " : "Read " + (PER_ISLAND - r) + " more Reading XP today. ") + M.toNext + " more to sail to " + M.next.n + "." : "You reached Treasure Isle this week! \u{1F451}",
+      !M.ready.length && (r >= PER_ISLAND || !M.next)); }
   // 9. Season Pass
   if (!(cls && cls.passOff)) { const n = passReady(s, cls); add("pass", "pass", "\u{1F39F}️", "Claim Season Pass rewards", n ? plural(n, "reward") + " ready!" : "No rewards waiting.", !n); }
   // extras (only when there's something to do)

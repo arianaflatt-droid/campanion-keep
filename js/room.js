@@ -5,14 +5,14 @@
    Saved on the student: cpEarned (teacher writes), cpSpent, roomOwned [item ids], roomFit { slot: id }, roomBuys [{ id, cost, at }].
    Item ids are "{kind}_{theme}" (e.g. bed_dragon); art is assets/room/{id}.webp. Trophies are trophy_{season}.
    The room picture is 1536x1024; everything below is placed in % of that. */
-import { azToday } from "./collect.js?v=20261020o";
-import { questCP } from "./quest.js?v=20261020o";
-import { esc } from "./game.js?v=20261020o";
+import { azToday } from "./collect.js?v=20261020t";
+import { questCP } from "./quest.js?v=20261020t";
+import { esc } from "./game.js?v=20261020t";
 
 // Themes that have art so far. Add a theme name here once its 9 pieces are in assets/room/.
 export const TYPE_THEMES = ["fire", "water", "nature", "rock", "sky", "electric", "ice", "light", "dark", "ghost", "poison", "steel", "arcane", "crystal", "dragon"];
 export const SEASON_THEMES = { haunt: "Haunt-O-Ween", gobble: "Gobble-Palooza", jingle: "Jingle Jam", frost: "Frostbite Festival", heart: "Sweetheart Showdown" };
-export const THEME_NAMES = { arcane: "Arcane", crystal: "Crystal", dark: "Dark", dragon: "Dragon", ghost: "Ghost", light: "Light", poison: "Poison", steel: "Steel",
+export const THEME_NAMES = { library: "Midnight Library", arcane: "Arcane", crystal: "Crystal", dark: "Dark", dragon: "Dragon", ghost: "Ghost", light: "Light", poison: "Poison", steel: "Steel",
   bath: "Bubble Bath", kitchen: "Cherry Kitchen", play: "Rainbow Playroom", lucky: "Lucky",
   fire: "Fire", water: "Water", nature: "Nature", rock: "Rock", sky: "Sky", electric: "Electric", ice: "Ice", haunt: "Haunt-O-Ween", gobble: "Gobble-Palooza", jingle: "Jingle Jam", frost: "Frostbite Festival", heart: "Sweetheart Showdown" };
 // The 9 kinds of item in a set, and what they cost on the Everyday tab.

@@ -3,15 +3,20 @@
    🎃 tot  = Trick-or-Treat Night (Haunt-O-Ween): knock on the 3 doors of a spooky street; Ghost & Dark creatures answer.
    🍂 fest = Fall Festival (Gobble-Palooza): Corn Maze, Pumpkin Patch, Ferris Wheel; Nature & Earth creatures.
    🎄 xmas = Holiday Express (Jingle Jam): train stops with a gift-guessing game, and Find the Hidden Elf; Ice creatures.
+   📚 lib  = Library After Dark (any season, Oct 25): lanterns come from READING XP only (1 per 10 Reading XP today). Open glowing
+             books in a spooky library: Ghost/Dark/Arcane creatures pop out with a silly riddle (right answer = double), or
+             treasure, or a golden book (egg). 10 library-card stamps = an egg. Pays the current season's currency. No outfits.
    Tickets: 1 for every 10 XP today (best of morning / lunch / end-of-day numbers). Rewards are the season currency
    (candyBonus) and sometimes an egg (doorEggs). Each event has a "this time only" outfit shop (60 each, kept forever).
    While an event is on, every companion wears a random costume from it, and The Keep gets the event's colors.
    Saved on the student: mini = { id, used: { date: n }, cos, maze, stop, stamps, elf: { d, found, peek: [] }, got }
    plus outfits / outfitOn (game.js). */
-import { esc, HEAD_FNS, OUTFITS, candyLeft, companionOf } from "./game.js?v=20261020o";
-import { azToday, creature, FAMILIES } from "./collect.js?v=20261020o";
-import { CREATURES } from "./creatures.js?v=20261020o";
-import { xpOn } from "./surprise.js?v=20261020o";
+import { esc, HEAD_FNS, OUTFITS, candyLeft, companionOf } from "./game.js?v=20261020t";
+import { azToday, creature, FAMILIES } from "./collect.js?v=20261020t";
+import { CREATURES } from "./creatures.js?v=20261020t";
+import { xpOn } from "./surprise.js?v=20261020t";
+import { SEASON } from "./game.js?v=20261020t";
+import { todayReading } from "./readmap.js?v=20261020t";
 
 export const PER_TICKET = 10, OUTFIT_COST = 60;
 const typesOf = fam => { const f = FAMILIES.find(x => x.id === fam); const c = f && CREATURES.find(x => x.id === f.forms[0]); return (c && c.types) || []; };
@@ -23,7 +28,10 @@ export const MINI = {
   fest: { key: "fest", name: "Fall Festival", icon: "\u{1F342}", cur: "corn", coin: "\u{1F33D}", bg: "assets/fest/fest-fairground.webp", theme: "Gobble-Palooza",
     fams: () => pool(["Nature", "Earth"], ["L-29", "L-35", "L-42"], []).filter(f => !f.startsWith("L-") || ["L-29", "L-35", "L-42"].includes(f)) },
   xmas: { key: "xmas", name: "Holiday Express", icon: "\u{1F384}", cur: "presents", coin: "\u{1F381}", bg: "assets/xmas/xmas-station.webp", theme: "Jingle Jam",
-    fams: () => pool(["Ice"], ["L-30", "L-36", "L-43"], []).filter(f => !f.startsWith("L-") || ["L-30", "L-36", "L-43"].includes(f)) }
+    fams: () => pool(["Ice"], ["L-30", "L-36", "L-43"], []).filter(f => !f.startsWith("L-") || ["L-30", "L-36", "L-43"].includes(f)) },
+  lib: { key: "lib", name: "Library After Dark", icon: "\u{1F4DA}", bg: "assets/lib/lib-library.webp", theme: "any season · Reading XP", reading: true, tix: "lantern", tixs: "lanterns",
+    get cur() { return SEASON.cur || "candy"; }, get coin() { return SEASON.coin || "\u{1F36C}"; },
+    fams: () => pool(["Ghost", "Dark", "Arcane"], [], []).filter(f => !f.startsWith("L-")) }
 };
 let FAMS = {};
 const famsOf = k => (FAMS[k] = FAMS[k] || MINI[k].fams());
@@ -31,7 +39,10 @@ const famsOf = k => (FAMS[k] = FAMS[k] || MINI[k].fams());
 /* ---------- state helpers ---------- */
 export const miniOn = cls => (cls && cls.mini && cls.mini.on && MINI[cls.mini.key] ? MINI[cls.mini.key] : null);
 const mine = (st, cls) => { const m = st && st.mini; return m && cls && cls.mini && m.id === cls.mini.id ? m : { id: cls && cls.mini && cls.mini.id, used: {} }; };
-export function ticketsLeft(st, cls) { const d = azToday(); return Math.max(0, Math.floor(xpOn(st, d) / PER_TICKET) - (Number((mine(st, cls).used || {})[d]) || 0)); }
+export function ticketsLeft(st, cls) { const d = azToday(), E = miniOn(cls), xp = E && E.reading ? todayReading(st, cls) : xpOn(st, d);
+  return Math.max(0, Math.floor(xp / PER_TICKET) - (Number((mine(st, cls).used || {})[d]) || 0)); }
+const tixWord = (E, n) => E.tix ? (n === 1 ? E.tix : E.tixs) : (n === 1 ? "ticket" : "tickets");
+const hasShop = E => OUTFITS.some(o => o.ev === E.key);
 const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
 const hash = s => { let h = 7; for (const ch of String(s)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return h; };
 const RW = [["Common", 45], ["Uncommon", 28], ["Rare", 15], ["Super Rare", 8], ["Legendary", 4]];
@@ -48,13 +59,13 @@ const amount = rar => (rar === "Legendary" ? rnd(15, 25) : rar === "Rare" || rar
 let CLS = null;
 HEAD_FNS.push(st => {
   const E = miniOn(CLS); if (!E || !st || st.isTeacher) return "";
-  const list = OUTFITS.filter(o => o.ev === E.key), m = mine(st, CLS);
+  const list = OUTFITS.filter(o => o.ev === E.key), m = mine(st, CLS); if (!list.length) return "";
   return list[(m.cos != null ? m.cos : hash(st.id + CLS.mini.id)) % list.length].img;
 });
 // Call on every render (both pages): remembers the class for the costume and sets The Keep's event colors.
 export function miniSync(cls) {
   CLS = cls; const E = miniOn(cls);
-  ["tot", "fest", "xmas"].forEach(k => document.body.classList.toggle("mini-" + k, !!E && E.key === k));
+  ["tot", "fest", "xmas", "lib"].forEach(k => document.body.classList.toggle("mini-" + k, !!E && E.key === k));
 }
 
 /* ---------- lines ---------- */
@@ -119,31 +130,32 @@ const ELF_SPOTS = [["Stockings", 24, 33], ["Fireplace", 25, 46], ["Bookshelf", 4
 export function miniCard(st, cls) {
   const E = miniOn(cls); if (!E) return "";
   const t = ticketsLeft(st, cls);
-  return '<div class="card minicard mc-' + E.key + '"><div class="mctxt"><h3>' + E.icon + " " + E.name + '!</h3><p><b>' + t + "</b> ticket" + (t === 1 ? "" : "s") +
-    " · 1 ticket for every " + PER_TICKET + " XP today. You have <b>" + candyLeft(st).toLocaleString() + " " + E.coin + "</b>.</p>" +
-    '<button class="btn gold" data-mini="open">' + (E.key === "tot" ? "\u{1F6AA} Go trick-or-treating!" : E.key === "fest" ? "\u{1F3A1} Go to the festival!" : "\u{1F682} Go to the station!") + "</button> " +
-    '<button class="btn ghost" data-mini="shop">\u{1F6CD}️ Outfit shop</button></div></div>';
+  return '<div class="card minicard mc-' + E.key + '"><div class="mctxt"><h3>' + E.icon + " " + E.name + '!</h3><p><b>' + t + "</b> " + tixWord(E, t) +
+    " · 1 " + tixWord(E, 1) + " for every " + PER_TICKET + (E.reading ? " <b>Reading</b>" : "") + " XP today. You have <b>" + candyLeft(st).toLocaleString() + " " + E.coin + "</b>.</p>" +
+    '<button class="btn gold" data-mini="open">' + (E.key === "tot" ? "\u{1F6AA} Go trick-or-treating!" : E.key === "fest" ? "\u{1F3A1} Go to the festival!" : E.key === "lib" ? "\u{1F56F}️ Sneak into the library!" : "\u{1F682} Go to the station!") + "</button> " +
+    (hasShop(E) ? '<button class="btn ghost" data-mini="shop">\u{1F6CD}️ Outfit shop</button>' : "") + "</div></div>";
 }
 
 /* ---------- the event screen (overlay) ---------- */
 let G = null;
 export const miniBusy = () => !!G;
-const top = (E, st, cls, back) => '<div class="qbtop"><b>' + E.icon + " " + E.name + " · \u{1F39F}️ " + ticketsLeft(st, cls) + " · " + candyLeft(st).toLocaleString() + " " + E.coin + "</b><span>" +
-  (back ? '<button class="btn ghost small" data-mini="' + back + '">⬅️ Back</button> ' : "") + '<button class="btn ghost small" data-mini="shop">\u{1F6CD}️ Shop</button> <button class="btn ghost small" data-mini="close">✕</button></span></div>';
-const noTix = '<p class="mnotix">No tickets left! Earn ' + PER_TICKET + " more XP for another one.</p>";
+const top = (E, st, cls, back) => '<div class="qbtop"><b>' + E.icon + " " + E.name + " · " + (E.reading ? '<img class="lantic" src="assets/lib/lib-lantern.webp" alt="lanterns"> ' : "\u{1F39F}️ ") + ticketsLeft(st, cls) + " · " + candyLeft(st).toLocaleString() + " " + E.coin + "</b><span>" +
+  (back ? '<button class="btn ghost small" data-mini="' + back + '">⬅️ Back</button> ' : "") + (hasShop(E) ? '<button class="btn ghost small" data-mini="shop">\u{1F6CD}️ Shop</button> ' : "") + '<button class="btn ghost small" data-mini="close">✕</button></span></div>';
+let noTix = "";
+const noTixFor = E => '<p class="mnotix">No ' + tixWord(E, 2) + " left! Read " + PER_TICKET + " more" + (E.reading ? " <b>Reading</b>" : "") + " XP for another one.</p>";
 const visHTML = (v, line) => '<div class="mvisit r-' + v.rarity.replace(" ", "") + '"><img src="' + esc(v.img) + '" alt=""><div class="mbubble"><b>' + esc(v.name) + "</b> <small>" + esc(v.rarity) + "</small><br>" + esc(line) + "</div></div>";
 const gotHTML = (E, n, egg) => '<div class="mgot">+' + n + " " + E.coin + (egg ? " · \u{1F95A} an egg!" : "") + "</div>";
 
 export function miniOverlay(st, cls) {
   const E = miniOn(cls); if (!G || !E || !st) { if (G && !E) G = null; return ""; }
-  const m = mine(st, cls), t = ticketsLeft(st, cls);
+  const m = mine(st, cls), t = ticketsLeft(st, cls); noTix = noTixFor(E);
   const bgs = 'style="background-image:url(' + esc(G.bg || E.bg) + ')"';
   let h = '<div class="qbover mover mo-' + E.key + '">';
   if (G.view === "shop") {
     const list = OUTFITS.filter(o => o.ev === E.key), own = st.outfits || {};
     h += top(E, st, cls, "hub") + '<div class="qbpanel mshop"><h3>\u{1F6CD}️ ' + esc(E.name) + ' Outfit Shop</h3><p class="small">This time only! ' + OUTFIT_COST + " " + E.coin + " each. Keep it forever and wear it any time from your Gear.</p>" +
-      '<div class="mshopgrid">' + list.map(o => '<div class="mitem' + (own[o.id] ? " own" : "") + '"><img src="' + o.img + '" alt=""><b>' + esc(o.name) + "</b>" +
-        (own[o.id] ? "<small>✅ Yours!</small>" : '<button class="btn small" data-mini="buy" data-o="' + o.id + '"' + (candyLeft(st) < OUTFIT_COST ? " disabled" : "") + ">" + OUTFIT_COST + " " + E.coin + "</button>") + "</div>").join("") + "</div></div>";
+      (E.key === "lib" ? '<h4 class="mshoph">\u{1F45B} Outfits</h4>' : "") + '<div class="mshopgrid">' + list.map(o => '<div class="mitem' + (own[o.id] ? " own" : "") + '"><img src="' + o.img + '" alt=""><b>' + esc(o.name) + "</b>" +
+        (own[o.id] ? "<small>✅ Yours!</small>" : '<button class="btn small" data-mini="buy" data-o="' + o.id + '"' + (candyLeft(st) < OUTFIT_COST ? " disabled" : "") + ">" + OUTFIT_COST + " " + E.coin + "</button>") + "</div>").join("") + "</div>" + (E.key === "lib" ? furnHTML(st, E) : "") + "</div>";
     return h + "</div>";
   }
   if (E.key === "tot") {
@@ -176,6 +188,24 @@ export function miniOverlay(st, cls) {
         : '<div class="mhint">' + (t ? '<button class="btn big gold" data-mini="ride">\u{1F3A1} Ride to the top!</button>' : noTix) + "</div>") + "</div>";
     }
     return h + "</div>";
+  }
+  if (E.key === "lib") {
+    const stamps = Number(m.books) || 0;
+    h += top(E, st, cls) + '<div class="mstage libstage" ' + bgs + '>';
+    if (G.res) {
+      const r = G.res;
+      h += '<div class="mpop libpop">' + (r.gold ? '<img class="mbigimg pop" src="assets/lib/lib-book-gold.webp" alt=""><h2>A golden book!</h2>' : "") + (r.v ? visHTML(r.v, r.line) : '<p class="mfound">' + esc(r.line) + "</p>") +
+        (r.q && r.ans == null ? '<p class="libq">\u{1F914} ' + esc(r.q.q) + '</p><div class="libans">' + r.q.opts.map((o, i) => '<button class="btn" data-mini="answer" data-i="' + i + '">' + esc(o) + "</button>").join("") + "</div>"
+          : (r.q ? '<p class="libq ' + (r.right ? "ok" : "no") + '">' + (r.right ? "\u{1F389} You got it! Double " + E.cur + "!" : "\u{1F605} Nice try! The answer was <b>" + esc(r.q.opts[r.q.a]) + "</b>.") + "</p>" : "") +
+            gotHTML(E, r.n, r.egg) + (r.stampEgg ? "<p>\u{1F4DA} Your library card is full: a bonus egg! A new card starts.</p>" : "") + '<button class="btn big" data-mini="ok">Open another book</button>') + "</div>";
+    } else {
+      // 12 books standing on the three middle shelves of the big empty bookcase (shelf tops at 29.4%, 40.9%, 52% of the picture)
+      h += [29.4, 40.9, 52].map((y, row) => [36.2, 44.6, 54.6, 63].map((x, col) => { const i = row * 4 + col, tilt = [-4, 3, -2, 5, 2, -5, 4, -3, -6, 2, 5, -2][i];
+          return '<button class="libbook" data-mini="book" data-i="' + i + '"' + (t ? "" : " disabled") + ' aria-label="Open a glowing book" style="left:' + x + "%;top:" + y + "%;--t:" + tilt + "deg;--d:" + (i * 0.17) + 's"><img src="assets/lib/lib-book-' + (((i + row) % 4) + 1) + '.webp" alt=""></button>'; }).join("")).join("") +
+        '<div class="libcard">\u{1F4C7} Library card: ' + Array.from({ length: 10 }, (_, i) => '<span class="' + (i < stamps % 10 ? "on" : "") + '">' + (i < stamps % 10 ? "\u{1F56F}️" : "·") + "</span>").join("") + "</div>" +
+        '<div class="mhint">' + (t ? "Tap a glowing book to open it… if you dare!" : noTix) + "</div>";
+    }
+    return h + "</div></div>";
   }
   // 🎄 xmas
   if (G.view === "hub") {
@@ -215,6 +245,13 @@ export async function miniClick(el, c) {
   if (a === "close") { G = null; return c.render(true); }
   if (a === "shop") { G = Object.assign({}, G || {}, { view: "shop", res: null, bg: E.bg }); return c.render(true); }
   if (a === "hub") { G = { view: "hub", bg: E.bg }; return c.render(true); }
+  if (a === "buyFurn" && E.key === "lib") {
+    const f = LIB_FURN.find(x => x[0] === el.dataset.k); if (!f) return;
+    const id = f[0] + "_library", have = s.roomOwned || [];
+    if (have.includes(id) || candyLeft(s) < f[2]) return;
+    await c.patch({ roomOwned: have.concat([id]), candySpent: (Number(s.candySpent) || 0) + f[2], roomBuys: (s.roomBuys || []).concat([{ id, cost: f[2], cur: E.cur, at: new Date().toISOString() }]) }, true);
+    c.flash("\u{1F6CB}️ " + f[1] + " is yours! Put it in your room from My Room.", true); return c.render(true);
+  }
   if (a === "buy") {
     const o = OUTFITS.find(x => x.id === el.dataset.o); if (!o || (s.outfits || {})[o.id] || candyLeft(s) < OUTFIT_COST) return;
     await c.patch({ outfits: Object.assign({}, s.outfits || {}, { [o.id]: true }), candySpent: (Number(s.candySpent) || 0) + OUTFIT_COST }, true);
@@ -222,6 +259,12 @@ export async function miniClick(el, c) {
   }
   if (a === "go") { const v = el.dataset.v; G = { view: v, bg: { maze: "assets/fest/fest-maze.webp", patch: "assets/fest/fest-patch.webp", ferris: "assets/fest/fest-ferris-top.webp", train: "assets/xmas/xmas-station.webp", elf: "assets/xmas/xmas-livingroom.webp" }[v] }; return c.render(true); }
   if (a === "ok" || a === "next") { G.res = null; if (E.key === "fest" && G.view === "maze") G.bg = "assets/fest/fest-maze.webp"; return c.render(true); }
+  if (a === "answer" && E.key === "lib" && G && G.res && G.res.q && G.res.ans == null) {
+    const r = G.res, i = Number(el.dataset.i); r.ans = i; r.right = i === r.q.a;
+    if (r.right) { r.n *= 2; chime(3); } else chime(1);
+    G.busy = true; try { const mm = Object.assign({}, mine(s, cls)); mm.got = (Number(mm.got) || 0) + r.n; const data = { mini: mm, candyBonus: (Number(s.candyBonus) || 0) + r.n }; if (r.egg) data.doorEggs = (Number(s.doorEggs) || 0) + 1; await c.patch(data, true); } finally { G.busy = false; }
+    return c.render(true);
+  }
   if (!t) return;
   if (G && G.busy) return;
   const use = () => { m.used = Object.assign({}, m.used || {}); m.used[d] = (Number(m.used[d]) || 0) + 1; if (m.cos == null) m.cos = hash(s.id + cls.mini.id) % 8; };
@@ -269,6 +312,18 @@ export async function miniClick(el, c) {
     G.res = { match, n, egg, at, line: match === "perfect" ? fav.perfect : match === "ok" ? "Ooh, a " + g.name.toLowerCase() + "! Not my favorite, but I love it!" : g.silly };
     chime(match === "perfect" ? 3 : 1); await c.patch(pay(n, egg), true); return c.render(true);
   }
+  if (a === "book" && E.key === "lib") {
+    use(); m.books = (Number(m.books) || 0) + 1; const stampEgg = m.books % 10 === 0, r = Math.random(); let res;
+    if (r < 0.05) res = { gold: true, n: 15, egg: true, line: "The pages glow gold… there\u2019s an egg tucked inside!" };
+    else if (r < 0.55) { const v = visitor("lib"), q = RIDDLES[rnd(0, RIDDLES.length - 1)]; res = { v, n: v.n, line: LIB_LINES[rnd(0, LIB_LINES.length - 1)], q }; }
+    else if (r < 0.85) res = { n: rnd(3, 6), line: ["A pile of " + E.cur + " was pressed between the pages like a flower!", "The book was hollow inside… and full of " + E.cur + "!", "A bookmark made of " + E.cur + "! Yum."][rnd(0, 2)] };
+    else res = { n: rnd(2, 4), line: STORY_PAGES[rnd(0, STORY_PAGES.length - 1)] };
+    res.stampEgg = stampEgg; if (stampEgg) res.egg = true;
+    G.res = res; chime(res.gold ? 3 : 1);
+    if (!res.q) await c.patch(pay(res.n, res.egg), true);
+    else await c.patch({ mini: m }, true);   // the ticket is used now; the currency comes with the answer
+    return c.render(true);
+  }
   if (a === "peek") {
     const i = Number(el.dataset.i), e = (m.elf && m.elf.d === d) ? Object.assign({}, m.elf) : { d, peek: [], found: false };
     if ((e.peek || []).includes(i)) return;
@@ -281,12 +336,62 @@ export async function miniClick(el, c) {
   }
 }
 
+/* ---------- 📚 Library After Dark: the Midnight Library room set (room.js item ids kind_library) ---------- */
+const LIB_FURN = [["bed", "Midnight Library Bed", 120], ["chair", "Reading Armchair", 80], ["wallpaper", "Bookshelf Wallpaper", 80], ["flooring", "Starry Wood Floor", 80],
+  ["ceiling", "Book Chandelier", 80], ["rug", "Moon & Stars Rug", 60], ["wall_art", "Moonlit Tower Painting", 60], ["plant", "Ivy & Books", 60], ["shelf", "Hourglass & Cat", 60]];
+function furnHTML(st, E) {
+  const have = st.roomOwned || [], left = candyLeft(st);
+  return '<h4 class="mshoph">\u{1F6CB}️ Midnight Library room set <small>(it goes in My Room)</small></h4><div class="mshopgrid">' + LIB_FURN.map(([k, n, p]) => { const own = have.includes(k + "_library");
+    return '<div class="mitem furn' + (own ? " own" : "") + '"><img src="assets/room/' + k + '_library.webp" alt=""><b>' + esc(n) + "</b>" +
+      (own ? "<small>✅ Yours!</small>" : '<button class="btn small" data-mini="buyFurn" data-k="' + k + '"' + (left < p ? " disabled" : "") + ">" + p + " " + E.coin + "</button>") + "</div>"; }).join("") + "</div>";
+}
+/* ---------- 📚 Library After Dark: lines, story pages and silly riddles ---------- */
+const LIB_LINES = ["Shhh! This is a library! …Okay, I'll whisper: BOO!", "I live between the pages. Thanks for opening my book!", "I've read this book 1,000 times. The ending is spooky!",
+  "You found my reading nook! Want to hear a riddle?", "The librarian is asleep. Quick, a riddle!", "I'm the ghost of an overdue book. Riddle me this!",
+  "Bookmarks are my favorite snack. Here's a riddle!", "I glow when someone reads nearby. That's YOU!"];
+const STORY_PAGES = ["You read a page: \u201cThe dragon was afraid of… the dark? So it carried a flashlight.\u201d Some " + "treats fall out!",
+  "You read a page: \u201cOnce upon a time, a duck became the queen of the moon.\u201d A few treats fall out!",
+  "You read a page: \u201cThe haunted sock drawer whispered: match me!\u201d A few treats fall out!",
+  "You read a page: \u201cThe end… OR IS IT?\u201d A few treats fall out!", "You read a page about a pirate who only said \u201cArrr-ticulate!\u201d A few treats fall out!"];
+const RIDDLES = [
+  { q: "What has pages but isn't a tree?", opts: ["A book", "A leaf", "A rock"], a: 0 },
+  { q: "What has keys but can't open locks?", opts: ["A door", "A piano", "A car"], a: 1 },
+  { q: "What gets wetter the more it dries?", opts: ["A towel", "A fish", "A cloud"], a: 0 },
+  { q: "What has hands but can't clap?", opts: ["A glove", "A clock", "A robot"], a: 1 },
+  { q: "What has a spine but no bones?", opts: ["A snake", "A book", "A cactus"], a: 1 },
+  { q: "What goes up but never comes down?", opts: ["Your age", "A balloon", "A kite"], a: 0 },
+  { q: "What has one eye but can't see?", opts: ["A pirate", "A needle", "A potato"], a: 1 },
+  { q: "What can you catch but not throw?", opts: ["A ball", "A cold", "A fish"], a: 1 },
+  { q: "What has a neck but no head?", opts: ["A bottle", "A giraffe", "A sweater"], a: 0 },
+  { q: "What runs but never walks?", opts: ["A cheetah", "Water", "A clock"], a: 1 },
+  { q: "What has words but never speaks?", opts: ["A book", "A parrot", "A radio"], a: 0 },
+  { q: "What has teeth but can't bite?", opts: ["A shark", "A comb", "A baby"], a: 1 },
+  { q: "What do you call a sleeping dinosaur?", opts: ["A dino-snore", "A T-rest", "Both are funny!"], a: 2 },
+  { q: "Why did the ghost go into the library?", opts: ["To find a BOO-k", "To get a snack", "To take a nap"], a: 0 },
+  { q: "What is full of holes but still holds water?", opts: ["A sponge", "A bucket", "A net"], a: 0 },
+  { q: "What has a bottom at the top?", opts: ["Your legs", "A hat", "A tree"], a: 0 },
+  { q: "What building has the most stories?", opts: ["A castle", "A library", "A skyscraper"], a: 1 },
+  { q: "What can fill a room but takes up no space?", opts: ["Light", "Water", "A couch"], a: 0 },
+  { q: "What has four wheels and flies?", opts: ["A plane", "A garbage truck", "A bird"], a: 1 },
+  { q: "What kind of room has no doors or windows?", opts: ["A mushroom", "A closet", "A cave"], a: 0 },
+  { q: "Why did the book join the police?", opts: ["To go under COVER", "To get a badge", "To catch bookworms"], a: 0 },
+  { q: "What did one page say to the other?", opts: ["I'm board", "Turn around!", "Paper or plastic?"], a: 1 },
+  { q: "What does a vampire read at night?", opts: ["Bite-time stories", "The news", "Comic books"], a: 0 },
+  { q: "What has a head and a tail but no body?", opts: ["A coin", "A snake", "A comet"], a: 0 },
+  { q: "The more you take, the more you leave behind. What are they?", opts: ["Footsteps", "Cookies", "Pictures"], a: 0 },
+  { q: "What is always in front of you but can't be seen?", opts: ["The future", "Your nose", "The air"], a: 0 },
+  { q: "What word is spelled wrong in every dictionary?", opts: ["Wrong", "Dictionary", "Spelling"], a: 0 },
+  { q: "What kind of tree fits in your hand?", opts: ["A palm tree", "A pine tree", "A tiny tree"], a: 0 },
+  { q: "What is an owl's favorite subject?", opts: ["Owl-gebra", "Science", "Hoo-story"], a: 0 },
+  { q: "Where do books sleep?", opts: ["Under their covers", "On the shelf", "In a bookbed"], a: 0 }
+];
+
 /* ---------- The Keep banner + teacher controls ---------- */
 export function miniBanner(students, cls) {
   const E = miniOn(cls); if (!E) return "";
   const kids = students.filter(s => s.companionId && !s.isTeacher), d = azToday();
   const used = kids.reduce((n, s) => n + (Number(((mine(s, cls).used) || {})[d]) || 0), 0);
-  return '<div class="minibanner mb-' + E.key + '"><b>' + E.icon + " " + E.name.toUpperCase() + "!</b> " + used + " ticket" + (used === 1 ? "" : "s") + " used today · earn 1 ticket every " + PER_TICKET + " XP</div>";
+  return '<div class="minibanner mb-' + E.key + '"><b>' + E.icon + " " + E.name.toUpperCase() + "!</b> " + used + " " + tixWord(E, used) + " used today · earn 1 " + tixWord(E, 1) + " every " + PER_TICKET + (E.reading ? " Reading" : "") + " XP</div>";
 }
 export function miniAdmin(students, cls) {
   const E = miniOn(cls), kids = students.filter(s => s.companionId && !s.isTeacher), d = azToday();
@@ -294,7 +399,7 @@ export function miniAdmin(students, cls) {
   if (E) {
     const used = kids.reduce((n, s) => n + (Number(((mine(s, cls).used) || {})[d]) || 0), 0), got = kids.reduce((n, s) => n + (Number(mine(s, cls).got) || 0), 0);
     const outs = kids.reduce((n, s) => n + OUTFITS.filter(o => o.ev === E.key && (s.outfits || {})[o.id]).length, 0);
-    h += '<p><b>' + E.icon + " " + E.name + "</b> is on. Today: " + used + " tickets used · so far " + got.toLocaleString() + " " + E.coin + " given · " + outs + " outfits bought.</p>" +
+    h += '<p><b>' + E.icon + " " + E.name + "</b> is on. Today: " + used + " " + tixWord(E, used) + " used · so far " + got.toLocaleString() + " " + E.coin + " given" + (hasShop(E) ? " · " + outs + " outfits bought." : ".") + (E.reading ? " Lanterns come from Reading XP only (1 per " + PER_TICKET + ")." : "") + "</p>" +
       '<button class="btn ghost small" data-act="miniEnd">End ' + esc(E.name) + "</button>";
   } else h += '<p class="small muted">Students get 1 ticket for every ' + PER_TICKET + " XP and spend them for " + "their event currency, creatures and eggs. Every companion wears a costume and The Keep changes colors while it's on.</p>" +
     '<div class="row" style="gap:8px;flex-wrap:wrap;">' + Object.values(MINI).map(M => '<button class="btn small" data-act="miniStart" data-k="' + M.key + '">' + M.icon + " Start " + esc(M.name) + " <small>(" + esc(M.theme) + ")</small></button>").join("") + "</div>";
