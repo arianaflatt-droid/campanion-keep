@@ -8,10 +8,10 @@
    Each potion: +20 candy and a potion glow for the day. Shelf rewards at 3 / 6 / 10 / 15 potions.
    Saved on the student (student-writable): soloBrew = { days: { date: potions }, fx: { date: effect }, extra: { date: { e|b|s: n } }, got: { "3": true, ... } }
    Shelf rewards use fields the student page may write: doorEggs, candyBonus, doorXP, legendaryPulls, soloBrewLeg (counted by brewLegLeft). */
-import { esc, isHaunt, isGobble, isJingle, isFrost, isHeart } from "./game.js?v=20261020u";
-import { azToday } from "./collect.js?v=20261020u";
-import { TEAM_EVENTS, ingOf, subFor, SUB_NAMES, PER_XP, EFFECTS, effect, cauldronHTML, soloTableHTML, soloHouseHTML, soloBoxHTML, DISHES } from "./teams.js?v=20261020u";
-import { SUBJECT_KEYS } from "./doors.js?v=20261020u";
+import { esc, isHaunt, isGobble, isJingle, isFrost, isHeart, boostMult } from "./game.js?v=20261020v";
+import { azToday } from "./collect.js?v=20261020v";
+import { TEAM_EVENTS, ingOf, subFor, SUB_NAMES, PER_XP, EFFECTS, effect, cauldronHTML, soloTableHTML, soloHouseHTML, soloBoxHTML, DISHES } from "./teams.js?v=20261020v";
+import { SUBJECT_KEYS } from "./doors.js?v=20261020v";
 
 export const BREW = TEAM_EVENTS.potion;
 const FEAST_ING = { key: "solofeast", ing: [
@@ -109,7 +109,7 @@ export function soloDay(st, cls, date) {
   const k = soloCfg(cls), need = Object.assign({}, soloRecipe(cls, date)), got = ingOf(k.E, st, date, cls), ex = (soloOf(st, k).extra || {})[date] || {}, have = {}, gk = goalKey(st);
   // Goal ingredient (Pumpkin Seeds / Pie Spice): 1 per SEED_XP of Goal Subject XP. If the Goal Subject already feeds one of the 3 ingredients (Math, Reading or
   // Language, after swaps), the XP that ingredient needs today (usually the first 25) goes to it first, and the goal ingredient counts after that.
-  if (gk) { const xp = Number(((((st && st.xpHist) || {})[date] || {}).sub || {})[gk]) || 0, used = k.E.ing.filter(g => subFor(cls, st, g.sub) === gk).reduce((a, g) => a + (need[g.k] || 0) * PER_XP, 0);
+  if (gk) { const xp = (Number(((((st && st.xpHist) || {})[date] || {}).sub || {})[gk]) || 0) * boostMult(cls, gk, date), used = k.E.ing.filter(g => subFor(cls, st, g.sub) === gk).reduce((a, g) => a + (need[g.k] || 0) * PER_XP, 0);
     got.g = Math.floor(Math.max(0, xp - used) / SEED_XP); } else got.g = 0;
   if (!gk) need.g = 0;   // no Goal Subject yet: their recipe has no goal ingredient
   ALL_ING(k).forEach(g => { have[g.k] = (got[g.k] || 0) + (Number(ex[g.k]) || 0); });
