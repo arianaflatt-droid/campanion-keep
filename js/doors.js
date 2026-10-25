@@ -8,8 +8,9 @@
    Saved on the student: doors = { "YYYY-MM-DD": { "0": { st: "wait"|"ok"|"no"|"open", at, r }, g: { st: "open", r } } }
    plus lastDoor = "YYYY-MM-DD/<door>" (which door the last save touched; the save rules check it).
    Class: doorsOn (on/off), doorList (default list), doorDays = { "YYYY-MM-DD": [..] } (one-day lists). */
-import { azToday } from "./collect.js?v=20261020m";
-import { SEASON, eventMode, esc, dayXP, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261020m";
+import { azToday } from "./collect.js?v=20261020n";
+import { SEASON, eventMode, esc, dayXP, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261020n";
+import { subFor, SUB_NAMES } from "./teams.js?v=20261020n";
 
 // A door that starts with "!" is always open (not locked behind the first doors). The "!" isn't shown.
 export const DOOR_DEFAULT = [
@@ -38,9 +39,12 @@ export const DOOR_GATE = 3;   // the first 3 doors that aren't always-open ones 
 // Doors Ms. Ariana checks herself (e.g. "Show Ms. Ariana ..."): the console has a one-tap roster for these.
 export const isTeacherCheck = task => /show\s+ms\.?\s+ariana/i.test(String(task || ""));
 export const isFree = task => String(task || "").trim().startsWith("!");
-export const doorText = (task, st) => {
-  const t = String(task || "").trim().replace(/^!\s*/, ""), g = st && st.goalSubject;
-  return g ? t.replace(/\byour goal subject\b/gi, g).replace(/\bgoal subject\b/gi, g) : t;
+export const doorText = (task, st, cls) => {
+  let t = String(task || "").trim().replace(/^!\s*/, ""); const g = st && st.goalSubject;
+  if (g) t = t.replace(/\byour goal subject\b/gi, g).replace(/\bgoal subject\b/gi, g);
+  // a student with their own plan (Ms. Ariana's subject swaps): "Get 25 Math XP" becomes "Get 25 Science XP"
+  if (cls && st) t = t.replace(/\b(\d+)\s+(Math|Reading|Language)\s+XP\b/gi, (all, n, w) => { const k = { math: "m", reading: "r", language: "l" }[w.toLowerCase()], to = subFor(cls, st, k); return to !== k ? n + " " + SUB_NAMES[to] + " XP" : all; });
+  return t;
 };
 export const DOOR_NAMES = { haunt: "Haunted Doors", gobble: "Harvest Doors", jingle: "Advent Calendar", frost: "Frozen Doors", heart: "Mailbox Doors" };
 export const DOOR_ICON = { haunt: "\u{1F6AA}", gobble: "\u{1F6AA}", jingle: "\u{1F4C5}", frost: "\u{1F6AA}", heart: "\u{1F4EC}" };
@@ -159,7 +163,7 @@ export function waitingDoors(students, cls) {
   const out = [];
   students.forEach(s => Object.keys((s && s.doors) || {}).forEach(date => {
     const day = s.doors[date] || {};
-    Object.keys(day).forEach(k => { if (k !== "g" && (day[k] || {}).st === "wait") out.push({ s, date, i: Number(k), task: doorText(doorsFor(cls, date)[Number(k)] || "Door " + (Number(k) + 1), s), at: day[k].at }); });
+    Object.keys(day).forEach(k => { if (k !== "g" && (day[k] || {}).st === "wait") out.push({ s, date, i: Number(k), task: doorText(doorsFor(cls, date)[Number(k)] || "Door " + (Number(k) + 1), s, cls), at: day[k].at }); });
   }));
   return out.sort((a, b) => String(a.at).localeCompare(String(b.at)));
 }
@@ -180,7 +184,7 @@ export const doorToday = date => date || azToday();
 export const SUBJECT_KEYS = { "math": "m", "fast math": "f", "fastmath": "f", "reading": "r", "writing": "w", "language": "l", "vocabulary": "v", "vocab": "v", "science": "sc", "social studies": "ss" };
 export const FAST_RING = 109;
 export function doorMet(task, st, sub, total, cls) {
-  const t = doorText(task, st).toLowerCase();
+  const t = doorText(task, st, cls).toLowerCase();
   if (!sub || /before school/.test(t)) return null;
   let m = /(\d+)\s*xp\s+in\s+your\s+goal\s+subject/.exec(String(task || "").toLowerCase());
   if (m) { const k = SUBJECT_KEYS[String((st && st.goalSubject) || "").toLowerCase()]; return k ? (Number(sub[k]) || 0) >= Number(m[1]) : null; }
@@ -221,12 +225,38 @@ export function weekTotal(st, cls) { let n = 0; for (let d = 0; d < 5; d++) n +=
   if (cls) { const mon = weekKey(cls); n += histXP(st, addDays(mon, 5)) + histXP(st, addDays(mon, 6)); } return Math.round(n); }
 // Any week, Mon-Sun, from the history only (used for a week that's already over)
 export function histWeekTotal(st, mon) { let n = 0; for (let i = 0; i < 7; i++) n += histXP(st, addDays(mon, i)); return Math.round(n); }
+/* ---------- 25 Math / 25 Reading / 25 Language a day (Oct 23) ----------
+   The Weekly Door and the Treasure Vault also need the core subjects: 25 XP in each per school day, added up for the week
+   (5 days = 125 each), so weekend work can make up a missed day. Days that don't need it: a day marked excused for that
+   student (status "e" / xpHist[date].e), a day off for everyone (cls.offDays[date]), and an old day that only has a total
+   (no subject numbers to check). Students with their own plan use Ms. Ariana's subject swaps (cls.subSwap, same as their doors).
+   cls.subRule === false turns the rule off. */
+export const SUB_DAY = 25, SUB_REQ = ["m", "r", "l"];
+export const subRuleOn = cls => !(cls && cls.subRule === false);
+export function subReq(st, cls, wk) {
+  wk = wk || weekKey(cls);
+  const cur = wk === weekKey(cls), hist = (st && st.xpHist) || {}, off = (cls && cls.offDays) || {}, status = (st && st.status) || [];
+  let days = 0;
+  for (let i = 0; i < 5; i++) { const date = addDays(wk, i), h = hist[date] || {};
+    const ex = h.e || off[date] || (cur && status[i] === "e") || ((h.d != null || h.l != null) && !h.sub);
+    if (!ex) days++; }
+  const rows = SUB_REQ.map(k => { const src = subFor(cls, st, k); let have = 0;
+    for (let i = 0; i < 7; i++) have += Number((((hist[addDays(wk, i)] || {}).sub) || {})[src]) || 0;
+    return { k, src, name: SUB_NAMES[src] || src, have: Math.round(have), need: days * SUB_DAY }; });
+  const on = subRuleOn(cls);
+  return { on, rows, days, ok: !on || rows.every(r => r.have >= r.need), short: rows.filter(r => r.have < r.need) };
+}
+// Little bars for the student cards
+export function subReqHTML(st, cls, wk) {
+  const q = subReq(st, cls, wk); if (!q.on || !q.days) return "";
+  return '<div class="subreq">' + q.rows.map(r => '<span class="srq' + (r.have >= r.need ? " ok" : "") + '"><b>' + esc(r.name) + "</b> " + Math.min(r.have, r.need) + " / " + r.need + (r.have >= r.need ? " \u2705" : "") + "</span>").join("") + "</div>";
+}
 // "open" | "ready" | "locked"
 export function weekDoorState(st, cls) {
   const v = ((st && st.weekDoor) || {})[weekKey(cls)];
   if (v === "open") return "open";
   if (v === "ready") return "ready";
-  return weekTotal(st, cls) >= weekGoal(cls) ? "ready" : "locked";   // opens on its own once the week's days add up to the goal
+  return weekTotal(st, cls) >= weekGoal(cls) && subReq(st, cls).ok ? "ready" : "locked";   // opens on its own once the week adds up (XP + the 25/25/25 subjects)
 }
 // Doors from an earlier week that weekend work unlocked late ("ready" under an older week)
 export function oldReady(st, cls, field) { const wk = weekKey(cls), o = (st && st[field]) || {}; return Object.keys(o).filter(k => k !== wk && o[k] === "ready").sort(); }
@@ -263,10 +293,10 @@ export function vaultGoal(st, cls, wk) {
   return { xp: VAULT_XP, n: tot, sub: null, reward: null, tot, min: VAULT_MIN };
 }
 // Goal reached AND at least VAULT_MIN XP in total that week
-export const vaultMet = (st, cls, wk) => { const v = vaultGoal(st, cls, wk); return v.n >= v.xp && v.tot >= v.min; };
+export const vaultMet = (st, cls, wk) => { const v = vaultGoal(st, cls, wk); return v.n >= v.xp && v.tot >= v.min && subReq(st, cls, wk).ok; };
 // The 600-XP rule needs its own line when the goal itself doesn't already cover it (a subject goal, or a total under 600)
 // A week that's over: its saved "ready" stands (its goal may have changed since), but it still needs VAULT_MIN XP total
-export const vaultMinOk = (st, cls, wk) => (wk === weekKey(cls) ? weekTotal(st, cls) : histWeekTotal(st, wk)) >= VAULT_MIN;
+export const vaultMinOk = (st, cls, wk) => (wk === weekKey(cls) ? weekTotal(st, cls) : histWeekTotal(st, wk)) >= VAULT_MIN && subReq(st, cls, wk).ok;
 export const vaultNeedsMin = v => (v.sub && v.sub !== "all") || v.xp < v.min;
 export function vaultState(st, cls) {
   const v = ((st && st.vault) || {})[weekKey(cls)];

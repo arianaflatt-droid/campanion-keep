@@ -1848,3 +1848,10 @@ body.mini-xmas .tile{ box-shadow:0 0 0 2px #E8B923; } body.mini-tot .tile{ box-s
 .tbcard { border: 2px solid #E05A47; background: #FFF4F1; color: #3a1f18; }
 .tbcard h2, .tbcard .lede { color: #3a1f18; }
 .tbcard .btn { margin-left: 6px; }
+/* 📚 core subjects (25 Math / Reading / Language a day) on the Weekly Door + Vault */
+.subreq { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+.subreq .srq { font-size: 13px; padding: 3px 10px; border-radius: 999px; background: #fde7e3; color: #6a2418; border: 1px solid #f0b3a7; }
+.subreq .srq.ok { background: #e3f4e5; color: #1f5a2a; border-color: #9fd3a3; }
+.vaultcard .subreq { justify-content: center; }
+.subrule summary { cursor: pointer; }
+.subrule td .good { color: var(--good); } .subrule td .bad { color: var(--bad); }
