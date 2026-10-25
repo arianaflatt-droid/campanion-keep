@@ -4,11 +4,12 @@
    Rollback: once a day the console saves a snapshot of every student (snaps/{stamp}__{id}, teacher only).
    You can put back a student's creatures, or their whole game save, from any snapshot. Your own records
    (XP, attendance, names, the eggs and bonuses you give) are never rolled back. */
-import { esc } from "./game.js?v=20261020l";
-import { azToday } from "./collect.js?v=20261020l";
-import { cardOf, sameData } from "./card.js?v=20261020l";
-import { cardRef } from "./db.js?v=20261020l";
-import { setDoc, updateDoc, deleteDoc, writeBatch, db, classRef, studentRef, keysRef, getKeys, seatRef, snapRef, snapsFor, snapsAt, deleteField } from "./db.js?v=20261020l";
+import { esc } from "./game.js?v=20261020m";
+import { azToday } from "./collect.js?v=20261020m";
+import { cardOf, sameData } from "./card.js?v=20261020m";
+import { BADGES } from "./badges.js?v=20261020m";
+import { cardRef } from "./db.js?v=20261020m";
+import { setDoc, updateDoc, deleteDoc, writeBatch, db, classRef, studentRef, keysRef, getKeys, seatRef, snapRef, snapsFor, snapsAt, deleteField } from "./db.js?v=20261020m";
 
 // Fields only the teacher writes (same list as the rules). A rollback never touches these.
 export const TEACHER_FIELDS = ["name", "order", "goalSubject", "xp", "lunchXp", "status", "early", "xpHist", "deaths", "items",
@@ -52,6 +53,29 @@ async function snapAll(students, stamp, tag) {
 }
 
 /* ----- the card (Students tab) ----- */
+/* ----- 🧹 Badges left over from the Oct 20 hack -----
+   The hack gave 18 students every creature, and the pages saved the badges that unlocked (badges are never taken away
+   on their own). The creatures were put back, but the badges stayed. A badge is a leftover when it was saved on Oct 20
+   from 8:15 AM Arizona time to the end of that day AND the student doesn't earn it any more. */
+const HACK_FROM = Date.parse("2026-10-20T15:15:00Z"), HACK_TO = Date.parse("2026-10-21T07:00:00Z");
+export function hackBadges(students, battles, cls) {
+  const out = [];
+  students.forEach(s => {
+    const got = s.badges || {}, ids = BADGES.filter(b => { const t = Date.parse(got[b.id]); if (!(t >= HACK_FROM && t < HACK_TO)) return false;
+      let n = 0; try { n = Number(b.check(s, battles || [], cls)) || 0; } catch (e) { return false; } return n < b.goal; }).map(b => b);
+    if (ids.length) out.push({ s, list: ids });
+  });
+  return out;
+}
+function badgeFixHTML(students, cls) {
+  const bad = hackBadges(students, G.battles, cls), n = bad.reduce((a, x) => a + x.list.length, 0);
+  let h = '<div style="margin-top:14px;border-top:1px solid var(--line-2);padding-top:12px;"><h3>\u{1F9F9} Badges left over from the Oct 20 hack</h3>' +
+    '<p class="small muted" style="margin:4px 0 8px;">Badges saved on Oct 20 (from 8:15 AM) that the student doesn\u2019t really have, like event badges for events that haven\u2019t happened yet. Badges they earned for real are left alone.</p>';
+  if (!n) return h + '<p class="small">\u2705 No leftover badges found.</p></div>';
+  h += '<table class="mini"><tbody>' + bad.map(x => "<tr><td><b>" + esc(x.s.name) + '</b></td><td class="small">' + x.list.map(b => b.emoji + " " + esc(b.name)).join(", ") + "</td></tr>").join("") + "</tbody></table>" +
+    '<div class="row" style="margin-top:8px;"><button class="btn" data-g="badgeFix">' + (G.confirm === "badges" ? "Yes, remove these " + n + " badges" : "\u{1F9F9} Remove " + n + " leftover badge" + (n === 1 ? "" : "s") + " from " + bad.length + " student" + (bad.length === 1 ? "" : "s")) + "</button></div>";
+  return h + "</div>";
+}
 export function guardCard(students, cls) {
   const linked = students.filter(s => seated(s.id)).length;
   let h = '<div class="card" id="guardCard"><div class="card-head"><h2>\u{1F512} Personal links</h2><span class="fact">' + linked + " / " + students.length + " linked</span></div>";
@@ -102,7 +126,7 @@ function rollbackCard(students, cls) {
     }
     h += "</div>";
   }
-  return h + "</div>";
+  return h + badgeFixHTML(students, cls) + "</div>";
 }
 // More than a day's worth of change: 4+ new creature families, or a creature 10+ levels higher than in the snapshot.
 const lv = (d, f) => Number((((d && d.coll) || {})[f] || {}).lvl) || 0;
@@ -179,6 +203,23 @@ export async function guardClick(el, ctx) {
   if (a === "classFind") { G.stamp = (document.getElementById("gStamp") || {}).value || ""; G.confirm = "";
     try { G.classSnaps = await snapsAt(G.stamp); } catch (e) { flash("Couldn’t load — " + (e.code || e.message)); }
     render(); return true; }
+  if (a === "badgeFix") {
+    if (G.confirm !== "badges") { G.confirm = "badges"; render(); return true; }
+    G.confirm = ""; const bad = hackBadges(students, G.battles, cls), st = nowStamp(); let n = 0;
+    try {
+      await snapAll(bad.map(x => x.s), st, "before badge cleanup");
+      for (const x of bad) {
+        const up = {};
+        x.list.forEach(b => { up["badges." + b.id] = deleteField(); up["badgesSeen." + b.id] = deleteField(); n++; });
+        if (x.list.some(b => b.id === x.s.pinnedBadge)) up.pinnedBadge = "";
+        await updateDoc(studentRef(x.s.id), up);
+        x.list.forEach(b => { if (x.s.badges) delete x.s.badges[b.id]; if (x.s.badgesSeen) delete x.s.badgesSeen[b.id]; });
+      }
+      await updateDoc(classRef, { snapStamps: addStamp(cls, st) });
+      G.msg = "\u{1F9F9} Removed " + n + " leftover badge" + (n === 1 ? "" : "s") + " from " + bad.length + " student" + (bad.length === 1 ? "" : "s") + ". (A snapshot from just before is saved as \u201cbefore badge cleanup\u201d.)";
+    } catch (e) { flash("Couldn\u2019t remove them \u2014 " + (e.code || e.message)); }
+    render(); return true;
+  }
   if (a === "classUndo") {
     if (G.confirm !== "class") { G.confirm = "class"; render(); return true; }
     G.confirm = ""; const ch = classChanges(students), st = nowStamp();

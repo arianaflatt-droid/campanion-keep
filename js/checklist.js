@@ -3,19 +3,19 @@
    Each step checks itself off from the student's save; tapping a step opens the tab where it's done.
    The Treasure Vault step is "check your progress", so it counts as done once the student opens it today
    (remembered on this computer only). */
-import { tbLeft, tbLive } from "./teachbattle.js?v=20261020l";
-import { esc, simulate, companionOf, goalXP } from "./game.js?v=20261020l";
+import { tbLeft, tbLive } from "./teachbattle.js?v=20261020m";
+import { esc, simulate, companionOf, goalXP } from "./game.js?v=20261020m";
 import { azToday, azNow, todayXP, pullsLeft, legendaryLeft, birthdayLeft, pickleLeft, vaultLegLeft, BOSS2_LIST, boss2EggLeft, candyLegLeft, snowLegLeft,
-  gingerLegLeft, feastLegLeft, brewLegLeft, goalLeft, themeLeft, hasStarter, bankXP, LEVEL_XP } from "./collect.js?v=20261020l";
-import { mqReady } from "./morning.js?v=20261020l";
-import { heroOn, heroOf, heroReady } from "./hero.js?v=20261020l";
-import { doorsLive, doorName, goldenReady, weekDoorState, vaultState, vaultGoal } from "./doors.js?v=20261020l";
-import { soloOn, soloReady, soloCfg } from "./solobrew.js?v=20261020l";
-import { passReady } from "./pass.js?v=20261020l";
-import { pettedToday } from "./bond.js?v=20261020l";
-import { mealsReady } from "./meals.js?v=20261020l";
-import { readyTests } from "./quest.js?v=20261020l";
-import { unthanked } from "./kindness.js?v=20261020l";
+  gingerLegLeft, feastLegLeft, brewLegLeft, goalLeft, themeLeft, hasStarter, bankXP, LEVEL_XP } from "./collect.js?v=20261020m";
+import { mqReady } from "./morning.js?v=20261020m";
+import { heroOn, heroOf, heroReady } from "./hero.js?v=20261020m";
+import { doorsLive, doorName, goldenReady, weekDoorState, vaultState, vaultGoal } from "./doors.js?v=20261020m";
+import { soloOn, soloReady, soloCfg } from "./solobrew.js?v=20261020m";
+import { passReady } from "./pass.js?v=20261020m";
+import { pettedToday } from "./bond.js?v=20261020m";
+import { mealsReady } from "./meals.js?v=20261020m";
+import { readyTests } from "./quest.js?v=20261020m";
+import { unthanked } from "./kindness.js?v=20261020m";
 
 const seenKey = (id, what) => "ck-seen-" + azToday() + "-" + id + "-" + what;
 export function markSeen(id, what) { try { localStorage.setItem(seenKey(id, what), "1"); } catch (e) {} }
