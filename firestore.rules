@@ -1,5 +1,5 @@
 rules_version = '2';
-// Companion Keep rules, version 3 (Oct 20, 2026). Tests: tests/rules.test.mjs (run with the Firebase emulator).
+// Companion Keep rules, version 3.1 (Oct 25, 2026: + announcement picture, Battle Ms. Ariana). Tests: tests/rules.test.mjs (run with the Firebase emulator).
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -150,13 +150,12 @@ service cloud.firestore {
         allow write: if isTeacher() || (request.auth != null && docId == "xp"
           && request.resource.data.key == get(/databases/$(database)/documents/classes/$(classId)/private/feeder).data.key);
       }
-      // Weekly Reward pictures: each student sees only their own; only the teacher changes them.
       // Ms. Ariana's announcement picture: like the class doc, nothing about any one student
       match /news/{docId} {
         allow read: if request.auth != null;
         allow write: if isTeacher();
       }
-
+      // Weekly Reward pictures: each student sees only their own; only the teacher changes them.
       match /rewards/{docId} {
         allow read: if isTeacher() || (seated() && mySid() == docId);
         allow write: if isTeacher();
