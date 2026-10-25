@@ -1,36 +1,36 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261020n";
-import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261020n";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261020n";
-import { cpEarnedCalc } from "./room.js?v=20261020n";
-import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261020n";
-import { rewardFor } from "./doors.js?v=20261020n";
-import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet, subReq, subRuleOn, SUB_DAY, addDays } from "./doors.js?v=20261020n";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261020n";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261020o";
+import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261020o";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261020o";
+import { cpEarnedCalc } from "./room.js?v=20261020o";
+import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261020o";
+import { rewardFor } from "./doors.js?v=20261020o";
+import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet, subReq, subRuleOn, SUB_DAY, addDays } from "./doors.js?v=20261020o";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261020o";
 import {
   newsHTML, applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   boss2Of, boss2Prize, simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, isFrost, isHeart, heartUnlocked, saveProblems, yetiUnlocked, wallMarks, WALL_BLOCK, BOSS_START_HP, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261020n";
-import { MQ_CUTOFF } from "./morning.js?v=20261020n";
-import { kindAdmin } from "./kindness.js?v=20261020n";
-import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261020n";
-import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261020n";
-import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261020n";
-import { passAdmin } from "./pass.js?v=20261020n";
-import { heroTeacherCard } from "./hero.js?v=20261020n";
-import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261020n";
-import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef, newBattleRef, newsPicRef, watchNewsPic } from "./db.js?v=20261020n";
-import { tbRequestsCard, tbInvite, tbToSettle } from "./teachbattle.js?v=20261020n";
-import { rewardAdmin, rgWaiting, rgOf, shrinkImage } from "./weekgoal.js?v=20261020n";
-import { soloAdmin, soloCfg, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261020n";
-import { feederLink } from "./feeder.js?v=20261020n";
-import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261020n";
+} from "./game.js?v=20261020o";
+import { MQ_CUTOFF } from "./morning.js?v=20261020o";
+import { kindAdmin } from "./kindness.js?v=20261020o";
+import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261020o";
+import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261020o";
+import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261020o";
+import { passAdmin } from "./pass.js?v=20261020o";
+import { heroTeacherCard } from "./hero.js?v=20261020o";
+import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261020o";
+import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef, newBattleRef, newsPicRef, watchNewsPic } from "./db.js?v=20261020o";
+import { tbRequestsCard, tbInvite, tbToSettle } from "./teachbattle.js?v=20261020o";
+import { rewardAdmin, rgWaiting, rgOf, shrinkImage } from "./weekgoal.js?v=20261020o";
+import { soloAdmin, soloCfg, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261020o";
+import { feederLink } from "./feeder.js?v=20261020o";
+import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261020o";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef, watchSeats, watchCards
-} from "./db.js?v=20261020n";
-import { G, guardCard, guardClick, guardInput, autoSnap, personalLink, syncCards } from "./guard.js?v=20261020n";
+} from "./db.js?v=20261020o";
+import { G, guardCard, guardClick, guardInput, autoSnap, personalLink, syncCards } from "./guard.js?v=20261020o";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -878,7 +878,7 @@ function subRuleCard(kids, wk) {
   let h = '<details class="subrule" style="margin-top:12px;border-top:1px solid var(--line-2);padding-top:10px;"' + (busy.subRuleOpen ? " open" : "") + '><summary data-act="subRuleOpen"><b>\u{1F4DA} Core subjects: 25 Math, 25 Reading, 25 Language a day</b> <span class="muted small">' +
     (on ? (shortN ? shortN + " still short this week" : "everyone is on track") : "turned off") + "</span></summary>" +
     '<p class="small" style="margin:6px 0;">The Weekly Door and the Treasure Vault also need <b>' + SUB_DAY + " XP in each subject for every school day</b>, added up for the week (5 days = " + 5 * SUB_DAY + " each). Weekend work counts, so a missed day can be made up. " +
-    "<b>To excuse one student\u2019s day</b>, mark it excused (\u2013) in the Daily XP grid. Students with their own plan: pick the subject that replaces Math, Reading or Language (their daily doors switch too).</p>" +
+    "Excused days still have to be made up; only a no-school day for everyone lowers it. Students with their own plan: pick the subject that replaces Math, Reading or Language (their daily doors switch too).</p>" +
     '<label class="modebox" style="margin:6px 0;"><input type="checkbox" id="subRuleBox"' + (on ? " checked" : "") + "><span><b>Use the core subjects rule</b></span></label>" +
     '<div class="row" style="gap:10px;flex-wrap:wrap;margin:6px 0;"><span class="small"><b>No school (everyone):</b></span>' +
       ["Mon", "Tue", "Wed", "Thu", "Fri"].map((d, i) => { const date = addDays(wk, i); return '<label class="small"><input type="checkbox" data-offday="' + date + '"' + (off[date] ? " checked" : "") + "> " + d + "</label>"; }).join("") + "</div>";

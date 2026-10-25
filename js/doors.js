@@ -8,9 +8,9 @@
    Saved on the student: doors = { "YYYY-MM-DD": { "0": { st: "wait"|"ok"|"no"|"open", at, r }, g: { st: "open", r } } }
    plus lastDoor = "YYYY-MM-DD/<door>" (which door the last save touched; the save rules check it).
    Class: doorsOn (on/off), doorList (default list), doorDays = { "YYYY-MM-DD": [..] } (one-day lists). */
-import { azToday } from "./collect.js?v=20261020n";
-import { SEASON, eventMode, esc, dayXP, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261020n";
-import { subFor, SUB_NAMES } from "./teams.js?v=20261020n";
+import { azToday } from "./collect.js?v=20261020o";
+import { SEASON, eventMode, esc, dayXP, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261020o";
+import { subFor, SUB_NAMES } from "./teams.js?v=20261020o";
 
 // A door that starts with "!" is always open (not locked behind the first doors). The "!" isn't shown.
 export const DOOR_DEFAULT = [
@@ -227,23 +227,21 @@ export function weekTotal(st, cls) { let n = 0; for (let d = 0; d < 5; d++) n +=
 export function histWeekTotal(st, mon) { let n = 0; for (let i = 0; i < 7; i++) n += histXP(st, addDays(mon, i)); return Math.round(n); }
 /* ---------- 25 Math / 25 Reading / 25 Language a day (Oct 23) ----------
    The Weekly Door and the Treasure Vault also need the core subjects: 25 XP in each per school day, added up for the week
-   (5 days = 125 each), so weekend work can make up a missed day. Days that don't need it: a day marked excused for that
-   student (status "e" / xpHist[date].e), a day off for everyone (cls.offDays[date]), and an old day that only has a total
-   (no subject numbers to check). Students with their own plan use Ms. Ariana's subject swaps (cls.subSwap, same as their doors).
+   (5 days = 125 each), so weekend work can make up a missed day. Excused days still have to be made up (Ms. Ariana, Oct 25);
+   only a day off for everyone (cls.offDays[date]) lowers it. Students with their own plan use Ms. Ariana's subject swaps (cls.subSwap, same as their doors).
    cls.subRule === false turns the rule off. */
 export const SUB_DAY = 25, SUB_REQ = ["m", "r", "l"];
+export const SUB_SINCE = "2026-10-19";   // weeks before this one had no subject numbers, so they skip the rule
 export const subRuleOn = cls => !(cls && cls.subRule === false);
 export function subReq(st, cls, wk) {
   wk = wk || weekKey(cls);
-  const cur = wk === weekKey(cls), hist = (st && st.xpHist) || {}, off = (cls && cls.offDays) || {}, status = (st && st.status) || [];
+  const hist = (st && st.xpHist) || {}, off = (cls && cls.offDays) || {};
   let days = 0;
-  for (let i = 0; i < 5; i++) { const date = addDays(wk, i), h = hist[date] || {};
-    const ex = h.e || off[date] || (cur && status[i] === "e") || ((h.d != null || h.l != null) && !h.sub);
-    if (!ex) days++; }
+  for (let i = 0; i < 5; i++) if (!off[addDays(wk, i)]) days++;
   const rows = SUB_REQ.map(k => { const src = subFor(cls, st, k); let have = 0;
     for (let i = 0; i < 7; i++) have += Number((((hist[addDays(wk, i)] || {}).sub) || {})[src]) || 0;
     return { k, src, name: SUB_NAMES[src] || src, have: Math.round(have), need: days * SUB_DAY }; });
-  const on = subRuleOn(cls);
+  const on = subRuleOn(cls) && wk >= SUB_SINCE;
   return { on, rows, days, ok: !on || rows.every(r => r.have >= r.need), short: rows.filter(r => r.have < r.need) };
 }
 // Little bars for the student cards
@@ -255,7 +253,7 @@ export function subReqHTML(st, cls, wk) {
 export function weekDoorState(st, cls) {
   const v = ((st && st.weekDoor) || {})[weekKey(cls)];
   if (v === "open") return "open";
-  if (v === "ready") return "ready";
+  if (v === "ready" && subReq(st, cls).ok) return "ready";   // a saved "ready" still needs the core subjects
   return weekTotal(st, cls) >= weekGoal(cls) && subReq(st, cls).ok ? "ready" : "locked";   // opens on its own once the week adds up (XP + the 25/25/25 subjects)
 }
 // Doors from an earlier week that weekend work unlocked late ("ready" under an older week)

@@ -2,9 +2,9 @@
 // Unused battles carry over. The student asks (tbAsk = when they asked); Ms. Ariana starts it from her console,
 // which makes a normal battle invite with tb = the week it uses. A finished battle is written to tbUsed by the
 // console (students can't change tbUsed). A battle that's declined or ended by Ms. Ariana/timeout gives the battle back.
-import { weekKey, weekDoorState } from "./doors.js?v=20261020n";
-import { TEACHER_ID } from "./collect.js?v=20261020n";
-import { esc } from "./game.js?v=20261020n";
+import { weekKey, weekDoorState, subReq } from "./doors.js?v=20261020o";
+import { TEACHER_ID } from "./collect.js?v=20261020o";
+import { esc } from "./game.js?v=20261020o";
 
 export const TB_SINCE = "2026-10-19";   // weeks before this don't count (it started this week)
 const LIVE = ["invite", "team", "lead", "fight"];
@@ -15,7 +15,7 @@ export const tbUsedBy = (st, b) => b.status === "done" || (b.status === "ended" 
 // Weeks this student reached the Weekly Door goal (this week counts as soon as the door is ready)
 export function tbEarned(st, cls) {
   const wd = (st && st.weekDoor) || {}, cur = weekKey(cls);
-  const w = Object.keys(wd).filter(k => k >= TB_SINCE && k !== cur && (wd[k] === "ready" || wd[k] === "open"));
+  const w = Object.keys(wd).filter(k => k >= TB_SINCE && k !== cur && (wd[k] === "open" || (wd[k] === "ready" && subReq(st, cls, k).ok)));
   if (cur >= TB_SINCE && weekDoorState(st, cls) !== "locked") w.push(cur);
   return w.sort();
 }
