@@ -1,38 +1,38 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261026a";
-import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261026a";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261026a";
-import { cpEarnedCalc } from "./room.js?v=20261026a";
-import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261026a";
-import { rewardFor } from "./doors.js?v=20261026a";
-import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet, subReq, subRuleOn, SUB_DAY, addDays } from "./doors.js?v=20261026a";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261026a";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261026b";
+import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261026b";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261026b";
+import { cpEarnedCalc } from "./room.js?v=20261026b";
+import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261026b";
+import { rewardFor } from "./doors.js?v=20261026b";
+import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet, subReq, subRuleOn, SUB_DAY, addDays } from "./doors.js?v=20261026b";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing } from "./collector-ui.js?v=20261026b";
 import {
   newsHTML, boostOn, boostHTML, countdownHTML, applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   boss2Of, boss2Prize, simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, isFrost, isHeart, heartUnlocked, saveProblems, yetiUnlocked, wallMarks, WALL_BLOCK, BOSS_START_HP, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261026a";
-import { MQ_CUTOFF } from "./morning.js?v=20261026a";
-import { kindAdmin } from "./kindness.js?v=20261026a";
-import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261026a";
-import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261026a";
-import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261026a";
-import { passAdmin } from "./pass.js?v=20261026a";
-import { heroTeacherCard } from "./hero.js?v=20261026a";
-import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261026a";
-import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef, newBattleRef, newsPicRef, watchNewsPic } from "./db.js?v=20261026a";
-import { mapAdmin } from "./readmap.js?v=20261026a";
-import { wheelTab, wheelClick } from "./subwheel.js?v=20261026a";
-import { tbRequestsCard, tbInvite, tbToSettle } from "./teachbattle.js?v=20261026a";
-import { rewardAdmin, rgWaiting, rgOf, shrinkImage } from "./weekgoal.js?v=20261026a";
-import { soloAdmin, soloCfg, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261026a";
-import { feederLink } from "./feeder.js?v=20261026a";
-import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261026a";
+} from "./game.js?v=20261026b";
+import { MQ_CUTOFF } from "./morning.js?v=20261026b";
+import { kindAdmin } from "./kindness.js?v=20261026b";
+import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261026b";
+import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261026b";
+import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261026b";
+import { passAdmin } from "./pass.js?v=20261026b";
+import { heroTeacherCard } from "./hero.js?v=20261026b";
+import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261026b";
+import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef, newBattleRef, newsPicRef, watchNewsPic } from "./db.js?v=20261026b";
+import { mapAdmin } from "./readmap.js?v=20261026b";
+import { wheelTab, wheelClick } from "./subwheel.js?v=20261026b";
+import { tbRequestsCard, tbInvite, tbToSettle } from "./teachbattle.js?v=20261026b";
+import { rewardAdmin, rgWaiting, rgOf, shrinkImage } from "./weekgoal.js?v=20261026b";
+import { soloAdmin, soloCfg, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261026b";
+import { feederLink } from "./feeder.js?v=20261026b";
+import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261026b";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef, watchSeats, watchCards
-} from "./db.js?v=20261026a";
-import { G, guardCard, guardClick, guardInput, autoSnap, personalLink, syncCards } from "./guard.js?v=20261026a";
+} from "./db.js?v=20261026b";
+import { G, guardCard, guardClick, guardInput, autoSnap, personalLink, syncCards } from "./guard.js?v=20261026b";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -448,12 +448,15 @@ function viewIdeas() {
 }
 function teacherCollectorCard() {
   return '<div class="card"><div class="card-head"><h2>\u{1F9D1}\u200D\u{1F3EB} Your collection</h2><span class="fact">battle your students!</span></div>' +
-    '<p class="lede" style="font-size:13.5px;">Your own collection. Students battle you as <b>' + esc(tplayer().name) + "</b> after they reach the Weekly Door goal and ask (see Battle requests).</p></div>" +
+    '<p class="lede" style="font-size:13.5px;">Your own collection. Students battle you as <b>' + esc(tplayer().name) + "</b> after they reach the Weekly Door goal and ask (see Battle requests).</p>" +
+    (() => { const c = (cls.teacher || {}).coll || {}, ks = Object.keys(c), low = ks.filter(k => (Number(c[k] && c[k].lvl) || 1) < 100).length;
+      return ks.length ? '<div class="row" style="margin-top:8px;align-items:center;gap:10px;"><button class="btn small" data-act="teacherMax"' + (low ? "" : " disabled") + ">\u2B06\uFE0F Set all my creatures to level 100</button>" +
+        '<span class="muted small">' + (low ? low + " of " + ks.length + " below level 100" : "All " + ks.length + " are level 100 \u2705") + "</span></div>" : ""; })() + "</div>" +
     collectorTab(tctx());
 }
 // While a finger/mouse is pressed, hold page redraws until it lifts. Otherwise a redraw from someone else's
 // update (25 kids playing at once) swaps the button out mid-click and the click is lost.
-let ptrDown = false, heldRender = null;
+let ptrDown = false, heldRender = null, battleScroll = null;
 addEventListener("pointerdown", () => { ptrDown = true; }, true);
 const ptrUp = () => setTimeout(() => { ptrDown = false; if (heldRender !== null) { const f = heldRender; heldRender = null; render(f); } }, 60);
 addEventListener("pointerup", ptrUp, true); addEventListener("pointercancel", ptrUp, true);
@@ -522,7 +525,10 @@ function render(force) {
 
   const active = document.activeElement, keep = active && active.id && active.matches("input, textarea") ? { id: active.id, v: active.value, pos: active.selectionStart } : null;
   const fields = liveNow ? saveFields(app) : {};
+  // Battle on screen: draw only the battle (the console under it has hundreds of creature pictures; redrawing them every replay step made battles lag)
+  if (mode === "guide" && ctab === "collector" && cls && battleShowing()) { if (battleScroll == null) battleScroll = scrollY; app.innerHTML = collectorOverlays(tctx()); return; }
   app.innerHTML = h + (mode === "guide" ? '<p class="muted small" style="text-align:center;margin:18px 0 6px;opacity:.6;">Version ' + APP_V + "</p>" : "") + (mode === "guide" && ctab === "collector" && cls ? collectorOverlays(tctx()) : "");
+  if (battleScroll != null) { scrollTo(0, battleScroll); battleScroll = null; }
   if (cls) partySync(partyCtx());
   miniSync(cls);
   restoreFields(fields);
@@ -1947,6 +1953,12 @@ document.addEventListener("click", async ev => {
   const act = el.dataset.act;
 
   if (act === "newsSave") { await newsSave(); return; }
+  if (act === "teacherMax") {   // Oct 26: Ms. Ariana's creatures all at the top level (the class doc only; students' saves aren't touched)
+    const c = (cls.teacher || {}).coll || {}, coll = {}; let n = 0;
+    Object.keys(c).forEach(k => { const lv = Number(c[k] && c[k].lvl) || 1; if (lv < 100) n++; coll[k] = Object.assign({}, c[k], { lvl: 100 }); });
+    if (!n || !confirm("Set all " + Object.keys(coll).length + " of your creatures to level 100?")) return;
+    await tpatch({ coll }); flash("Saved \u2014 " + n + " creature" + (n === 1 ? "" : "s") + " moved up to level 100."); return;
+  }
   if (act === "boostSave") { await boostSave(); return; }
   if (act === "cdSave") { await cdSave(); return; }
   if (act === "boostOff") { await boostSave(true); return; }

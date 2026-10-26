@@ -4,13 +4,13 @@ import {
   formIndex, formOf, statsOf, seenSet, rollRarity, doPull, arenaOpen, arenaOpenFor, lunchHour, hitGoalToday, LUNCH_ARENA, ARENA_HOURS, fighterFrom, teamSize, alive, resolve, resolveRound, moveOk, MOVES, hitDamage,
   birthdayLeft, pickleLeft, PICKLE_FAM, brewLegLeft, BREW_FAM, feastLegLeft, HARVEST_FAM, gingerLegLeft, GINGER_FAM, snowLegLeft, SNOW_FAM, candyLegLeft, CANDY_FAM, ghostEggLeft, GHOST_FAM, BOSS2_LIST, boss2EggLeft, vaultLegLeft, goalLeft, nextGoal, rollRareUp, themeLeft, nextTheme, THEME_TYPES, THEME_EGG, WISH_FAM, spares, spareId, releaseXP, releaseProblem, isStarterFam, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
   EVENTS, eventOpen, eventWindow, eventStreak, hasEvent, eventUnlocked, azToday, rollTeacherRarity, TEACHER_ODDS, LIVE, staleBattle
-} from "./collect.js?v=20261026a";
-import { newBattleRef, changeBattle as changeBattleRaw, setDoc, liveBattlesNow, ck, ckMessage } from "./db.js?v=20261026a";
+} from "./collect.js?v=20261026b";
+import { newBattleRef, changeBattle as changeBattleRaw, setDoc, liveBattlesNow, ck, ckMessage } from "./db.js?v=20261026b";
 // every change to a battle is stamped with the time (upd), so a battle nobody has touched in a while can be ended
 let locking = null, leaving = null;   // battle id while "Lock in team" is saving
 const changeBattle = (id, fn) => changeBattleRaw(id, bt => { const n = fn(bt); if (n) n.upd = new Date().toISOString(); return n; });
 
-import { tradeCard } from "./trade-ui.js?v=20261026a";
+import { tradeCard } from "./trade-ui.js?v=20261026b";
 
 const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const PER_PAGE = 20;
@@ -20,6 +20,8 @@ let hatch = null;                // { phase: shake|crack|reveal, res, legendary 
 let book = null;                 // { open: bool, opening, page, detail, flip }
 let battleOpen = null, picks = [], shown = {}, animated = {}, replayTimer = null, busyUntil = 0;
 export function isBusy() { return Date.now() < busyUntil; }
+// A battle is on screen (Oct 26): the pages then draw only the battle, not the whole page under it, so each replay step stays quick.
+export function battleShowing() { return !!battleOpen && !!ctx && (ctx.battles || []).some(b => b.id === battleOpen); }
 function hold(ms) { busyUntil = Date.now() + ms; }
 function later(ms, fn) { setTimeout(() => { fn(); ctx.render(true); }, ms); }
 // Students' eggs hatch on the server (it checks the egg and rolls the creature); the egg shakes while it works.
