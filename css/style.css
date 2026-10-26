@@ -1940,6 +1940,9 @@ body.mini-xmas .tile{ box-shadow:0 0 0 2px #E8B923; } body.mini-tot .tile{ box-s
 #wheelStage .whspin { font-size: 28px; padding: 14px 54px; }
 #wheelStage .whresult { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); background: #fff; color: #1d1640; border-radius: 24px; padding: 26px 34px; box-shadow: 0 20px 60px rgba(0,0,0,.6); min-width: min(520px, 90vw); animation: whpop .45s ease-out; }
 #wheelStage .whresult p { font-size: 19px; margin: 6px 0 14px; }
-#wheelStage .whbig { font-size: clamp(40px, 7vw, 84px); font-weight: 900; color: #6C3BD9; line-height: 1.05; }
+#wheelStage .whbig2 { font-size: clamp(40px, 7vw, 84px); font-weight: 900; color: #6C3BD9; line-height: 1.05; }
 #wheelStage .whconf { font-size: 54px; }
+#wheelStage .wheel.whbig { width: min(72vh, 92vw); }
+#wheelStage .whspin { font-size: 26px; }
+#wheelStage .whstage .whresult { z-index: 3; }
 @keyframes whpop { from { transform: translate(-50%, -50%) scale(.6); opacity: 0; } to { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
