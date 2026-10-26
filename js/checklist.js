@@ -3,20 +3,20 @@
    Each step checks itself off from the student's save; tapping a step opens the tab where it's done.
    The Treasure Vault step is "check your progress", so it counts as done once the student opens it today
    (remembered on this computer only). */
-import { mapOn, mapState, todayReading, PER_ISLAND } from "./readmap.js?v=20261020u";
-import { tbLeft, tbLive } from "./teachbattle.js?v=20261020u";
-import { esc, simulate, companionOf, goalXP } from "./game.js?v=20261020u";
+import { mapOn, mapState, todayReading, PER_ISLAND } from "./readmap.js?v=20261020v";
+import { tbLeft, tbLive } from "./teachbattle.js?v=20261020v";
+import { esc, simulate, companionOf, goalXP } from "./game.js?v=20261020v";
 import { azToday, azNow, todayXP, pullsLeft, legendaryLeft, birthdayLeft, pickleLeft, vaultLegLeft, BOSS2_LIST, boss2EggLeft, candyLegLeft, snowLegLeft,
-  gingerLegLeft, feastLegLeft, brewLegLeft, goalLeft, themeLeft, hasStarter, bankXP, LEVEL_XP } from "./collect.js?v=20261020u";
-import { mqReady } from "./morning.js?v=20261020u";
-import { heroOn, heroOf, heroReady } from "./hero.js?v=20261020u";
-import { doorsLive, doorName, goldenReady, weekDoorState, vaultState, vaultGoal, subReq } from "./doors.js?v=20261020u";
-import { soloOn, soloReady, soloCfg } from "./solobrew.js?v=20261020u";
-import { passReady } from "./pass.js?v=20261020u";
-import { pettedToday } from "./bond.js?v=20261020u";
-import { mealsReady } from "./meals.js?v=20261020u";
-import { readyTests } from "./quest.js?v=20261020u";
-import { unthanked } from "./kindness.js?v=20261020u";
+  gingerLegLeft, feastLegLeft, brewLegLeft, goalLeft, themeLeft, hasStarter, bankXP, LEVEL_XP } from "./collect.js?v=20261020v";
+import { mqReady } from "./morning.js?v=20261020v";
+import { heroOn, heroOf, heroReady } from "./hero.js?v=20261020v";
+import { doorsLive, doorName, goldenReady, weekDoorState, vaultState, vaultGoal, subReq } from "./doors.js?v=20261020v";
+import { soloOn, soloReady, soloCfg } from "./solobrew.js?v=20261020v";
+import { passReady } from "./pass.js?v=20261020v";
+import { pettedToday } from "./bond.js?v=20261020v";
+import { mealsReady } from "./meals.js?v=20261020v";
+import { readyTests } from "./quest.js?v=20261020v";
+import { unthanked } from "./kindness.js?v=20261020v";
 
 const seenKey = (id, what) => "ck-seen-" + azToday() + "-" + id + "-" + what;
 export function markSeen(id, what) { try { localStorage.setItem(seenKey(id, what), "1"); } catch (e) {} }

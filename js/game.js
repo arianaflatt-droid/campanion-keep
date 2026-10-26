@@ -1,10 +1,10 @@
-import { CREATURE_LAYOUT, CREATURE_FIT_ID } from "./creature-fit.js?v=20261020u";
-import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261020u";
-import { heldWeapon } from "./quest.js?v=20261020u";
+import { CREATURE_LAYOUT, CREATURE_FIT_ID } from "./creature-fit.js?v=20261020v";
+import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261020v";
+import { heldWeapon } from "./quest.js?v=20261020v";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261020u";
+export const APP_V = "20261020v";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -98,6 +98,8 @@ export function dayEaten(st, d) { return Math.min(EAT_PER_DAY, Math.max(0, Math.
 export function weekCandy(st) {
   let n = 0;
   for (let d = 0; d < 5; d++) n += dayCandy(st, d);
+  // ⚡ Subject Boost: the boosted subjects' extra XP becomes extra candy (Mon–Fri, like the rest of the week's candy)
+  if (boostOn(BOOST_CLS)) for (let d = 0; d < 5; d++) n += boostExtra(st, BOOST_CLS, plusDays(weekKey(BOOST_CLS), d));
   return n;
 }
 // Candy slots inside the basket opening (% of the basket picture), filled bottom row first.
@@ -1007,7 +1009,34 @@ export const SEASONS = {
 };
 export function seasonOf(cls) { return isHeart(cls) ? SEASONS.heart : isFrost(cls) ? SEASONS.frost : isJingle(cls) ? SEASONS.jingle : isGobble(cls) ? SEASONS.gobble : SEASONS.haunt; }
 export let SEASON = SEASONS.haunt;
-export function setSeason(cls) { SEASON = seasonOf(cls); return SEASON; }
+export function setSeason(cls) { SEASON = seasonOf(cls); BOOST_CLS = cls; return SEASON; }
+/* ---------- ⚡ Subject Boost (Oct 25) ----------
+   Ms. Ariana picks subjects to be worth ×2 or ×3 for one week: cls.boost = { week: "<Monday>", subs: { r: 2, m: 3 } }.
+   It turns itself off when a new week starts. The boost ONLY adds bonus to: candy / event currency, mini event tickets
+   and event progress (potion ingredients, Reading Map). The real XP (daily goal, Weekly Door, Vault, core subjects,
+   Season Pass, Hero Quest, records, badges, console numbers) is never boosted. */
+let BOOST_CLS = null;
+const plusDays = (iso, n) => { const [y, m, d] = String(iso).split("-").map(Number), x = new Date(y, m - 1, d + n);
+  return x.getFullYear() + "-" + String(x.getMonth() + 1).padStart(2, "0") + "-" + String(x.getDate()).padStart(2, "0"); };
+export const boostOn = cls => { const b = cls && cls.boost; return !!(b && b.week === weekKey(cls) && b.subs && Object.values(b.subs).some(v => Number(v) > 1)); };
+// How much one subject counts on a date (1 when no boost covers it)
+export function boostMult(cls, sub, date) {
+  cls = cls || BOOST_CLS; if (!boostOn(cls)) return 1;
+  const wk = cls.boost.week; if (date && (date < wk || date > plusDays(wk, 6))) return 1;
+  return Math.max(1, Math.min(3, Number(cls.boost.subs[sub]) || 1));
+}
+// The extra (bonus) XP a day's subjects earn from the boost
+export function boostExtra(st, cls, date) {
+  cls = cls || BOOST_CLS; if (!boostOn(cls)) return 0;
+  const sub = ((((st && st.xpHist) || {})[date] || {}).sub) || {};
+  return Math.round(Object.keys(cls.boost.subs).reduce((n, k) => n + (boostMult(cls, k, date) - 1) * (Number(sub[k]) || 0), 0));
+}
+export function boostHTML(cls) {
+  if (!boostOn(cls)) return "";
+  const N = { m: "Math", f: "Fast Math", r: "Reading", w: "Writing", l: "Language", v: "Vocabulary", sc: "Science", ss: "Social Studies" };
+  const list = Object.entries(cls.boost.subs).filter(([, v]) => Number(v) > 1).map(([k, v]) => "<b>" + (N[k] || k) + " \u00d7" + v + "</b>");
+  return '<div class="boostbar">\u26A1 <b>Subject Boost this week:</b> ' + list.join(", ") + " \u2014 worth extra " + (SEASON.cur || "candy") + ", event tickets and event progress!</div>";
+}
 export function prizeSlices() { return SEASON.prizes.map(p => Object.assign({}, p, { label: p.short || p.name })); }
 // A slice's chance: its own `chance` if set, 5% if rare, otherwise an equal share of what's left.
 export function sliceChances(slices) {
