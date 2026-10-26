@@ -1946,3 +1946,13 @@ body.mini-xmas .tile{ box-shadow:0 0 0 2px #E8B923; } body.mini-tot .tile{ box-s
 #wheelStage .whspin { font-size: 26px; }
 #wheelStage .whstage .whresult { z-index: 3; }
 @keyframes whpop { from { transform: translate(-50%, -50%) scale(.6); opacity: 0; } to { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
+/* 📚 Today's work on the checklist (checklist.js workCard) — light box, dark text in every mode */
+.ckwork{ margin-top:12px; padding:12px 14px; border-radius:14px; background:#eef8f1; border:2px solid #a9dbb8; display:flex; flex-direction:column; gap:8px; color:#173a24; }
+.ckwork .small{ color:#2f5a3d; }
+.ckwrow{ display:grid; grid-template-columns:minmax(120px,170px) 1fr auto; align-items:center; gap:4px 12px; }
+.ckwrow .pbar{ background:#cfe9d8; }
+.ckwrow .ckwname{ font-weight:800; }
+.ckwrow .ckwnum{ font-weight:800; white-space:nowrap; }
+.ckwrow small{ grid-column:2 / 4; color:#3d6a4c; font-size:12.5px; margin-top:-4px; }
+.ckwrow .ckwmore{ color:#9a4a00; font-weight:700; }
+.ckwrow.ok .ckwnum{ color:#1d7a3e; }

@@ -3,20 +3,20 @@
    Each step checks itself off from the student's save; tapping a step opens the tab where it's done.
    The Treasure Vault step is "check your progress", so it counts as done once the student opens it today
    (remembered on this computer only). */
-import { mapOn, mapState, todayReading, PER_ISLAND } from "./readmap.js?v=20261026b";
-import { tbLeft, tbLive } from "./teachbattle.js?v=20261026b";
-import { esc, simulate, companionOf, goalXP } from "./game.js?v=20261026b";
+import { mapOn, mapState, todayReading, PER_ISLAND } from "./readmap.js?v=20261026c";
+import { tbLeft, tbLive } from "./teachbattle.js?v=20261026c";
+import { esc, simulate, companionOf, goalXP } from "./game.js?v=20261026c";
 import { azToday, azNow, todayXP, pullsLeft, legendaryLeft, birthdayLeft, pickleLeft, vaultLegLeft, BOSS2_LIST, boss2EggLeft, candyLegLeft, snowLegLeft,
-  gingerLegLeft, feastLegLeft, brewLegLeft, goalLeft, themeLeft, hasStarter, bankXP, LEVEL_XP } from "./collect.js?v=20261026b";
-import { mqReady } from "./morning.js?v=20261026b";
-import { heroOn, heroOf, heroReady } from "./hero.js?v=20261026b";
-import { doorsLive, doorName, goldenReady, weekDoorState, vaultState, vaultGoal, subReq } from "./doors.js?v=20261026b";
-import { soloOn, soloReady, soloCfg } from "./solobrew.js?v=20261026b";
-import { passReady } from "./pass.js?v=20261026b";
-import { pettedToday } from "./bond.js?v=20261026b";
-import { mealsReady } from "./meals.js?v=20261026b";
-import { readyTests } from "./quest.js?v=20261026b";
-import { unthanked } from "./kindness.js?v=20261026b";
+  gingerLegLeft, feastLegLeft, brewLegLeft, goalLeft, themeLeft, hasStarter, bankXP, LEVEL_XP } from "./collect.js?v=20261026c";
+import { mqReady } from "./morning.js?v=20261026c";
+import { heroOn, heroOf, heroReady } from "./hero.js?v=20261026c";
+import { doorsLive, doorName, goldenReady, weekDoorState, vaultState, vaultGoal, subReq, todayPlan } from "./doors.js?v=20261026c";
+import { soloOn, soloReady, soloCfg } from "./solobrew.js?v=20261026c";
+import { passReady } from "./pass.js?v=20261026c";
+import { pettedToday } from "./bond.js?v=20261026c";
+import { mealsReady } from "./meals.js?v=20261026c";
+import { readyTests } from "./quest.js?v=20261026c";
+import { unthanked } from "./kindness.js?v=20261026c";
 
 const seenKey = (id, what) => "ck-seen-" + azToday() + "-" + id + "-" + what;
 export function markSeen(id, what) { try { localStorage.setItem(seenKey(id, what), "1"); } catch (e) {} }
@@ -84,6 +84,21 @@ export function steps(s, cls, students, battles) {
 }
 export const todoCount = (s, cls, students, battles) => steps(s, cls, students, battles).filter(x => !x.done).length;
 
+const SUB_IC = { m: "\u2795", r: "\u{1F4D6}", l: "\u270F\uFE0F", f: "\u26A1", w: "\u{1F4DD}", v: "\u{1F524}", sc: "\u{1F52C}", ss: "\u{1F30E}" };
+// 📚 Today's work: each core subject's XP today against what today needs (25 a day, plus catch-up from earlier days this week)
+function workCard(s, cls) {
+  const p = todayPlan(s, cls, azToday()); if (!p || (!p.schoolToday && p.rows.every(r => !r.target))) return "";
+  const all = p.rows.every(r => r.today >= r.target);
+  return '<div class="ckwork"><b>\u{1F4DA} ' + (p.weekend ? "Make-up work this weekend" : "Today\u2019s subjects") + "</b>" +
+    '<span class="small">' + (p.weekend ? "Finish what\u2019s still missing this week:" : "Do these every school day (they add up for your Weekly Door and Vault):") + "</span>" +
+    p.rows.map(r => { const ok = r.today >= r.target;
+      return '<div class="ckwrow' + (ok ? " ok" : "") + '"><span class="ckwname">' + (SUB_IC[r.src] || "\u{1F4D8}") + " " + esc(r.name) + "</span>" +
+        '<span class="pbar"><span style="width:' + (r.target ? Math.min(100, r.today / r.target * 100) : 100) + '%"></span></span>' +
+        '<span class="ckwnum">' + (ok ? "\u2705 " : "") + r.today + " / " + r.target + "</span>" +
+        (r.extra ? '<small class="ckwmore">' + (p.weekend ? "" : r.per + " for today + " + r.extra + " to catch up") + "</small>" : "") +
+        '<small class="ckwweek">This week: ' + Math.min(r.week, r.need) + " / " + r.need + "</small></div>"; }).join("") +
+    (all ? '<span class="small"><b>\u{1F389} All your subjects are done' + (p.weekend ? "" : " for today") + "!</b></span>" : "") + "</div>";
+}
 export function checklistTab(s, cls, students, battles) {
   const list = steps(s, cls, students, battles), left = list.filter(x => !x.done).length, goal = goalXP(cls), xp = todayXP(s, cls);
   const hi = azNow().h < 12 ? "Good morning" : "Welcome back";
@@ -93,6 +108,7 @@ export function checklistTab(s, cls, students, battles) {
       '</span><span class="cktxt"><b>' + esc(x.title) + "</b><small>" + esc(x.text) + '</small></span><span class="ckgo">' + (x.done ? "" : "Go →") + "</span></button>").join("") + "</div>" +
     '<div class="ckgoal"><b>\u{1F3AF} Then: earn ' + goal + " XP today!</b> " + (xp >= goal ? "You did it — every 120 more earns another egg! \u{1F389}" : xp.toLocaleString() + " / " + goal + " so far") +
     '<span class="pbar"><span style="width:' + Math.min(100, xp / goal * 100) + '%"></span></span></div>' +
+    workCard(s, cls) +
     (left ? "" : '<p class="arena-win" style="margin-top:10px;">\u{1F389} Your checklist is done! Now get learning!</p>') + "</div>";
   return h;
 }

@@ -4,10 +4,10 @@
    chests (XP, event currency or Comfort Points), Water creatures to catch, eggs, and a Rare-or-better egg at the end.
    Students with their own plan read from their swapped subject (cls.subSwap[id].r), same as the core subjects rule.
    Ms. Ariana turns it on/off in the console (cls.readMap). Saved on the student: rmap = { wk, got: [island indexes], log: { i: text } } */
-import { esc, SEASON, boostMult } from "./game.js?v=20261026b";
-import { azToday, doPull, formOf } from "./collect.js?v=20261026b";
-import { weekKey, addDays } from "./doors.js?v=20261026b";
-import { subFor, SUB_NAMES } from "./teams.js?v=20261026b";
+import { esc, SEASON, boostMult } from "./game.js?v=20261026c";
+import { azToday, doPull, formOf } from "./collect.js?v=20261026c";
+import { weekKey, addDays } from "./doors.js?v=20261026c";
+import { subFor, SUB_NAMES } from "./teams.js?v=20261026c";
 
 export const PER_ISLAND = 25;
 export const ISLANDS = [

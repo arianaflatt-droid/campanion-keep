@@ -8,9 +8,9 @@
    Saved on the student: doors = { "YYYY-MM-DD": { "0": { st: "wait"|"ok"|"no"|"open", at, r }, g: { st: "open", r } } }
    plus lastDoor = "YYYY-MM-DD/<door>" (which door the last save touched; the save rules check it).
    Class: doorsOn (on/off), doorList (default list), doorDays = { "YYYY-MM-DD": [..] } (one-day lists). */
-import { azToday } from "./collect.js?v=20261026b";
-import { SEASON, eventMode, esc, dayXP, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261026b";
-import { subFor, SUB_NAMES } from "./teams.js?v=20261026b";
+import { azToday } from "./collect.js?v=20261026c";
+import { SEASON, eventMode, esc, dayXP, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261026c";
+import { subFor, SUB_NAMES } from "./teams.js?v=20261026c";
 
 // A door that starts with "!" is always open (not locked behind the first doors). The "!" isn't shown.
 export const DOOR_DEFAULT = [
@@ -249,6 +249,23 @@ export function subReq(st, cls, wk) {
   return { on, rows, cells, days, ok: !on || rows.every(r => r.have >= r.need), short: rows.filter(r => r.have < r.need) };
 }
 // Little bars for the student cards
+/* ---------- 📚 Today's work (Oct 26): what each core subject needs TODAY, with any catch-up from earlier this week ----------
+   On pace = 25 a school day so far (Mon..today, not cls.offDays). Today's target = what's left to be on pace once today ends,
+   never less than the normal 25. Weekends: whatever is still missing for the week. Uses the merged rows (swaps add up). */
+export function todayPlan(st, cls, today) {
+  const q = subReq(st, cls); if (!q.on) return null;
+  const wk = weekKey(cls), hist = (st && st.xpHist) || {}, off = (cls && cls.offDays) || {};
+  const idx = Math.round((new Date(today + "T12:00:00") - new Date(wk + "T12:00:00")) / 864e5);
+  if (idx < 0 || idx > 6) return null;
+  const weekend = idx >= 5, schoolToday = !weekend && !off[today];
+  let soFar = 0; for (let i = 0; i <= Math.min(idx, 4); i++) if (!off[addDays(wk, i)]) soFar++;
+  const rows = q.rows.map(r => {
+    const per = r.ks.length * SUB_DAY, tdy = Math.round(Number((((hist[today] || {}).sub) || {})[r.src]) || 0), before = r.have - tdy;
+    const target = weekend ? Math.max(0, r.need - before) : Math.max(schoolToday ? per : 0, soFar * per - before);
+    return { name: r.name, src: r.src, per, today: tdy, target, extra: Math.max(0, target - (schoolToday ? per : 0)), week: r.have, need: r.need };
+  });
+  return { rows, weekend, schoolToday };
+}
 export function subReqHTML(st, cls, wk) {
   const q = subReq(st, cls, wk); if (!q.on || !q.days) return "";
   return '<div class="subreq">' + q.rows.map(r => '<span class="srq' + (r.have >= r.need ? " ok" : "") + '"><b>' + esc(r.name) + "</b> " + Math.min(r.have, r.need) + " / " + r.need + (r.have >= r.need ? " \u2705" : "") + "</span>").join("") + "</div>";
