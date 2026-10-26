@@ -1907,3 +1907,7 @@ body.mini-xmas .tile{ box-shadow:0 0 0 2px #E8B923; } body.mini-tot .tile{ box-s
 .boostgrid { display: grid; grid-template-columns: repeat(4, minmax(120px, 1fr)); gap: 10px; }
 .boostgrid label { display: flex; flex-direction: column; gap: 4px; }
 @media (max-width: 560px) { .boostgrid { grid-template-columns: repeat(2, 1fr); } }
+/* ⏳ Countdown */
+.countdown { display: flex; align-items: center; gap: 14px; margin: 0 0 14px; padding: 12px 18px; border-radius: 16px; background: linear-gradient(90deg, #2A1640, #4A2470); color: #FFF3E3; border: 2px solid #F28C28; font-size: 18px; }
+.countdown .cdic { font-size: 30px; } .countdown b { color: #FFC072; }
+.countdown .cdleft { display: block; font-size: 26px; font-weight: 800; color: #FFFFFF; }

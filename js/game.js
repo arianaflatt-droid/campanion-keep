@@ -1,10 +1,10 @@
-import { CREATURE_LAYOUT, CREATURE_FIT_ID } from "./creature-fit.js?v=20261020v";
-import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261020v";
-import { heldWeapon } from "./quest.js?v=20261020v";
+import { CREATURE_LAYOUT, CREATURE_FIT_ID } from "./creature-fit.js?v=20261020w";
+import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261020w";
+import { heldWeapon } from "./quest.js?v=20261020w";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261020v";
+export const APP_V = "20261020w";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -44,11 +44,7 @@ export function newsHTML(cls, pic) {
 }
 export function bannerFor(cls) {
   const b = isHeart(cls) ? HEART_BANNER : isFrost(cls) ? FROST_BANNER : isJingle(cls) ? JINGLE_BANNER : isGobble(cls) ? GOBBLE_BANNER : isHaunt(cls) ? HAUNT_BANNER : BANNER;
-  // The 2nd boss (already beaten once, 2nd-win rewards not given yet): the prize promise (Ms. Ariana can change it: cls.prize2)
-  const B = b !== BANNER ? boss2Of(cls) : null;
-  if (B && cls[B.defeat] && !cls[B.flag])
-    return b.replace("</p></div>", '</p><p class="haunt-sub costume">\u{1F3C6} <b>Defeat the ' + B.boss + " again and you get to " + esc(boss2Prize(cls, B)) + "!</b> " + B.icon + "</p></div>")
-      .replace("<b>600 XP</b> This Week", "<b>" + weekGoal(cls).toLocaleString() + " XP</b> This Week");
+  // (The "defeat the boss again" prize line was taken off the banner on Oct 25, at Ms. Ariana's request.)
   return b.replace("<b>600 XP</b> This Week", "<b>" + weekGoal(cls).toLocaleString() + " XP</b> This Week");
 }
 
@@ -1030,6 +1026,19 @@ export function boostExtra(st, cls, date) {
   cls = cls || BOOST_CLS; if (!boostOn(cls)) return 0;
   const sub = ((((st && st.xpHist) || {})[date] || {}).sub) || {};
   return Math.round(Object.keys(cls.boost.subs).reduce((n, k) => n + (boostMult(cls, k, date) - 1) * (Number(sub[k]) || 0), 0));
+}
+/* ---------- ⏳ Countdown (Oct 25): cls.countdown = { on, title, at: ISO time } ----------
+   Shows "starts in 2 days, 5 hours" on every student's page until the time comes, then hides itself. */
+export function countdownLeft(at) {
+  const ms = new Date(at).getTime() - Date.now(); if (!(ms > 0)) return "";
+  const m = Math.floor(ms / 60000), d = Math.floor(m / 1440), h = Math.floor((m % 1440) / 60), mm = m % 60;
+  const p = (n, w) => n + " " + w + (n === 1 ? "" : "s");
+  return d ? p(d, "day") + ", " + p(h, "hour") : h ? p(h, "hour") + ", " + p(mm, "minute") : p(Math.max(1, mm), "minute");
+}
+export function countdownHTML(cls) {
+  const c = cls && cls.countdown; if (!c || !c.on || !c.at) return "";
+  const left = countdownLeft(c.at); if (!left) return "";
+  return '<div class="countdown"><span class="cdic">\u23F3</span><div><b>' + esc(c.title || "Something fun") + '</b> starts in<span class="cdleft" data-cdat="' + esc(c.at) + '">' + left + "</span></div></div>";
 }
 export function boostHTML(cls) {
   if (!boostOn(cls)) return "";
