@@ -1,37 +1,37 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261020v";
-import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261020v";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261020v";
-import { cpEarnedCalc } from "./room.js?v=20261020v";
-import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261020v";
-import { rewardFor } from "./doors.js?v=20261020v";
-import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet, subReq, subRuleOn, SUB_DAY, addDays } from "./doors.js?v=20261020v";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261020v";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261020u";
+import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261020u";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261020u";
+import { cpEarnedCalc } from "./room.js?v=20261020u";
+import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261020u";
+import { rewardFor } from "./doors.js?v=20261020u";
+import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet, subReq, subRuleOn, SUB_DAY, addDays } from "./doors.js?v=20261020u";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261020u";
 import {
-  newsHTML, boostOn, boostHTML, applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
+  newsHTML, applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   boss2Of, boss2Prize, simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, isFrost, isHeart, heartUnlocked, saveProblems, yetiUnlocked, wallMarks, WALL_BLOCK, BOSS_START_HP, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261020v";
-import { MQ_CUTOFF } from "./morning.js?v=20261020v";
-import { kindAdmin } from "./kindness.js?v=20261020v";
-import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261020v";
-import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261020v";
-import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261020v";
-import { passAdmin } from "./pass.js?v=20261020v";
-import { heroTeacherCard } from "./hero.js?v=20261020v";
-import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261020v";
-import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef, newBattleRef, newsPicRef, watchNewsPic } from "./db.js?v=20261020v";
-import { mapAdmin } from "./readmap.js?v=20261020v";
-import { tbRequestsCard, tbInvite, tbToSettle } from "./teachbattle.js?v=20261020v";
-import { rewardAdmin, rgWaiting, rgOf, shrinkImage } from "./weekgoal.js?v=20261020v";
-import { soloAdmin, soloCfg, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261020v";
-import { feederLink } from "./feeder.js?v=20261020v";
-import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261020v";
+} from "./game.js?v=20261020u";
+import { MQ_CUTOFF } from "./morning.js?v=20261020u";
+import { kindAdmin } from "./kindness.js?v=20261020u";
+import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261020u";
+import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261020u";
+import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261020u";
+import { passAdmin } from "./pass.js?v=20261020u";
+import { heroTeacherCard } from "./hero.js?v=20261020u";
+import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261020u";
+import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef, newBattleRef, newsPicRef, watchNewsPic } from "./db.js?v=20261020u";
+import { mapAdmin } from "./readmap.js?v=20261020u";
+import { tbRequestsCard, tbInvite, tbToSettle } from "./teachbattle.js?v=20261020u";
+import { rewardAdmin, rgWaiting, rgOf, shrinkImage } from "./weekgoal.js?v=20261020u";
+import { soloAdmin, soloCfg, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261020u";
+import { feederLink } from "./feeder.js?v=20261020u";
+import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261020u";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef, watchSeats, watchCards
-} from "./db.js?v=20261020v";
-import { G, guardCard, guardClick, guardInput, autoSnap, personalLink, syncCards } from "./guard.js?v=20261020v";
+} from "./db.js?v=20261020u";
+import { G, guardCard, guardClick, guardInput, autoSnap, personalLink, syncCards } from "./guard.js?v=20261020u";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -509,7 +509,7 @@ function render(force) {
     if (nd && nd > doorHidden) h += '<div class="banner prizealert"><span>\u{1F6AA} <b>' + nd + " door" + (nd === 1 ? "" : "s") + "</b> to check" + doorNames() + '</span><span class="row" style="gap:8px;"><button class="btn small" data-act="goDoors">Check doors</button><button class="btn ghost small" data-act="hideDoors">Hide</button></span></div>';
     if (np && np > prizeHidden) h += '<div class="banner prizealert"><span>\u{1F381} <b>' + np + " prize" + (np === 1 ? "" : "s") + "</b> to order or give" + prizeNames() + '</span><span class="row" style="gap:8px;"><button class="btn small" data-act="goPrizes">View prizes</button><button class="btn ghost small" data-act="hidePrizes">Hide</button></span></div>';
     h += '<div class="tabs ctabs" role="tablist">' + tabs.map(([k, l]) => '<button role="tab" class="tab' + (ctab === k ? " on" : "") + '" data-ctab="' + k + '" aria-selected="' + (ctab === k) + '">' + l + "</button>").join("") + "</div>";
-    if (ctab === "daily") h += newsAdmin() + boostAdmin() + viewDaily() + miniAdmin(students, cls) + mapAdmin(students, cls) + partyAdmin(students, cls) + surpriseAdmin(students, cls) + viewWeekDoor() + viewRewards();
+    if (ctab === "daily") h += newsAdmin() + viewDaily() + miniAdmin(students, cls) + mapAdmin(students, cls) + partyAdmin(students, cls) + surpriseAdmin(students, cls) + viewWeekDoor() + viewRewards();
     else if (ctab === "students") h += viewStandings() + passAdmin(students, cls) + heroTeacherCard(students, cls) + viewAssign() + viewLosses() + viewLinks() + guardCard(students, cls);
     else if (ctab === "collector") h += viewLiveBattles() + tbRequestsCard(students, cls, battles, teacherBusy()) + viewIdeas() + teacherCollectorCard() + viewCollector();
     else if (ctab === "rewards") h += rewardAdmin(students, cls, rpics, busy);
@@ -580,22 +580,6 @@ function newsAdmin() {
       (npic && n.pic ? '<button class="btn ghost small" data-act="newsPicOff">Remove picture</button>' : "") +
       '<button class="btn small" data-act="newsSave">Save announcement</button></div>' +
     (n.on ? '<div style="margin-top:10px;"><p class="muted small">Preview:</p>' + newsHTML(cls, npic) + "</div>" : "") + "</div>";
-}
-/* ---------- ⚡ Subject Boost (one week; game.js boostMult) ---------- */
-const BOOST_SUBS = [["r", "Reading"], ["m", "Math"], ["l", "Language"], ["f", "Fast Math"], ["w", "Writing"], ["v", "Vocabulary"], ["sc", "Science"], ["ss", "Social Studies"]];
-function boostAdmin() {
-  const on = boostOn(cls), cur = on ? cls.boost.subs : {};
-  return '<div class="card boostadmin"><div class="card-head"><h2>\u26A1 Subject Boost</h2><span class="fact">' + (on ? "on this week" : "off") + "</span></div>" +
-    '<p class="lede" style="font-size:13.5px;">Make a subject worth \u00d72 or \u00d73 this week. The extra goes to <b>' + esc(SEASON.cur || "candy") + "</b>, <b>mini event tickets</b> and <b>event progress</b> (potion ingredients, Reading Map). Real XP is never changed: the daily goal, Weekly Door, Vault, core subjects, Season Pass, Hero Quest, records and badges all use real XP. It turns off by itself when you start a new week.</p>" +
-    '<div class="boostgrid">' + BOOST_SUBS.map(([k, n]) => '<label class="small"><b>' + n + '</b><select id="boost-' + k + '">' + [1, 2, 3].map(v => '<option value="' + v + '"' + ((Number(cur[k]) || 1) === v ? " selected" : "") + ">" + (v === 1 ? "normal" : "\u00d7" + v) + "</option>").join("") + "</select></label>").join("") + "</div>" +
-    '<div class="row" style="gap:8px;margin-top:10px;"><button class="btn small" data-act="boostSave">Save for this week</button>' + (on ? '<button class="btn ghost small" data-act="boostOff">Turn off</button>' : "") + "</div>" +
-    (on ? '<div style="margin-top:10px;"><p class="muted small">Students see:</p>' + boostHTML(cls) + "</div>" : "") + "</div>";
-}
-async function boostSave(off) {
-  const subs = {}; if (!off) BOOST_SUBS.forEach(([k]) => { const v = Number((document.getElementById("boost-" + k) || {}).value) || 1; if (v > 1) subs[k] = v; });
-  const b = { week: weekKey(cls), subs, at: new Date().toISOString() };
-  try { await updateDoc(classRef, { boost: b }); cls.boost = b; flash(Object.keys(subs).length ? "\u26A1 Subject Boost is on for this week!" : "Subject Boost is off.", true); render(); }
-  catch (e) { flash("Couldn\u2019t save \u2014 " + (e.code || e.message)); }
 }
 async function newsSave(more) {
   const val = id => { const e = document.getElementById(id); return e ? e.value.trim() : ""; };
@@ -1923,8 +1907,6 @@ document.addEventListener("click", async ev => {
   const act = el.dataset.act;
 
   if (act === "newsSave") { await newsSave(); return; }
-  if (act === "boostSave") { await boostSave(); return; }
-  if (act === "boostOff") { await boostSave(true); return; }
   if (act === "newsPicOff") { try { await deleteDoc(newsPicRef); npic = null; await newsSave({ pic: "" }); } catch (e) { flash("Couldn\u2019t remove it \u2014 " + (e.code || e.message)); } return; }
   if (act === "signIn") { try { await teacherSignIn(); } catch (e) { flash("Sign-in didn’t finish — " + (e.code || e.message)); } return; }
   if (act === "goPrizes") { ctab = "events"; try { localStorage.setItem("ck-ctab", ctab); } catch (e) {} render(); const c = document.getElementById("prizeCard"); if (c) c.scrollIntoView({ behavior: "smooth", block: "start" }); return; }

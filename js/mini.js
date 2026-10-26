@@ -11,12 +11,12 @@
    While an event is on, every companion wears a random costume from it, and The Keep gets the event's colors.
    Saved on the student: mini = { id, used: { date: n }, cos, maze, stop, stamps, elf: { d, found, peek: [] }, got }
    plus outfits / outfitOn (game.js). */
-import { esc, HEAD_FNS, OUTFITS, candyLeft, companionOf } from "./game.js?v=20261020v";
-import { azToday, creature, FAMILIES } from "./collect.js?v=20261020v";
-import { CREATURES } from "./creatures.js?v=20261020v";
-import { xpOn } from "./surprise.js?v=20261020v";
-import { SEASON, boostExtra } from "./game.js?v=20261020v";
-import { todayReading, todayReadingBoosted } from "./readmap.js?v=20261020v";
+import { esc, HEAD_FNS, OUTFITS, candyLeft, companionOf } from "./game.js?v=20261020u";
+import { azToday, creature, FAMILIES } from "./collect.js?v=20261020u";
+import { CREATURES } from "./creatures.js?v=20261020u";
+import { xpOn } from "./surprise.js?v=20261020u";
+import { SEASON } from "./game.js?v=20261020u";
+import { todayReading } from "./readmap.js?v=20261020u";
 
 export const PER_TICKET = 10, OUTFIT_COST = 60;
 const typesOf = fam => { const f = FAMILIES.find(x => x.id === fam); const c = f && CREATURES.find(x => x.id === f.forms[0]); return (c && c.types) || []; };
@@ -41,7 +41,7 @@ export const miniOn = cls => (cls && cls.mini && cls.mini.on && MINI[cls.mini.ke
 const mine = (st, cls) => { const m = st && st.mini; return m && cls && cls.mini && m.id === cls.mini.id ? m : { id: cls && cls.mini && cls.mini.id, used: {} }; };
 // Reading counts double (Oct 25): on for Trick-or-Treat Night unless Ms. Ariana turns it off (cls.mini.readX2), off for the others unless she turns it on.
 export const readX2 = cls => { const E = miniOn(cls); return !!E && !E.reading && (cls.mini.readX2 != null ? !!cls.mini.readX2 : E.key === "tot"); };
-export function ticketsLeft(st, cls) { const d = azToday(), E = miniOn(cls), xp = E && E.reading ? todayReadingBoosted(st, cls) : xpOn(st, d) + (readX2(cls) ? todayReading(st, cls) : 0) + boostExtra(st, cls, d);   // ⚡ + the Subject Boost bonus
+export function ticketsLeft(st, cls) { const d = azToday(), E = miniOn(cls), xp = E && E.reading ? todayReading(st, cls) : xpOn(st, d) + (readX2(cls) ? todayReading(st, cls) : 0);
   return Math.max(0, Math.floor(xp / PER_TICKET) - (Number((mine(st, cls).used || {})[d]) || 0)); }
 const tixWord = (E, n) => E.tix ? (n === 1 ? E.tix : E.tixs) : (n === 1 ? "ticket" : "tickets");
 const hasShop = E => OUTFITS.some(o => o.ev === E.key);

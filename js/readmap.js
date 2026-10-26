@@ -4,10 +4,10 @@
    chests (XP, event currency or Comfort Points), Water creatures to catch, eggs, and a Rare-or-better egg at the end.
    Students with their own plan read from their swapped subject (cls.subSwap[id].r), same as the core subjects rule.
    Ms. Ariana turns it on/off in the console (cls.readMap). Saved on the student: rmap = { wk, got: [island indexes], log: { i: text } } */
-import { esc, SEASON, boostMult } from "./game.js?v=20261020v";
-import { azToday, doPull, formOf } from "./collect.js?v=20261020v";
-import { weekKey, addDays } from "./doors.js?v=20261020v";
-import { subFor, SUB_NAMES } from "./teams.js?v=20261020v";
+import { esc, SEASON } from "./game.js?v=20261020u";
+import { azToday, doPull, formOf } from "./collect.js?v=20261020u";
+import { weekKey, addDays } from "./doors.js?v=20261020u";
+import { subFor, SUB_NAMES } from "./teams.js?v=20261020u";
 
 export const PER_ISLAND = 25;
 export const ISLANDS = [
@@ -27,11 +27,9 @@ const readSub = (st, cls) => subFor(cls, st, "r");
 // Reading XP this week (Mon–Sun)
 export function weekReading(st, cls) {
   const wk = weekKey(cls), hist = (st && st.xpHist) || {}, k = readSub(st, cls); let n = 0;
-  for (let i = 0; i < 7; i++) { const d = addDays(wk, i); n += (Number((((hist[d] || {}).sub) || {})[k]) || 0) * boostMult(cls, k, d); }   // ⚡ a boosted subject sails faster
+  for (let i = 0; i < 7; i++) n += Number((((hist[addDays(wk, i)] || {}).sub) || {})[k]) || 0;
   return Math.round(n);
 }
-// ⚡ Reading for lanterns, with any boost
-export function todayReadingBoosted(st, cls) { return Math.round(todayReading(st, cls) * boostMult(cls, readSub(st, cls), azToday())); }
 export function todayReading(st, cls) { return Math.round(Number(((((st && st.xpHist) || {})[azToday()] || {}).sub || {})[readSub(st, cls)]) || 0); }
 const mapOf = (st, cls) => { const m = st && st.rmap; return m && m.wk === weekKey(cls) ? m : { wk: weekKey(cls), got: [], log: {} }; };
 export function mapState(st, cls) {

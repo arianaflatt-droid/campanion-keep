@@ -1902,8 +1902,3 @@ body.mini-xmas .tile{ box-shadow:0 0 0 2px #E8B923; } body.mini-tot .tile{ box-s
 @media (max-width: 640px) { .mstage.libstage { overflow: visible; margin-bottom: 96px; } .libstage .libcard { top: 102%; } .libstage .mhint { bottom: auto; top: 112%; white-space: nowrap; font-size: 13px; } .libbook { height: 11%; } }
 .mshoph { margin: 14px 0 8px; color: #f6ecd4; } .mshoph small { font-weight: 400; opacity: .8; }
 .mitem.furn img { width: 96px; height: 84px; }
-/* ⚡ Subject Boost */
-.boostbar { margin: 0 0 14px; padding: 10px 16px; border-radius: 14px; background: linear-gradient(90deg, #FFE27A, #FFC94A); color: #3a2a00; border: 2px solid #E8A91C; font-size: 15px; }
-.boostgrid { display: grid; grid-template-columns: repeat(4, minmax(120px, 1fr)); gap: 10px; }
-.boostgrid label { display: flex; flex-direction: column; gap: 4px; }
-@media (max-width: 560px) { .boostgrid { grid-template-columns: repeat(2, 1fr); } }

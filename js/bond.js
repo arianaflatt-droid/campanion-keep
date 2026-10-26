@@ -3,8 +3,8 @@
    5 hearts = 1 friendship level. Each level unlocks a new trick (a button that makes the companion move).
    Saved on the student: bond = { n: total pets, last: "YYYY-MM-DD" }. Hearts stay if the companion changes.
    The companion also shows a mood (sleepy, wants a pet, happy, proud, missed you). No XP and no badges. */
-import { esc, BOND_HEARTS, bondLevel, bondHearts } from "./game.js?v=20261020v";
-import { azToday, azNow } from "./collect.js?v=20261020v";
+import { esc, BOND_HEARTS, bondLevel, bondHearts } from "./game.js?v=20261020u";
+import { azToday, azNow } from "./collect.js?v=20261020u";
 
 // The trick each friendship level unlocks
 export const BOND_UNLOCKS = [

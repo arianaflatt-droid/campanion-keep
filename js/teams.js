@@ -6,8 +6,8 @@
    Saved on the class (p = the event's prefix, e.g. "potion" or "feast"):
      <p>On, <p>Teams [{ id, name, members }], <p>Recipe { date: { teamId: { e, b, s } } }, <p>Brews { date: [teamId] }, <p>Top { at, teams }
    Saved on the student: <p>Days { date: { team, fx? } } (days done + rewards given), <p>LegEggs (special Legendary eggs from the top team) */
-import { isHaunt, isGobble, isJingle, isFrost, isHeart, esc, boostMult } from "./game.js?v=20261020v";
-import { azToday } from "./collect.js?v=20261020v";
+import { isHaunt, isGobble, isJingle, isFrost, isHeart, esc } from "./game.js?v=20261020u";
+import { azToday } from "./collect.js?v=20261020u";
 
 export const PER_XP = 25;
 // The Feast Table: one dish shows up on a team's table for every menu it finishes (the 10th finishes the feast).
@@ -169,7 +169,7 @@ export const SUB_NAMES = { m: "Math", f: "Fast Math", r: "Reading", w: "Writing"
 export function subFor(cls, st, sub) { const o = ((cls && cls.subSwap) || {})[st && st.id] || {}; return o[sub] && SUB_NAMES[o[sub]] ? o[sub] : sub; }
 export function ingOf(E, st, date, cls) {
   const s = ((((st && st.xpHist) || {})[date] || {}).sub) || {};
-  return E.ing.reduce((r, g) => { const k = subFor(cls, st, g.sub); r[g.k] = Math.floor((Number(s[k]) || 0) * boostMult(cls, k, date) / PER_XP); return r; }, {});   // ⚡ boosted subjects count extra
+  return E.ing.reduce((r, g) => (r[g.k] = Math.floor((Number(s[subFor(cls, st, g.sub)]) || 0) / PER_XP), r), {});
 }
 // A team's day: what each member added, the totals, what's needed and whether it's done.
 // Extra ingredients Ms. Ariana added by hand (for students working on other subjects): <p>Extra[date][team] = { k: n }
