@@ -8,9 +8,9 @@
    Saved on the student: doors = { "YYYY-MM-DD": { "0": { st: "wait"|"ok"|"no"|"open", at, r }, g: { st: "open", r } } }
    plus lastDoor = "YYYY-MM-DD/<door>" (which door the last save touched; the save rules check it).
    Class: doorsOn (on/off), doorList (default list), doorDays = { "YYYY-MM-DD": [..] } (one-day lists). */
-import { azToday } from "./collect.js?v=20261020z";
-import { SEASON, eventMode, esc, dayXP, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261020z";
-import { subFor, SUB_NAMES } from "./teams.js?v=20261020z";
+import { azToday } from "./collect.js?v=20261026a";
+import { SEASON, eventMode, esc, dayXP, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261026a";
+import { subFor, SUB_NAMES } from "./teams.js?v=20261026a";
 
 // A door that starts with "!" is always open (not locked behind the first doors). The "!" isn't shown.
 export const DOOR_DEFAULT = [
@@ -238,11 +238,15 @@ export function subReq(st, cls, wk) {
   const hist = (st && st.xpHist) || {}, off = (cls && cls.offDays) || {};
   let days = 0;
   for (let i = 0; i < 5; i++) if (!off[addDays(wk, i)]) days++;
-  const rows = SUB_REQ.map(k => { const src = subFor(cls, st, k); let have = 0;
-    for (let i = 0; i < 7; i++) have += Number((((hist[addDays(wk, i)] || {}).sub) || {})[src]) || 0;
-    return { k, src, name: SUB_NAMES[src] || src, have: Math.round(have), need: days * SUB_DAY }; });
+  // Any swap that sends two or three core subjects to the same subject adds them up (Oct 26): all three → Math = one Math row of 375 a week, not 125 three times
+  const rows = [], by = {};
+  SUB_REQ.forEach(k => { const src = subFor(cls, st, k);
+    if (by[src]) { by[src].need += days * SUB_DAY; by[src].ks.push(k); return; }
+    let have = 0; for (let i = 0; i < 7; i++) have += Number((((hist[addDays(wk, i)] || {}).sub) || {})[src]) || 0;
+    rows.push(by[src] = { k, ks: [k], src, name: SUB_NAMES[src] || src, have: Math.round(have), need: days * SUB_DAY }); });
+  const cells = SUB_REQ.map(k => Object.assign({}, by[subFor(cls, st, k)], { k }));   // one per Math / Reading / Language (the console table)
   const on = subRuleOn(cls) && wk >= SUB_SINCE;
-  return { on, rows, days, ok: !on || rows.every(r => r.have >= r.need), short: rows.filter(r => r.have < r.need) };
+  return { on, rows, cells, days, ok: !on || rows.every(r => r.have >= r.need), short: rows.filter(r => r.have < r.need) };
 }
 // Little bars for the student cards
 export function subReqHTML(st, cls, wk) {

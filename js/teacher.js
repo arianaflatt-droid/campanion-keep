@@ -1,38 +1,38 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261020z";
-import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261020z";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261020z";
-import { cpEarnedCalc } from "./room.js?v=20261020z";
-import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261020z";
-import { rewardFor } from "./doors.js?v=20261020z";
-import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet, subReq, subRuleOn, SUB_DAY, addDays } from "./doors.js?v=20261020z";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261020z";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261026a";
+import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261026a";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261026a";
+import { cpEarnedCalc } from "./room.js?v=20261026a";
+import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261026a";
+import { rewardFor } from "./doors.js?v=20261026a";
+import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet, subReq, subRuleOn, SUB_DAY, addDays } from "./doors.js?v=20261026a";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy } from "./collector-ui.js?v=20261026a";
 import {
   newsHTML, boostOn, boostHTML, countdownHTML, applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   boss2Of, boss2Prize, simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, isFrost, isHeart, heartUnlocked, saveProblems, yetiUnlocked, wallMarks, WALL_BLOCK, BOSS_START_HP, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261020z";
-import { MQ_CUTOFF } from "./morning.js?v=20261020z";
-import { kindAdmin } from "./kindness.js?v=20261020z";
-import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261020z";
-import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261020z";
-import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261020z";
-import { passAdmin } from "./pass.js?v=20261020z";
-import { heroTeacherCard } from "./hero.js?v=20261020z";
-import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261020z";
-import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef, newBattleRef, newsPicRef, watchNewsPic } from "./db.js?v=20261020z";
-import { mapAdmin } from "./readmap.js?v=20261020z";
-import { wheelTab, wheelClick } from "./subwheel.js?v=20261020z";
-import { tbRequestsCard, tbInvite, tbToSettle } from "./teachbattle.js?v=20261020z";
-import { rewardAdmin, rgWaiting, rgOf, shrinkImage } from "./weekgoal.js?v=20261020z";
-import { soloAdmin, soloCfg, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261020z";
-import { feederLink } from "./feeder.js?v=20261020z";
-import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261020z";
+} from "./game.js?v=20261026a";
+import { MQ_CUTOFF } from "./morning.js?v=20261026a";
+import { kindAdmin } from "./kindness.js?v=20261026a";
+import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261026a";
+import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261026a";
+import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261026a";
+import { passAdmin } from "./pass.js?v=20261026a";
+import { heroTeacherCard } from "./hero.js?v=20261026a";
+import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261026a";
+import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef, newBattleRef, newsPicRef, watchNewsPic } from "./db.js?v=20261026a";
+import { mapAdmin } from "./readmap.js?v=20261026a";
+import { wheelTab, wheelClick } from "./subwheel.js?v=20261026a";
+import { tbRequestsCard, tbInvite, tbToSettle } from "./teachbattle.js?v=20261026a";
+import { rewardAdmin, rgWaiting, rgOf, shrinkImage } from "./weekgoal.js?v=20261026a";
+import { soloAdmin, soloCfg, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261026a";
+import { feederLink } from "./feeder.js?v=20261026a";
+import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261026a";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef, watchSeats, watchCards
-} from "./db.js?v=20261020z";
-import { G, guardCard, guardClick, guardInput, autoSnap, personalLink, syncCards } from "./guard.js?v=20261020z";
+} from "./db.js?v=20261026a";
+import { G, guardCard, guardClick, guardInput, autoSnap, personalLink, syncCards } from "./guard.js?v=20261026a";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -922,9 +922,9 @@ function subRuleCard(kids, wk) {
     '<div class="row" style="gap:10px;flex-wrap:wrap;margin:6px 0;"><span class="small"><b>No school (everyone):</b></span>' +
       ["Mon", "Tue", "Wed", "Thu", "Fri"].map((d, i) => { const date = addDays(wk, i); return '<label class="small"><input type="checkbox" data-offday="' + date + '"' + (off[date] ? " checked" : "") + "> " + d + "</label>"; }).join("") + "</div>";
   if (on) h += '<div style="overflow-x:auto;"><table class="mini"><thead><tr><th>Student</th><th>Math</th><th>Reading</th><th>Language</th></tr></thead><tbody>' +
-    rows.map(({ x, q }) => "<tr><td><b>" + esc(x.name) + "</b>" + (q.days < 5 ? ' <span class="muted small">(' + q.days + " days)</span>" : "") + "</td>" + q.rows.map(r => {
+    rows.map(({ x, q }) => "<tr><td><b>" + esc(x.name) + "</b>" + (q.days < 5 ? ' <span class="muted small">(' + q.days + " days)</span>" : "") + "</td>" + q.cells.map(r => {
       const cur = (sw[x.id] || {})[r.k] || "";
-      return '<td><span class="' + (r.have >= r.need ? "good" : "bad") + '" style="font-weight:700;">' + r.have + " / " + r.need + "</span><br>" +
+      return '<td><span class="' + (r.have >= r.need ? "good" : "bad") + '" style="font-weight:700;">' + r.have + " / " + r.need + "</span>" + (r.ks.length > 1 ? ' <span class="muted small">(' + esc(r.name) + " \u00d7" + r.ks.length + " combined)</span>" : "") + "<br>" +
         '<select class="small" data-subswap="' + x.id + ":" + r.k + '"><option value="">' + SUBS[r.k] + "</option>" +
         Object.entries(SUBS).filter(([k]) => k !== r.k).map(([k, n]) => '<option value="' + k + '"' + (cur === k ? " selected" : "") + ">\u2192 " + n + "</option>").join("") + "</select></td>"; }).join("") + "</tr>").join("") +
     "</tbody></table></div>";

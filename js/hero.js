@@ -6,9 +6,9 @@
    - A student who misses a week keeps their training and plays that quest later.
    Saved on the student (one write per action): hero = { name, path, look, color, sk: { skill: xp }, used, done: [quest ids],
    items: [ids], title, at }. Nothing saves while a minigame or story is being played; it saves when it finishes. */
-import { esc, petHTML, companionOf, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261020z";
-import { dayXPs, azToday } from "./collect.js?v=20261020z";
-import { weekTotal, histWeekTotal, mondayOf, addDays } from "./doors.js?v=20261020z";
+import { esc, petHTML, companionOf, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261026a";
+import { dayXPs, azToday } from "./collect.js?v=20261026a";
+import { weekTotal, histWeekTotal, mondayOf, addDays } from "./doors.js?v=20261026a";
 
 export const HERO_START = "2026-10-19";
 export const heroOn = cls => !(cls && cls.heroOff);
