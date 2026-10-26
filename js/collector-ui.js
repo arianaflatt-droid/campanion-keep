@@ -4,13 +4,13 @@ import {
   formIndex, formOf, statsOf, seenSet, rollRarity, doPull, arenaOpen, arenaOpenFor, lunchHour, hitGoalToday, LUNCH_ARENA, ARENA_HOURS, fighterFrom, teamSize, alive, resolve, resolveRound, moveOk, MOVES, hitDamage,
   birthdayLeft, pickleLeft, PICKLE_FAM, brewLegLeft, BREW_FAM, feastLegLeft, HARVEST_FAM, gingerLegLeft, GINGER_FAM, snowLegLeft, SNOW_FAM, candyLegLeft, CANDY_FAM, ghostEggLeft, GHOST_FAM, BOSS2_LIST, boss2EggLeft, vaultLegLeft, goalLeft, nextGoal, rollRareUp, themeLeft, nextTheme, THEME_TYPES, THEME_EGG, WISH_FAM, spares, spareId, releaseXP, releaseProblem, isStarterFam, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
   EVENTS, eventOpen, eventWindow, eventStreak, hasEvent, eventUnlocked, azToday, rollTeacherRarity, TEACHER_ODDS, LIVE, staleBattle
-} from "./collect.js?v=20261020w";
-import { newBattleRef, changeBattle as changeBattleRaw, setDoc, liveBattlesNow, ck, ckMessage } from "./db.js?v=20261020w";
+} from "./collect.js?v=20261020z";
+import { newBattleRef, changeBattle as changeBattleRaw, setDoc, liveBattlesNow, ck, ckMessage } from "./db.js?v=20261020z";
 // every change to a battle is stamped with the time (upd), so a battle nobody has touched in a while can be ended
 let locking = null, leaving = null;   // battle id while "Lock in team" is saving
 const changeBattle = (id, fn) => changeBattleRaw(id, bt => { const n = fn(bt); if (n) n.upd = new Date().toISOString(); return n; });
 
-import { tradeCard } from "./trade-ui.js?v=20261020w";
+import { tradeCard } from "./trade-ui.js?v=20261020z";
 
 const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const PER_PAGE = 20;
@@ -78,6 +78,7 @@ export function collectorTab(c) {
       ? '<p class="muted" style="margin:10px 0 12px;">Each day you finalize gives you <b>1 egg for every student who hit 120 XP</b> and <b>' + LEVEL_XP + " banked XP (1 level) for every student who didn\u2019t</b>. If everyone hits 120, you still get " + LEVEL_XP + " XP. Excused days don\u2019t count.</p>"
       : '<p class="muted" style="margin:10px 0 12px;">Reach ' + PULL_XP + " XP in a day for an egg, and every " + PULL_XP + " more that day earns another." + (c.cls && c.cls.lunchBonus === false ? "" : " \u2600\uFE0F Hit " + PULL_XP + " <b>before lunch</b> for a bonus egg!") + " Next egg today in <b>" + xpToNextPull(s, c.cls) + " XP</b>. All your XP also goes into your bank to level up creatures (" + LEVEL_XP + " XP = 1 level).</p>") +
     '<div class="row"><button class="btn big" data-cc="hatch"' + (pulls ? "" : " disabled") + ">\u{1F95A} Hatch an egg</button>" +
+    (pulls >= 2 && !s.isTeacher ? '<button class="btn big gold" data-cc="hatchAll">\u{1F95A}\u{1F95A} Hatch all ' + pulls + "</button>" : "") +
     (leg ? '<button class="btn big gold" data-cc="hatchLeg">\u{1F31F} Hatch a legendary egg</button>' : "") +
     (birthdayLeft(s) ? '<button class="btn big bday" data-cc="hatchBday">\u{1F382} Hatch your birthday egg!</button>' : "") +
     (pickleLeft(s) ? '<button class="btn big gold" data-cc="hatchPickle">\u{1F952} Hatch your special event egg!</button>' : "") +
@@ -283,9 +284,29 @@ export function overlays(c) {
   ctx = c;
   let bo = "";
   try { bo = battleOverlay(); } catch (e) { console.error(e); bo = '<div class="battleover"><div class="bpanel"><h3>Oops!</h3><p>The battle screen hit a problem: ' + esc(String(e && e.message || e)) + '</p><button class="btn" data-cc="leaveBattle">Close</button></div></div>'; }
-  return hatchOverlay() + bookOverlay() + bo;
+  return hatchOverlay() + bulkHatchOverlay() + bookOverlay() + bo;
 }
 
+/* ---------- 🥚 Hatch all (Oct 25): regular eggs, one server hatch each, then one list of what came out ---------- */
+let bulkHatch = null;   // { done, n, got: [res], over }
+async function hatchAll(c) {
+  const s = c.me; if (bulkHatch || s.isTeacher) return;
+  const n = pullsLeft(s, c.cls); if (n < 1) return;
+  bulkHatch = { done: 0, n, got: [], over: false }; hold(600000); c.render(true);
+  for (let i = 0; i < n; i++) {
+    try { bulkHatch.got.push(await ck("hatch", { kind: "normal" })); bulkHatch.done++; c.render(true); }
+    catch (e) { c.flash(ckMessage(e)); break; }
+  }
+  bulkHatch.over = true; busyUntil = 0; c.render(true);
+}
+function bulkHatchOverlay() {
+  const b = bulkHatch; if (!b) return "";
+  const row = r => { const cr = creature(r.id) || formOf(r.fam, r.lvl || 1); return '<div class="bhrow r-' + String(r.rarity || "").replace(" ", "") + '">' + (cr ? img(cr, "bhimg", r.sparkle) : "") +
+    "<span><b>" + esc((r.sparkle ? "\u2728 " : "") + (cr ? cr.name : r.fam)) + "</b><small>" + esc(r.rarity || "") + (r.dupe ? " \u00b7 already had one: up a level" : " \u00b7 NEW!") + "</small></span></div>"; };
+  return '<div class="prizeover" role="dialog" aria-label="Hatching eggs"><div class="prizebox bulkbox bhbox"><h2>\u{1F95A} ' + (b.over ? "You hatched " + b.done + " egg" + (b.done === 1 ? "" : "s") + "!" : "Hatching\u2026 " + b.done + " / " + b.n) + "</h2>" +
+    '<div class="bulklist">' + b.got.slice().reverse().map(row).join("") + "</div>" +
+    (b.over ? '<button class="attackbtn" data-cc="hatchAllClose">Yay! \u{1F389}</button>' : '<p class="arena-foot">Cracking your eggs\u2026</p>') + "</div></div>";
+}
 function hatchOverlay() {
   if (!hatch) return "";
   const r = hatch.res, c = r && creature(r.id);
@@ -536,6 +557,8 @@ let busyForfeit = false, busyLeave = false;
 export async function onClick(el, c) {
   ctx = c;
   const a = el.dataset.cc, s = c.me;
+  if (a === "hatchAll") return hatchAll(c);
+  if (a === "hatchAllClose") { bulkHatch = null; busyUntil = 0; return c.render(true); }
   if (a === "starter" && !s.isTeacher) { if (hasStarter(s)) return; return serverDo(c, "starter", { fam: el.dataset.fam }); }
   if (a === "starter") { if (hasStarter(s)) return; return c.patch({ coll: { [el.dataset.fam]: { lvl: 1, at: new Date().toISOString() } }, starter: el.dataset.fam }); }
   if (a === "hatchPickle") {
