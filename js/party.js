@@ -17,18 +17,28 @@
       pty60 / pty120 = { id, in, hat, mv, mn, pops, drop, solo, ch: { k, n }, hits }   (live party state; others read it)
       partyGot = { partyId: true, partyId + "-p": true }   partyAlbum = [ { id, d, who: [{ id, n, p }] } ]   vipDay
    Party music is made in the browser (no sound files); it only starts when someone taps 🎵. */
-import { esc, goalXP, companionOf, petHTML, wornItem, simulate, eventMode, seasonOf, hatHTML, randomHat, onPet, vipToday, partyHat, partyCrown, headFree } from "./game.js?v=20261027c";
-import { azToday } from "./collect.js?v=20261027c";
-import { heldWeapon } from "./quest.js?v=20261027c";
-import { tricksFor } from "./bond.js?v=20261027c";
+import { esc, goalXP, companionOf, petHTML, wornItem, simulate, eventMode, seasonOf, hatHTML, randomHat, onPet, vipToday, partyHat, partyCrown, headFree } from "./game.js?v=20261027d";
+import { azToday } from "./collect.js?v=20261027d";
+import { heldWeapon } from "./quest.js?v=20261027d";
+import { tricksFor } from "./bond.js?v=20261027d";
 
 export const PARTY_MIN = 10, PARTY_XP = 60;
 const DROP_MS = 20000, SOLO_MS = 15000, A = "assets/party/";
 const today = () => azToday();
-const xpOn = st => { const h = ((st && st.xpHist) || {})[today()] || {}; return Math.max(Number(h.d) || 0, Number(h.l) || 0, Number(h.mo) || 0); };
+const xpAt = (st, d) => { const h = ((st && st.xpHist) || {})[d] || {}; return Math.max(Number(h.d) || 0, Number(h.l) || 0, Number(h.mo) || 0); };
+const xpOn = st => xpAt(st, today());
 const lh = st => !!((((st && st.xpHist) || {})[today()] || {}).lh);
+// The days before today that also count for the VIP Party (Oct 27): back to the last school day (Mon–Fri), so on a Monday
+// that's Friday, Saturday and Sunday; any other day it's just yesterday.
+const shift = (iso, n) => { const [y, m, d] = iso.split("-").map(Number), x = new Date(y, m - 1, d + n); return x.getFullYear() + "-" + String(x.getMonth() + 1).padStart(2, "0") + "-" + String(x.getDate()).padStart(2, "0"); };
+const wday = iso => { const [y, m, d] = iso.split("-").map(Number); return new Date(y, m - 1, d).getDay(); };
+const DAYW = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const prevLabel = () => { const p = prevDays(); return p.length === 1 ? "yesterday" : "on " + DAYW[wday(p[p.length - 1])] + " or the weekend"; };
+export function prevDays() { const out = []; let d = today(); for (let i = 0; i < 7; i++) { d = shift(d, -1); out.push(d); const w = wday(d); if (w >= 1 && w <= 5) break; } return out; }
+// A VIP through an earlier day: the best XP on one of those days reached the goal (or Lunch Hero that day)
+export const prevVIP = (st, cls) => prevDays().some(d => xpAt(st, d) >= goalXP(cls) || !!((((st && st.xpHist) || {})[d] || {}).lh));
 export const isGuest = st => lh(st) || xpOn(st) >= PARTY_XP;
-export const isVIP = (st, cls) => lh(st) || xpOn(st) >= goalXP(cls);
+export const isVIP = (st, cls) => lh(st) || xpOn(st) >= goalXP(cls) || prevVIP(st, cls);
 export const p60On = cls => !!(cls && cls.party60 && Date.now() < Number(cls.party60.end));
 export const p120On = cls => !!(cls && cls.party120 && (cls.party120.on != null ? cls.party120.on : cls.party120.end && Date.now() < Number(cls.party120.end)));
 // The countdown text: the 60 XP Party shows time left, the VIP Party is open until Ms. Ariana closes it
@@ -82,9 +92,9 @@ export function partyCards(st, cls) {
     if (vip && x && (x.left || got(st, P(k, cls).id))) { h += '<div class="card pcard p120"><img class="pcardimg" src="' + A + 'mystery-box-open.webp" alt=""><div class="ptxt"><h3>\u{1F451} VIP Party</h3><p>✅ You partied in the VIP Lounge and got your prize! See you at the next one.</p></div></div>'; return; }
     h += '<div class="card pcard p' + k + '"><img class="pcardimg" src="' + A + (vip ? "vip-ticket.webp" : "invitation.webp") + '" alt=""><div class="ptxt"><h3>' +
       (vip ? "\u{1F38A} VIP Party!" : "\u{1F388} 60 XP Party!") + ' <span class="pcount" data-pcount="' + k + '">' + timeTxt(k, cls) + "</span></h3>" +
-      (ok ? "<p>" + (vip ? "\u{1F451} You hit " + goal + " XP — you’re a VIP! Walk the red carpet into the VIP Lounge." : "\u{1F48C} You’re invited! Everyone’s companions are on the dance floor.") + "</p>" +
+      (ok ? "<p>" + (vip ? "\u{1F451} You hit " + goal + " XP" + (!(lh(st) || xpOn(st) >= goal) ? " " + prevLabel() : "") + " — you’re a VIP! Walk the red carpet into the VIP Lounge." : "\u{1F48C} You’re invited! Everyone’s companions are on the dance floor.") + "</p>" +
           '<button class="btn gold" data-party="open' + k + '">' + (x && x.in ? "\u{1F483} Back to the party" : vip ? "\u{1F39F}️ Use my VIP ticket" : "\u{1F389} Go to the party") + "</button>"
-        : "<p>Hit <b>" + goal + " XP</b> to get in! You have <b>" + xpOn(st) + "</b> so far (it counts at Ms. Ariana’s next XP check).</p>" +
+        : "<p>Hit <b>" + goal + " XP</b> to get in! You have <b>" + xpOn(st) + "</b> so far (it counts at Ms. Ariana’s next XP check)." + (vip ? " " + goal + " XP " + prevLabel() + " gets you in too." : "") + "</p>" +
           '<button class="btn ghost" data-party="open' + k + '">\u{1F440} Peek through the window</button>') +
       "</div></div>";
   });
@@ -511,7 +521,7 @@ export function partyAdmin(students, cls) {
   };
   return '<div class="card"><div class="card-head"><h2>\u{1F389} Party Time</h2><span class="fact">60 XP: 10 minutes · VIP: until you turn it off</span></div>' +
     row("60", "\u{1F388} 60 XP Party", "Dance floor + Balloon Drop for everyone at 60+ XP. Favor when it ends.", "party60Start", "party60Stop") +
-    row("120", "\u{1F451} " + goal + " XP VIP Party", "VIP Lounge, piñata, Spotlight Solos, group photo for everyone at " + goal + " XP. Mystery Box + VIP look for the day.", "party120On", "party120Off") +
+    row("120", "\u{1F451} " + goal + " XP VIP Party", "VIP Lounge, piñata, Spotlight Solos, group photo for everyone at " + goal + " XP today or on the last school day. Mystery Box + VIP look for the day.", "party120On", "party120Off") +
     '<p class="small muted">The 60 XP Party ends by itself after 10 minutes. The VIP Party stays open until you tap Turn off, so anyone who reaches 120 later can still come in. Favors open when a party ends.</p></div>';
 }
 export function partyAction(act, cls, students) {

@@ -4,9 +4,9 @@
    Each student's picture is its own small doc, classes/{class}/rewards/{studentId} = { img: "data:image/webp;base64,..." },
    so a student's page reads only its own picture (and the class roster stays small).
    Progress = that subject's XP this week (Mon-Sun, from xpHist[date].sub). The reward only counts in its own week. */
-import { esc, weekKey } from "./game.js?v=20261027c";
-import { SUB_NAMES } from "./teams.js?v=20261027c";
-import { addDays, weekTotal, histWeekTotal, rewardFor } from "./doors.js?v=20261027c";
+import { esc, weekKey } from "./game.js?v=20261027d";
+import { SUB_NAMES } from "./teams.js?v=20261027d";
+import { addDays, weekTotal, histWeekTotal, rewardFor } from "./doors.js?v=20261027d";
 
 // "all" = every subject added up (the week's total XP), for students whose goal is total XP (like 600)
 const NAMES = Object.assign({ all: "Total" }, SUB_NAMES);
