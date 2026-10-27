@@ -8,10 +8,10 @@
    Each potion: +20 candy and a potion glow for the day. Shelf rewards at 3 / 6 / 10 / 15 potions.
    Saved on the student (student-writable): soloBrew = { days: { date: potions }, fx: { date: effect }, extra: { date: { e|b|s: n } }, got: { "3": true, ... } }
    Shelf rewards use fields the student page may write: doorEggs, candyBonus, doorXP, legendaryPulls, soloBrewLeg (counted by brewLegLeft). */
-import { esc, isHaunt, isGobble, isJingle, isFrost, isHeart, boostMult } from "./game.js?v=20261027a";
-import { azToday } from "./collect.js?v=20261027a";
-import { TEAM_EVENTS, ingOf, subFor, SUB_NAMES, PER_XP, EFFECTS, effect, cauldronHTML, soloTableHTML, soloHouseHTML, soloBoxHTML, DISHES } from "./teams.js?v=20261027a";
-import { SUBJECT_KEYS } from "./doors.js?v=20261027a";
+import { esc, isHaunt, isGobble, isJingle, isFrost, isHeart, boostMult } from "./game.js?v=20261027c";
+import { azToday } from "./collect.js?v=20261027c";
+import { TEAM_EVENTS, ingOf, subFor, SUB_NAMES, PER_XP, EFFECTS, effect, cauldronHTML, soloTableHTML, soloHouseHTML, soloBoxHTML, DISHES } from "./teams.js?v=20261027c";
+import { SUBJECT_KEYS } from "./doors.js?v=20261027c";
 
 export const BREW = TEAM_EVENTS.potion;
 const FEAST_ING = { key: "solofeast", ing: [
@@ -80,17 +80,21 @@ const HEART = { key: "heart", E: HEART_ING, goal: { k: "g", name: "Pink Frosting
 JINGLE.ingFor = "gingerbread"; JINGLE.art = "ginger"; HAUNT.ingFor = "potion"; GOBBLE.ingFor = "dish";
 HAUNT.name = "Potion Brewing"; HAUNT.tabName = "Haunt-O-Ween"; HAUNT.cls = "potion"; GOBBLE.name = "Feast Cooking"; GOBBLE.tabName = "Gobble-Palooza"; GOBBLE.cls = "feast";
 const ALL_ING = k => k.E.ing.concat([k.goal]);
+// Oct 27 (Ms. Ariana): the 4th ingredient (Pumpkin Seeds, Pie Spice...) no longer comes from a Goal Subject. It comes from ANY XP
+// left over after the 3 main ingredients take theirs, so a potion is still 120 XP in all: 25 Math + 25 Reading + 25 Language + 45 from anywhere.
+// (Leftover Math/Reading/Language XP counts too.) The Goal Subject still drives the Daily Doors.
+const goalOf = () => "any";
 // The ingredients a student uses: the 3 main ingredients, plus the Goal Subject one when they have a Goal Subject.
-const ingsFor = (st, k) => goalKey(st) ? ALL_ING(k) : k.E.ing;
-const srcName = (st, cls, g) => g.goal ? (SUB_NAMES[goalKey(st)] || "Goal Subject") : SUB_NAMES[subFor(cls, st, g.sub)];
+const ingsFor = (st, k) => goalOf(st) ? ALL_ING(k) : k.E.ing;
+const srcName = (st, cls, g) => g.goal ? "any subject" : SUB_NAMES[subFor(cls, st, g.sub)];
 export const SHELF = HAUNT.shelf;
 export const soloOn = cls => !!(cls && ((cls.brewSolo && isHaunt(cls)) || (cls.feastSolo && isGobble(cls)) || (cls.gingerSolo && isJingle(cls)) || (cls.snowSolo && isFrost(cls)) || (cls.boxSolo && isHeart(cls))));
 const seed = str => { let h = 2166136261; for (let i = 0; i < str.length; i++) h = Math.imul(h ^ str.charCodeAt(i), 16777619); return ((h >>> 0) % 10007) / 10007; };
-// Today's recipe: 1 of each potion ingredient (25 XP each) + 1 Pumpkin Seed (20 Goal Subject XP). Ms. Ariana can change it (cls.soloRecipe[date]).
+// Today's recipe: 1 of each potion ingredient (25 XP each) + 2 Pumpkin Seeds (45 leftover XP from any subject). Ms. Ariana can change it (cls.soloRecipe[date]).
 export function soloRecipe(cls, date) {
   const o = ((cls && cls.soloRecipe) || {})[date];
   if (o) return { e: Math.max(0, Number(o.e) || 0), b: Math.max(0, Number(o.b) || 0), s: Math.max(0, Number(o.s) || 0), g: o.g == null ? 2 : Math.max(0, Number(o.g) || 0) };
-  const r = { e: 1, b: 1, s: 1, g: 2 };   // 25 Math + 25 Reading + 25 Language + 45 Goal Subject XP = 120 XP
+  const r = { e: 1, b: 1, s: 1, g: 2 };   // 25 Math + 25 Reading + 25 Language + 45 XP from anywhere = 120 XP
   return r;
 }
 // Students can name their cauldron (or feast table, candy box...): saved as name on their solo save (soloBrew.name ...).
@@ -106,15 +110,21 @@ export const soloOf = (st, k) => (st && st[(k || HAUNT).field]) || {};
 export const soloTotal = (st, k) => Object.values(soloOf(st, k).days || {}).reduce((a, b) => a + (Number(b) || 0), 0);
 export function soloDay(st, cls, date) {
   date = date || azToday();
-  const k = soloCfg(cls), need = Object.assign({}, soloRecipe(cls, date)), got = ingOf(k.E, st, date, cls), ex = (soloOf(st, k).extra || {})[date] || {}, have = {}, gk = goalKey(st);
-  // Goal ingredient (Pumpkin Seeds / Pie Spice): 1 per SEED_XP of Goal Subject XP. If the Goal Subject already feeds one of the 3 ingredients (Math, Reading or
-  // Language, after swaps), the XP that ingredient needs today (usually the first 25) goes to it first, and the goal ingredient counts after that.
-  if (gk) { const xp = (Number(((((st && st.xpHist) || {})[date] || {}).sub || {})[gk]) || 0) * boostMult(cls, gk, date), used = k.E.ing.filter(g => subFor(cls, st, g.sub) === gk).reduce((a, g) => a + (need[g.k] || 0) * PER_XP, 0);
-    got.g = Math.floor(Math.max(0, xp - used) / SEED_XP); } else got.g = 0;
-  if (!gk) need.g = 0;   // no Goal Subject yet: their recipe has no goal ingredient
+  const k = soloCfg(cls), need = Object.assign({}, soloRecipe(cls, date)), got = ingOf(k.E, st, date, cls), ex = (soloOf(st, k).extra || {})[date] || {}, have = {}, gk = goalOf(st);
+  // 4th ingredient (Pumpkin Seeds / Pie Spice): 1 per SEED_XP of the day's XP that the 3 main ingredients don't use.
+  // seedsAt(p) = seeds when the main ingredients are kept for p potions; potions can be made while both add up (120 XP each with the normal recipe).
+  const h = ((((st && st.xpHist) || {})[date]) || {}), subs = h.sub || {};
+  let T = 0, subSum = 0; Object.keys(subs).forEach(s => { const v = Number(subs[s]) || 0; subSum += v; T += v * boostMult(cls, s, date); });
+  T += Math.max(0, (Number(h.d != null ? h.d : h.l) || 0) - subSum);   // XP with no subject on it still counts
+  const mainXP = k.E.ing.reduce((a, g) => a + (need[g.k] || 0) * PER_XP, 0), exG = Number(ex.g) || 0;
+  const seedsAt = p => Math.floor(Math.max(0, T - p * mainXP) / SEED_XP) + exG;
+  ALL_ING(k).forEach(g => { if (!g.goal) have[g.k] = (got[g.k] || 0) + (Number(ex[g.k]) || 0); });
+  const mainMax = k.E.ing.filter(g => need[g.k] > 0).reduce((m, g) => Math.min(m, Math.floor(have[g.k] / need[g.k])), 99);
+  let possible = 0; for (let p = 1; p <= mainMax; p++) { if (!need.g || seedsAt(p) >= p * need.g) possible = p; else break; }
+  const made0 = Number((soloOf(st, k).days || {})[date]) || 0;
+  got.g = seedsAt(made0 + 1) - exG;   // shown toward the next one (main ingredients kept for it first)
   ALL_ING(k).forEach(g => { have[g.k] = (got[g.k] || 0) + (Number(ex[g.k]) || 0); });
-  const keys = ALL_ING(k).filter(g => need[g.k] > 0);
-  const possible = keys.length ? Math.min(...keys.map(g => Math.floor(have[g.k] / need[g.k]))) : 0;
+  if (!k.E.ing.some(g => need[g.k] > 0)) possible = need.g ? Math.floor(have.g / need.g) : 0;
   const made = Number((soloOf(st, k).days || {})[date]) || 0;
   // what's left toward the next one, after the ones already made
   const left = {}; ALL_ING(k).forEach(g => { left[g.k] = Math.max(0, have[g.k] - made * need[g.k]); });
@@ -173,7 +183,7 @@ export function soloCard(st, cls, flash) {
       : '<p class="small" style="margin:0 0 6px;"><button class="btn ghost small" data-act="potName">\u270F\uFE0F ' + (nm ? "Rename your " + k.where : "Name your " + k.where) + "</button></p>") +
     pic +
     '<p class="lede" style="margin:8px 0;text-align:center;"><b>Today’s recipe</b>: ' + ings.filter(g => d.need[g.k]).map(g => d.need[g.k] + " " + g.icon + " " + g.name).join(" + ") + "</p>";
-  h += '<div class="recipe">' + ings.filter(g => d.need[g.k]).map(g => { const sub = srcName(st, cls, g) + (g.goal ? " \u00b7 your Goal Subject" : ""), hv = Math.min(d.left[g.k], d.need[g.k]);
+  h += '<div class="recipe">' + ings.filter(g => d.need[g.k]).map(g => { const sub = srcName(st, cls, g) + "", hv = Math.min(d.left[g.k], d.need[g.k]);
     return '<div class="pring"><span class="ri-ic">' + g.icon + '</span><span class="ri-nm">' + g.name + " <small>(" + esc(sub) + ")</small></span>" + bar(hv, d.need[g.k]) +
       '<b class="ri-n">' + d.left[g.k] + " / " + d.need[g.k] + (d.left[g.k] >= d.need[g.k] ? " ✅" : "") + "</b></div>"; }).join("") + "</div>";
   if (d.ready) h += '<div style="text-align:center;margin:12px 0;"><button class="attackbtn" data-act="soloBrew">' + k.icon + " " + k.verb + " a " + k.one + "!" + (d.ready > 1 ? " (" + d.ready + " ready)" : "") + "</button></div>";
@@ -189,7 +199,7 @@ export function soloCard(st, cls, flash) {
   h += '<ul class="pmiles">' + k.shelf.map(m => '<li class="' + (d.total >= m.n ? "done" : "") + '"><b>' + m.n + " " + k.many + "</b>: " + m.icon + " " + m.label + (d.total >= m.n ? " ✅" : " (" + (m.n - d.total) + " to go)") + "</li>").join("") + "</ul>";
   const mySw = k.E.ing.filter(g => subFor(cls, st, g.sub) !== g.sub);
   if (mySw.length) h += '<p class="small" style="margin-top:8px;">\u{1F501} <b>Just for you:</b> ' + mySw.map(g => g.icon + " " + g.name + " come from <b>" + SUB_NAMES[subFor(cls, st, g.sub)] + "</b>").join(" · ") + ".</p>";
-  h += '<p class="muted small" style="margin-top:8px;">Every ' + PER_XP + " XP = 1 ingredient: " + ings.filter(g => !g.goal).map(g => esc(srcName(st, cls, g)) + " = " + g.icon + " " + g.name).join(", ") + (goalKey(st) ? ". Every " + (2 * SEED_XP) + " " + esc(srcName(st, cls, k.goal)) + " XP (your Goal Subject) = 2 " + k.goal.icon + " " + k.goal.name + (k.E.ing.some(g => subFor(cls, st, g.sub) === goalKey(st)) ? ", counted after the XP your other ingredient needs" : "") : "") +
+  h += '<p class="muted small" style="margin-top:8px;">Every ' + PER_XP + " XP = 1 ingredient: " + ings.filter(g => !g.goal).map(g => esc(srcName(st, cls, g)) + " = " + g.icon + " " + g.name).join(", ") + ". Every " + (2 * SEED_XP) + " more XP from ANY subject (after those) = 2 " + k.goal.icon + " " + k.goal.name + ", so each " + k.one + " is 120 XP in all" +
     ". Each " + k.one + " gives +" + POTION_CANDY + " " + k.cur + ". " + k.verb + " as many as you can! A new recipe comes every day, and leftover ingredients don’t carry over.</p>";
   return h + "</div>";
 }
@@ -202,14 +212,14 @@ export function soloAdmin(students, cls, today) {
     '<button class="btn' + (on ? " ghost" : "") + '" data-act="soloToggle">' + (on ? "\u{1F47B} Switch back to the " + k.bossName + " battle" : k.icon + " Turn on Solo " + k.name) + "</button>";
   if (!on) return h + "</div>";
   h += '<h3 style="margin-top:14px;">Today’s recipe</h3><div class="row" style="gap:10px;align-items:center;">' +
-    ALL_ING(k).map(g => '<label class="small">' + g.icon + " " + g.name + (g.goal ? " (Goal Subject)" : "") + ' <input id="soloR-' + g.k + '" type="number" min="0" max="9" value="' + r[g.k] + '" style="width:60px"></label>').join("") +
-    '<button class="btn small" data-act="soloRecipe">Save today’s recipe</button></div><p class="muted small">Every ' + PER_XP + " XP in Math, Reading or Language = 1 ingredient, and every " + (2 * SEED_XP) + " Goal Subject XP = 2 " + k.goal.icon + " " + k.goal.name + " (counted after the first 25 if the Goal Subject is Math, Reading or Language). The normal recipe is 120 XP = 1 " + k.one + ".</p>";
-  h += '<h3 style="margin-top:14px;">Students</h3><div class="scroll-x"><table class="tbl"><thead><tr><th>Student</th><th>' + k.One + "s</th><th>Today</th>" + k.E.ing.map(g => "<th>" + g.icon + " from</th>").join("") + "<th>" + k.goal.icon + " Goal Subject</th></tr></thead><tbody>" +
+    ALL_ING(k).map(g => '<label class="small">' + g.icon + " " + g.name + (g.goal ? " (any XP)" : "") + ' <input id="soloR-' + g.k + '" type="number" min="0" max="9" value="' + r[g.k] + '" style="width:60px"></label>').join("") +
+    '<button class="btn small" data-act="soloRecipe">Save today’s recipe</button></div><p class="muted small">Every ' + PER_XP + " XP in Math, Reading or Language = 1 ingredient, and every " + (2 * SEED_XP) + " XP left over from ANY subject = 2 " + k.goal.icon + " " + k.goal.name + ". The normal recipe adds up to 120 XP = 1 " + k.one + ".</p>";
+  h += '<h3 style="margin-top:14px;">Students</h3><div class="scroll-x"><table class="tbl"><thead><tr><th>Student</th><th>' + k.One + "s</th><th>Today</th>" + k.E.ing.map(g => "<th>" + g.icon + " from</th>").join("") + "" + "</tr></thead><tbody>" +
     kids.map(x => { const d = soloDay(x, cls, today), t = d.total;
       return "<tr><td><b>" + esc(x.name) + "</b></td><td>" + t + " " + k.shelf.filter(m => t >= m.n).map(m => m.icon).join("") + "</td><td>" + d.made + (d.ready ? " (+" + d.ready + " ready)" : "") + "</td>" +
         k.E.ing.map(g => { const cur = (sw[x.id] || {})[g.sub] || ""; return '<td><select data-subswap="' + x.id + ":" + g.sub + '"><option value="">' + SUB_NAMES[g.sub] + "</option>" +
           Object.entries(SUB_NAMES).filter(([kk]) => kk !== g.sub).map(([kk, n]) => '<option value="' + kk + '"' + (cur === kk ? " selected" : "") + ">" + n + "</option>").join("") + "</select></td>"; }).join("") +
-        "<td>" + (x.goalSubject ? esc(x.goalSubject) : '<span class="muted">not set</span>') + "</td></tr>"; }).join("") +
-    "</tbody></table></div><p class=\"muted small\">Change a subject to swap where that student’s ingredient comes from. " + k.goal.icon + " " + k.goal.name + " come from each student’s Goal Subject (the one their doors use); change it in the Students tab. Students with no Goal Subject skip " + k.goal.name + ".</p>";
+        "" + "</tr>"; }).join("") +
+    "</tbody></table></div><p class=\"muted small\">Change a subject to swap where that student’s ingredient comes from." + " " + k.goal.icon + " " + k.goal.name + " come from any XP left over (no Goal Subject).</p>";
   return h + "</div>";
 }
