@@ -4,9 +4,9 @@
    Each student's picture is its own small doc, classes/{class}/rewards/{studentId} = { img: "data:image/webp;base64,..." },
    so a student's page reads only its own picture (and the class roster stays small).
    Progress = that subject's XP this week (Mon-Sun, from xpHist[date].sub). The reward only counts in its own week. */
-import { esc, weekKey } from "./game.js?v=20261026c";
-import { SUB_NAMES } from "./teams.js?v=20261026c";
-import { addDays, weekTotal, histWeekTotal, rewardFor } from "./doors.js?v=20261026c";
+import { esc, weekKey } from "./game.js?v=20261027a";
+import { SUB_NAMES } from "./teams.js?v=20261027a";
+import { addDays, weekTotal, histWeekTotal, rewardFor } from "./doors.js?v=20261027a";
 
 // "all" = every subject added up (the week's total XP), for students whose goal is total XP (like 600)
 const NAMES = Object.assign({ all: "Total" }, SUB_NAMES);
@@ -54,7 +54,7 @@ export function rewardAdmin(students, cls, pics, busy) {
         '<select id="rgSub-' + s.id + '" data-rgf="sub">' + subOpts(d.sub) + '</select><input id="rgXp-' + s.id + '" data-rgf="xp" type="number" min="1" step="10" placeholder="XP" value="' + esc(String(d.xp)) + '" style="width:90px"></div>' +
         (d.sub && goal ? '<div class="row" style="gap:10px;align-items:center;margin-top:4px;">' + bar(n, goal, true) + '<span class="small muted rgnn">' + n + " / " + goal + " " + NAMES[d.sub] + " XP" + (g && n >= goal ? (((s.vault || {})[wk]) === "open" ? " \u00b7 \u{1F48E} vault opened" : " \u00b7 \u{1F389} goal reached!") : "") + "</span></div>" : "") + "</div></div>";
     }).join("") + "</div>" +
-    '<div class="row" style="margin-top:12px;"><button class="btn" data-act="rgSave">\u{1F4BE} Save this week’s rewards</button><span class="muted small">Tap the \u{1F381} square to add a picture. Leave XP empty to give a student the normal 1,000 XP vault this week. The reward name is optional.</span></div></div>';
+    '<div class="row" style="margin-top:12px;"><button class="btn" data-act="rgSave">\u{1F4BE} Save this week’s rewards</button><span class="muted small">Tap the \u{1F381} square to add a picture. Leave XP empty to give a student the plain 600 XP vault this week. The reward name is optional.</span></div></div>';
   return h;
 }
 function subWeek(st, wk, sub, cls) {
