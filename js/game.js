@@ -1,10 +1,10 @@
-import { CREATURE_LAYOUT, CREATURE_FIT_ID } from "./creature-fit.js?v=20261027d";
-import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261027d";
-import { heldWeapon } from "./quest.js?v=20261027d";
+import { CREATURE_LAYOUT, CREATURE_FIT_ID } from "./creature-fit.js?v=20261028a";
+import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261028a";
+import { heldWeapon } from "./quest.js?v=20261028a";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261027d";
+export const APP_V = "20261028a";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -591,7 +591,7 @@ export const outfitOf = id => OUTFITS.find(o => o.id === id) || null;
 export const headImg = (c, img) => '<span class="phat cos" style="' + (c ? partyStyle(c, "hat") : "") + '"><img src="' + img + '" alt=""></span>';
 export const HEAD_FNS = [st => { const o = st && st.outfitOn && ((st.outfits || {})[st.outfitOn]) ? outfitOf(st.outfitOn) : null; return o ? o.img : ""; }];
 // Something extra on the head (a bought outfit, then an event costume). The shop hat comes off while it's on.
-export function headExtra(st, c) { if (vipToday(st)) return ""; for (const f of HEAD_FNS) { const img = f(st, c); if (img) return headImg(c, img); } return ""; }
+export function headExtra(st, c) { if (vipHat(st)) return ""; for (const f of HEAD_FNS) { const img = f(st, c); if (img) return headImg(c, img); } return ""; }
 /* 🎨 Paint (js/paint.js sells it): paint = color id (until changed), paints = { id: true } owned, sparkleDay = date (glow for that day).
    Only the creature picture is recolored (CSS filter on .tglyph), never the gear. */
 export const PAINTS = [
@@ -612,11 +612,13 @@ export const headFree = worn => (worn && (worn.id === "shades" || worn.id === "s
 export const randomHat = () => Math.floor(Math.random() * HAT_COLORS.length * HAT_PATTERNS.length);
 // Today's VIP look (vipDay = { d: date, bg: 1-6, hat: seed }), or null
 export const vipToday = st => (st && st.vipDay && st.vipDay.d === azToday() ? st.vipDay : null);
+// The VIP paper hat, unless the student took it off (vipDay.off): picking a hat, outfit or costume takes it off (Oct 28)
+export const vipHat = st => { const v = vipToday(st); return v && !v.off ? v : null; };
 export const vipStage = st => { const v = vipToday(st); return v ? ' vipstage" style="background-image:url(assets/party/vipbg-' + (Number(v.bg) || 1) + '.webp)' : ""; };
 // Puts something (a hat, a crown) on the companion: inside the petwrap so it moves with every trick
 export const onPet = (pet, extra) => (extra ? pet.slice(0, -7) + extra + "</span>" : pet);
-export const withVipHat = (st, pet, c) => { const v = vipToday(st); return v ? onPet(pet, partyHat(c || companionOf(st), v.hat)) : pet; };
-export const vipWorn = (st, worn) => (vipToday(st) ? headFree(worn) : worn);
+export const withVipHat = (st, pet, c) => { const v = vipHat(st); return v ? onPet(pet, partyHat(c || companionOf(st), v.hat)) : pet; };
+export const vipWorn = (st, worn) => (vipHat(st) ? headFree(worn) : worn);
 
 // One tile on The Keep (class board): the companion's name with the student's display name under it.
 export function tileHTML(st, sim, rank, day, popped, haunt) {
