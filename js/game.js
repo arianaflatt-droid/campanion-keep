@@ -1,10 +1,10 @@
-import { CREATURE_LAYOUT, CREATURE_FIT_ID } from "./creature-fit.js?v=20261028a";
-import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261028a";
-import { heldWeapon } from "./quest.js?v=20261028a";
+import { CREATURE_LAYOUT, CREATURE_FIT_ID } from "./creature-fit.js?v=20261028b";
+import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261028b";
+import { heldWeapon } from "./quest.js?v=20261028b";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261028a";
+export const APP_V = "20261028b";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -572,7 +572,12 @@ export function hatHTML(seed, extra, style) {
 }
 // The paper hat / VIP crown sit on the head spot hand-placed for each companion (the same spot as shop hats)
 // PARTY_FIT nudges the spot for one creature form (by picture id): [move right, move down, size ×, tilt] in em
-const PARTY_FIT = { 9: [0.18, 0, 1.25, 0], 391: [0, 0.1, 1, 0], 400: [0, 0.05, 1, 0], 402: [0.2, 0, 0.75, 0], 407: [0, 0.06, 1, 0], 412: [0, 0.1, 1, 0], 413: [0, 0.05, 1, 0], 419: [0, 0.04, 1, 0] };
+const PARTY_FIT = { 9: [0.18, 0, 1.25, 0], 402: [0.2, 0, 0.75, 0], 412: [0, 0.1, 1, 0], 413: [0, 0.05, 1, 0], 419: [0, 0.04, 1, 0],
+  // Legendaries (Oct 28): hats and Halloween costumes were sitting behind the head (on the mane, neck, wing or back)
+  386: [0.2, 0, 1, 0], 387: [0.13, 0.06, 1, 0], 388: [0.19, 0.06, 1, 0], 389: [0.15, 0.07, 1, 0], 390: [0.52, -0.04, 1, 0], 391: [0.09, 0.21, 1, 0],
+  392: [0.12, 0.04, 1, 0], 393: [0.12, 0.05, 1, 0], 394: [0.31, -0.06, 1, 0], 395: [0.22, 0.05, 1, 0], 397: [0.13, 0.02, 1, 0], 399: [0.25, -0.06, 1, 0],
+  400: [0.29, 0.05, 1, 0], 401: [0.17, 0.04, 1, 0], 403: [0.22, 0.04, 1, 0], 404: [0.17, 0.05, 1, 0], 405: [0.12, 0.1, 1, 0], 406: [0.2, 0.02, 1, 0],
+  407: [0.1, 0.11, 1, 0], 408: [0.17, 0, 1, 0], 409: [0.24, 0.06, 1, 0], 410: [0.25, 0.1, 1, 0], 421: [0.13, 0.1, 1, 0], 422: [0.05, 0.07, 1, 0], 423: [0.29, 0, 1, 0] };
 function partyStyle(c, kind) {
   const f = (c && c.fit) || {}, [x0, y0, sz0, r0] = f.hat || [0.6, 0.2, 0.45, 0];
   const id = c && c.creature ? (c.formId || "") : "r:" + (c && c.id), adj = PARTY_FIT[id] || [0, 0, 1, 0];
