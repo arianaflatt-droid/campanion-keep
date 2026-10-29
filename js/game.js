@@ -1,10 +1,10 @@
-import { CREATURE_LAYOUT, CREATURE_FIT_ID } from "./creature-fit.js?v=20261029a";
-import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261029a";
-import { heldWeapon } from "./quest.js?v=20261029a";
+import { CREATURE_LAYOUT, CREATURE_FIT_ID } from "./creature-fit.js?v=20261029b";
+import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261029b";
+import { heldWeapon } from "./quest.js?v=20261029b";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261029a";
+export const APP_V = "20261029b";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -782,7 +782,7 @@ export function battleHTML(cls, students, fx) {
     (fx && fx.hit ? '<span class="dmg">-' + (fx.amount || b.dmg) + "</span>" : "") +
     (fx && fx.heal ? '<span class="dmg heal">+' + fx.heal + "</span>" : "") + (b.wall ? wallHTML(b.wall, true) : "") + "</div>" +
     teamHTML(cls, students, fx && fx.hit) + (b.wall ? "" : bucketHTML(cls, students)) +
-    (b.defeated ? '<p class="arena-win">\u{1F389} The ' + S.boss + ' has been defeated! \u{1F389}</p>' : "") +
+    (b.defeated ? '<p class="arena-win">\u{1F389} The ' + S.boss + ' has been defeated! \u{1F389}</p>' : "") + win1HTML(S, b.defeated) +
     '<div class="arena-row"><span class="arena-k">Attacked this week</span><div class="arena-pets">' +
     (attackedToday.length ? attackedToday.map(s => { const c = companionOf(s); return '<span class="ap" title="' + esc(s.name) + "\u2019s " + esc(s.petName || c.name) + '">' + c.glyph + "<small>" + esc(s.name) + "</small></span>"; }).join("") : '<span class="arena-none">No attacks yet this week</span>') +
     "</div></div>" +
@@ -985,7 +985,8 @@ export const SEASONS = {
     wheel: "Pie Wheel", wheelIcon: "\u{1F967}", frame: "assets/gobble/pie-wheel-frame.webp", treat: "\u{1F7E0} Pumpkin = treats", trick: "\u{1F534} apple = tricks",
     colors: { treat: ["#F4A640", "#D9731A"], trick: ["#E0443E", "#A61E24"] },
     shop: "Gobble Shop", bucket: "Ms. Ariana\u2019s Cornucopia", hatItem: "pilgrimhat", hatFlag: "pilgrimHat", hatGear: "pilgrim", hatName: "Pilgrim Hat", hatIcon: "\u{1F3A9}",
-    brewItem: "pie", brewName: "Pumpkin Pie", brewNames: "Pumpkin Pies", brewIcon: "\u{1F967}", store: GOBBLE_STORE, slices: PIE_WHEEL, prizes: GOBBLE_PRIZES },
+    brewItem: "pie", brewName: "Pumpkin Pie", brewNames: "Pumpkin Pies", brewIcon: "\u{1F967}", store: GOBBLE_STORE, slices: PIE_WHEEL, prizes: GOBBLE_PRIZES,
+    win1: ["\u{1F3F7}\uFE0F an <b>\u201cI Beat the Turducken\u201d sticker</b> for everyone", "\u{1F986} a <b>Thanksgiving outfit</b> for our class Duck"] },
   jingle: { key: "jingle", name: "Jingle Jam", icon: "\u{1F384}", cur: "presents", Cur: "Presents", coin: "\u{1F381}", basket: "tree",
     boss: "Grinch-a-Duck", bossImg: "assets/jingle/grinchaduck.webp", bossIcon: "\u{1F986}", defeatFlag: "grinchDefeated",
     wheel: "Present Wheel", wheelIcon: "\u{1F381}", frame: "assets/jingle/present-wheel-frame.webp", face: { cx: 0.4984, cy: 0.488, r: 0.3094 },
@@ -1010,6 +1011,11 @@ export const SEASONS = {
     brewItem: "strawberry", brewName: "Chocolate Strawberry", brewNames: "Chocolate Strawberries", brewIcon: "\u{1F353}", store: HEART_STORE, slices: SWEET_WHEEL, prizes: HEART_PRIZES,
     arena: "assets/heart/heart-arena.webp", doubleBrew: true }
 };
+// Real-life prizes for beating the season's boss the first time (Oct 29: the Turducken). Shown on the student battle card, the Battle Area and the console.
+export function win1HTML(S, done) {
+  if (!S || !S.win1 || !S.win1.length) return "";
+  return '<p class="arena-foot" style="margin-top:6px;">' + (done ? "\u{1F381} <b>Real prizes coming:</b> " : "\u{1F381} <b>Beat the " + S.boss + " the first time for real prizes:</b> ") + S.win1.join(" and ") + "!</p>";
+}
 export function seasonOf(cls) { return isHeart(cls) ? SEASONS.heart : isFrost(cls) ? SEASONS.frost : isJingle(cls) ? SEASONS.jingle : isGobble(cls) ? SEASONS.gobble : SEASONS.haunt; }
 export let SEASON = SEASONS.haunt;
 export function setSeason(cls) { SEASON = seasonOf(cls); BOOST_CLS = cls; return SEASON; }
