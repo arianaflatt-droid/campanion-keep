@@ -5,10 +5,10 @@
    mystery nest (pick 1 of 3 eggs) and training (level up a creature). Higher quests = rarer creatures and a better Sparkle chance.
    Every finished quest also pays a bonus (MQ_BONUS). Saved on the student: mq = { date, done: { tier: {...} }, hunt: { tier: [dug squares] } },
    mqCatch (creatures caught here), mqFull (whole boards finished). */
-import { esc, eventMode, seasonOf } from "./game.js?v=20261028c";
-import { soloOn, soloCfg, freeIngredient } from "./solobrew.js?v=20261028c";
-import { CREATURES, FAMILIES } from "./creatures.js?v=20261028c";
-import { azToday, azNow, owned, ownedFams, formOf, fighterFrom, resolveRound, hitDamage, MOVES, doPull, MAX_LEVEL, sparkleImg, RARITY_COLOR } from "./collect.js?v=20261028c";
+import { esc, eventMode, seasonOf } from "./game.js?v=20261029a";
+import { soloOn, soloCfg, freeIngredient } from "./solobrew.js?v=20261029a";
+import { CREATURES, FAMILIES } from "./creatures.js?v=20261029a";
+import { azToday, azNow, owned, ownedFams, formOf, fighterFrom, resolveRound, hitDamage, MOVES, doPull, MAX_LEVEL, sparkleImg, RARITY_COLOR } from "./collect.js?v=20261029a";
 
 export const MQ_TIERS = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120];
 export const MQ_CUTOFF = "08:30";        // morning data for today is only accepted before this (Arizona time)
@@ -121,7 +121,7 @@ export function morningTab(s, cls) {
   const date = azToday(), wd = new Date().getDay(), board = boardFor(date, cls), mo = morningXP(s, date), m = mqOf(s, date);
   const nDone = board.filter(q => m.done[q.tier]).length;
   let h = '<div class="card mqintro"><div class="card-head"><h2>\u{1F305} Morning Quest Board</h2><span class="fact">' + nDone + " / 12 done</span></div>" +
-    '<p class="lede" style="font-size:13.5px;">Earn XP <b>before ' + MQ_BEFORE + "</b> to unlock today’s quests! Every quest gives a bonus too, and finishing 4 gives a Hero Quest training session (a full board gives 2). The higher the quest, the rarer the creatures — and the better the ✨ Sparkle chance.</p>" +
+    '<p class="lede" style="font-size:13.5px;">Earn XP <b>before ' + MQ_BEFORE + "</b> to unlock today’s quests! Every quest gives a bonus too. The higher the quest, the rarer the creatures — and the better the ✨ Sparkle chance.</p>" +
     (wd === 0 || wd === 6 ? '<p class="small muted">No quests on the weekend — see you Monday morning!</p>'
       : mo == null ? '<p class="small"><b>⏳ Waiting for Ms. Ariana’s morning check.</b> Quests unlock once she adds this morning’s XP.</p>'
       : '<p class="small">\u{1F305} This morning you earned <b>' + mo + " XP</b>!</p>") + "</div>";

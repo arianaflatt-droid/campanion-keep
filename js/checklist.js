@@ -3,20 +3,19 @@
    Each step checks itself off from the student's save; tapping a step opens the tab where it's done.
    The Treasure Vault step is "check your progress", so it counts as done once the student opens it today
    (remembered on this computer only). */
-import { mapOn, mapState, todayReading, PER_ISLAND } from "./readmap.js?v=20261028c";
-import { tbLeft, tbLive } from "./teachbattle.js?v=20261028c";
-import { esc, simulate, companionOf, goalXP } from "./game.js?v=20261028c";
+import { mapOn, mapState, todayReading, PER_ISLAND } from "./readmap.js?v=20261029a";
+import { tbLeft, tbLive } from "./teachbattle.js?v=20261029a";
+import { esc, simulate, companionOf, goalXP } from "./game.js?v=20261029a";
 import { azToday, azNow, todayXP, pullsLeft, legendaryLeft, birthdayLeft, pickleLeft, vaultLegLeft, BOSS2_LIST, boss2EggLeft, candyLegLeft, snowLegLeft,
-  gingerLegLeft, feastLegLeft, brewLegLeft, goalLeft, themeLeft, hasStarter, bankXP, LEVEL_XP } from "./collect.js?v=20261028c";
-import { mqReady } from "./morning.js?v=20261028c";
-import { heroOn, heroOf, heroReady } from "./hero.js?v=20261028c";
-import { doorsLive, doorName, goldenReady, weekDoorState, vaultState, vaultGoal, subReq, todayPlan } from "./doors.js?v=20261028c";
-import { soloOn, soloReady, soloCfg } from "./solobrew.js?v=20261028c";
-import { passReady } from "./pass.js?v=20261028c";
-import { pettedToday } from "./bond.js?v=20261028c";
-import { mealsReady } from "./meals.js?v=20261028c";
-import { readyTests } from "./quest.js?v=20261028c";
-import { unthanked } from "./kindness.js?v=20261028c";
+  gingerLegLeft, feastLegLeft, brewLegLeft, goalLeft, themeLeft, hasStarter, bankXP, LEVEL_XP } from "./collect.js?v=20261029a";
+import { mqReady } from "./morning.js?v=20261029a";
+import { doorsLive, doorName, goldenReady, weekDoorState, vaultState, vaultGoal, subReq, todayPlan } from "./doors.js?v=20261029a";
+import { soloOn, soloReady, soloCfg } from "./solobrew.js?v=20261029a";
+import { passReady } from "./pass.js?v=20261029a";
+import { pettedToday } from "./bond.js?v=20261029a";
+import { mealsReady } from "./meals.js?v=20261029a";
+import { readyTests } from "./quest.js?v=20261029a";
+import { unthanked } from "./kindness.js?v=20261029a";
 
 const seenKey = (id, what) => "ck-seen-" + azToday() + "-" + id + "-" + what;
 export function markSeen(id, what) { try { localStorage.setItem(seenKey(id, what), "1"); } catch (e) {} }
@@ -49,9 +48,6 @@ export function steps(s, cls, students, battles) {
   // 3. Morning Quests
   if (school) { const n = mqReady(s, cls), late = azNow().h * 60 + azNow().m >= 8 * 60 + 30;
     add("morning", "morning", "\u{1F305}", "Do your Morning Quests", n ? plural(n, "quest") + " ready — finish them before 8:15!" : late ? "The board is closed for today." : "All caught up! Earn more XP before 8:15 to open more.", !n); }
-  // 4. Hero Quest
-  if (heroOn(cls)) { const h = heroOf(s), n = heroReady(s, cls);
-    add("hero", "hero", "⚔️", h ? "Train your hero" : "Make your hero", !h ? "Your adventure in Embervale starts here." : n ? plural(n, "thing") + " to do on your Hero Quest!" : "No training sessions left. Earn more XP for more!", h && !n); }
   // 5. eggs
   if (hasStarter(s)) { const n = eggsLeft(s, cls), lv = Math.floor(bankXP(s, cls) / LEVEL_XP);
     add("eggs", "collect", "\u{1F95A}", "Hatch your eggs", n ? "You have " + plural(n, "egg") + " to hatch!" : "No eggs right now." + (lv ? " You can level up a creature " + plural(lv, "time") + "!" : " 120 XP in a day earns one."), !n); }
