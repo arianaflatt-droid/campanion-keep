@@ -2,9 +2,9 @@
 // Unused battles carry over. The student asks (tbAsk = when they asked); Ms. Ariana starts it from her console,
 // which makes a normal battle invite with tb = the week it uses. A finished battle is written to tbUsed by the
 // console (students can't change tbUsed). A battle that's declined or ended by Ms. Ariana/timeout gives the battle back.
-import { weekKey, weekDoorState, subReq } from "./doors.js?v=20261030a";
-import { TEACHER_ID } from "./collect.js?v=20261030a";
-import { esc } from "./game.js?v=20261030a";
+import { weekKey, weekDoorState, subReq } from "./doors.js?v=20261030b";
+import { TEACHER_ID } from "./collect.js?v=20261030b";
+import { esc } from "./game.js?v=20261030b";
 
 export const TB_SINCE = "2026-10-19";   // weeks before this don't count (it started this week)
 const LIVE = ["invite", "team", "lead", "fight"];

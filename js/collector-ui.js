@@ -4,13 +4,13 @@ import {
   formIndex, formOf, statsOf, seenSet, rollRarity, doPull, arenaOpen, arenaOpenFor, lunchHour, hitGoalToday, LUNCH_ARENA, ARENA_HOURS, fighterFrom, teamSize, alive, resolve, resolveRound, moveOk, MOVES, hitDamage,
   birthdayLeft, pickleLeft, PICKLE_FAM, brewLegLeft, BREW_FAM, feastLegLeft, HARVEST_FAM, gingerLegLeft, GINGER_FAM, snowLegLeft, SNOW_FAM, candyLegLeft, CANDY_FAM, ghostEggLeft, GHOST_FAM, BOSS2_LIST, boss2EggLeft, vaultLegLeft, goalLeft, nextGoal, rollRareUp, themeLeft, nextTheme, THEME_TYPES, THEME_EGG, WISH_FAM, spares, spareId, releaseXP, releaseProblem, isStarterFam, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
   EVENTS, eventOpen, eventWindow, eventStreak, hasEvent, eventUnlocked, azToday, rollTeacherRarity, TEACHER_ODDS, LIVE, staleBattle
-} from "./collect.js?v=20261030a";
-import { newBattleRef, changeBattle as changeBattleRaw, setDoc, liveBattlesNow, ck, ckMessage } from "./db.js?v=20261030a";
+} from "./collect.js?v=20261030b";
+import { newBattleRef, changeBattle as changeBattleRaw, setDoc, liveBattlesNow, ck, ckMessage } from "./db.js?v=20261030b";
 // every change to a battle is stamped with the time (upd), so a battle nobody has touched in a while can be ended
 let locking = null, leaving = null;   // battle id while "Lock in team" is saving
 const changeBattle = (id, fn) => changeBattleRaw(id, bt => { const n = fn(bt); if (n) n.upd = new Date().toISOString(); return n; });
 
-import { tradeCard } from "./trade-ui.js?v=20261030a";
+import { tradeCard } from "./trade-ui.js?v=20261030b";
 
 const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const PER_PAGE = 20;
@@ -150,6 +150,15 @@ function nameRow(f, e, c) {
     '<div class="row" style="gap:4px;justify-content:center;"><button class="btn small" data-cc="nickSave" data-fam="' + f + '">Save</button><button class="btn ghost small" data-cc="nickCancel">Cancel</button></div></div>';
   return (e.nick ? "<b>" + esc(e.nick) + '</b><small class="muted">' + esc(c.name) + "</small>" : "<b>" + esc(c.name) + "</b>") +
     '<button class="nickbtn" data-cc="nick" data-fam="' + f + '" title="Give it a name">\u270F\uFE0F ' + (e.nick ? "Rename" : "Name it") + "</button>";
+}
+// Battle team picker (Oct 30): favorites + the 10 highest-level creatures (anything already picked stays), or everything with "Show all".
+let teamAll = false;
+function teamChoices(s) {
+  const o = owned(s), fams = ownedFams(s);
+  if (teamAll) return sortedFams(s);
+  const lv = f => o[f].lvl || 1, byLvl = fams.slice().sort((a, b) => lv(b) - lv(a) || formOf(a, 1).id - formOf(b, 1).id);
+  const keep = new Set(fams.filter(f => o[f].fav).concat(byLvl.slice(0, 10), picks.filter(f => o[f])));
+  return byLvl.filter(f => keep.has(f)).sort((a, b) => (o[b].fav ? 1 : 0) - (o[a].fav ? 1 : 0));   // favorites first, then highest level
 }
 // Favorites (coll[fam].fav) come first, then the rest in lorebook order.
 function sortedFams(s) {
@@ -497,8 +506,11 @@ function battleOverlay() {
   else if (busyLeave && LIVE.includes(bt.status)) h += '<div class="bpanel small"><p>Leave now? The battle ends for both of you and doesn\u2019t count for anyone.</p><div class="row" style="gap:8px;justify-content:center;"><button class="btn small danger" data-cc="leaveBattle">Yes, leave</button><button class="btn ghost small" data-cc="leaveCancel">Keep battling</button></div></div>';
   if (bt.status === "invite") return h + '<div class="bpanel"><p>Waiting for ' + esc(thN) + " to accept…</p></div></div>";
   if (bt.status === "team" && !(bt.team && bt.team[me])) {
-    const fams = sortedFams(ctx.me);
-    return h + '<div class="bpanel"><h3>Choose your team: pick ' + bt.n + "</h3><div class=\"teamgrid\">" + fams.map(f => { const c = formOf(f, owned(ctx.me)[f].lvl || 1), on = picks.includes(f);
+    const fams = teamChoices(ctx.me), all = ownedFams(ctx.me).length, more = all - fams.length;
+    return h + '<div class="bpanel"><h3>Choose your team: pick ' + bt.n + "</h3>" +
+      '<p class="muted small" style="margin:-4px 0 8px;">' + (teamAll ? "Showing all " + all + " of your creatures." : "\u2B50 Your favorites + your top 10 by level.") +
+      (more > 0 || teamAll ? ' <button class="btn ghost small" data-cc="teamAll">' + (teamAll ? "Show favorites + top 10" : "Show all " + all) + "</button>" : "") + "</p>" +
+      "<div class=\"teamgrid\">" + fams.map(f => { const c = formOf(f, owned(ctx.me)[f].lvl || 1), on = picks.includes(f);
       return '<button class="tpick' + (on ? " on" : "") + '" data-cc="pickTeam" data-fam="' + f + '">' + (owned(ctx.me)[f].fav ? '<span class="tfav">\u2B50</span>' : "") + img(c, "", spOf(f)) + "<b>" + esc(owned(ctx.me)[f].nick || c.name) + "</b><small>Lv " + (owned(ctx.me)[f].lvl || 1) + "</small></button>"; }).join("") +
       '</div><button class="btn big" data-cc="lockTeam"' + (picks.length === bt.n && locking !== bt.id ? "" : " disabled") + ">" + (locking === bt.id ? "Locking in\u2026" : "Lock in team (" + picks.length + "/" + bt.n + ")") + "</button></div></div>";
   }
@@ -867,6 +879,7 @@ export async function onClick(el, c) {
     return c.render(true);
   }
   if (a === "skipReplay") { const bt = c.battles.find(b => b.id === battleOpen); if (bt) shown[bt.id] = (bt.log || []).length; clearTimeout(replayTimer); replayTimer = null; return c.render(true); }
+  if (a === "teamAll") { teamAll = !teamAll; return c.render(true); }
   if (a === "pickTeam") {
     const bt = c.battles.find(b => b.id === battleOpen), f = el.dataset.fam;
     picks = picks.includes(f) ? picks.filter(x => x !== f) : picks.length < bt.n ? picks.concat([f]) : picks;
