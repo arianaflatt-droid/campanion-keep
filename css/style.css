@@ -1956,3 +1956,33 @@ body.mini-xmas .tile{ box-shadow:0 0 0 2px #E8B923; } body.mini-tot .tile{ box-s
 .ckwrow small{ grid-column:2 / 4; color:#3d6a4c; font-size:12.5px; margin-top:-4px; }
 .ckwrow .ckwmore{ color:#9a4a00; font-weight:700; }
 .ckwrow.ok .ckwnum{ color:#1d7a3e; }
+
+/* ---------- 🍂 Leaf Pile Jump (mini event, Oct 29) ---------- */
+.mo-leaf{ background:#3A1A08; }
+.mstage.leafstage{ background-color:#7a4a1c; }
+.leafpile{ position:absolute; width:calc(15% * var(--s)); aspect-ratio:1/1.05; transform:translate(-50%,-100%); background:none; border:0; padding:0; cursor:pointer; transform-origin:50% 100%;
+  filter:drop-shadow(0 6px 6px rgba(0,0,0,.35)); animation:leafbob 2.6s ease-in-out infinite alternate; animation-delay:var(--d); }
+.leafpile img{ width:100%; height:100%; object-fit:contain; display:block; }
+.leafpile .lp{ display:none; }
+.leafpile.noart .lp{ display:block; position:absolute; inset:0; }
+.leafpile.noart .lp::before{ content:""; position:absolute; left:6%; right:6%; bottom:2%; height:62%; border-radius:50% 50% 14% 14% / 90% 90% 16% 16%; background:radial-gradient(ellipse at 50% 100%,#9A3F14,#C9602A 60%,#E8873A); }
+.leafpile.noart .lp b{ position:absolute; transform:translate(-50%,-50%) rotate(var(--r)); font-size:clamp(14px,2.6vw,34px); line-height:1; font-weight:400; }
+.leafpile:hover:not(:disabled){ transform:translate(-50%,-100%) scale(1.08); }
+.leafpile:disabled{ cursor:default; } .leafpile.notix{ filter:grayscale(.6) brightness(.75); animation:none; }
+.leafpile.jump{ animation:leafsquash .5s ease-out; }
+.leafpile .burst{ position:absolute; left:50%; top:40%; pointer-events:none; }
+.leafpile .burst em{ position:absolute; font-style:normal; font-size:clamp(18px,3vw,38px); animation:leafburst .9s ease-out forwards; --a:calc(var(--k) * 45deg); }
+@keyframes leafbob{ to{ transform:translate(-50%,-100%) scale(1.03); } }
+@keyframes leafsquash{ 0%{ transform:translate(-50%,-100%) scale(1); } 30%{ transform:translate(-50%,-100%) scale(1.25,.7); } 100%{ transform:translate(-50%,-100%) scale(1); } }
+@keyframes leafburst{ from{ transform:translate(-50%,-50%) rotate(0) translate(0); opacity:1; } to{ transform:translate(-50%,-50%) rotate(var(--a)) translate(0,-160%) rotate(200deg); opacity:0; } }
+.leafcard{ top:4%; background:rgba(60,26,6,.85); color:#FFE7B8; }
+.leafpop{ background:rgba(255,246,228,.97); color:#4A1F08; } .leafpop h2{ color:#B3541E; } .leafpop .mgot{ color:#B3541E; text-shadow:none; }
+.leafgold{ filter:drop-shadow(0 0 14px rgba(255,200,60,.9)); }
+.minibanner.mb-leaf{ background:linear-gradient(90deg,#8A3A0E,#D9772B); color:#FFF1D6; }
+.mc-leaf{ background:linear-gradient(135deg,#8A3A0E,#D9772B); color:#FFF6E8; } .mc-leaf h3, .mc-leaf p{ color:#FFF6E8; }
+body.mini-leaf{ --casing:#F5D9B0; --accent:#C4521E; --accent-soft:#FBE3C7; background:linear-gradient(180deg,#F8E1BC,#E9B98A); }
+body.mini-leaf::before{ content:""; position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.6; animation:msnow 14s linear infinite;
+  background-image:radial-gradient(5px 3px at 60px 40px,#D9622B,transparent),radial-gradient(5px 3px at 230px 150px,#E8A13A,transparent),radial-gradient(4px 3px at 140px 210px,#B3261E,transparent); background-size:320px 240px; }
+body.mini-leaf .wrap{ position:relative; z-index:1; } body.mini-leaf .tile{ box-shadow:0 0 0 2px #C4521E; }
+@media (prefers-reduced-motion: reduce){ .leafpile, .leafpile .burst em, body.mini-leaf::before{ animation:none; } }
+@media (max-width: 640px){ .leafpile{ width:calc(19% * var(--s)); } }

@@ -6,17 +6,20 @@
    📚 lib  = Library After Dark (any season, Oct 25): lanterns come from READING XP only (1 per 10 Reading XP today). Open glowing
              books in a spooky library: Ghost/Dark/Arcane creatures pop out with a silly riddle (right answer = double), or
              treasure, or a golden book (egg). 10 library-card stamps = an egg. Pays the current season's currency. No outfits.
+   🍂 leaf = Leaf Pile Jump (fall, Oct 29): jumps come from READING XP only (1 per 10 Reading XP today). Jump into leaf piles in a fall
+             park: Nature/Earth/Air creatures pop out with a fall riddle (right answer = double), or treasure, or a golden leaf (egg).
+             10 leaves on the leaf collection card = an egg. Pays the current season's currency. Art: assets/leaf/ (falls back if missing).
    Tickets: 1 for every 10 XP today (best of morning / lunch / end-of-day numbers). Rewards are the season currency
    (candyBonus) and sometimes an egg (doorEggs). Each event has a "this time only" outfit shop (60 each, kept forever).
    While an event is on, every companion wears a random costume from it, and The Keep gets the event's colors.
    Saved on the student: mini = { id, used: { date: n }, cos, maze, stop, stamps, elf: { d, found, peek: [] }, got }
    plus outfits / outfitOn (game.js). */
-import { esc, HEAD_FNS, OUTFITS, candyLeft, companionOf } from "./game.js?v=20261029b";
-import { azToday, creature, FAMILIES } from "./collect.js?v=20261029b";
-import { CREATURES } from "./creatures.js?v=20261029b";
-import { xpOn } from "./surprise.js?v=20261029b";
-import { SEASON, boostExtra } from "./game.js?v=20261029b";
-import { todayReading, todayReadingBoosted } from "./readmap.js?v=20261029b";
+import { esc, HEAD_FNS, OUTFITS, candyLeft, companionOf } from "./game.js?v=20261030a";
+import { azToday, creature, FAMILIES } from "./collect.js?v=20261030a";
+import { CREATURES } from "./creatures.js?v=20261030a";
+import { xpOn } from "./surprise.js?v=20261030a";
+import { SEASON, boostExtra } from "./game.js?v=20261030a";
+import { todayReading, todayReadingBoosted } from "./readmap.js?v=20261030a";
 
 export const PER_TICKET = 10, OUTFIT_COST = 60;
 const typesOf = fam => { const f = FAMILIES.find(x => x.id === fam); const c = f && CREATURES.find(x => x.id === f.forms[0]); return (c && c.types) || []; };
@@ -31,7 +34,10 @@ export const MINI = {
     fams: () => pool(["Ice"], ["L-30", "L-36", "L-43"], []).filter(f => !f.startsWith("L-") || ["L-30", "L-36", "L-43"].includes(f)) },
   lib: { key: "lib", name: "Library After Dark", icon: "\u{1F4DA}", bg: "assets/lib/lib-library.webp", theme: "any season · Reading XP", reading: true, tix: "lantern", tixs: "lanterns",
     get cur() { return SEASON.cur || "candy"; }, get coin() { return SEASON.coin || "\u{1F36C}"; },
-    fams: () => pool(["Ghost", "Dark", "Arcane"], [], []).filter(f => !f.startsWith("L-")) }
+    fams: () => pool(["Ghost", "Dark", "Arcane"], [], []).filter(f => !f.startsWith("L-")) },
+  leaf: { key: "leaf", name: "Leaf Pile Jump", icon: "\u{1F342}", bg: "assets/leaf/leaf-park.webp", theme: "fall · Reading XP", reading: true, tix: "jump", tixs: "jumps", tixImg: "assets/leaf/leaf-icon.webp",
+    get cur() { return SEASON.cur || "candy"; }, get coin() { return SEASON.coin || "\u{1F36C}"; },
+    fams: () => pool(["Nature", "Earth", "Air"], [], []).filter(f => !f.startsWith("L-")) }
 };
 let FAMS = {};
 const famsOf = k => (FAMS[k] = FAMS[k] || MINI[k].fams());
@@ -67,7 +73,7 @@ HEAD_FNS.push(st => {
 // Call on every render (both pages): remembers the class for the costume and sets The Keep's event colors.
 export function miniSync(cls) {
   CLS = cls; const E = miniOn(cls);
-  ["tot", "fest", "xmas", "lib"].forEach(k => document.body.classList.toggle("mini-" + k, !!E && E.key === k));
+  ["tot", "fest", "xmas", "lib", "leaf"].forEach(k => document.body.classList.toggle("mini-" + k, !!E && E.key === k));
 }
 
 /* ---------- lines ---------- */
@@ -134,14 +140,14 @@ export function miniCard(st, cls) {
   const t = ticketsLeft(st, cls);
   return '<div class="card minicard mc-' + E.key + '"><div class="mctxt"><h3>' + E.icon + " " + E.name + '!</h3><p><b>' + t + "</b> " + tixWord(E, t) +
     " · 1 " + tixWord(E, 1) + " for every " + PER_TICKET + (E.reading ? " <b>Reading</b>" : "") + " XP today." + (readX2(cls) ? " \u{1F4DA} <b>Reading XP counts double!</b>" : "") + " You have <b>" + candyLeft(st).toLocaleString() + " " + E.coin + "</b>.</p>" +
-    '<button class="btn gold" data-mini="open">' + (E.key === "tot" ? "\u{1F6AA} Go trick-or-treating!" : E.key === "fest" ? "\u{1F3A1} Go to the festival!" : E.key === "lib" ? "\u{1F56F}️ Sneak into the library!" : "\u{1F682} Go to the station!") + "</button> " +
+    '<button class="btn gold" data-mini="open">' + (E.key === "tot" ? "\u{1F6AA} Go trick-or-treating!" : E.key === "fest" ? "\u{1F3A1} Go to the festival!" : E.key === "lib" ? "\u{1F56F}️ Sneak into the library!" : E.key === "leaf" ? "\u{1F342} Jump in the leaves!" : "\u{1F682} Go to the station!") + "</button> " +
     (hasShop(E) ? '<button class="btn ghost" data-mini="shop">\u{1F6CD}️ Outfit shop</button>' : "") + "</div></div>";
 }
 
 /* ---------- the event screen (overlay) ---------- */
 let G = null;
 export const miniBusy = () => !!G;
-const top = (E, st, cls, back) => '<div class="qbtop"><b>' + E.icon + " " + E.name + " · " + (E.reading ? '<img class="lantic" src="assets/lib/lib-lantern.webp" alt="lanterns"> ' : "\u{1F39F}️ ") + ticketsLeft(st, cls) + " · " + candyLeft(st).toLocaleString() + " " + E.coin + "</b><span>" +
+const top = (E, st, cls, back) => '<div class="qbtop"><b>' + E.icon + " " + E.name + " · " + (E.tixImg ? '<img class="lantic" src="' + E.tixImg + '" alt="' + E.tixs + '"> ' : E.reading ? '<img class="lantic" src="assets/lib/lib-lantern.webp" alt="lanterns"> ' : "\u{1F39F}️ ") + ticketsLeft(st, cls) + " · " + candyLeft(st).toLocaleString() + " " + E.coin + "</b><span>" +
   (back ? '<button class="btn ghost small" data-mini="' + back + '">⬅️ Back</button> ' : "") + (hasShop(E) ? '<button class="btn ghost small" data-mini="shop">\u{1F6CD}️ Shop</button> ' : "") + '<button class="btn ghost small" data-mini="close">✕</button></span></div>';
 let noTix = "";
 const noTixFor = E => '<p class="mnotix">No ' + tixWord(E, 2) + " left! Read " + PER_TICKET + " more" + (E.reading ? " <b>Reading</b>" : "") + " XP for another one.</p>";
@@ -190,6 +196,24 @@ export function miniOverlay(st, cls) {
         : '<div class="mhint">' + (t ? '<button class="btn big gold" data-mini="ride">\u{1F3A1} Ride to the top!</button>' : noTix) + "</div>") + "</div>";
     }
     return h + "</div>";
+  }
+  if (E.key === "leaf") {
+    const got = Number(m.leaves) || 0;
+    h += top(E, st, cls) + '<div class="mstage leafstage" ' + bgs + '>';
+    if (G.res) {
+      const r = G.res;
+      h += '<div class="mpop leafpop">' + (r.gold ? '<img class="mbigimg pop leafgold" src="assets/leaf/leaf-golden.webp" alt=""><h2>A golden leaf!</h2>' : "") + (r.v ? visHTML(r.v, r.line) : '<p class="mfound">' + esc(r.line) + "</p>") +
+        (r.q && r.ans == null ? '<p class="libq">\u{1F914} ' + esc(r.q.q) + '</p><div class="libans">' + r.q.opts.map((o, i) => '<button class="btn" data-mini="answer" data-i="' + i + '">' + esc(o) + "</button>").join("") + "</div>"
+          : (r.q ? '<p class="libq ' + (r.right ? "ok" : "no") + '">' + (r.right ? "\u{1F389} You got it! Double " + E.cur + "!" : "\u{1F605} Nice try! The answer was <b>" + esc(r.q.opts[r.q.a]) + "</b>.") + "</p>" : "") +
+            gotHTML(E, r.n, r.egg) + (r.stampEgg ? "<p>\u{1F342} Your leaf collection is full: a bonus egg! A new one starts.</p>" : "") + '<button class="btn big" data-mini="ok">Jump in another pile</button>') + "</div>";
+    } else {
+      h += LEAF_PILES.map(([x, y, sz], i) => '<button class="leafpile' + (G.jump === i ? " jump" : "") + (t ? "" : " notix") + '" data-mini="leap" data-i="' + i + '"' + (t && G.jump == null ? "" : " disabled") + ' aria-label="Jump in a leaf pile" style="left:' + x + "%;top:" + y + "%;--s:" + sz + ";--d:" + (i * 0.23) + 's">' +
+          '<img src="assets/leaf/leaf-pile-' + ((i % 3) + 1) + '.webp" alt="" onerror="this.parentNode.classList.add(\'noart\');this.remove()"><i class="lp">' + LP_HTML(i) + '</i>' +
+          (G.jump === i ? '<span class="burst">' + "\u{1F342}\u{1F341}\u{1F342}\u{1F341}\u{1F342}\u{1F341}\u{1F342}\u{1F341}".match(/./gu).map((l, k) => '<em style="--k:' + k + '">' + l + "</em>").join("") + "</span>" : "") + "</button>").join("") +
+        '<div class="libcard leafcard"><img class="lantic" src="assets/leaf/leaf-icon.webp" alt=""> Leaf collection: ' + Array.from({ length: 10 }, (_, i) => '<span class="' + (i < got % 10 ? "on" : "") + '">' + (i < got % 10 ? LEAF_TYPES[i] : "·") + "</span>").join("") + "</div>" +
+        '<div class="mhint">' + (G.jump != null ? "Wheee! \u{1F342}" : t ? "Tap a leaf pile to jump in! What's hiding inside?" : noTix) + "</div>";
+    }
+    return h + "</div></div>";
   }
   if (E.key === "lib") {
     const stamps = Number(m.books) || 0;
@@ -261,7 +285,7 @@ export async function miniClick(el, c) {
   }
   if (a === "go") { const v = el.dataset.v; G = { view: v, bg: { maze: "assets/fest/fest-maze.webp", patch: "assets/fest/fest-patch.webp", ferris: "assets/fest/fest-ferris-top.webp", train: "assets/xmas/xmas-station.webp", elf: "assets/xmas/xmas-livingroom.webp" }[v] }; return c.render(true); }
   if (a === "ok" || a === "next") { G.res = null; if (E.key === "fest" && G.view === "maze") G.bg = "assets/fest/fest-maze.webp"; return c.render(true); }
-  if (a === "answer" && E.key === "lib" && G && G.res && G.res.q && G.res.ans == null) {
+  if (a === "answer" && (E.key === "lib" || E.key === "leaf") && G && G.res && G.res.q && G.res.ans == null) {
     const r = G.res, i = Number(el.dataset.i); r.ans = i; r.right = i === r.q.a;
     if (r.right) { r.n *= 2; chime(3); } else chime(1);
     G.busy = true; try { const mm = Object.assign({}, mine(s, cls)); mm.got = (Number(mm.got) || 0) + r.n; const data = { mini: mm, candyBonus: (Number(s.candyBonus) || 0) + r.n }; if (r.egg) data.doorEggs = (Number(s.doorEggs) || 0) + 1; await c.patch(data, true); } finally { G.busy = false; }
@@ -313,6 +337,19 @@ export async function miniClick(el, c) {
     use(); const at = Number(m.stop) || 0, egg = at === 7; m.stop = egg ? 0 : at + 1; m.stamps = (Number(m.stamps) || 0) + 1;
     G.res = { match, n, egg, at, line: match === "perfect" ? fav.perfect : match === "ok" ? "Ooh, a " + g.name.toLowerCase() + "! Not my favorite, but I love it!" : g.silly };
     chime(match === "perfect" ? 3 : 1); await c.patch(pay(n, egg), true); return c.render(true);
+  }
+  if (a === "leap" && E.key === "leaf") {
+    const i = Number(el.dataset.i); if (G.jump != null) return;
+    use(); m.leaves = (Number(m.leaves) || 0) + 1; const stampEgg = m.leaves % 10 === 0, r = Math.random(); let res;
+    if (r < 0.05) res = { gold: true, n: 15, egg: true, line: "A golden leaf floats down… with an egg tucked underneath!" };
+    else if (r < 0.55) { const v = visitor("leaf"), q = LEAF_RIDDLES[rnd(0, LEAF_RIDDLES.length - 1)]; res = { v, n: v.n, line: LEAF_LINES[rnd(0, LEAF_LINES.length - 1)], q }; }
+    else if (r < 0.85) res = { n: rnd(3, 6), line: ["You landed on a hidden pile of " + E.cur + "!", "A squirrel was saving " + E.cur + " in here. It says you can have some!", "Crunch! There was " + E.cur + " at the bottom of the pile!"][rnd(0, 2)] };
+    else res = { n: rnd(2, 4), line: LEAF_FINDS[rnd(0, LEAF_FINDS.length - 1)] };
+    res.stampEgg = stampEgg; if (stampEgg) res.egg = true;
+    G.jump = i; G.busy = true; leafSound(); c.render(true);
+    try { if (!res.q) await c.patch(pay(res.n, res.egg), true); else await c.patch({ mini: m }, true); } finally { G.busy = false; }
+    await new Promise(ok => setTimeout(ok, 900));
+    if (!G) return; G.jump = null; G.res = res; chime(res.gold ? 3 : 1); return c.render(true);
   }
   if (a === "book" && E.key === "lib") {
     use(); m.books = (Number(m.books) || 0) + 1; const stampEgg = m.books % 10 === 0, r = Math.random(); let res;
@@ -388,6 +425,41 @@ const RIDDLES = [
   { q: "Where do books sleep?", opts: ["Under their covers", "On the shelf", "In a bookbed"], a: 0 }
 ];
 
+/* ---------- 🍂 Leaf Pile Jump: piles, lines, finds and fall riddles ---------- */
+// [left %, top %, size] of each pile on the park picture (the bottom of each pile sits at top %)
+const LEAF_PILES = [[14, 66, 1], [33, 61, 0.9], [52, 64, 1.05], [71, 60, 0.9], [88, 66, 1], [23, 84, 1.15], [45, 86, 1.2], [66, 85, 1.15], [86, 88, 1.05]];
+// drawn pile (used until the leaf-pile pictures are uploaded): leaves stacked in a mound
+const LP_SPOTS = [[8, 78], [22, 82], [36, 84], [50, 85], [64, 84], [78, 82], [92, 78], [16, 62], [30, 64], [44, 66], [58, 66], [72, 64], [86, 62], [26, 46], [42, 48], [58, 48], [74, 46], [38, 30], [54, 30], [62, 32], [47, 16]];
+const LP_HTML = i => LP_SPOTS.map(([x, y], k) => '<b style="left:' + x + "%;top:" + y + "%;--r:" + (((k * 67 + i * 31) % 120) - 60) + 'deg">' + ["\u{1F341}", "\u{1F342}", "\u{1F342}", "\u{1F341}"][(k + i) % 4] + "</b>").join("");
+const LEAF_TYPES = ["\u{1F341}", "\u{1F342}", "\u{1F343}", "\u{1F341}", "\u{1F342}", "\u{1F343}", "\u{1F341}", "\u{1F342}", "\u{1F343}", "\u{1F341}"];
+const LEAF_LINES = ["Crunch crunch! You found my leafy hideout!", "I was taking a nap in here. Okay, I'm awake! Riddle time!", "Wheee! Leaf piles are the BEST part of fall!",
+  "Achoo! Sorry, a leaf tickled my nose. Want a riddle?", "You jumped right on my tail! It's okay, I'll trade you a riddle.", "I raked this pile all by myself. Answer my riddle!",
+  "Shhh, I'm hiding from the squirrels. Here's a riddle!", "The wind blew me in here! Can you solve this?"];
+const LEAF_FINDS = ["You found a lost mitten… and some treats inside it!", "A sleepy squirrel waved hello and gave you a snack!", "You found the crunchiest leaf in the whole park! Treats fell out of it!",
+  "A pinecone rolled out with a few treats stuck to it!", "An acorn cap full of treats! Tiny, but yummy!"];
+const LEAF_RIDDLES = [
+  { q: "What falls in fall but never gets hurt?", opts: ["Leaves", "Rocks", "Apples"], a: 0 },
+  { q: "What has a trunk but never goes on a trip?", opts: ["An elephant", "A tree", "A car"], a: 1 },
+  { q: "What tree can you carry in your hand?", opts: ["A palm", "An oak", "A maple"], a: 0 },
+  { q: "Why did the leaf go to the doctor?", opts: ["It was feeling green", "It fell down", "It had a cold"], a: 0 },
+  { q: "What did the tree say when fall came?", opts: ["Leaf me alone!", "Hello!", "I'm cold"], a: 0 },
+  { q: "What is a scarecrow's favorite fruit?", opts: ["Straw-berries", "Bananas", "Grapes"], a: 0 },
+  { q: "What has ears but cannot hear?", opts: ["Corn", "A bunny", "A rock"], a: 0 },
+  { q: "What did the acorn say when it grew up?", opts: ["Gee-ometry!", "I'm a tree!", "Hooray!"], a: 0 },
+  { q: "What kind of key opens a pumpkin?", opts: ["A turkey", "A door key", "A mon-key"], a: 0 },
+  { q: "Why are trees so good at math?", opts: ["They have lots of roots", "They're tall", "They read books"], a: 0 },
+  { q: "What color are leaves in the fall?", opts: ["Red, orange and yellow", "Blue and purple", "Pink and white"], a: 0 },
+  { q: "What do you call a pile of leaves that tells jokes?", opts: ["A crack-pile", "Leaf-ty the clown", "A funny pile"], a: 2 },
+  { q: "Which animal hides acorns to eat in winter?", opts: ["A squirrel", "A fish", "A bird"], a: 0 },
+  { q: "Why did the squirrel sit on the acorn?", opts: ["To keep it safe", "To hatch it", "It was tired"], a: 0 },
+  { q: "What season comes after summer?", opts: ["Fall", "Spring", "Winter"], a: 0 },
+  { q: "How do trees get on the internet?", opts: ["They log on", "With a phone", "They don't"], a: 0 },
+  { q: "What did the wind say to the leaves?", opts: ["Let's blow this place!", "Stay put!", "Goodnight"], a: 0 },
+  { q: "What's a tree's favorite drink?", opts: ["Root beer", "Milk", "Lemonade"], a: 0 },
+  { q: "What is orange and sounds like a parrot?", opts: ["A carrot", "A pumpkin", "A leaf"], a: 0 },
+  { q: "What has bark but no bite?", opts: ["A tree", "A puppy", "A shark"], a: 0 }
+];
+
 /* ---------- The Keep banner + teacher controls ---------- */
 export function miniBanner(students, cls) {
   const E = miniOn(cls); if (!E) return "";
@@ -419,6 +491,10 @@ export function miniAction(act, el, cls) {
 let AC = null;
 const ac = () => { try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === "suspended") AC.resume(); return AC; } catch (e) { return null; } };
 function thud(t) { const o = AC.createOscillator(), g = AC.createGain(); o.type = "sine"; o.frequency.setValueAtTime(180, t); o.frequency.exponentialRampToValueAtTime(60, t + 0.12); g.gain.setValueAtTime(0.6, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.15); o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t + 0.18); }
+function leafSound() { if (!ac()) return; const t = AC.currentTime, n = Math.floor(AC.sampleRate * 0.5), b = AC.createBuffer(1, n, AC.sampleRate), d = b.getChannelData(0);
+  for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 2) * (Math.random() < 0.3 ? 1 : 0.3);   // crunchy leaves
+  const s = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain(); f.type = "bandpass"; f.frequency.value = 2600; f.Q.value = 0.7; g.gain.value = 0.5;
+  s.buffer = b; s.connect(f); f.connect(g); g.connect(AC.destination); s.start(t); }
 function knockSound() { if (!ac()) return; const t = AC.currentTime; thud(t); thud(t + 0.22); thud(t + 0.44); }
 function chime(n) { if (!ac()) return; const t = AC.currentTime; [784, 988, 1175, 1568].slice(0, (n || 1) + 1).forEach((f, i) => { const o = AC.createOscillator(), g = AC.createGain(); o.type = "triangle"; o.frequency.value = f; g.gain.setValueAtTime(0.15, t + i * 0.09); g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.09 + 0.35); o.connect(g); g.connect(AC.destination); o.start(t + i * 0.09); o.stop(t + i * 0.09 + 0.4); }); }
 function trainSound() { if (!ac()) return; const t = AC.currentTime; [0, 0.25].forEach(d => { const o = AC.createOscillator(), g = AC.createGain(); o.type = "square"; o.frequency.value = 520; g.gain.setValueAtTime(0.08, t + d); g.gain.exponentialRampToValueAtTime(0.001, t + d + 0.22); o.connect(g); g.connect(AC.destination); o.start(t + d); o.stop(t + d + 0.25); }); }

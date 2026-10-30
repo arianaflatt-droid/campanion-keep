@@ -4,13 +4,13 @@ import {
   formIndex, formOf, statsOf, seenSet, rollRarity, doPull, arenaOpen, arenaOpenFor, lunchHour, hitGoalToday, LUNCH_ARENA, ARENA_HOURS, fighterFrom, teamSize, alive, resolve, resolveRound, moveOk, MOVES, hitDamage,
   birthdayLeft, pickleLeft, PICKLE_FAM, brewLegLeft, BREW_FAM, feastLegLeft, HARVEST_FAM, gingerLegLeft, GINGER_FAM, snowLegLeft, SNOW_FAM, candyLegLeft, CANDY_FAM, ghostEggLeft, GHOST_FAM, BOSS2_LIST, boss2EggLeft, vaultLegLeft, goalLeft, nextGoal, rollRareUp, themeLeft, nextTheme, THEME_TYPES, THEME_EGG, WISH_FAM, spares, spareId, releaseXP, releaseProblem, isStarterFam, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
   EVENTS, eventOpen, eventWindow, eventStreak, hasEvent, eventUnlocked, azToday, rollTeacherRarity, TEACHER_ODDS, LIVE, staleBattle
-} from "./collect.js?v=20261029b";
-import { newBattleRef, changeBattle as changeBattleRaw, setDoc, liveBattlesNow, ck, ckMessage } from "./db.js?v=20261029b";
+} from "./collect.js?v=20261030a";
+import { newBattleRef, changeBattle as changeBattleRaw, setDoc, liveBattlesNow, ck, ckMessage } from "./db.js?v=20261030a";
 // every change to a battle is stamped with the time (upd), so a battle nobody has touched in a while can be ended
 let locking = null, leaving = null;   // battle id while "Lock in team" is saving
 const changeBattle = (id, fn) => changeBattleRaw(id, bt => { const n = fn(bt); if (n) n.upd = new Date().toISOString(); return n; });
 
-import { tradeCard } from "./trade-ui.js?v=20261029b";
+import { tradeCard } from "./trade-ui.js?v=20261030a";
 
 const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const PER_PAGE = 20;
@@ -80,7 +80,7 @@ export function collectorTab(c) {
       ? '<p class="muted" style="margin:10px 0 12px;">Each day you finalize gives you <b>1 egg for every student who hit 120 XP</b> and <b>' + LEVEL_XP + " banked XP (1 level) for every student who didn\u2019t</b>. If everyone hits 120, you still get " + LEVEL_XP + " XP. Excused days don\u2019t count.</p>"
       : '<p class="muted" style="margin:10px 0 12px;">Reach ' + PULL_XP + " XP in a day for an egg, and every " + PULL_XP + " more that day earns another." + (c.cls && c.cls.lunchBonus === false ? "" : " \u2600\uFE0F Hit " + PULL_XP + " <b>before lunch</b> for a bonus egg!") + " Next egg today in <b>" + xpToNextPull(s, c.cls) + " XP</b>. All your XP also goes into your bank to level up creatures (" + LEVEL_XP + " XP = 1 level).</p>") +
     '<div class="row"><button class="btn big" data-cc="hatch"' + (pulls ? "" : " disabled") + ">\u{1F95A} Hatch an egg</button>" +
-    (pulls >= 2 && !s.isTeacher ? '<button class="btn big gold" data-cc="hatchAll">\u{1F95A}\u{1F95A} Hatch all ' + pulls + "</button>" : "") +
+    (pulls >= 2 ? '<button class="btn big gold" data-cc="hatchAll">\u{1F95A}\u{1F95A} Hatch all ' + pulls + "</button>" : "") +
     (leg ? '<button class="btn big gold" data-cc="hatchLeg">\u{1F31F} Hatch a legendary egg</button>' : "") +
     (birthdayLeft(s) ? '<button class="btn big bday" data-cc="hatchBday">\u{1F382} Hatch your birthday egg!</button>' : "") +
     (pickleLeft(s) ? '<button class="btn big gold" data-cc="hatchPickle">\u{1F952} Hatch your special event egg!</button>' : "") +
@@ -158,10 +158,15 @@ function sortedFams(s) {
 }
 const favBtn = (f, e) => '<button class="favbtn' + (e.fav ? " on" : "") + '" data-cc="fav" data-fam="' + f + '" title="' + (e.fav ? "Remove from favorites" : "Add to favorites") + '" aria-label="Favorite">' + (e.fav ? "\u2B50" : "\u2606") + "</button>";
 const tradeBtn = (key, on) => '<button class="tradebtn' + (on ? " on" : "") + '" data-cc="forTrade" data-key="' + key + '" title="' + (on ? "Take it off the trade list" : "Put it up for trade") + '">\u{1F504} ' + (on ? "Up for trade" : "Trade?") + "</button>";
+// ➖ Minimize "My creatures" (saved on this device only, no database write). Fewer pictures on the page also keeps redraws fast.
+let collMin = (() => { try { return localStorage.getItem("ck-collMin") === "1"; } catch (e) { return false; } })();
 function myCreatures(s, bank) {
   RELS = s;
-  const fams = sortedFams(s), nFav = fams.filter(f => owned(s)[f].fav).length;
-  let h = '<div class="card"><div class="card-head"><h2>My creatures</h2><span class="fact">' + fams.length + " families" + (nFav ? " \u00b7 \u2B50 " + nFav : "") + "</span></div>" + '<p class="muted small" style="margin:-4px 0 10px;">Tap \u2606 to favorite a creature. Favorites show first here and when you pick a battle team.</p>' + '<div class="mygrid">';
+  const fams = sortedFams(s), nFav = fams.filter(f => owned(s)[f].fav).length, nSp = spares(s).length;
+  const minBtn = '<button class="btn ghost small" data-cc="collMin" style="margin-left:8px;">' + (collMin ? "\u2795 Show" : "\u2796 Minimize") + "</button>";
+  if (collMin) return '<div class="card"><div class="card-head"><h2>My creatures</h2><span class="fact">' + fams.length + " families" + (nFav ? " \u00b7 \u2B50 " + nFav : "") + (nSp ? " \u00b7 \u{1F504} " + nSp + " spare" + (nSp === 1 ? "" : "s") : "") + minBtn + "</span></div>" +
+    '<p class="muted small" style="margin:0;">Your creatures are hidden. Tap <b>\u2795 Show</b> to see them.</p></div>';
+  let h = '<div class="card"><div class="card-head"><h2>My creatures</h2><span class="fact">' + fams.length + " families" + (nFav ? " \u00b7 \u2B50 " + nFav : "") + minBtn + "</span></div>" + '<p class="muted small" style="margin:-4px 0 10px;">Tap \u2606 to favorite a creature. Favorites show first here and when you pick a battle team.</p>' + '<div class="mygrid">';
   fams.forEach(f => {
     const e = owned(s)[f], lvl = e.lvl || 1, c = formOf(f, lvl), st = statsOf(c, lvl), maxed = lvl >= MAX_LEVEL;
     const next = family(f).forms[formIndex(f, lvl) + 1], evoAt = c.evolvesAt;
@@ -292,9 +297,16 @@ export function overlays(c) {
 /* ---------- 🥚 Hatch all (Oct 25): regular eggs, one server hatch each, then one list of what came out ---------- */
 let bulkHatch = null;   // { done, n, got: [res], over }
 async function hatchAll(c) {
-  const s = c.me; if (bulkHatch || s.isTeacher) return;
+  const s = c.me; if (bulkHatch) return;
   const n = pullsLeft(s, c.cls); if (n < 1) return;
   bulkHatch = { done: 0, n, got: [], over: false }; hold(600000); c.render(true);
+  if (s.isTeacher) {   // Ms. Ariana's eggs hatch right here (no server), then ONE save for all of them
+    let st = Object.assign({}, s);
+    for (let i = 0; i < n; i++) { const r = doPull(st, rollTeacherRarity(), c.cls, {}); st = Object.assign({}, st, { coll: r.coll }); bulkHatch.got.push(r); bulkHatch.done++; }
+    try { await c.patch({ coll: st.coll, pullsUsed: (Number(s.pullsUsed) || 0) + n }, true); }
+    catch (e) { c.flash("Couldn\u2019t save your eggs \u2014 " + ((e && (e.code || e.message)) || e)); bulkHatch = null; busyUntil = 0; return c.render(true); }
+    bulkHatch.over = true; busyUntil = 0; return c.render(true);
+  }
   for (let i = 0; i < n; i++) {
     try { bulkHatch.got.push(await ck("hatch", { kind: "normal" })); bulkHatch.done++; c.render(true); }
     catch (e) { c.flash(ckMessage(e)); break; }
@@ -306,7 +318,7 @@ function bulkHatchOverlay() {
   const row = r => { const cr = creature(r.id) || formOf(r.fam, r.lvl || 1); return '<div class="bhrow r-' + String(r.rarity || "").replace(" ", "") + '">' + (cr ? img(cr, "bhimg", r.sparkle) : "") +
     "<span><b>" + esc((r.sparkle ? "\u2728 " : "") + (cr ? cr.name : r.fam)) + "</b><small>" + esc(r.rarity || "") + (r.dupe ? " \u00b7 already had one: up a level" : " \u00b7 NEW!") + "</small></span></div>"; };
   return '<div class="prizeover" role="dialog" aria-label="Hatching eggs"><div class="prizebox bulkbox bhbox"><h2>\u{1F95A} ' + (b.over ? "You hatched " + b.done + " egg" + (b.done === 1 ? "" : "s") + "!" : "Hatching\u2026 " + b.done + " / " + b.n) + "</h2>" +
-    '<div class="bulklist">' + b.got.slice().reverse().map(row).join("") + "</div>" +
+    '<div class="bulklist">' + b.got.slice().reverse().slice(0, 150).map(row).join("") + (b.got.length > 150 ? '<p class="muted small">\u2026and ' + (b.got.length - 150) + " more</p>" : "") + "</div>" +
     (b.over ? '<button class="attackbtn" data-cc="hatchAllClose">Yay! \u{1F389}</button>' : '<p class="arena-foot">Cracking your eggs\u2026</p>') + "</div></div>";
 }
 function hatchOverlay() {
@@ -472,9 +484,12 @@ function battleOverlay() {
   if (!bt) { battleOpen = null; return ""; }
   const me = sideOf(bt), them = me === "A" ? "B" : "A", meN = me === "A" ? bt.a.name : bt.b.name, thN = them === "A" ? bt.a.name : bt.b.name;
   const logLen = (bt.log || []).length, k = Math.min(shown[bt.id] || 0, logLen);
-  if (k < logLen && !replayTimer) replayTimer = setTimeout(() => { replayTimer = null; shown[bt.id] = (shown[bt.id] || 0) + 1; ctx.render(true); }, k === 0 ? 400 : 1100);
+  // Replay pace (Oct 30, faster): big moments get a beat to read, small effect lines go quickly, and a long backlog (rejoining) speeds through.
+  if (k < logLen && !replayTimer) { const nx = bt.log[k] || {}, behind = logLen - k;
+    const ms = k === 0 ? 300 : behind > 6 ? 180 : nx.k === "hit" || nx.k === "faint" ? 750 : nx.k === "send" || nx.k === "win" ? 600 : 450;
+    replayTimer = setTimeout(() => { replayTimer = null; shown[bt.id] = (shown[bt.id] || 0) + 1; ctx.render(true); }, ms); }
   const caught = k >= logLen, v = viewState(bt, k);
-  let h = '<div class="battleover" style="background-image:url(assets/arena-bg.jpg)"><div class="bhead"><b>' + esc(meN) + "</b> vs <b>" + esc(thN) + '</b><button class="btn ghost small" data-cc="mute" aria-label="Sound">' + (muted() ? "\u{1F507}" : "\u{1F50A}") + '</button><button class="btn ghost small" data-cc="leaveBattle">' + (LIVE.includes(bt.status) ? (busyLeave ? "Yes, end the battle" : "Leave") : "Close") + "</button></div>";
+  let h = '<div class="battleover" style="background-image:url(assets/arena-bg.jpg)"><div class="bhead"><b>' + esc(meN) + "</b> vs <b>" + esc(thN) + '</b><button class="btn ghost small" data-cc="mute" aria-label="Sound">' + (muted() ? "\u{1F507}" : "\u{1F50A}") + '</button>' + (caught ? "" : '<button class="btn ghost small" data-cc="skipReplay" title="Skip to now">\u23E9 Skip</button>') + '<button class="btn ghost small" data-cc="leaveBattle">' + (LIVE.includes(bt.status) ? (busyLeave ? "Yes, end the battle" : "Leave") : "Close") + "</button></div>";
   if (bt.status === "declined") return h + '<div class="bpanel"><p>The challenge was declined.</p></div></div>';
   if (bt.status === "ended") return h + '<div class="bpanel"><h3>Battle ended</h3><p>' + (bt.endedBy === "teacher" ? "Ms. Ariana ended this battle." : bt.endedBy === "time" ? "Nobody moved for a while, so the battle ended." : esc(bt.endedBy === ctx.me.id ? "You" : bt.endedName || thN) + " left the battle.") +
     ' It doesn\u2019t count for anyone.</p><button class="btn big" data-cc="closeBattle">Close</button></div></div>';
@@ -560,6 +575,7 @@ export async function onClick(el, c) {
   ctx = c;
   const a = el.dataset.cc, s = c.me;
   if (a === "hatchAll") return hatchAll(c);
+  if (a === "collMin") { collMin = !collMin; try { localStorage.setItem("ck-collMin", collMin ? "1" : "0"); } catch (e) {} return c.render(true); }
   if (a === "hatchAllClose") { bulkHatch = null; busyUntil = 0; return c.render(true); }
   if (a === "starter" && !s.isTeacher) { if (hasStarter(s)) return; return serverDo(c, "starter", { fam: el.dataset.fam }); }
   if (a === "starter") { if (hasStarter(s)) return; return c.patch({ coll: { [el.dataset.fam]: { lvl: 1, at: new Date().toISOString() } }, starter: el.dataset.fam }); }
@@ -850,9 +866,13 @@ export async function onClick(el, c) {
     finally { leaving = null; }
     return c.render(true);
   }
+  if (a === "skipReplay") { const bt = c.battles.find(b => b.id === battleOpen); if (bt) shown[bt.id] = (bt.log || []).length; clearTimeout(replayTimer); replayTimer = null; return c.render(true); }
   if (a === "pickTeam") {
     const bt = c.battles.find(b => b.id === battleOpen), f = el.dataset.fam;
     picks = picks.includes(f) ? picks.filter(x => x !== f) : picks.length < bt.n ? picks.concat([f]) : picks;
+    // update just the tapped card and the Lock in button (no full redraw: a big collection has hundreds of pictures)
+    const lock = document.querySelector('[data-cc="lockTeam"]');
+    if (lock && el.classList) { el.classList.toggle("on", picks.includes(f)); lock.textContent = "Lock in team (" + picks.length + "/" + bt.n + ")"; lock.disabled = !(picks.length === bt.n && locking !== bt.id); return; }
     return c.render(true);
   }
   if (a === "lockTeam") {
