@@ -2,15 +2,15 @@
 import {
   CREATURES, FAMILIES, creature, family, xpTotal, pullsLeft, legendaryLeft, bankXP, xpToNextPull, owned, ownedFams, hasStarter,
   formIndex, formOf, statsOf, seenSet, rollRarity, doPull, arenaOpen, arenaOpenFor, lunchHour, hitGoalToday, LUNCH_ARENA, ARENA_HOURS, fighterFrom, teamSize, alive, resolve, resolveRound, moveOk, MOVES, hitDamage,
-  birthdayLeft, pickleLeft, PICKLE_FAM, brewLegLeft, BREW_FAM, feastLegLeft, HARVEST_FAM, gingerLegLeft, GINGER_FAM, snowLegLeft, SNOW_FAM, candyLegLeft, CANDY_FAM, ghostEggLeft, GHOST_FAM, BOSS2_LIST, boss2EggLeft, vaultLegLeft, goalLeft, nextGoal, rollRareUp, themeLeft, nextTheme, THEME_TYPES, THEME_EGG, WISH_FAM, spares, spareId, releaseXP, releaseProblem, isStarterFam, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
+  birthdayLeft, pickleLeft, PICKLE_FAM, brewLegLeft, BREW_FAM, feastLegLeft, HARVEST_FAM, gingerLegLeft, GINGER_FAM, snowLegLeft, SNOW_FAM, candyLegLeft, CANDY_FAM, ghostEggLeft, GHOST_FAM, BOSS2_LIST, boss2EggLeft, vaultLegLeft, revengeLegLeft, goalLeft, nextGoal, rollRareUp, themeLeft, nextTheme, THEME_TYPES, THEME_EGG, WISH_FAM, spares, spareId, releaseXP, releaseProblem, isStarterFam, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
   EVENTS, eventOpen, eventWindow, eventStreak, hasEvent, eventUnlocked, azToday, rollTeacherRarity, TEACHER_ODDS, LIVE, staleBattle
-} from "./collect.js?v=20261102b";
-import { newBattleRef, changeBattle as changeBattleRaw, setDoc, liveBattlesNow, ck, ckMessage } from "./db.js?v=20261102b";
+} from "./collect.js?v=20261102e";
+import { newBattleRef, changeBattle as changeBattleRaw, setDoc, liveBattlesNow, ck, ckMessage } from "./db.js?v=20261102e";
 // every change to a battle is stamped with the time (upd), so a battle nobody has touched in a while can be ended
 let locking = null, leaving = null;   // battle id while "Lock in team" is saving
 const changeBattle = (id, fn) => changeBattleRaw(id, bt => { const n = fn(bt); if (n) n.upd = new Date().toISOString(); return n; });
 
-import { tradeCard } from "./trade-ui.js?v=20261102b";
+import { tradeCard } from "./trade-ui.js?v=20261102e";
 
 const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const PER_PAGE = 20;
@@ -66,6 +66,7 @@ export function collectorTab(c) {
     (birthdayLeft(s) ? stat("\u{1F382}", birthdayLeft(s), "birthday egg" + (birthdayLeft(s) === 1 ? "" : "s")) : "") +
     (pickleLeft(s) ? stat("\u{1F952}", pickleLeft(s), "Cluckledill egg" + (pickleLeft(s) === 1 ? "" : "s")) : "") +
     (brewLegLeft(s) ? stat("\u{1F9EA}", brewLegLeft(s), "Brewraith egg" + (brewLegLeft(s) === 1 ? "" : "s")) : "") +
+    (revengeLegLeft(s) ? stat("\u2728", revengeLegLeft(s), "Sparkle Turducken egg" + (revengeLegLeft(s) === 1 ? "" : "s")) : "") +
     (vaultLegLeft(s) ? stat("\u{1F48E}", vaultLegLeft(s), "Sparkle Legendary egg" + (vaultLegLeft(s) === 1 ? "" : "s")) : "") +
     BOSS2_LIST.map(B => boss2EggLeft(s, B) ? stat(B.icon, boss2EggLeft(s, B), B.boss + " egg" + (boss2EggLeft(s, B) === 1 ? "" : "s")) : "").join("") +
     (candyLegLeft(s) ? stat("\u{1F36B}", candyLegLeft(s), "Candivora egg" + (candyLegLeft(s) === 1 ? "" : "s")) : "") +
@@ -85,6 +86,7 @@ export function collectorTab(c) {
     (birthdayLeft(s) ? '<button class="btn big bday" data-cc="hatchBday">\u{1F382} Hatch your birthday egg!</button>' : "") +
     (pickleLeft(s) ? '<button class="btn big gold" data-cc="hatchPickle">\u{1F952} Hatch your special event egg!</button>' : "") +
     (brewLegLeft(s) ? '<button class="btn big gold" data-cc="hatchBrew">\u{1F9EA} Hatch your Top Brewers egg!</button>' : "") +
+    (revengeLegLeft(s) && !s.isTeacher ? '<button class="btn big gold" data-cc="hatchRevenge">\u2728 Hatch your Sparkle Turducken egg!</button>' : "") +
     (vaultLegLeft(s) ? '<button class="btn big gold" data-cc="hatchVault">\u{1F48E} Hatch your Treasure Vault Sparkle Legendary egg!</button>' : "") +
     BOSS2_LIST.map(B => boss2EggLeft(s, B) ? '<button class="btn big gold" data-cc="hatchBoss2" data-k="' + B.key + '">' + B.icon + " Hatch your " + B.boss + " egg!</button>" : "").join("") +
     (candyLegLeft(s) ? '<button class="btn big gold" data-cc="hatchCandy">\u{1F36B} Hatch your Top Candy Box egg!</button>' : "") +
@@ -602,6 +604,7 @@ export async function onClick(el, c) {
     later(2800, () => { hatch.phase = "reveal"; busyUntil = 0; });
     return;
   }
+  if (a === "hatchRevenge") { if (!revengeLegLeft(s) || s.isTeacher) return; return serverHatch(c, "revenge", null, { legendary: true }); }
   if (a === "hatchVault") {
     if (!vaultLegLeft(s)) return;
     if (!s.isTeacher) return serverHatch(c, "vault", null, { legendary: true });

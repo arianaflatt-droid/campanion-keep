@@ -1,5 +1,5 @@
 // Creature Collector: pulls, XP bank, levels, evolutions, lorebook and arena battles.
-import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261102b";
+import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261102e";
 
 export const PULL_XP = 120;          // every 120 XP (all-time since the collector started) = 1 pull
 export const LEVEL_XP = 120;         // 120 banked XP = 1 level
@@ -84,7 +84,10 @@ export const WISH_FAM = "L-28";
 // Cluckledill (exclusive event Legendary): the teacher gives an egg to students who came to the real-life event.
 // Once a student has Cluckledill, it can also hatch from their Legendary eggs. Students who never got one can't hatch it.
 export const PICKLE_FAM = "L-31";
-export const BREW_FAM = "L-33";   // Brewraith: the top Potion Brewing Team's special egg
+export const BREW_FAM = "L-33";
+// ✨ Sparkle Turducken egg: beating MEGA TURDUCKEN in Turducken's Revenge (js/revenge.js, Nov 2026). Hatched by the server (kind "revenge").
+export const REVENGE_FAM = "L-42";
+export function revengeLegLeft(st) { return Math.max(0, (Number(st && st.revengeLeg) || 0) - (Number(st && st.revengeLegUsed) || 0)); }   // Brewraith: the top Potion Brewing Team's special egg
 export function brewLegLeft(st) { return Math.max(0, (Number(st && st.potionLegEggs) || 0) + (Number(st && st.soloBrewLeg) || 0) - (Number(st && st.potionLegUsed) || 0)); }   // soloBrewLeg: 15 solo potions
 export const SNOW_FAM = "L-38";   // Snowmorrow: the top Build-a-Snowman team's special egg
 /* ---------- 2nd boss wins ----------

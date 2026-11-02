@@ -1,11 +1,11 @@
-import { owned as roomOwned, fitOf as roomFit, FIT_SLOTS, setItems as roomSet } from "./room.js?v=20261102b";
-import { presentsOpened } from "./doors.js?v=20261102b";
-import { PASS_THEMES, passDone } from "./pass.js?v=20261102b";
+import { owned as roomOwned, fitOf as roomFit, FIT_SLOTS, setItems as roomSet } from "./room.js?v=20261102e";
+import { presentsOpened } from "./doors.js?v=20261102e";
+import { PASS_THEMES, passDone } from "./pass.js?v=20261102e";
 // Badges: worked out from each student's saved data, so nothing extra is stored and no rules change.
 // To add a badge: add an entry with a check(st) that returns how far along the student is,
 // and a goal. Put its picture in assets/badges/ (a transparent WEBP or PNG). Without a picture, the emoji shows.
-import { esc, goalXP, candyOf, ghostUnlocked } from "./game.js?v=20261102b";
-import { seenSet, ownedFams, owned, family, formIndex, formOf, STARTERS, CREATURES } from "./collect.js?v=20261102b";
+import { esc, goalXP, candyOf, ghostUnlocked } from "./game.js?v=20261102e";
+import { seenSet, ownedFams, owned, family, formIndex, formOf, STARTERS, CREATURES } from "./collect.js?v=20261102e";
 
 export const hatches = st => (Number(st.pullsUsed) || 0) + (Number(st.legendaryUsed) || 0);
 
@@ -211,6 +211,9 @@ export const BADGES = [
   { id: "t-popquiz",       group: "teacher", name: "Pop Quiz", desc: "Beat Ms. Ariana using only Common creatures", goal: 1, img: "assets/badges/t-popquiz.webp", emoji: "\u270F\uFE0F", check: teacherCommonWins },
   { id: "t-legendary",     group: "teacher", name: "Legendary Lesson", desc: "Beat Ms. Ariana when her team has a Legendary and yours doesn\u2019t", goal: 1, img: "assets/badges/t-legendary.webp", emoji: "\u{1F451}", check: teacherLegendWins },
   { id: "t-perfect",       group: "teacher", name: "Perfect Score", desc: "Beat Ms. Ariana without any of your creatures fainting", goal: 1, img: "assets/badges/t-perfect.webp", emoji: "\u{1F4AF}", check: teacherPerfect },
+  { id: "turkey-chaser", group: "gobble", name: "Turkey Chaser", desc: "Beat Kitchen Chaos in Turducken\u2019s Revenge", goal: 1, img: "assets/revenge/tk-angry.webp", emoji: "\u{1F983}", check: st => (st.revenge && st.revenge.beat && st.revenge.beat[1] ? 1 : 0) },
+  { id: "turkey-tamer", group: "gobble", name: "Turkey Tamer", desc: "Beat MEGA TURDUCKEN in Turducken\u2019s Revenge", goal: 1, img: "assets/revenge/tk-mega.webp", emoji: "\u{1F451}", check: st => (st.revenge && st.revenge.beat && st.revenge.beat[5] ? 1 : 0) },
+  { id: "tower-climber", group: "gobble", name: "Tower Climber", desc: "Clear wave 10 of the Turducken Tower", goal: 10, img: "assets/revenge/trophy-golden.webp", emoji: "\u{1F5FC}", check: st => Math.min(10, Number(st.revenge && st.revenge.best) || 0) },
   { id: "turkey-takedown", group: "gobble", name: "Turkey Takedown", desc: "Help defeat the Turducken", goal: 1, img: "assets/badges/turkey-takedown.webp", emoji: "\u{1F983}", check: turkeyHelped },
   { id: "turkey-2", group: "gobble", name: "Turkey Takedown II", desc: "Help defeat the Turducken a 2nd time", goal: 1, img: "assets/badges/turkey-2.webp", emoji: "\u{1F983}", check: st => (st.turkey2 ? 1 : 0) },
   { id: "ev-thanks",       group: "gobble", name: "Thanksolotl", desc: "Catch the limited Thanksolotl during Gobble-Palooza", goal: 1, img: "assets/badges/ev-thanks.webp", emoji: "\u{1F342}", check: st => (owned(st)["L-29"] ? 1 : 0) },

@@ -6,7 +6,7 @@
 import {
   doPull, owned, spares, spareId, formOf, formIndex, family, FAMILIES, MAX_LEVEL, LEVEL_XP, bankXP, releaseXP, releaseProblem,
   isStarterFam, hasStarter, STARTERS, rollRarity, rollRareUp, pullsLeft, legendaryLeft, birthdayLeft, pickleLeft, vaultLegLeft,
-  boss2EggLeft, BOSS2_LIST, candyLegLeft, snowLegLeft, gingerLegLeft, feastLegLeft, brewLegLeft, goalLeft, nextGoal, themeLeft, nextTheme,
+  boss2EggLeft, BOSS2_LIST, revengeLegLeft, REVENGE_FAM, candyLegLeft, snowLegLeft, gingerLegLeft, feastLegLeft, brewLegLeft, goalLeft, nextGoal, themeLeft, nextTheme,
   THEME_TYPES, WISH_FAM, PICKLE_FAM, CANDY_FAM, SNOW_FAM, GINGER_FAM, HARVEST_FAM, BREW_FAM, LIVE, staleBattle, ownedFams, teacherPlayer, TEACHER_ID, tradeOpenFor
 } from "./game/collect.js";
 import { creditCompanion, simulate, setSeason } from "./game/game.js";
@@ -29,6 +29,7 @@ const EGGS = {
   harvest: LEG(feastLegLeft, HARVEST_FAM, "feastLegUsed"),
   brew: LEG(brewLegLeft, BREW_FAM, "potionLegUsed"),
   bday: LEG(birthdayLeft, WISH_FAM, "birthdayUsed"),
+  revenge: { left: revengeLegLeft, used: "revengeLegUsed", legendary: true, pull: (s, cls) => doPull(s, "Legendary", cls, { force: REVENGE_FAM, sparkle: true }) },   // ✨ Sparkle Turducken (Turducken's Revenge)
   vault: { left: vaultLegLeft, used: "vaultLegUsed", legendary: true, pull: (s, cls) => doPull(s, "Legendary", cls, { sparkle: true, noEvent: true }) },
   goal: { left: goalLeft, used: "goalUsed", pull: (s, cls) => { const key = nextGoal(s); return key === "rare" ? doPull(s, rollRareUp(), cls) : doPull(s, "Legendary", cls, { force: key }); } },
   theme: { left: themeLeft, used: "themeUsed", pull: (s, cls) => doPull(s, rollRarity(), cls, { types: THEME_TYPES[nextTheme(s)] || [] }) },
