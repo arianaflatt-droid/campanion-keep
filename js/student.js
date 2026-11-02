@@ -2,42 +2,42 @@ import {
   checkVersion, hitOn, gearInSeason, applyDisplayNames, companionOf, petCreatures, pinnedBadgeHTML, DAYS, SHORT, ROSTER, GEAR, SIDEKICKS, BANNER, bannerFor, newsHTML, boostHTML, vipToday, countdownHTML, countdownLeft, isHaunt, battleOn, candyOf, basketHTML, CANDY_FULL, bossState, attacksReady, bossBarHTML, GHOST_IMG, ghostUnlocked, turkeyUnlocked, grinchUnlocked, isJingle, isFrost, isHeart, heartUnlocked, attackRefusal, saveProblems, yetiUnlocked, eventMode, isGobble, setSeason, SEASON, seasonOf, STORE, candyLeft, candySpent, ownedCount, ownsItem, storeArt, nextAttack, dmgOf, HAT_BONUS, BREW_BONUS, teamHTML, wallHTML, WHEEL, pickSlice, wheelHTML, spinTo, PRIZES, prizeSlices, bucketState, bucketHTML, baseDamage, EAT_PER_DAY, dayEaten, dayXP, byId, esc, arr5, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, sidekickSVG, petHTML as petBase, vipStage, withVipHat, vipWorn, petWithHead, OUTFITS, itemArt, potionFx, bondLevel,
   ghost2Unlocked, starterFam, boss2Of, BOSS2, BOSS2_LIST, creditCompanion, compKey, compLevel, compFill, COMP_DAYS, creatureCompanion, win1HTML
-} from "./game.js?v=20261101c";
-import { EVENT_LIST, TEAM_EVENTS, eventOn, teamCard, teamOf as tevTeamOf } from "./teams.js?v=20261101c";
-import { lockOf, lockScreen } from "./lock.js?v=20261101c";
-import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=20261101c";
-import { kindCard, gotKindToday } from "./kindness.js?v=20261101c";
-import { partyCards, partyOverlay, partyClick, partyBusy, partyTicker, partySync } from "./party.js?v=20261101c";
-import { kitchenCard, kitchenOverlay, kitchenClick, kitchenBusy, kitchenPointer } from "./meals.js?v=20261101c";
-import { miniCard, miniOverlay, miniClick, miniBusy, miniSync } from "./mini.js?v=20261101c";
-import { paintCard, paintClick } from "./paint.js?v=20261101c";
-import { surpriseCards, surpriseOverlay, surpriseClick, surpriseBusy } from "./surprise.js?v=20261101c";
-import { hofTab, hofParty, hofClick } from "./hof.js?v=20261101c";
-import { passTab, passOverlay, passClick, passBusy, passReady } from "./pass.js?v=20261101c";
-import { bondHTML, moodBubble, playTrick, burst, unlockAt } from "./bond.js?v=20261101c";
-import { morningTab, morningOverlay, morningClick, morningBusy, mqReady } from "./morning.js?v=20261101c";
-import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261101c";
-import { cardOf, sameData } from "./card.js?v=20261101c";
-import { mapOn, mapTab, mapClick, mapReady } from "./readmap.js?v=20261101c";
-import { tbCard, tbLeft } from "./teachbattle.js?v=20261101c";
-import { wheelBanner, wheelWinOverlay, wheelSeen } from "./subwheel.js?v=20261101c";
-import { checklistTab, todoCount, markSeen } from "./checklist.js?v=20261101c";
-import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc as saveDoc, watchRewardPic, watchNewsPic, claimSeat, mySeat, watchCards, watchMe, saveCard, ck } from "./db.js?v=20261101c";
-import { rewardTab, rewardBadge, rgOf, rgProgress, RG_SUBS } from "./weekgoal.js?v=20261101c";
-import { soloOn, soloSwap, soloCard, brewOne, freeIngredient, soloReady, soloCfg, potNaming, potNameData } from "./solobrew.js?v=20261101c";
+} from "./game.js?v=20261102a";
+import { EVENT_LIST, TEAM_EVENTS, eventOn, teamCard, teamOf as tevTeamOf } from "./teams.js?v=20261102a";
+import { lockOf, lockScreen } from "./lock.js?v=20261102a";
+import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=20261102a";
+import { kindCard, gotKindToday } from "./kindness.js?v=20261102a";
+import { partyCards, partyOverlay, partyClick, partyBusy, partyTicker, partySync } from "./party.js?v=20261102a";
+import { kitchenCard, kitchenOverlay, kitchenClick, kitchenBusy, kitchenPointer } from "./meals.js?v=20261102a";
+import { miniCard, miniOverlay, miniClick, miniBusy, miniSync } from "./mini.js?v=20261102a";
+import { paintCard, paintClick } from "./paint.js?v=20261102a";
+import { surpriseCards, surpriseOverlay, surpriseClick, surpriseBusy } from "./surprise.js?v=20261102a";
+import { hofTab, hofParty, hofClick } from "./hof.js?v=20261102a";
+import { passTab, passOverlay, passClick, passBusy, passReady } from "./pass.js?v=20261102a";
+import { bondHTML, moodBubble, playTrick, burst, unlockAt } from "./bond.js?v=20261102a";
+import { morningTab, morningOverlay, morningClick, morningBusy, mqReady } from "./morning.js?v=20261102a";
+import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261102a";
+import { cardOf, sameData } from "./card.js?v=20261102a";
+import { mapOn, mapTab, mapClick, mapReady } from "./readmap.js?v=20261102a";
+import { tbCard, tbLeft } from "./teachbattle.js?v=20261102a";
+import { wheelBanner, wheelWinOverlay, wheelSeen } from "./subwheel.js?v=20261102a";
+import { checklistTab, todoCount, markSeen } from "./checklist.js?v=20261102a";
+import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc as saveDoc, watchRewardPic, watchNewsPic, claimSeat, mySeat, watchCards, watchMe, saveCard, ck } from "./db.js?v=20261102a";
+import { rewardTab, rewardBadge, rgOf, rgProgress, RG_SUBS } from "./weekgoal.js?v=20261102a";
+import { soloOn, soloSwap, soloCard, brewOne, freeIngredient, soloReady, soloCfg, potNaming, potNameData } from "./solobrew.js?v=20261102a";
 let rpic = null, npic = null;
 // The wheel's slices; with Solo Potion Brewing on, Free Attack becomes Free Ingredient (same slice id, so saves still pass)
 const slicesNow = () => soloOn(cls) ? SEASON.slices.map(x => x.id === "attack" ? Object.assign({}, x, { label: "Free Ingredient", icon: soloCfg(cls).icon, note: "A free " + (soloCfg(cls).ingFor || soloCfg(cls).one) + " ingredient!" }) : x) : SEASON.slices;
-import { nudgeCard } from "./nudges.js?v=20261101c";
-import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261101c";
-import { teacherPlayer, hasStarter, MOVES, formOf } from "./collect.js?v=20261101c";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261101c";
-import { goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked, weekGoal, weekKey, weekTotal, weekDoorState, vaultState, vaultGoal, rewardFor, oldReady, vaultLessonsLeft, VAULT_XP, VAULT_BONUS_XP, VAULT_EGGS, VAULT_MIN, vaultMinOk, vaultNeedsMin, subReq, subReqHTML } from "./doors.js?v=20261101c";
-import { azToday } from "./collect.js?v=20261101c";
+import { nudgeCard } from "./nudges.js?v=20261102a";
+import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261102a";
+import { teacherPlayer, hasStarter, MOVES, formOf } from "./collect.js?v=20261102a";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261102a";
+import { addDays, vaultMet, goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked, weekGoal, weekKey, weekTotal, weekDoorState, vaultState, vaultGoal, rewardFor, oldReady, vaultLessonsLeft, VAULT_XP, VAULT_BONUS_XP, VAULT_EGGS, VAULT_MIN, vaultMinOk, vaultNeedsMin, subReq, subReqHTML } from "./doors.js?v=20261102a";
+import { azToday } from "./collect.js?v=20261102a";
 import { roomHTML, FIT_SLOTS, slotKind, KIND_NAMES, KIND_ICON, EVERYDAY_PRICE, THEMED_PRICE, TROPHY_PRICE, TYPE_THEMES, SEASON_THEMES, THEME_NAMES, TROPHIES,
   itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId,
-  ROOMS, EXTRA_ROOMS, ROOM_PRICE, hasRoom, roomStarters, fitIn, slotTakes, roomExtras, PET_SPOT_KEYS, petSpotLabel, petSpotOf, ACTIVITY_IDS, ACTIVITY_PRICE } from "./room.js?v=20261101c";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing } from "./collector-ui.js?v=20261101c";
+  ROOMS, EXTRA_ROOMS, ROOM_PRICE, hasRoom, roomStarters, fitIn, slotTakes, roomExtras, PET_SPOT_KEYS, petSpotLabel, petSpotOf, ACTIVITY_IDS, ACTIVITY_PRICE } from "./room.js?v=20261102a";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing } from "./collector-ui.js?v=20261102a";
 
 let fxFor = null;   // the student whose companion is being drawn (for the potion glow)
 const petHTML = (c, worn, held) => { const h = petBase(c, worn, held), fx = fxFor ? potionFx(fxFor) : ""; return fx ? h.replace('class="petwrap', 'class="petwrap' + fx) : h; };
@@ -660,6 +660,9 @@ function vaultCard(s) {
 }
 function earlierWeeksHTML(s) {
   const doors = oldReady(s, cls, "weekDoor").filter(wk => subReq(s, cls, wk).ok), vaults = oldReady(s, cls, "vault").filter(wk => vaultMinOk(s, cls, wk));
+  // Nov 2: last week's vault also opens if the goal was met but no upload marked it "ready" (safety net)
+  const prev = addDays(weekKey(cls), -7);
+  if (!(s.vault || {})[prev] && !vaults.includes(prev) && vaultMet(s, cls, prev)) vaults.push(prev);
   if (!doors.length && !vaults.length) return "";
   return '<div class="card olddays"><h2>\u{1F31F} Your weekend work unlocked something!</h2><div class="row" style="flex-wrap:wrap;gap:8px;margin-top:8px;">' +
     vaults.map(wk => '<button class="presentbtn golden vaultbtn" data-vault="' + wk + '">\u{1F48E} Open last week’s Treasure Vault!</button>').join("") +
@@ -690,7 +693,8 @@ function vaultOverlay() {
 }
 async function openVault(wk) {
   const s = students.find(x => x.id === me); if (!s || vaultFx || present) return;
-  const ok = wk === weekKey(cls) ? vaultState(s, cls) === "ready" : (s.vault || {})[wk] === "ready" && vaultMinOk(s, cls, wk);
+  const ok = wk === weekKey(cls) ? vaultState(s, cls) === "ready"
+    : (s.vault || {})[wk] === "ready" ? vaultMinOk(s, cls, wk) : !(s.vault || {})[wk] && wk === addDays(weekKey(cls), -7) && vaultMet(s, cls, wk);
   if (!ok) return;
   const data = { vault: Object.assign({}, s.vault || {}, { [wk]: "open" }), vaultLegEggs: (Number(s.vaultLegEggs) || 0) + 1,
     doorXP: (Number(s.doorXP) || 0) + VAULT_BONUS_XP, doorEggs: (Number(s.doorEggs) || 0) + VAULT_EGGS };

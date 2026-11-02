@@ -1,10 +1,10 @@
-import { CREATURE_LAYOUT, CREATURE_FIT_ID } from "./creature-fit.js?v=20261101c";
-import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261101c";
-import { heldWeapon } from "./quest.js?v=20261101c";
+import { CREATURE_LAYOUT, CREATURE_FIT_ID } from "./creature-fit.js?v=20261102a";
+import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261102a";
+import { heldWeapon } from "./quest.js?v=20261102a";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261101c";
+export const APP_V = "20261102a";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -96,6 +96,12 @@ export function weekCandy(st) {
   for (let d = 0; d < 5; d++) n += dayCandy(st, d);
   // ⚡ Subject Boost: the boosted subjects' extra XP becomes extra candy (Mon–Fri, like the rest of the week's candy)
   if (boostOn(BOOST_CLS)) for (let d = 0; d < 5; d++) n += boostExtra(st, BOOST_CLS, plusDays(weekKey(BOOST_CLS), d));
+  return n;
+}
+// Nov 2: the event candy from THIS week's days before `iso` (they belong to the event before). Used to start a new event at 0.
+export function weekCandyBefore(st, iso) {
+  const mon = weekKey(BOOST_CLS); let n = 0;
+  for (let d = 0; d < 5; d++) { const date = plusDays(mon, d); if (date >= iso) continue; n += dayCandy(st, d); if (boostOn(BOOST_CLS)) n += boostExtra(st, BOOST_CLS, date); }
   return n;
 }
 // Candy slots inside the basket opening (% of the basket picture), filled bottom row first.

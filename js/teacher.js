@@ -1,38 +1,38 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261101c";
-import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261101c";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261101c";
-import { cpEarnedCalc } from "./room.js?v=20261101c";
-import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261101c";
-import { rewardFor } from "./doors.js?v=20261101c";
-import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet, subReq, subRuleOn, SUB_DAY, addDays } from "./doors.js?v=20261101c";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing } from "./collector-ui.js?v=20261101c";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261102a";
+import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261102a";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261102a";
+import { cpEarnedCalc } from "./room.js?v=20261102a";
+import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261102a";
+import { rewardFor } from "./doors.js?v=20261102a";
+import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet, subReq, subRuleOn, SUB_DAY, addDays } from "./doors.js?v=20261102a";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing } from "./collector-ui.js?v=20261102a";
 import {
   newsHTML, boostOn, boostHTML, countdownHTML, applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
-  boss2Of, boss2Prize, simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
+  boss2Of, boss2Prize, simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, weekCandyBefore, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, isFrost, isHeart, heartUnlocked, saveProblems, yetiUnlocked, wallMarks, WALL_BLOCK, BOSS_START_HP, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261101c";
-import { MQ_CUTOFF } from "./morning.js?v=20261101c";
-import { kindAdmin } from "./kindness.js?v=20261101c";
-import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261101c";
-import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261101c";
-import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261101c";
-import { passAdmin } from "./pass.js?v=20261101c";
-import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261101c";
-import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef, newBattleRef, newsPicRef, watchNewsPic } from "./db.js?v=20261101c";
-import { mapAdmin } from "./readmap.js?v=20261101c";
-import { wheelTab, wheelClick } from "./subwheel.js?v=20261101c";
-import { tbRequestsCard, tbInvite, tbToSettle } from "./teachbattle.js?v=20261101c";
-import { rewardAdmin, rgWaiting, rgOf, shrinkImage } from "./weekgoal.js?v=20261101c";
-import { soloAdmin, soloCfg, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261101c";
-import { feederLink } from "./feeder.js?v=20261101c";
-import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261101c";
+} from "./game.js?v=20261102a";
+import { MQ_CUTOFF } from "./morning.js?v=20261102a";
+import { kindAdmin } from "./kindness.js?v=20261102a";
+import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261102a";
+import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261102a";
+import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261102a";
+import { passAdmin } from "./pass.js?v=20261102a";
+import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261102a";
+import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef, newBattleRef, newsPicRef, watchNewsPic } from "./db.js?v=20261102a";
+import { mapAdmin } from "./readmap.js?v=20261102a";
+import { wheelTab, wheelClick } from "./subwheel.js?v=20261102a";
+import { tbRequestsCard, tbInvite, tbToSettle } from "./teachbattle.js?v=20261102a";
+import { rewardAdmin, rgWaiting, rgOf, shrinkImage } from "./weekgoal.js?v=20261102a";
+import { soloAdmin, soloCfg, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261102a";
+import { feederLink } from "./feeder.js?v=20261102a";
+import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261102a";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef, watchSeats, watchCards
-} from "./db.js?v=20261101c";
-import { G, guardCard, guardClick, guardInput, autoSnap, personalLink, syncCards } from "./guard.js?v=20261101c";
-import { lockCard, lockClick } from "./lock.js?v=20261101c";
+} from "./db.js?v=20261102a";
+import { G, guardCard, guardClick, guardInput, autoSnap, personalLink, syncCards } from "./guard.js?v=20261102a";
+import { lockCard, lockClick } from "./lock.js?v=20261102a";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -83,7 +83,7 @@ async function gobbleOn() {
   const b = bossState(cls, students), batch = writeBatch(db);
   batch.update(classRef, { gobble: true, haunt: false, jingle: false, frost: false, heart: false, doorsOn: false, gobbleSince: azToday(), gobbleAuto: GOBBLE_FROM.slice(0, 4),
     bucketEarned: 0, bucketSpent: 0, bossHP: BOSS_START_HP, bossBase: b.total, bossBaseHits: b.totalHits, bossHealed: 0 });
-  students.forEach(s => batch.update(studentRef(s.id), { candyBank: 0, candySpent: 0, candyBonus: 0, stolen: 0,
+  students.forEach(s => batch.update(studentRef(s.id), { candyBank: -weekCandy(s), candySpent: 0, candyBonus: 0, stolen: 0,
     candyBest: Math.max(Number(s.candyBest) || 0, hauntCandy() ? candyOf(s) : 0),
     spentBest: Math.max(Number(s.spentBest) || 0, hauntCandy() ? Number(s.candySpent) || 0 : 0),
     stolenBest: Math.max(Number(s.stolenBest) || 0, hauntCandy() ? Number(s.stolen) || 0 : 0) }));
@@ -94,7 +94,7 @@ async function jingleOn() {
   const b = bossState(cls, students), batch = writeBatch(db);
   batch.update(classRef, { jingle: true, gobble: false, haunt: false, frost: false, heart: false, doorsOn: true, jingleSince: azToday(), jingleAuto: JINGLE_FROM.slice(0, 4),
     bucketEarned: 0, bucketSpent: 0, bossHP: BOSS_START_HP, bossBase: b.total, bossBaseHits: b.totalHits, bossHealed: 0 });
-  students.forEach(s => batch.update(studentRef(s.id), { candyBank: 0, candySpent: 0, candyBonus: 0, stolen: 0,
+  students.forEach(s => batch.update(studentRef(s.id), { candyBank: -weekCandy(s), candySpent: 0, candyBonus: 0, stolen: 0,
     candyBest: Math.max(Number(s.candyBest) || 0, hauntCandy() ? candyOf(s) : 0),
     spentBest: Math.max(Number(s.spentBest) || 0, hauntCandy() ? Number(s.candySpent) || 0 : 0),
     stolenBest: Math.max(Number(s.stolenBest) || 0, hauntCandy() ? Number(s.stolen) || 0 : 0) }));
@@ -106,7 +106,7 @@ async function frostOn() {
   const fresh = Object.assign({}, cls, { bossDmg: 25 }), b = bossState(fresh, students), batch = writeBatch(db);
   batch.update(classRef, { frost: true, jingle: false, gobble: false, haunt: false, heart: false, doorsOn: true, frostSince: azToday(),
     bossHP: BOSS_START_HP, bossDmg: 25, bucketEarned: 0, bucketSpent: 0, bossBase: b.total, bossBaseHits: b.totalHits, bossHealed: 0, wallMark: 0, wallAt: 0, wallAbs: 0 });
-  students.forEach(s => batch.update(studentRef(s.id), { candyBank: 0, candySpent: 0, candyBonus: 0, stolen: 0,
+  students.forEach(s => batch.update(studentRef(s.id), { candyBank: -weekCandy(s), candySpent: 0, candyBonus: 0, stolen: 0,
     candyBest: Math.max(Number(s.candyBest) || 0, hauntCandy() ? candyOf(s) : 0),
     spentBest: Math.max(Number(s.spentBest) || 0, hauntCandy() ? Number(s.candySpent) || 0 : 0),
     stolenBest: Math.max(Number(s.stolenBest) || 0, hauntCandy() ? Number(s.stolen) || 0 : 0) }));
@@ -118,7 +118,7 @@ async function heartOn() {
   const b = bossState(cls, students), batch = writeBatch(db);
   batch.update(classRef, { heart: true, frost: false, jingle: false, gobble: false, haunt: false, doorsOn: true, heartSince: azToday(),
     bossHP: BOSS_START_HP, bucketEarned: 0, bucketSpent: 0, bossBase: b.total, bossBaseHits: b.totalHits, bossHealed: 0 });
-  students.forEach(s => batch.update(studentRef(s.id), { candyBank: 0, candySpent: 0, candyBonus: 0, stolen: 0,
+  students.forEach(s => batch.update(studentRef(s.id), { candyBank: -weekCandy(s), candySpent: 0, candyBonus: 0, stolen: 0,
     candyBest: Math.max(Number(s.candyBest) || 0, hauntCandy() ? candyOf(s) : 0),
     spentBest: Math.max(Number(s.spentBest) || 0, hauntCandy() ? Number(s.candySpent) || 0 : 0),
     stolenBest: Math.max(Number(s.stolenBest) || 0, hauntCandy() ? Number(s.stolen) || 0 : 0) }));
@@ -136,6 +136,18 @@ async function toggleJingle() {
   if (!isJingle(cls)) { await jingleOn(); return; }
   try { await updateDoc(classRef, { jingle: false }); if (mode === "battle") mode = "guide"; flash("Saved \u2014 Jingle Jam is off."); } catch (e) { flash("Couldn\u2019t change that \u2014 " + e.code); }
 }
+// 🔄 Start everyone's event currency at 0 (Nov 2). Today's XP still counts; this week's earlier days, the bank, bonuses, steals and spending reset.
+function resetCurHTML() {
+  const S = seasonOf(cls);
+  if (busy.curReset) return '<div class="banner bad" style="margin-top:10px;">Set every student\u2019s ' + esc(S.cur) + " to 0? Anything left over from the last event (and " + esc(S.cur) + " earned earlier this week) goes away. Spins and items they already bought stay. Today\u2019s XP still counts." +
+    '<div class="row" style="margin-top:8px;gap:8px;"><button class="btn small danger" data-act="curResetOk">Yes, start everyone at 0</button><button class="btn ghost small" data-act="curResetNo">Cancel</button></div></div>';
+  return '<div class="row" style="margin-top:10px;gap:8px;align-items:center;"><button class="btn ghost small" data-act="curReset">\u{1F504} Start everyone at 0 ' + esc(S.cur) + "</button><span class=\"muted small\">Use this if last event\u2019s " + "currency carried over into this one.</span></div>";
+}
+async function curReset() {
+  const batch = writeBatch(db), today = azToday();
+  students.forEach(s => batch.update(studentRef(s.id), { candyBank: -weekCandyBefore(s, today), candySpent: 0, candyBonus: 0, stolen: 0 }));
+  try { await batch.commit(); flash("Saved \u2014 everyone\u2019s " + seasonOf(cls).cur + " starts at 0."); } catch (e) { flash("Couldn\u2019t reset \u2014 " + e.code); }
+}
 async function toggleGobble() {
   if (!isGobble(cls)) { await gobbleOn(); return; }
   try { await updateDoc(classRef, { gobble: false }); if (mode === "battle") mode = "guide"; flash("Saved \u2014 Gobble-Palooza is off."); } catch (e) { flash("Couldn\u2019t change that \u2014 " + e.code); }
@@ -150,7 +162,7 @@ async function hauntOn(fresh) {
   const batch = writeBatch(db);
   const since = azToday();   // Hexaduck's streak counts from the day Haunt-O-Ween Mode is turned on
   batch.update(classRef, fresh ? { haunt: true, gobble: false, jingle: false, frost: false, heart: false, doorsOn: false, hauntSince: since, bucketEarned: 0, bucketSpent: 0 } : { haunt: true, gobble: false, jingle: false, frost: false, heart: false, doorsOn: false, hauntSince: since });
-  if (fresh) students.forEach(s => batch.update(studentRef(s.id), { candyBank: 0, candySpent: 0, candyBonus: 0, stolen: 0,
+  if (fresh) students.forEach(s => batch.update(studentRef(s.id), { candyBank: -weekCandy(s), candySpent: 0, candyBonus: 0, stolen: 0,
     // keep each student's best totals so Haunt-O-Ween badges they earned stay earned
     candyBest: Math.max(Number(s.candyBest) || 0, candyOf(s)), spentBest: Math.max(Number(s.spentBest) || 0, Number(s.candySpent) || 0), stolenBest: Math.max(Number(s.stolenBest) || 0, Number(s.stolen) || 0) }));
   try { await batch.commit(); flash("Haunt-O-Ween Mode is on!"); } catch (e) { flash("Couldn’t change that — " + e.code); }
@@ -1221,7 +1233,7 @@ function viewModes() {
     "It turns itself on the first time you open this console on or after " + new Date(GOBBLE_FROM + "T12:00:00").toLocaleDateString(undefined, { month: "long", day: "numeric" }) +
     " and off after " + new Date(GOBBLE_TO + "T12:00:00").toLocaleDateString(undefined, { month: "long", day: "numeric" }) + ". Turning it on turns Haunt-O-Ween off and starts everyone\u2019s corn at 0 " +
     "(spins, extra attacks and brews they already have carry over).</small></span></label>" +
-    (gob ? ghostSettings() : "") +
+    (gob ? ghostSettings() : "") + (eventMode(cls) ? resetCurHTML() : "") +
     '<label class="modebox" style="margin-top:12px;"><input type="checkbox" id="jingleBox"' + (jin ? " checked" : "") + '><span><b>\u{1F384} Jingle Jam</b>' +
     "<small>Presents under a mini tree, the Jingle Shop, the Present Wheel, the Grinch\u2019s Sack and the \u2694\uFE0F Battle Area with the Grinch-a-Duck. " +
     "It turns itself on the first time you open this console on or after " + md(JINGLE_FROM) + " and off after " + md(JINGLE_TO) +
@@ -2307,6 +2319,9 @@ document.addEventListener("click", async ev => {
     try { await batch.commit(); flash("Roster saved."); } catch (e) { flash("Roster didn’t save — " + e.code); }
     return;
   }
+  if (act === "curReset") { busy.curReset = true; render(); return; }
+  if (act === "curResetNo") { busy.curReset = false; render(); return; }
+  if (act === "curResetOk") { busy.curReset = false; await curReset(); return; }
   if (act === "newWeek") {
     if (!busy.confirmNewWeek) { busy.confirmNewWeek = true; render(); return; }
     busy.confirmNewWeek = false; busy.upReport = null;
