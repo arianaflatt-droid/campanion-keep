@@ -1,38 +1,38 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261102a";
-import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261102a";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261102a";
-import { cpEarnedCalc } from "./room.js?v=20261102a";
-import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261102a";
-import { rewardFor } from "./doors.js?v=20261102a";
-import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet, subReq, subRuleOn, SUB_DAY, addDays } from "./doors.js?v=20261102a";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing } from "./collector-ui.js?v=20261102a";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261102b";
+import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261102b";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261102b";
+import { cpEarnedCalc } from "./room.js?v=20261102b";
+import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261102b";
+import { rewardFor } from "./doors.js?v=20261102b";
+import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet, subReq, subRuleOn, SUB_DAY, addDays } from "./doors.js?v=20261102b";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing } from "./collector-ui.js?v=20261102b";
 import {
   newsHTML, boostOn, boostHTML, countdownHTML, applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   boss2Of, boss2Prize, simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, weekCandyBefore, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, isFrost, isHeart, heartUnlocked, saveProblems, yetiUnlocked, wallMarks, WALL_BLOCK, BOSS_START_HP, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261102a";
-import { MQ_CUTOFF } from "./morning.js?v=20261102a";
-import { kindAdmin } from "./kindness.js?v=20261102a";
-import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261102a";
-import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261102a";
-import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261102a";
-import { passAdmin } from "./pass.js?v=20261102a";
-import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261102a";
-import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef, newBattleRef, newsPicRef, watchNewsPic } from "./db.js?v=20261102a";
-import { mapAdmin } from "./readmap.js?v=20261102a";
-import { wheelTab, wheelClick } from "./subwheel.js?v=20261102a";
-import { tbRequestsCard, tbInvite, tbToSettle } from "./teachbattle.js?v=20261102a";
-import { rewardAdmin, rgWaiting, rgOf, shrinkImage } from "./weekgoal.js?v=20261102a";
-import { soloAdmin, soloCfg, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261102a";
-import { feederLink } from "./feeder.js?v=20261102a";
-import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261102a";
+} from "./game.js?v=20261102b";
+import { MQ_CUTOFF } from "./morning.js?v=20261102b";
+import { kindAdmin } from "./kindness.js?v=20261102b";
+import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261102b";
+import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261102b";
+import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261102b";
+import { passAdmin } from "./pass.js?v=20261102b";
+import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261102b";
+import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef, newBattleRef, newsPicRef, watchNewsPic } from "./db.js?v=20261102b";
+import { mapAdmin } from "./readmap.js?v=20261102b";
+import { wheelTab, wheelClick } from "./subwheel.js?v=20261102b";
+import { tbRequestsCard, tbInvite, tbToSettle } from "./teachbattle.js?v=20261102b";
+import { rewardAdmin, rgWaiting, rgOf, shrinkImage } from "./weekgoal.js?v=20261102b";
+import { soloAdmin, soloCfg, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261102b";
+import { feederLink } from "./feeder.js?v=20261102b";
+import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261102b";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef, watchSeats, watchCards
-} from "./db.js?v=20261102a";
-import { G, guardCard, guardClick, guardInput, autoSnap, personalLink, syncCards } from "./guard.js?v=20261102a";
-import { lockCard, lockClick } from "./lock.js?v=20261102a";
+} from "./db.js?v=20261102b";
+import { G, guardCard, guardClick, guardInput, autoSnap, personalLink, syncCards } from "./guard.js?v=20261102b";
+import { lockCard, lockClick } from "./lock.js?v=20261102b";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -526,9 +526,9 @@ function render(force) {
     if (np && np > prizeHidden) h += '<div class="banner prizealert"><span>\u{1F381} <b>' + np + " prize" + (np === 1 ? "" : "s") + "</b> to order or give" + prizeNames() + '</span><span class="row" style="gap:8px;"><button class="btn small" data-act="goPrizes">View prizes</button><button class="btn ghost small" data-act="hidePrizes">Hide</button></span></div>';
     h += '<div class="tabs ctabs" role="tablist">' + tabs.map(([k, l]) => '<button role="tab" class="tab' + (ctab === k ? " on" : "") + '" data-ctab="' + k + '" aria-selected="' + (ctab === k) + '">' + l + "</button>").join("") + "</div>";
     if (ctab === "daily") h += newsAdmin() + countdownAdmin() + boostAdmin() + viewDaily() + miniAdmin(students, cls) + mapAdmin(students, cls) + partyAdmin(students, cls) + surpriseAdmin(students, cls) + viewWeekDoor() + viewRewards();
-    else if (ctab === "students") h += lockCard(students, cls) + viewStandings() + passAdmin(students, cls) + viewAssign() + viewLosses() + viewLinks() + guardCard(students, cls);
+    else if (ctab === "students") h += lockCard(students, cls) + viewStandings() + passAdmin(students, cls) + viewAssign() + viewLosses() + viewLinks() + guardCard(students, cls) + subSwapCard();
     else if (ctab === "collector") h += viewLiveBattles() + tbRequestsCard(students, cls, battles, teacherBusy()) + viewIdeas() + teacherCollectorCard() + viewCollector();
-    else if (ctab === "rewards") h += rewardAdmin(students, cls, rpics, busy);
+    else if (ctab === "rewards") h += subSwapCard() + rewardAdmin(students, cls, rpics, busy);
     else if (ctab === "quest") h += questTracker(students);
     else if (ctab === "wheel") h += wheelTab(students, cls);
     else if (ctab === "events") h += (isHaunt(cls) || isGobble(cls) || isJingle(cls) || isFrost(cls) || isHeart(cls) ? soloAdmin(students, cls, azToday()) : "") + ghost2Card() + prize2Card() + viewModes() + viewSaveCheck() + viewBossHits() + (eventMode(cls) || waitingDoors(students, cls).length ? viewDoors() : "") + duckAdmin() + (eventMode(cls) ? viewBucket() + viewPrizes() + viewShop() : prizeRows().length ? viewPrizes() : "");
@@ -926,6 +926,22 @@ function viewWeekDoor() {
     opened.map(x => "<span>\u2705 " + esc(x.name) + "</span>").join("") + ready.map(x => "<span>\u{1F31F} " + esc(x.name) + " (ready)</span>").join("") +
     "</div>";
   return h + subRuleCard(kids, wk) + "</div>";
+}
+// 🔁 Subject swaps, always available (Nov 2): Vault Rewards tab + Students tab, whatever event is on.
+// Same setting as the potion card and the Core subjects table (cls.subSwap[studentId][m|r|l] = replacement subject).
+function subSwapCard() {
+  const kids = students.filter(x => x.companionId).slice().sort((a, b) => String(a.name).localeCompare(String(b.name))), wk = weekKey(cls), sw = cls.subSwap || {}, on = subRuleOn(cls);
+  const SUBS = { m: "Math", f: "Fast Math", r: "Reading", w: "Writing", l: "Language", v: "Vocabulary", sc: "Science", ss: "Social Studies" };
+  const nSw = kids.filter(x => Object.keys(sw[x.id] || {}).some(k => (sw[x.id] || {})[k])).length;
+  return '<div class="card"><div class="card-head"><h2>\u{1F501} Subject swaps</h2><span class="fact">' + (nSw ? nSw + " student" + (nSw === 1 ? "" : "s") + " swapped" : "no swaps") + "</span></div>" +
+    '<p class="lede" style="font-size:13.5px;">For students on their own plan: pick the subject that replaces Math, Reading or Language. It changes their core subjects (Weekly Door and Treasure Vault), their daily goal doors and any potion / feast ingredients. Saves right away.</p>' +
+    '<div style="overflow-x:auto;"><table class="mini"><thead><tr><th>Student</th><th>Math</th><th>Reading</th><th>Language</th></tr></thead><tbody>' +
+    kids.map(x => { const q = on ? subReq(x, cls, wk) : null;
+      return "<tr><td><b>" + esc(x.name) + "</b></td>" + ["m", "r", "l"].map(k => { const cur = (sw[x.id] || {})[k] || "", cell = q && q.cells.find(c => c.k === k);
+        return "<td>" + '<select class="small" data-subswap="' + x.id + ":" + k + '"><option value="">' + SUBS[k] + "</option>" +
+          Object.entries(SUBS).filter(([kk]) => kk !== k).map(([kk, n]) => '<option value="' + kk + '"' + (cur === kk ? " selected" : "") + ">\u2192 " + n + "</option>").join("") + "</select>" +
+          (cell ? ' <span class="small ' + (cell.have >= cell.need ? "good" : "bad") + '">' + cell.have + " / " + cell.need + "</span>" : "") + "</td>"; }).join("") + "</tr>"; }).join("") +
+    "</tbody></table></div></div>";
 }
 // 📚 25 Math / 25 Reading / 25 Language a day, added up for the week (doors.js subReq)
 function subRuleCard(kids, wk) {
