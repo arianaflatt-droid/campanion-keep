@@ -1986,3 +1986,16 @@ body.mini-leaf::before{ content:""; position:fixed; inset:0; pointer-events:none
 body.mini-leaf .wrap{ position:relative; z-index:1; } body.mini-leaf .tile{ box-shadow:0 0 0 2px #C4521E; }
 @media (prefers-reduced-motion: reduce){ .leafpile, .leafpile .burst em, body.mini-leaf::before{ animation:none; } }
 @media (max-width: 640px){ .leafpile{ width:calc(19% * var(--s)); } }
+
+/* ---------- 🔒 Locked Keep (Nov 1) ---------- */
+.lockscreen{ position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center; padding:24px; background:radial-gradient(circle at 50% 35%,#2B3E7A,#121A3A 70%); }
+.lockbox{ text-align:center; max-width:1100px; }
+.lockicon{ font-size:clamp(60px,12vw,150px); line-height:1; margin-bottom:16px; filter:drop-shadow(0 8px 20px rgba(0,0,0,.4)); }
+.lockmsg{ font-size:clamp(40px,7.5vw,110px); line-height:1.12; color:#FFF6DD; margin:0; font-weight:800; text-shadow:0 6px 0 rgba(0,0,0,.35); word-wrap:break-word; }
+.lockname{ margin-top:22px; font-size:clamp(18px,2.6vw,30px); color:#BFD0FF; }
+.lockcard .locklist{ display:flex; flex-direction:column; gap:6px; margin:6px 0 4px; }
+.lockcard .lockrow{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:6px 10px; border-radius:10px; background:var(--accent-soft, #FDECEC); }
+.lockcard .lockrow .btn{ margin-left:auto; }
+.lockpicks{ display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
+.lockpick{ display:inline-flex; align-items:center; gap:6px; padding:5px 10px; border:1px solid rgba(0,0,0,.15); border-radius:999px; font-size:14px; cursor:pointer; background:#fff; }
+.lockpick.on{ border-color:#2B3E7A; background:#E7EEFF; } .lockpick.is{ font-weight:700; }
