@@ -14,12 +14,12 @@
    While an event is on, every companion wears a random costume from it, and The Keep gets the event's colors.
    Saved on the student: mini = { id, used: { date: n }, cos, maze, stop, stamps, elf: { d, found, peek: [] }, got }
    plus outfits / outfitOn (game.js). */
-import { esc, HEAD_FNS, OUTFITS, candyLeft, companionOf } from "./game.js?v=20261101a";
-import { azToday, creature, FAMILIES } from "./collect.js?v=20261101a";
-import { CREATURES } from "./creatures.js?v=20261101a";
-import { xpOn } from "./surprise.js?v=20261101a";
-import { SEASON, boostExtra } from "./game.js?v=20261101a";
-import { todayReading, todayReadingBoosted } from "./readmap.js?v=20261101a";
+import { esc, HEAD_FNS, OUTFITS, candyLeft, companionOf } from "./game.js?v=20261101b";
+import { azToday, creature, FAMILIES } from "./collect.js?v=20261101b";
+import { CREATURES } from "./creatures.js?v=20261101b";
+import { xpOn } from "./surprise.js?v=20261101b";
+import { SEASON, boostExtra } from "./game.js?v=20261101b";
+import { readingOn, readingOnBoosted } from "./readmap.js?v=20261101b";
 
 export const PER_TICKET = 10, OUTFIT_COST = 60;
 const typesOf = fam => { const f = FAMILIES.find(x => x.id === fam); const c = f && CREATURES.find(x => x.id === f.forms[0]); return (c && c.types) || []; };
@@ -47,8 +47,22 @@ export const miniOn = cls => (cls && cls.mini && cls.mini.on && MINI[cls.mini.ke
 const mine = (st, cls) => { const m = st && st.mini; return m && cls && cls.mini && m.id === cls.mini.id ? m : { id: cls && cls.mini && cls.mini.id, used: {} }; };
 // Reading counts double (Oct 25): on for Trick-or-Treat Night unless Ms. Ariana turns it off (cls.mini.readX2), off for the others unless she turns it on.
 export const readX2 = cls => { const E = miniOn(cls); return !!E && !E.reading && (cls.mini.readX2 != null ? !!cls.mini.readX2 : E.key === "tot"); };
-export function ticketsLeft(st, cls) { const d = azToday(), E = miniOn(cls), xp = E && E.reading ? todayReadingBoosted(st, cls) : xpOn(st, d) + (readX2(cls) ? todayReading(st, cls) : 0) + boostExtra(st, cls, d);   // ⚡ + the Subject Boost bonus
-  return Math.max(0, Math.floor(xp / PER_TICKET) - (Number((mine(st, cls).used || {})[d]) || 0)); }
+/* Nov 1 fix: tickets earned on an earlier day of the event stay usable (up to CARRY_DAYS days back, never before the event started).
+   Before, only TODAY's XP made tickets, so XP pasted later (the next morning's end-of-day paste saves to the previous school day,
+   or work done after the last paste) never became tickets. A used ticket is taken from the oldest day that still has one (used[date]). */
+export const CARRY_DAYS = 7;
+const shiftDay = (iso, n) => { const [y, m, d] = iso.split("-").map(Number), x = new Date(y, m - 1, d + n); return x.getFullYear() + "-" + String(x.getMonth() + 1).padStart(2, "0") + "-" + String(x.getDate()).padStart(2, "0"); };
+const startDay = cls => { const ts = Number(String((cls && cls.mini && cls.mini.id) || "").split("-").pop()); return ts > 1e12 ? azToday(new Date(ts)) : azToday(); };
+function xpFor(st, cls, E, d) { return E.reading ? readingOnBoosted(st, cls, d) : xpOn(st, d) + (readX2(cls) ? readingOn(st, cls, d) : 0) + boostExtra(st, cls, d); }   // ⚡ + the Subject Boost bonus
+export function ticketDays(st, cls) {
+  const E = miniOn(cls); if (!E) return [];
+  const today = azToday(), used = mine(st, cls).used || {}, s0 = startDay(cls), out = [];
+  for (let i = CARRY_DAYS - 1; i >= 0; i--) { const d = shiftDay(today, -i); if (d < s0) continue;
+    const n = Math.floor(xpFor(st, cls, E, d) / PER_TICKET) - (Number(used[d]) || 0); if (n > 0) out.push({ date: d, n }); }
+  return out;   // oldest first
+}
+export function ticketsLeft(st, cls) { return ticketDays(st, cls).reduce((a, x) => a + x.n, 0); }
+const usedAll = (st, cls) => Object.values(mine(st, cls).used || {}).reduce((a, b) => a + (Number(b) || 0), 0);
 const tixWord = (E, n) => E.tix ? (n === 1 ? E.tix : E.tixs) : (n === 1 ? "ticket" : "tickets");
 const hasShop = E => OUTFITS.some(o => o.ev === E.key);
 const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
@@ -139,7 +153,7 @@ export function miniCard(st, cls) {
   const E = miniOn(cls); if (!E) return "";
   const t = ticketsLeft(st, cls);
   return '<div class="card minicard mc-' + E.key + '"><div class="mctxt"><h3>' + E.icon + " " + E.name + '!</h3><p><b>' + t + "</b> " + tixWord(E, t) +
-    " · 1 " + tixWord(E, 1) + " for every " + PER_TICKET + (E.reading ? " <b>Reading</b>" : "") + " XP today." + (readX2(cls) ? " \u{1F4DA} <b>Reading XP counts double!</b>" : "") + " You have <b>" + candyLeft(st).toLocaleString() + " " + E.coin + "</b>.</p>" +
+    " · 1 " + tixWord(E, 1) + " for every " + PER_TICKET + (E.reading ? " <b>Reading</b>" : "") + " XP" + (ticketDays(st, cls).some(x => x.date !== azToday()) ? " (some are from earlier days)." : " today.") + (readX2(cls) ? " \u{1F4DA} <b>Reading XP counts double!</b>" : "") + " You have <b>" + candyLeft(st).toLocaleString() + " " + E.coin + "</b>.</p>" +
     '<button class="btn gold" data-mini="open">' + (E.key === "tot" ? "\u{1F6AA} Go trick-or-treating!" : E.key === "fest" ? "\u{1F3A1} Go to the festival!" : E.key === "lib" ? "\u{1F56F}️ Sneak into the library!" : E.key === "leaf" ? "\u{1F342} Jump in the leaves!" : "\u{1F682} Go to the station!") + "</button> " +
     (hasShop(E) ? '<button class="btn ghost" data-mini="shop">\u{1F6CD}️ Outfit shop</button>' : "") + "</div></div>";
 }
@@ -293,7 +307,8 @@ export async function miniClick(el, c) {
   }
   if (!t) return;
   if (G && G.busy) return;
-  const use = () => { m.used = Object.assign({}, m.used || {}); m.used[d] = (Number(m.used[d]) || 0) + 1; if (m.cos == null) m.cos = hash(s.id + cls.mini.id) % 8; };
+  const use = () => { const td = (ticketDays(s, cls)[0] || {}).date || d;   // the oldest day that still has a ticket
+    m.used = Object.assign({}, m.used || {}); m.used[td] = (Number(m.used[td]) || 0) + 1; if (m.cos == null) m.cos = hash(s.id + cls.mini.id) % 8; };
   const pay = (n, egg) => { m.got = (Number(m.got) || 0) + n; const data = { mini: m, candyBonus: (Number(s.candyBonus) || 0) + n }; if (egg) data.doorEggs = (Number(s.doorEggs) || 0) + 1; return data; };
   if (a === "knock") {
     const i = Number(el.dataset.i); G.knock = i; G.busy = true; knockSound(); c.render(true);
@@ -464,16 +479,16 @@ const LEAF_RIDDLES = [
 export function miniBanner(students, cls) {
   const E = miniOn(cls); if (!E) return "";
   const kids = students.filter(s => s.companionId && !s.isTeacher), d = azToday();
-  const used = kids.reduce((n, s) => n + (Number(((mine(s, cls).used) || {})[d]) || 0), 0);
-  return '<div class="minibanner mb-' + E.key + '"><b>' + E.icon + " " + E.name.toUpperCase() + "!</b> " + used + " " + tixWord(E, used) + " used today · earn 1 " + tixWord(E, 1) + " every " + PER_TICKET + (E.reading ? " Reading" : "") + " XP" + (readX2(cls) ? " · \u{1F4DA} Reading XP counts DOUBLE!" : "") + "</div>";
+  const used = kids.reduce((n, s) => n + usedAll(s, cls), 0);
+  return '<div class="minibanner mb-' + E.key + '"><b>' + E.icon + " " + E.name.toUpperCase() + "!</b> " + used + " " + tixWord(E, used) + " used so far · earn 1 " + tixWord(E, 1) + " every " + PER_TICKET + (E.reading ? " Reading" : "") + " XP" + (readX2(cls) ? " · \u{1F4DA} Reading XP counts DOUBLE!" : "") + "</div>";
 }
 export function miniAdmin(students, cls) {
   const E = miniOn(cls), kids = students.filter(s => s.companionId && !s.isTeacher), d = azToday();
   let h = '<div class="card"><div class="card-head"><h2>\u{1F3AA} Mini events</h2><span class="fact">2–3 day takeovers</span></div>';
   if (E) {
-    const used = kids.reduce((n, s) => n + (Number(((mine(s, cls).used) || {})[d]) || 0), 0), got = kids.reduce((n, s) => n + (Number(mine(s, cls).got) || 0), 0);
+    const used = kids.reduce((n, s) => n + usedAll(s, cls), 0), got = kids.reduce((n, s) => n + (Number(mine(s, cls).got) || 0), 0);
     const outs = kids.reduce((n, s) => n + OUTFITS.filter(o => o.ev === E.key && (s.outfits || {})[o.id]).length, 0);
-    h += '<p><b>' + E.icon + " " + E.name + "</b> is on. Today: " + used + " " + tixWord(E, used) + " used · so far " + got.toLocaleString() + " " + E.coin + " given" + (hasShop(E) ? " · " + outs + " outfits bought." : ".") + (E.reading ? " Lanterns come from Reading XP only (1 per " + PER_TICKET + ")." : "") + "</p>" +
+    h += '<p><b>' + E.icon + " " + E.name + "</b> is on. " + used + " " + tixWord(E, used) + " used so far · " + got.toLocaleString() + " " + E.coin + " given" + (hasShop(E) ? " · " + outs + " outfits bought." : ".") + (E.reading ? " Lanterns come from Reading XP only (1 per " + PER_TICKET + ")." : "") + "</p>" +
       (E.reading ? "" : '<label class="modebox" style="margin:6px 0;"><input type="checkbox" data-act="miniReadX2"' + (readX2(cls) ? " checked" : "") + '><span><b>\u{1F4DA} Reading XP counts double</b><small>Every 10 Reading XP gives 2 ' + tixWord(E, 2) + " instead of 1.</small></span></label>") +
       '<button class="btn ghost small" data-act="miniEnd">End ' + esc(E.name) + "</button>";
   } else h += '<p class="small muted">Students get 1 ticket for every ' + PER_TICKET + " XP and spend them for " + "their event currency, creatures and eggs. Every companion wears a costume and The Keep changes colors while it's on.</p>" +

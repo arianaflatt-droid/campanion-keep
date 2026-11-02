@@ -4,10 +4,10 @@
    chests (XP, event currency or Comfort Points), Water creatures to catch, eggs, and a Rare-or-better egg at the end.
    Students with their own plan read from their swapped subject (cls.subSwap[id].r), same as the core subjects rule.
    Ms. Ariana turns it on/off in the console (cls.readMap). Saved on the student: rmap = { wk, got: [island indexes], log: { i: text } } */
-import { esc, SEASON, boostMult } from "./game.js?v=20261101a";
-import { azToday, doPull, formOf } from "./collect.js?v=20261101a";
-import { weekKey, addDays } from "./doors.js?v=20261101a";
-import { subFor, SUB_NAMES } from "./teams.js?v=20261101a";
+import { esc, SEASON, boostMult } from "./game.js?v=20261101b";
+import { azToday, doPull, formOf } from "./collect.js?v=20261101b";
+import { weekKey, addDays } from "./doors.js?v=20261101b";
+import { subFor, SUB_NAMES } from "./teams.js?v=20261101b";
 
 export const PER_ISLAND = 25;
 export const ISLANDS = [
@@ -31,8 +31,11 @@ export function weekReading(st, cls) {
   return Math.round(n);
 }
 // ⚡ Reading for lanterns, with any boost
-export function todayReadingBoosted(st, cls) { return Math.round(todayReading(st, cls) * boostMult(cls, readSub(st, cls), azToday())); }
-export function todayReading(st, cls) { return Math.round(Number(((((st && st.xpHist) || {})[azToday()] || {}).sub || {})[readSub(st, cls)]) || 0); }
+export function todayReadingBoosted(st, cls) { return readingOnBoosted(st, cls, azToday()); }
+export function todayReading(st, cls) { return readingOn(st, cls, azToday()); }
+// Reading XP on any date (the mini events use earlier days too, Nov 1)
+export function readingOn(st, cls, date) { return Math.round(Number(((((st && st.xpHist) || {})[date] || {}).sub || {})[readSub(st, cls)]) || 0); }
+export function readingOnBoosted(st, cls, date) { return Math.round(readingOn(st, cls, date) * boostMult(cls, readSub(st, cls), date)); }
 const mapOf = (st, cls) => { const m = st && st.rmap; return m && m.wk === weekKey(cls) ? m : { wk: weekKey(cls), got: [], log: {} }; };
 export function mapState(st, cls) {
   const r = weekReading(st, cls), reached = Math.min(ISLANDS.length, Math.floor(r / PER_ISLAND)), m = mapOf(st, cls);
