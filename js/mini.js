@@ -14,12 +14,12 @@
    While an event is on, every companion wears a random costume from it, and The Keep gets the event's colors.
    Saved on the student: mini = { id, used: { date: n }, cos, maze, stop, stamps, elf: { d, found, peek: [] }, got }
    plus outfits / outfitOn (game.js). */
-import { esc, HEAD_FNS, OUTFITS, candyLeft, companionOf } from "./game.js?v=20261102e";
-import { azToday, creature, FAMILIES } from "./collect.js?v=20261102e";
-import { CREATURES } from "./creatures.js?v=20261102e";
-import { xpOn } from "./surprise.js?v=20261102e";
-import { SEASON, boostExtra } from "./game.js?v=20261102e";
-import { readingOn, readingOnBoosted } from "./readmap.js?v=20261102e";
+import { esc, HEAD_FNS, OUTFITS, candyLeft, companionOf } from "./game.js?v=20261103a";
+import { azToday, creature, FAMILIES } from "./collect.js?v=20261103a";
+import { CREATURES } from "./creatures.js?v=20261103a";
+import { xpOn } from "./surprise.js?v=20261103a";
+import { SEASON, boostExtra } from "./game.js?v=20261103a";
+import { readingOn, readingOnBoosted } from "./readmap.js?v=20261103a";
 
 export const PER_TICKET = 10, OUTFIT_COST = 60;
 const typesOf = fam => { const f = FAMILIES.find(x => x.id === fam); const c = f && CREATURES.find(x => x.id === f.forms[0]); return (c && c.types) || []; };
@@ -155,7 +155,7 @@ export function miniCard(st, cls) {
   return '<div class="card minicard mc-' + E.key + '"><div class="mctxt"><h3>' + E.icon + " " + E.name + '!</h3><p><b>' + t + "</b> " + tixWord(E, t) +
     " · 1 " + tixWord(E, 1) + " for every " + PER_TICKET + (E.reading ? " <b>Reading</b>" : "") + " XP" + (ticketDays(st, cls).some(x => x.date !== azToday()) ? " (some are from earlier days)." : " today.") + (readX2(cls) ? " \u{1F4DA} <b>Reading XP counts double!</b>" : "") + " You have <b>" + candyLeft(st).toLocaleString() + " " + E.coin + "</b>.</p>" +
     '<button class="btn gold" data-mini="open">' + (E.key === "tot" ? "\u{1F6AA} Go trick-or-treating!" : E.key === "fest" ? "\u{1F3A1} Go to the festival!" : E.key === "lib" ? "\u{1F56F}️ Sneak into the library!" : E.key === "leaf" ? "\u{1F342} Jump in the leaves!" : "\u{1F682} Go to the station!") + "</button> " +
-    (hasShop(E) ? '<button class="btn ghost" data-mini="shop">\u{1F6CD}️ Outfit shop</button>' : "") + "</div></div>";
+    (hasShop(E) ? '<button class="btn ghost" data-mini="shop">\u{1F6CD}️ ' + (FURN[E.key] ? "Outfit & room shop" : "Outfit shop") + "</button>" : "") + "</div></div>";
 }
 
 /* ---------- the event screen (overlay) ---------- */
@@ -176,8 +176,8 @@ export function miniOverlay(st, cls) {
   if (G.view === "shop") {
     const list = OUTFITS.filter(o => o.ev === E.key), own = st.outfits || {};
     h += top(E, st, cls, "hub") + '<div class="qbpanel mshop"><h3>\u{1F6CD}️ ' + esc(E.name) + ' Outfit Shop</h3><p class="small">This time only! ' + OUTFIT_COST + " " + E.coin + " each. Keep it forever and wear it any time from your Gear.</p>" +
-      (E.key === "lib" ? '<h4 class="mshoph">\u{1F45B} Outfits</h4>' : "") + '<div class="mshopgrid">' + list.map(o => '<div class="mitem' + (own[o.id] ? " own" : "") + '"><img src="' + o.img + '" alt=""><b>' + esc(o.name) + "</b>" +
-        (own[o.id] ? "<small>✅ Yours!</small>" : '<button class="btn small" data-mini="buy" data-o="' + o.id + '"' + (candyLeft(st) < OUTFIT_COST ? " disabled" : "") + ">" + OUTFIT_COST + " " + E.coin + "</button>") + "</div>").join("") + "</div>" + (E.key === "lib" ? furnHTML(st, E) : "") + "</div>";
+      (FURN[E.key] ? '<h4 class="mshoph">\u{1F45B} Outfits</h4>' : "") + '<div class="mshopgrid">' + list.map(o => '<div class="mitem' + (own[o.id] ? " own" : "") + '"><img src="' + o.img + '" alt=""><b>' + esc(o.name) + "</b>" +
+        (own[o.id] ? "<small>✅ Yours!</small>" : '<button class="btn small" data-mini="buy" data-o="' + o.id + '"' + (candyLeft(st) < OUTFIT_COST ? " disabled" : "") + ">" + OUTFIT_COST + " " + E.coin + "</button>") + "</div>").join("") + "</div>" + furnHTML(st, E) + "</div>";
     return h + "</div>";
   }
   if (E.key === "tot") {
@@ -285,9 +285,9 @@ export async function miniClick(el, c) {
   if (a === "close") { G = null; return c.render(true); }
   if (a === "shop") { G = Object.assign({}, G || {}, { view: "shop", res: null, bg: E.bg }); return c.render(true); }
   if (a === "hub") { G = { view: "hub", bg: E.bg }; return c.render(true); }
-  if (a === "buyFurn" && E.key === "lib") {
-    const f = LIB_FURN.find(x => x[0] === el.dataset.k); if (!f) return;
-    const id = f[0] + "_library", have = s.roomOwned || [];
+  if (a === "buyFurn" && FURN[E.key]) {
+    const f = FURN[E.key].list().find(x => x[0] === el.dataset.k); if (!f) return;
+    const id = f[0] + "_" + FURN[E.key].th, have = s.roomOwned || [];
     if (have.includes(id) || candyLeft(s) < f[2]) return;
     await c.patch({ roomOwned: have.concat([id]), candySpent: (Number(s.candySpent) || 0) + f[2], roomBuys: (s.roomBuys || []).concat([{ id, cost: f[2], cur: E.cur, at: new Date().toISOString() }]) }, true);
     c.flash("\u{1F6CB}️ " + f[1] + " is yours! Put it in your room from My Room.", true); return c.render(true);
@@ -393,10 +393,15 @@ export async function miniClick(el, c) {
 /* ---------- 📚 Library After Dark: the Midnight Library room set (room.js item ids kind_library) ---------- */
 const LIB_FURN = [["bed", "Midnight Library Bed", 120], ["chair", "Reading Armchair", 80], ["wallpaper", "Bookshelf Wallpaper", 80], ["flooring", "Starry Wood Floor", 80],
   ["ceiling", "Book Chandelier", 80], ["rug", "Moon & Stars Rug", 60], ["wall_art", "Moonlit Tower Painting", 60], ["plant", "Ivy & Books", 60], ["shelf", "Hourglass & Cat", 60]];
+// 🍂 Leaf Pile Jump: the Leafy Hideaway room set (item ids kind_leafy)
+const LEAF_FURN = [["bed", "Leaf Pile Bed", 120], ["chair", "Tree Stump Armchair", 80], ["wallpaper", "Acorn & Leaf Wallpaper", 80], ["flooring", "Maple Wood Floor", 80],
+  ["ceiling", "Acorn Lantern Light", 80], ["rug", "Braided Maple Rug", 60], ["wall_art", "Golden Forest Painting", 60], ["plant", "Little Maple Tree", 60], ["shelf", "Acorn Jar & Pumpkin", 60]];
+const FURN = { lib: { list: () => LIB_FURN, th: "library", title: "Midnight Library" }, leaf: { list: () => LEAF_FURN, th: "leafy", title: "Leafy Hideaway" } };
 function furnHTML(st, E) {
+  const F = FURN[E.key]; if (!F) return "";
   const have = st.roomOwned || [], left = candyLeft(st);
-  return '<h4 class="mshoph">\u{1F6CB}️ Midnight Library room set <small>(it goes in My Room)</small></h4><div class="mshopgrid">' + LIB_FURN.map(([k, n, p]) => { const own = have.includes(k + "_library");
-    return '<div class="mitem furn' + (own ? " own" : "") + '"><img src="assets/room/' + k + '_library.webp" alt=""><b>' + esc(n) + "</b>" +
+  return '<h4 class="mshoph">\u{1F6CB}️ ' + F.title + ' room set <small>(it goes in My Room)</small></h4><div class="mshopgrid">' + F.list().map(([k, n, p]) => { const own = have.includes(k + "_" + F.th);
+    return '<div class="mitem furn' + (own ? " own" : "") + '"><img src="assets/room/' + k + "_" + F.th + '.webp" alt=""><b>' + esc(n) + "</b>" +
       (own ? "<small>✅ Yours!</small>" : '<button class="btn small" data-mini="buyFurn" data-k="' + k + '"' + (left < p ? " disabled" : "") + ">" + p + " " + E.coin + "</button>") + "</div>"; }).join("") + "</div>";
 }
 /* ---------- 📚 Library After Dark: lines, story pages and silly riddles ---------- */

@@ -2060,3 +2060,4 @@ body.mini-leaf .wrap{ position:relative; z-index:1; } body.mini-leaf .tile{ box-
 @keyframes rvfloat{ to{ transform:translateX(-50%) translateY(-12px); } } @keyframes rvconf{ to{ transform:translateY(110vh) rotate(720deg); } }
 @media (max-width:640px){ .rvdodge{ font-size:18px; padding:12px 20px; } .rvpw{ font-size:13px; padding:10px 10px; } .rvtaunt img{ width:80px; } .rvbubble{ font-size:15px; } }
 @media (prefers-reduced-motion: reduce){ .rvboss img, .rvtaunt img, .rvcard-tk, .rvmin, .rvconf i{ animation:none; } }
+.mc-leaf .btn.ghost{ color:#FFF6E8; border-color:rgba(255,246,232,.7); }
