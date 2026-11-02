@@ -4,14 +4,14 @@
    Ms. Ariana turns it on in Events (cls.brewSolo = true). The Haunt-O-Ween tab then shows each student's own cauldron
    instead of the boss. Ingredients come from that day's subject XP (every 25 XP = 1; Math = Eyeballs, Reading = Bat Wings,
    Language = Spider Legs; cls.subSwap swaps a student's subject; 🎃 Pumpkin Seeds = the student's Goal Subject from their doors), plus Free Ingredients from the wheel.
-   One recipe for the whole class each day (about 1 potion a day), unlimited potions. Leftovers don't carry over.
+   One recipe for the whole class each day (about 1 potion a day), unlimited potions. Leftovers don't combine across days, but a day's unbrewed potions wait CARRY_DAYS (7) days (Nov 1).
    Each potion: +20 candy and a potion glow for the day. Shelf rewards at 3 / 6 / 10 / 15 potions.
    Saved on the student (student-writable): soloBrew = { days: { date: potions }, fx: { date: effect }, extra: { date: { e|b|s: n } }, got: { "3": true, ... } }
    Shelf rewards use fields the student page may write: doorEggs, candyBonus, doorXP, legendaryPulls, soloBrewLeg (counted by brewLegLeft). */
-import { esc, isHaunt, isGobble, isJingle, isFrost, isHeart, boostMult } from "./game.js?v=20261030b";
-import { azToday } from "./collect.js?v=20261030b";
-import { TEAM_EVENTS, ingOf, subFor, SUB_NAMES, PER_XP, EFFECTS, effect, cauldronHTML, soloTableHTML, soloHouseHTML, soloBoxHTML, DISHES } from "./teams.js?v=20261030b";
-import { SUBJECT_KEYS } from "./doors.js?v=20261030b";
+import { esc, isHaunt, isGobble, isJingle, isFrost, isHeart, boostMult } from "./game.js?v=20261101a";
+import { azToday } from "./collect.js?v=20261101a";
+import { TEAM_EVENTS, ingOf, subFor, SUB_NAMES, PER_XP, EFFECTS, effect, cauldronHTML, soloTableHTML, soloHouseHTML, soloBoxHTML, DISHES } from "./teams.js?v=20261101a";
+import { SUBJECT_KEYS, addDays } from "./doors.js?v=20261101a";
 
 export const BREW = TEAM_EVENTS.potion;
 const FEAST_ING = { key: "solofeast", ing: [
@@ -130,16 +130,27 @@ export function soloDay(st, cls, date) {
   const left = {}; ALL_ING(k).forEach(g => { left[g.k] = Math.max(0, have[g.k] - made * need[g.k]); });
   return { date, need, have, left, made, ready: Math.max(0, possible - made), total: soloTotal(st, k) };
 }
-export const soloReady = (st, cls) => soloOn(cls) ? soloDay(st, cls).ready : 0;
+// Nov 1 fix: potions/dishes a student earned on an earlier day stay ready for CARRY_DAYS days. Before, only TODAY's XP counted, so XP
+// that was pasted later (the next morning's end-of-day paste saves to the previous school day, or work done after the last paste) never
+// turned into potions. Each one is still counted on the day its XP was earned (days[date]), so nothing is counted twice.
+export const CARRY_DAYS = 7;
+export function soloWaiting(st, cls) {
+  const today = azToday(), out = [];
+  for (let i = CARRY_DAYS - 1; i >= 1; i--) { const date = addDays(today, -i), d = soloDay(st, cls, date); if (d.ready) out.push({ date, n: d.ready }); }
+  return out;   // oldest first, today not included
+}
+export function soloReadyAll(st, cls) { return soloDay(st, cls).ready + soloWaiting(st, cls).reduce((a, x) => a + x.n, 0); }
+export const soloReady = (st, cls) => soloOn(cls) ? soloReadyAll(st, cls) : 0;
 
 // The student's data change for brewing/cooking one (null if none is ready). Also returns the shelf rewards it unlocked.
 export function brewOne(st, cls) {
-  const d = soloDay(st, cls); if (!d.ready) return null;
+  const w = soloWaiting(st, cls), today = azToday();   // use up the oldest waiting day first
+  const d = w.length ? soloDay(st, cls, w[0].date) : soloDay(st, cls); if (!d.ready) return null;
   const k = soloCfg(cls), sb = soloOf(st, k), n = d.total + 1, date = d.date;
   const fx = k.fx ? EFFECTS[Math.floor(seed(date + ":" + st.id + ":" + n) * EFFECTS.length) % EFFECTS.length].k : null;
   const got = Object.assign({}, sb.got || {}), won = [];
   const nb = Object.assign({}, sb, { days: Object.assign({}, sb.days || {}, { [date]: d.made + 1 }), got });
-  if (fx) nb.fx = Object.assign({}, sb.fx || {}, { [date]: fx });
+  if (fx) nb.fx = Object.assign({}, sb.fx || {}, { [today]: fx });   // the glow is for today
   const data = { [k.field]: nb, candyBonus: (Number(st.candyBonus) || 0) + POTION_CANDY };
   k.shelf.forEach(m => {
     if (n < m.n || got[m.n]) return;
@@ -170,9 +181,10 @@ export function freeIngredient(st, cls) {
   return { g, data: { [k.field]: Object.assign({}, sb, { extra: Object.assign({}, sb.extra || {}, { [d.date]: ex }) }) } };
 }
 
+const dayName = iso => { const [y, m, dd] = iso.split("-").map(Number); return new Date(y, m - 1, dd).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }); };
 const bar = (have, need) => '<span class="pbar"><span style="width:' + Math.min(100, need ? have / need * 100 : 100) + '%"></span></span>';
 export function soloCard(st, cls, flash) {
-  const k = soloCfg(cls), d = soloDay(st, cls), fxk = (soloOf(st, k).fx || {})[d.date], fx = fxk ? effect(fxk) : null, ings = ingsFor(st, k);
+  const k = soloCfg(cls), d = soloDay(st, cls), wait = soloWaiting(st, cls), nWait = wait.reduce((a, x) => a + x.n, 0), all = d.ready + nWait, fxk = (soloOf(st, k).fx || {})[d.date], fx = fxk ? effect(fxk) : null, ings = ingsFor(st, k);
   const c = { E: k.E, team: { id: "solo-" + st.id }, have: d.left, brewed: d.made > 0 && !d.ready };
   const pic = k.key === "gobble" ? soloTableHTML("solo-" + st.id, d.total, c.brewed) : k.art === "box" ? soloBoxHTML("solo-" + st.id, d.total, c.brewed) : k.art ? soloHouseHTML("solo-" + st.id, d.total, k.art === "snowman" ? "snowman" : "ginger") : cauldronHTML(c);
   const nm = soloOf(st, k).name;
@@ -186,7 +198,8 @@ export function soloCard(st, cls, flash) {
   h += '<div class="recipe">' + ings.filter(g => d.need[g.k]).map(g => { const sub = srcName(st, cls, g) + "", hv = Math.min(d.left[g.k], d.need[g.k]);
     return '<div class="pring"><span class="ri-ic">' + g.icon + '</span><span class="ri-nm">' + g.name + " <small>(" + esc(sub) + ")</small></span>" + bar(hv, d.need[g.k]) +
       '<b class="ri-n">' + d.left[g.k] + " / " + d.need[g.k] + (d.left[g.k] >= d.need[g.k] ? " ✅" : "") + "</b></div>"; }).join("") + "</div>";
-  if (d.ready) h += '<div style="text-align:center;margin:12px 0;"><button class="attackbtn" data-act="soloBrew">' + k.icon + " " + k.verb + " a " + k.one + "!" + (d.ready > 1 ? " (" + d.ready + " ready)" : "") + "</button></div>";
+  if (nWait) h += '<p class="small" style="text-align:center;margin:10px 0 0;">\u{1F4E6} <b>' + nWait + " " + (nWait === 1 ? k.one : k.many) + "</b> waiting from earlier days (your XP from " + wait.map(x => dayName(x.date)).join(", ") + " came in later). " + k.verb + " " + (nWait === 1 ? "it" : "them") + " now!</p>";
+  if (all) h += '<div style="text-align:center;margin:12px 0;"><button class="attackbtn" data-act="soloBrew">' + k.icon + " " + k.verb + " a " + k.one + "!" + (all > 1 ? " (" + all + " ready)" : "") + "</button></div>";
   else {
     const g = ings.filter(x => d.need[x.k] && d.left[x.k] < d.need[x.k]).map(x => Math.ceil((d.need[x.k] - d.left[x.k]) * (x.goal ? SEED_XP : PER_XP)) + " more " + srcName(st, cls, x) + " XP");
     h += '<p class="small" style="text-align:center;margin:10px 0;">' + (d.made ? "✨ You " + k.done + " " + d.made + " " + (d.made === 1 ? k.one : k.many) + " today! " : "") + "Next " + k.one + ": earn <b>" + g.join("</b> and <b>") + "</b>.</p>";
@@ -216,7 +229,7 @@ export function soloAdmin(students, cls, today) {
     '<button class="btn small" data-act="soloRecipe">Save today’s recipe</button></div><p class="muted small">Every ' + PER_XP + " XP in Math, Reading or Language = 1 ingredient, and every " + (2 * SEED_XP) + " XP left over from ANY subject = 2 " + k.goal.icon + " " + k.goal.name + ". The normal recipe adds up to 120 XP = 1 " + k.one + ".</p>";
   h += '<h3 style="margin-top:14px;">Students</h3><div class="scroll-x"><table class="tbl"><thead><tr><th>Student</th><th>' + k.One + "s</th><th>Today</th>" + k.E.ing.map(g => "<th>" + g.icon + " from</th>").join("") + "" + "</tr></thead><tbody>" +
     kids.map(x => { const d = soloDay(x, cls, today), t = d.total;
-      return "<tr><td><b>" + esc(x.name) + "</b></td><td>" + t + " " + k.shelf.filter(m => t >= m.n).map(m => m.icon).join("") + "</td><td>" + d.made + (d.ready ? " (+" + d.ready + " ready)" : "") + "</td>" +
+      return "<tr><td><b>" + esc(x.name) + "</b></td><td>" + t + " " + k.shelf.filter(m => t >= m.n).map(m => m.icon).join("") + "</td><td>" + d.made + (soloReadyAll(x, cls) ? " (+" + soloReadyAll(x, cls) + " ready)" : "") + "</td>" +
         k.E.ing.map(g => { const cur = (sw[x.id] || {})[g.sub] || ""; return '<td><select data-subswap="' + x.id + ":" + g.sub + '"><option value="">' + SUB_NAMES[g.sub] + "</option>" +
           Object.entries(SUB_NAMES).filter(([kk]) => kk !== g.sub).map(([kk, n]) => '<option value="' + kk + '"' + (cur === kk ? " selected" : "") + ">" + n + "</option>").join("") + "</select></td>"; }).join("") +
         "" + "</tr>"; }).join("") +
