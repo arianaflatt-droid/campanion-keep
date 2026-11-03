@@ -1,5 +1,5 @@
 // Creature Collector: pulls, XP bank, levels, evolutions, lorebook and arena battles.
-import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261103b";
+import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261103c";
 
 export const PULL_XP = 120;          // every 120 XP (all-time since the collector started) = 1 pull
 export const LEVEL_XP = 120;         // 120 banked XP = 1 level
@@ -216,8 +216,13 @@ export const EVENTS = [
 ];
 export const DUCK = EVENTS[0], HEX = EVENTS[1];
 const isoDate = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+// Date formatters are slow to make, so each one is made once and reused (Nov 3: this was a big part of the battle lag).
+const AZ_DAY = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Phoenix", year: "numeric", month: "2-digit", day: "2-digit" });
+const AZ_NOW = new Intl.DateTimeFormat("en-US", { timeZone: "America/Phoenix", weekday: "short", hour: "numeric", minute: "numeric", hour12: false });
+let dayMemo = { k: -1, v: "" };
 export function azToday(date) {
-  return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Phoenix", year: "numeric", month: "2-digit", day: "2-digit" }).format(date || new Date());   // YYYY-MM-DD
+  if (!date) { const k = Math.floor(Date.now() / 1000); if (k !== dayMemo.k) dayMemo = { k, v: AZ_DAY.format(new Date()) }; return dayMemo.v; }
+  return AZ_DAY.format(date);   // YYYY-MM-DD
 }
 export function duckWindow(cls) {
   const start = (cls && cls.duckStart) || DUCK.start;
@@ -334,8 +339,7 @@ export function doPull(st, rarity, cls, opts) {
 
 /* ---------- arena schedule (Arizona time: no daylight saving) ---------- */
 export function azNow(date) {
-  const parts = new Intl.DateTimeFormat("en-US", { timeZone: "America/Phoenix", weekday: "short", hour: "numeric", minute: "numeric", hour12: false })
-    .formatToParts(date || new Date());
+  const parts = AZ_NOW.formatToParts(date || new Date());
   const get = t => (parts.find(p => p.type === t) || {}).value;
   return { day: get("weekday"), h: Number(get("hour")) % 24, m: Number(get("minute")) };
 }

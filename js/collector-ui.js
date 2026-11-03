@@ -4,13 +4,13 @@ import {
   formIndex, formOf, statsOf, seenSet, rollRarity, doPull, arenaOpen, arenaOpenFor, lunchHour, hitGoalToday, LUNCH_ARENA, ARENA_HOURS, fighterFrom, teamSize, alive, resolve, resolveRound, moveOk, MOVES, hitDamage,
   birthdayLeft, pickleLeft, PICKLE_FAM, brewLegLeft, BREW_FAM, feastLegLeft, HARVEST_FAM, gingerLegLeft, GINGER_FAM, snowLegLeft, SNOW_FAM, candyLegLeft, CANDY_FAM, ghostEggLeft, GHOST_FAM, BOSS2_LIST, boss2EggLeft, vaultLegLeft, revengeLegLeft, goalLeft, nextGoal, rollRareUp, themeLeft, nextTheme, THEME_TYPES, THEME_EGG, WISH_FAM, spares, spareId, releaseXP, releaseProblem, isStarterFam, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
   EVENTS, eventOpen, eventWindow, eventStreak, hasEvent, eventUnlocked, azToday, rollTeacherRarity, TEACHER_ODDS, LIVE, staleBattle
-} from "./collect.js?v=20261103b";
-import { newBattleRef, changeBattle as changeBattleRaw, setDoc, liveBattlesNow, ck, ckMessage } from "./db.js?v=20261103b";
+} from "./collect.js?v=20261103c";
+import { newBattleRef, battleRef, updateDoc, changeBattle as changeBattleRaw, setDoc, liveBattlesNow, ck, ckMessage } from "./db.js?v=20261103c";
 // every change to a battle is stamped with the time (upd), so a battle nobody has touched in a while can be ended
 let locking = null, leaving = null;   // battle id while "Lock in team" is saving
 const changeBattle = (id, fn) => changeBattleRaw(id, bt => { const n = fn(bt); if (n) n.upd = new Date().toISOString(); return n; });
 
-import { tradeCard } from "./trade-ui.js?v=20261103b";
+import { tradeCard } from "./trade-ui.js?v=20261103c";
 
 const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const PER_PAGE = 20;
@@ -497,15 +497,14 @@ function battleOverlay() {
   const logLen = (bt.log || []).length, k = Math.min(shown[bt.id] || 0, logLen);
   // Replay pace (Oct 30, faster): big moments get a beat to read, small effect lines go quickly, and a long backlog (rejoining) speeds through.
   if (k < logLen && !replayTimer) { const nx = bt.log[k] || {}, behind = logLen - k;
-    const ms = k === 0 ? 300 : behind > 6 ? 180 : nx.k === "hit" || nx.k === "faint" ? 750 : nx.k === "send" || nx.k === "win" ? 600 : 450;
+    const ms = k === 0 ? 200 : behind > 4 ? 140 : nx.k === "hit" || nx.k === "faint" ? 600 : nx.k === "send" || nx.k === "win" ? 500 : 320;   // Nov 3: quicker
     replayTimer = setTimeout(() => { replayTimer = null; shown[bt.id] = (shown[bt.id] || 0) + 1; ctx.render(true); }, ms); }
   const caught = k >= logLen, v = viewState(bt, k);
-  let h = '<div class="battleover" style="background-image:url(assets/arena-bg.jpg)"><div class="bhead"><b>' + esc(meN) + "</b> vs <b>" + esc(thN) + '</b><button class="btn ghost small" data-cc="mute" aria-label="Sound">' + (muted() ? "\u{1F507}" : "\u{1F50A}") + '</button>' + (caught ? "" : '<button class="btn ghost small" data-cc="skipReplay" title="Skip to now">\u23E9 Skip</button>') + '<button class="btn ghost small" data-cc="leaveBattle">' + (LIVE.includes(bt.status) ? (busyLeave ? "Yes, end the battle" : "Leave") : "Close") + "</button></div>";
+  let h = '<div class="battleover" style="background-image:url(assets/arena-bg.jpg)"><div class="bhead"><b>' + esc(meN) + "</b> vs <b>" + esc(thN) + '</b><button class="btn ghost small" data-cc="mute" aria-label="Sound">' + (muted() ? "\u{1F507}" : "\u{1F50A}") + '</button>' + (caught ? "" : '<button class="btn ghost small" data-cc="skipReplay" title="Skip to now">\u23E9 Skip</button>') + '<button class="btn ghost small" data-cc="leaveBattle">' + (LIVE.includes(bt.status) ? "\u{1F6AA} Leave (ends the battle)" : "Close") + "</button></div>";
   if (bt.status === "declined") return h + '<div class="bpanel"><p>The challenge was declined.</p></div></div>';
   if (bt.status === "ended") return h + '<div class="bpanel"><h3>Battle ended</h3><p>' + (bt.endedBy === "teacher" ? "Ms. Ariana ended this battle." : bt.endedBy === "time" ? "Nobody moved for a while, so the battle ended." : esc(bt.endedBy === ctx.me.id ? "You" : bt.endedName || thN) + " left the battle.") +
     ' It doesn\u2019t count for anyone.</p><button class="btn big" data-cc="closeBattle">Close</button></div></div>';
   if (leaving === bt.id) h += '<div class="bpanel small"><p>Ending the battle\u2026</p></div>';
-  else if (busyLeave && LIVE.includes(bt.status)) h += '<div class="bpanel small"><p>Leave now? The battle ends for both of you and doesn\u2019t count for anyone.</p><div class="row" style="gap:8px;justify-content:center;"><button class="btn small danger" data-cc="leaveBattle">Yes, leave</button><button class="btn ghost small" data-cc="leaveCancel">Keep battling</button></div></div>';
   if (bt.status === "invite") return h + '<div class="bpanel"><p>Waiting for ' + esc(thN) + " to accept…</p></div></div>";
   if (bt.status === "team" && !(bt.team && bt.team[me])) {
     const fams = teamChoices(ctx.me), all = ownedFams(ctx.me).length, more = all - fams.length;
@@ -583,6 +582,23 @@ function movePanel(bt, me, them, thN) {
     "</div>";
 }
 let busyForfeit = false, busyLeave = false;
+// Leaving the page ends the battle (Nov 3): closing the tab, going to another page, or being on another tab for a minute.
+// It ends for both players and doesn't count for anyone, the same as pressing Leave.
+export async function endMyBattle(why) {
+  if (!ctx || !ctx.me || leaving) return false;
+  const me = ctx.me.id, bt = (ctx.battles || []).find(b => LIVE.includes(b.status) && !staleBattle(b) && b.a && b.b && (b.a.id === me || b.b.id === me));
+  if (!bt) return false;
+  const end = { status: "ended", endedBy: me, endedName: ctx.me.name, ["seen_" + me]: true, moves: { A: null, B: null }, upd: new Date().toISOString() };
+  // the tab is closing: one quick write (no read first), so it can get out before the page is gone
+  if (why === "left") { try { updateDoc(battleRef(bt.id), end).catch(() => {}); } catch (e) {} battleOpen = null; return true; }
+  leaving = bt.id;
+  try {
+    await changeBattle(bt.id, b => (LIVE.includes(b.status) ? Object.assign(b, { status: "ended", endedBy: me, endedName: ctx.me.name, ["seen_" + me]: true, moves: { A: null, B: null } }) : null));
+    if (battleOpen === bt.id) battleOpen = null;
+    return true;
+  } catch (e) { return false; }
+  finally { leaving = null; }
+}
 
 /* ================= clicks ================= */
 export async function onClick(el, c) {
@@ -871,8 +887,7 @@ export async function onClick(el, c) {
   if (a === "leaveBattle") {
     const bt = (c.battles || []).find(b => b.id === battleOpen);
     if (!bt || !LIVE.includes(bt.status)) { battleOpen = null; busyLeave = false; return c.render(true); }
-    if (!busyLeave) { busyLeave = true; return c.render(true); }
-    if (leaving) return;
+    if (leaving) return;   // Leave ends the battle right away for both players (Nov 3: no "are you sure?" step)
     busyLeave = false; const id = battleOpen; leaving = id; c.render(true);
     try {
       await changeBattle(id, b => (LIVE.includes(b.status) ? Object.assign(b, { status: "ended", endedBy: s.id, endedName: s.name, ["seen_" + s.id]: true, moves: { A: null, B: null } }) : null));

@@ -1,10 +1,10 @@
-import { CREATURE_LAYOUT, CREATURE_FIT_ID } from "./creature-fit.js?v=20261103b";
-import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261103b";
-import { heldWeapon } from "./quest.js?v=20261103b";
+import { CREATURE_LAYOUT, CREATURE_FIT_ID } from "./creature-fit.js?v=20261103c";
+import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261103c";
+import { heldWeapon } from "./quest.js?v=20261103c";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261103b";
+export const APP_V = "20261103c";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -287,7 +287,8 @@ export function yetiUnlocked(cls) { return !!(cls && cls.yetiDefeated); }
 export function heartUnlocked(cls) { return !!(cls && cls.heartDefeated); }
 // Is this gear's boss unlock done (true for normal gear)?
 // Gear with months (Aurora's Christmas Hat) only shows up and unlocks in those months (Arizona time).
-export function azMonth(date) { return Number(new Intl.DateTimeFormat("en-US", { timeZone: "America/Phoenix", month: "numeric" }).format(date || new Date())); }
+const AZ_MONTH = new Intl.DateTimeFormat("en-US", { timeZone: "America/Phoenix", month: "numeric" });
+export function azMonth(date) { return Number(AZ_MONTH.format(date || new Date())); }
 export function gearInSeason(g, date) { return !g.months || g.months.includes(azMonth(date)); }
 export function bossGearOk(g, cls) { return gearInSeason(g) && (!g.ghost || ghostUnlocked(cls)) && (!g.turkey || turkeyUnlocked(cls)) && (!g.jingle || grinchUnlocked(cls)) && (!g.frost || yetiUnlocked(cls)) && (!g.heart || heartUnlocked(cls)); }
 

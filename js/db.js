@@ -7,7 +7,7 @@ import {
   getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, signInAnonymously
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
-import { firebaseConfig, CLASS_ID, TEACHER_EMAILS } from "./firebase-config.js?v=20261103b";
+import { firebaseConfig, CLASS_ID, TEACHER_EMAILS } from "./firebase-config.js?v=20261103c";
 
 // Teacher preview (student.html?s=ID&preview=1): the page shows a student's view, but nothing is ever written.
 export const PREVIEW = typeof location !== "undefined" && new URLSearchParams(location.search).get("preview") === "1";
@@ -53,7 +53,10 @@ const LIVE_STATUS = ["invite", "team", "lead", "fight"];
 function mergeWatch(queries, cb, onErr) {
   const parts = queries.map(() => new Map());
   const send = () => { const all = new Map(); parts.forEach(m => m.forEach((v, k) => all.set(k, v))); cb([...all.values()]); };
-  const offs = queries.map((q, i) => onSnapshot(q, snap => { parts[i] = new Map(snap.docs.map(d => [d.id, Object.assign({ id: d.id }, d.data())])); send(); }, onErr));
+  // Only the battles that changed are read again (Nov 3): a student with lots of old battles no longer re-reads every one on each move.
+  const offs = queries.map((q, i) => onSnapshot(q, snap => {
+    snap.docChanges().forEach(ch => { if (ch.type === "removed") parts[i].delete(ch.doc.id); else parts[i].set(ch.doc.id, Object.assign({ id: ch.doc.id }, ch.doc.data())); });
+    send(); }, onErr));
   return () => offs.forEach(f => f());
 }
 // Only this student's own battles. Other kids' battle moves are never sent to this page.
