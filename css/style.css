@@ -2061,3 +2061,14 @@ body.mini-leaf .wrap{ position:relative; z-index:1; } body.mini-leaf .tile{ box-
 @media (max-width:640px){ .rvdodge{ font-size:18px; padding:12px 20px; } .rvpw{ font-size:13px; padding:10px 10px; } .rvtaunt img{ width:80px; } .rvbubble{ font-size:15px; } }
 @media (prefers-reduced-motion: reduce){ .rvboss img, .rvtaunt img, .rvcard-tk, .rvmin, .rvconf i{ animation:none; } }
 .mc-leaf .btn.ghost{ color:#FFF6E8; border-color:rgba(255,246,232,.7); }
+
+/* ---------- 🕵️ Secret Students (Nov 2026) ---------- */
+.secretbar{ margin:0 0 12px; padding:10px 14px; border-radius:14px; background:linear-gradient(90deg,#1F2A4D,#3A4C86); color:#F2F5FF; font-size:14.5px; }
+.secretbar b{ color:#FFE27A; } .secretbar.shout{ background:linear-gradient(90deg,#7A3E00,#D9772B); }
+.secrows{ display:flex; flex-direction:column; gap:6px; }
+.secrow{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:8px 10px; border-radius:12px; background:var(--accent-soft,#F3F1FF); }
+.secrow.met{ box-shadow:inset 0 0 0 2px #3BA55C; } .secm{ min-width:110px; } .secname{ min-width:110px; } .secst{ flex:1; font-size:13px; } .secwon{ font-weight:700; color:#2E7D32; }
+.secenv{ font-size:110px; line-height:1; margin:6px 0; animation:secwig 1s ease-in-out infinite alternate; } .secenv.open{ animation:secpop .5s ease-out; }
+.secnote{ font-style:italic; margin:6px 0 12px; }
+@keyframes secwig{ from{ transform:rotate(-6deg); } to{ transform:rotate(6deg) scale(1.05); } } @keyframes secpop{ from{ transform:scale(.3); } to{ transform:scale(1); } }
+.secretover .lede, .secretover .secnote{ color:#F2EEFF; }

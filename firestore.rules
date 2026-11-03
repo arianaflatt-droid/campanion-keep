@@ -191,7 +191,7 @@ service cloud.firestore {
                "name", "order", "goalSubject", "xp", "lunchXp", "status", "early", "xpHist", "deaths", "items",
                "streakCarry", "streakWeek", "candyBank", "bonusXP", "bonusPulls", "cpEarned", "questPass",
                "birthdayEggs", "pickleEggs", "ghostEggs", "ghost2", "turkeyEggs", "turkey2", "grinchEggs", "grinch2", "yetiEggs", "yeti2", "heartEggs", "heart2", "potionLegEggs", "feastLegEggs", "gingerLegEggs", "snowmanLegEggs", "candyboxLegEggs",
-               "potionDays", "feastDays", "gingerDays", "snowmanDays", "candyboxDays", "isTeacher", "reward", "pubName", "tbUsed"])
+               "potionDays", "feastDays", "gingerDays", "snowmanDays", "candyboxDays", "isTeacher", "reward", "pubName", "tbUsed", "secretWin", "secretWins"])
           && collOk() && countsOk(request.resource.data.diff(resource.data).affectedKeys()));
 
         // ---- Rewards and counters ----

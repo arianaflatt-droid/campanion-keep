@@ -7,7 +7,7 @@ import {
   getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, signInAnonymously
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
-import { firebaseConfig, CLASS_ID, TEACHER_EMAILS } from "./firebase-config.js?v=20261103a";
+import { firebaseConfig, CLASS_ID, TEACHER_EMAILS } from "./firebase-config.js?v=20261103b";
 
 // Teacher preview (student.html?s=ID&preview=1): the page shows a student's view, but nothing is ever written.
 export const PREVIEW = typeof location !== "undefined" && new URLSearchParams(location.search).get("preview") === "1";
@@ -35,6 +35,9 @@ export function watchRewardPics(cb) { return onSnapshot(collection(db, "classes"
 export const newsPicRef = db ? doc(db, "classes", CLASS_ID, "news", "pic") : null;
 export function watchNewsPic(cb) { return onSnapshot(newsPicRef, snap => cb(snap.exists() ? snap.data() : null), () => {}); }
 export const feederKeyRef = db ? doc(db, "classes", CLASS_ID, "private", "feeder") : null;
+// 🕵️ Secret Students (Nov 2026): today's picks live here so students can't see them (teacher-only)
+export const secretRef = db ? doc(db, "classes", CLASS_ID, "private", "secret") : null;
+export function watchSecret(cb) { return onSnapshot(secretRef, snap => cb(snap.exists() ? snap.data() : null), () => cb(null)); }
 export function watchLive(cb, onErr) { return onSnapshot(liveRef, snap => cb(snap.exists() ? snap.data() : null), onErr); }
 export const studentRef = id => doc(db, "classes", CLASS_ID, "students", id);
 export const newStudentRef = () => doc(studentsCol);
