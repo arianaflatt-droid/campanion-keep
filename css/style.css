@@ -2160,3 +2160,29 @@ body.mini-orn .wrap{ position:relative; z-index:1; } body.mini-orn .tile{ box-sh
 .eggwrap.ultra{ animation:uhue 1.6s linear infinite; }
 .uxsp{ font-weight:800; background:linear-gradient(90deg,#e0459b,#f08a24,#2fa86a,#2f8fd6,#8a4fe0); -webkit-background-clip:text; background-clip:text; color:transparent; }
 .vaultloot li.vultra{ font-weight:800; color:#B02CC8; }
+
+/* ---------- 🌌 Northern Lights Camp (January Reading XP mini event, Nov 3) ---------- */
+.mo-aur{ background:#0B1030; }
+.mstage.aurstage{ background-color:#1c2350; }
+.aurtent{ position:absolute; width:calc(12% * var(--s)); aspect-ratio:1/0.85; transform:translate(-50%,0); background:none; border:0; padding:0; cursor:pointer;
+  filter:drop-shadow(0 8px 8px rgba(0,0,0,.35)) drop-shadow(0 0 10px rgba(255,214,120,.35)); animation:aurglow 2.8s ease-in-out infinite alternate; animation-delay:calc(var(--d) * -1); }
+.aurtent img{ width:100%; height:100%; object-fit:contain; object-position:50% 100%; display:block; }
+.aurtent:hover:not(:disabled){ filter:drop-shadow(0 0 16px rgba(160,255,210,.95)) drop-shadow(0 8px 8px rgba(0,0,0,.35)); transform:translate(-50%,-4px) scale(1.04); }
+.aurtent:disabled{ cursor:default; } .aurtent.notix{ filter:grayscale(.6) brightness(.7); animation:none; }
+.aurtent.glow{ animation:aurpeek .7s ease-in-out; filter:drop-shadow(0 0 26px rgba(160,255,210,1)) drop-shadow(0 0 40px rgba(190,140,255,.9)); }
+.aurtent .burst{ position:absolute; left:50%; top:40%; pointer-events:none; }
+.aurtent .burst em{ position:absolute; font-style:normal; font-size:clamp(16px,2.6vw,34px); animation:leafburst .9s ease-out forwards; --a:calc(var(--k) * 60deg); }
+@keyframes aurglow{ from{ filter:drop-shadow(0 8px 8px rgba(0,0,0,.35)) drop-shadow(0 0 6px rgba(255,214,120,.25)); } to{ filter:drop-shadow(0 8px 8px rgba(0,0,0,.35)) drop-shadow(0 0 18px rgba(255,214,120,.65)); } }
+@keyframes aurpeek{ 0%,100%{ transform:translate(-50%,0) scale(1); } 30%{ transform:translate(-50%,-8px) scale(1.1,.92); } 60%{ transform:translate(-50%,2px) scale(.95,1.06); } }
+.aurcard{ top:4%; background:rgba(11,16,48,.86); color:#CFF8E8; } .aurcard .aurjaric{ height:40px; width:auto; vertical-align:middle; margin-right:4px; }
+.aurpop{ background:rgba(245,248,255,.97); color:#18204A; } .aurpop h2{ color:#7A4FD0; } .aurpop .mgot{ color:#1F8F6A; text-shadow:none; }
+.aurgold{ filter:drop-shadow(0 0 18px rgba(160,255,210,.95)) drop-shadow(0 0 30px rgba(190,140,255,.7)); }
+.minibanner.mb-aur{ background:linear-gradient(90deg,#16205A,#1F8F6A 55%,#7A4FD0); color:#F2FBFF; }
+.mc-aur{ background:linear-gradient(135deg,#0F1648,#1F6F6A 55%,#6A3FC0); color:#F2FBFF; } .mc-aur h3, .mc-aur p{ color:#F2FBFF; }
+.mc-aur .btn.ghost{ color:#F2FBFF; border-color:rgba(242,251,255,.7); }
+body.mini-aur{ --casing:#E4ECFA; --accent:#3B5BC0; --accent-soft:#E2E8FB; background:linear-gradient(180deg,#E9EEFB,#D5E6EE); }
+body.mini-aur::before{ content:""; position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.75; animation:msnow 18s linear infinite;
+  background-image:radial-gradient(3px 3px at 40px 30px,#ffffff,transparent),radial-gradient(4px 4px at 200px 120px,#ffffff,transparent),radial-gradient(3px 3px at 120px 200px,#9FF3D0,transparent),radial-gradient(3px 3px at 280px 60px,#C9A8FF,transparent); background-size:320px 240px; }
+body.mini-aur .wrap{ position:relative; z-index:1; } body.mini-aur .tile{ box-shadow:0 0 0 2px #5EC9A8; }
+@media (prefers-reduced-motion: reduce){ .aurtent, .aurtent .burst em, body.mini-aur::before{ animation:none; } }
+@media (max-width: 640px){ .aurtent{ width:calc(15% * var(--s)); } }

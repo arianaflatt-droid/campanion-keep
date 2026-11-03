@@ -1,10 +1,10 @@
-import { CREATURE_LAYOUT, CREATURE_FIT_ID, CREATURE_NECK_ID } from "./creature-fit.js?v=20261103i";
-import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261103i";
-import { heldWeapon } from "./quest.js?v=20261103i";
+import { CREATURE_LAYOUT, CREATURE_FIT_ID, CREATURE_NECK_ID } from "./creature-fit.js?v=20261103j";
+import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261103j";
+import { heldWeapon } from "./quest.js?v=20261103j";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261103i";
+export const APP_V = "20261103j";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -595,7 +595,7 @@ function partyStyle(c, kind) {
    During a mini event every companion also wears that event's random costume (js/mini.js adds it through HEAD_FNS). */
 const OF = (ev, dir, list) => list.map(([k, name]) => ({ id: ev + "-" + k, ev, name, img: "assets/" + dir + "/" + (ev === "tot" ? "costume-" : "outfit-") + k + ".webp", neck: NECK.includes(ev + "-" + k) }));
 // 🧣 Neck pieces (Nov 3): these sit at the companion's neck (under the chin) instead of on the head, so a shop hat can stay on too.
-const NECK = ["leaf-scarf", "orn-lights", "orn-bell"];
+const NECK = ["leaf-scarf", "orn-lights", "orn-bell", "aur-scarf", "aur-compass"];
 const outfitByImg = img => OUTFITS.find(o => o.img === img) || null;
 // The neck spot: worked out from the head spot and the eyes (the chin is about as far below the eyes as the eyes are below the top of the head).
 // NECK_FIT nudges one form (by picture id, or "r:" + id for the basic companions): [move right, move down, size ×]
@@ -618,6 +618,7 @@ export const OUTFITS = [].concat(
   OF("hs", "heist", [["heisthat", "Heist Hat"]]),   // 🎄 Great Present Heist chapter 3 reward
   OF("leaf", "leaf", [["leafcrown", "Autumn Leaf Crown"], ["acorn", "Acorn Cap"], ["beanie", "Cozy Knit Beanie"], ["squirrel", "Squirrel Ears"], ["pinecone", "Pinecone Hat"], ["mapleclip", "Sparkly Maple Clip"], ["scarf", "Plaid Scarf"], ["mushroom", "Mushroom Cap"]]),   // 🍂 Leaf Pile Jump   // 🦃 Turducken's Revenge chapter 3 reward
   OF("orn", "orn", [["antlers", "Reindeer Antlers"], ["santa", "Santa Hat"], ["tiara", "Snowflake Tiara"], ["earmuffs", "Fluffy Earmuffs"], ["lights", "Twinkle Light Necklace"], ["bell", "Golden Jingle Bell Collar"], ["penguin", "Penguin Hood"], ["snowman", "Snowman Top Hat"]]),   // 🎄 Ornament Hunt (Nov 3)
+  OF("aur", "aur", [["aurora", "Aurora Headband"], ["beanie", "Snowflake Beanie"], ["headlamp", "Explorer Headlamp"], ["nightcap", "Starry Nightcap"], ["trapper", "Plaid Trapper Hat"], ["moon", "Moon Crown"], ["scarf", "Aurora Scarf"], ["compass", "Explorer Compass"]]),   // 🌌 Northern Lights Camp (Nov 3)
   OF("lib", "lib", [["candles", "Candle Crown"], ["nightcap", "Starry Nightcap"], ["wizard", "Wizard Reading Cap"], ["bookhat", "Book Hat"], ["bun", "Ghost Librarian Bun"], ["scholar", "Moonlight Scholar Cap"], ["owl", "Owl Ear Headband"], ["bookworm", "Bookworm Antennae"]]));
 export const outfitOf = id => OUTFITS.find(o => o.id === id) || null;
 export const headImg = (c, img) => { const o = outfitByImg(img);
