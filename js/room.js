@@ -5,9 +5,9 @@
    Saved on the student: cpEarned (teacher writes), cpSpent, roomOwned [item ids], roomFit { slot: id }, roomBuys [{ id, cost, at }].
    Item ids are "{kind}_{theme}" (e.g. bed_dragon); art is assets/room/{id}.webp. Trophies are trophy_{season}.
    The room picture is 1536x1024; everything below is placed in % of that. */
-import { azToday } from "./collect.js?v=20261103f";
-import { questCP } from "./quest.js?v=20261103f";
-import { esc } from "./game.js?v=20261103f";
+import { azToday } from "./collect.js?v=20261103g";
+import { questCP } from "./quest.js?v=20261103g";
+import { esc } from "./game.js?v=20261103g";
 
 // Themes that have art so far. Add a theme name here once its 9 pieces are in assets/room/.
 export const TYPE_THEMES = ["fire", "water", "nature", "rock", "sky", "electric", "ice", "light", "dark", "ghost", "poison", "steel", "arcane", "crystal", "dragon"];
@@ -89,7 +89,7 @@ export const itemId = (kind, theme) => kind + "_" + theme;
 export function parseItem(id) { const i = String(id).lastIndexOf("_"); return { kind: String(id).slice(0, i), theme: String(id).slice(i + 1) }; }
 export const itemArt = id => "assets/room/" + id + ".webp";
 const title = t => t.split("-").filter(w => !["plain", "pattern", "wood", "carpet"].includes(w)).map(w => w[0].toUpperCase() + w.slice(1)).join(" ");
-export const itemName = id => { if (PASS_DECOR_NAMES[id]) return PASS_DECOR_NAMES[id]; const p = parseItem(id); if (p.kind === "activity") return ACTIVITIES[p.theme] || "Rug Activity"; if (p.kind === "trophy") return p.theme === "revenge" ? "Golden Turducken Trophy" : (SEASON_THEMES[p.theme] || "") + " Trophy";
+export const itemName = id => { if (PASS_DECOR_NAMES[id]) return PASS_DECOR_NAMES[id]; const p = parseItem(id); if (p.kind === "activity") return ACTIVITIES[p.theme] || "Rug Activity"; if (p.kind === "trophy") return p.theme === "revenge" ? "Golden Turducken Trophy" : p.theme === "heist" ? "Golden Grinch Trophy" : (SEASON_THEMES[p.theme] || "") + " Trophy";
   const th = p.theme === "base" ? "Cozy" : THEME_NAMES[p.theme] || title(p.theme), extra = p.theme.startsWith("carpet") ? " Carpet" : p.theme.startsWith("wood") ? " Wood Floor" : "";
   return extra ? th + extra : th + " " + (KIND_NAMES[p.kind] || p.kind); };
 export const owned = st => STARTERS.concat(((st && st.roomOwned) || []).filter(id => !STARTERS.includes(id)));

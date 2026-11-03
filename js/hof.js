@@ -3,9 +3,9 @@
    Every record has an all-time plaque (changes only when someone beats it) and, where the data has dates, a "this month" plaque.
    XP records never show how much XP (Ms. Ariana's rule); streaks show how many days.
    Saved on the student: hofSeen = [record keys they've already celebrated]. Just for glory: no rewards. */
-import { esc, goalXP } from "./game.js?v=20261103f";
-import { azToday, owned, family, formOf } from "./collect.js?v=20261103f";
-import { mondayOf } from "./doors.js?v=20261103f";
+import { esc, goalXP } from "./game.js?v=20261103g";
+import { azToday, owned, family, formOf } from "./collect.js?v=20261103g";
+import { mondayOf } from "./doors.js?v=20261103g";
 
 const inMonth = (date, key) => String(date || "").slice(0, 7) === key;
 const isWeekend = date => { const d = new Date(date + "T12:00:00").getDay(); return d === 0 || d === 6; };
@@ -44,6 +44,7 @@ export const RECORDS = [
   { key: "sparkle", group: "collect", icon: "✨", name: "Most Sparkles", month: false, unit: n => n + " Sparkle" + (n === 1 ? "" : "s"), val: st => sparkles(st) },
   { key: "attack", group: "event", icon: "⚔️", name: "Top Boss Attacker", month: false, unit: n => n + " attack" + (n === 1 ? "" : "s"), val: st => Number(st.attackTotal) || 0 },
   { key: "tower", group: "event", icon: "\u{1F5FC}", name: "Turducken Tower Champion", month: false, unit: n => "wave " + n, val: st => Number(st.revenge && st.revenge.best) || 0 },
+  { key: "mountain", group: "event", icon: "⛰️", name: "Present Mountain Champion", month: false, unit: n => "wave " + n, val: st => Number(st.heist && st.heist.best) || 0 },
   { key: "vault", group: "event", icon: "\u{1F510}", name: "Most Treasure Vaults", unit: n => n + " vault" + (n === 1 ? "" : "s"), val: (st, k) => vaults(st, k) },
   { key: "kind", group: "kind", icon: "\u{1F48C}", name: "Most Shout-outs Sent", unit: n => n + " shout-out" + (n === 1 ? "" : "s"), val: (st, k) => kindSent(st, k) },
   { key: "pets", group: "kind", icon: "\u{1F49E}", name: "Best Friends (most pets)", month: false, unit: n => n + " pet" + (n === 1 ? "" : "s"), val: st => Number((st.bond || {}).n) || 0 },

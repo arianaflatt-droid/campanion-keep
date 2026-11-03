@@ -1,5 +1,5 @@
 // Creature Collector: pulls, XP bank, levels, evolutions, lorebook and arena battles.
-import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261103f";
+import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261103g";
 
 export const PULL_XP = 120;          // every 120 XP (all-time since the collector started) = 1 pull
 export const LEVEL_XP = 120;         // 120 banked XP = 1 level
@@ -87,6 +87,9 @@ export const PICKLE_FAM = "L-31";
 export const BREW_FAM = "L-33";
 // ✨ Sparkle Turducken egg: beating MEGA TURDUCKEN in Turducken's Revenge (js/revenge.js, Nov 2026). Hatched by the server (kind "revenge").
 export const REVENGE_FAM = "L-42";
+// ✨ Sparkle Grinch-a-Duck egg: beating MEGA GRINCH-A-DUCK in the Great Present Heist (js/heist.js, Dec 2026). Hatched by the server (kind "heist").
+export const HEIST_FAM = "L-43";
+export function heistLegLeft(st) { return Math.max(0, (Number(st && st.heistLeg) || 0) - (Number(st && st.heistLegUsed) || 0)); }
 export function revengeLegLeft(st) { return Math.max(0, (Number(st && st.revengeLeg) || 0) - (Number(st && st.revengeLegUsed) || 0)); }   // Brewraith: the top Potion Brewing Team's special egg
 export function brewLegLeft(st) { return Math.max(0, (Number(st && st.potionLegEggs) || 0) + (Number(st && st.soloBrewLeg) || 0) - (Number(st && st.potionLegUsed) || 0)); }   // soloBrewLeg: 15 solo potions
 export const SNOW_FAM = "L-38";   // Snowmorrow: the top Build-a-Snowman team's special egg

@@ -203,7 +203,7 @@ service cloud.firestore {
         function wasLen(k) { let v = resource.data.get(k, []); return v is list ? v.size() : 0; }
         function listUp(ch, k) { return !(k in ch) || (request.resource.data.get(k, []) is list && request.resource.data.get(k, []).size() <= wasLen(k) + 1); }
         function countsOk(ch) {
-          return upTo(ch, "doorEggs", 3) && upTo(ch, "legendaryPulls", 1) && upTo(ch, "vaultLegEggs", 1) && upTo(ch, "revengeLeg", 1) && notDown(ch, "revengeLegUsed")
+          return upTo(ch, "doorEggs", 3) && upTo(ch, "legendaryPulls", 1) && upTo(ch, "vaultLegEggs", 1) && upTo(ch, "revengeLeg", 1) && notDown(ch, "revengeLegUsed") && upTo(ch, "heistLeg", 1) && notDown(ch, "heistLegUsed")
             && upTo(ch, "soloBrewLeg", 1) && upTo(ch, "soloFeastLeg", 1) && upTo(ch, "soloGingerLeg", 1) && upTo(ch, "soloSnowLeg", 1) && upTo(ch, "soloBoxLeg", 1)
             && upTo(ch, "doorXP", 600) && upTo(ch, "questXP", 250) && upTo(ch, "xpPrize", 500) && upTo(ch, "xpReleased", 300)
             && upTo(ch, "candyBonus", 200) && upTo(ch, "stolen", 50) && upTo(ch, "cpBonus", 200)
