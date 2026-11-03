@@ -8,9 +8,9 @@
 // (spares don't count), limited event creatures (Duckarune, Hexaduck) can't be traded, and not during a battle.
 // Trading follows the same schedule as the arena (its own switches in the teacher console), and a player has to
 // tick "I'm ready to trade" (tradeReady) before anyone can send them an offer.
-import { esc } from "./game.js";
-import { owned, ownedFams, family, formOf, creature, RARITY_COLOR, hasStarter, spares, spareId, tradeOpen, tradeOpenFor, lunchHour, hitGoalToday, ARENA_HOURS, LUNCH_ARENA } from "./collect.js";
-import { newTradeRef, changeTrade, setDoc } from "./db.js";
+import { esc } from "./game.js?v=20261103j";
+import { seenSet, owned, ownedFams, family, formOf, creature, RARITY_COLOR, hasStarter, spares, spareId, tradeOpen, tradeOpenFor, lunchHour, hitGoalToday, ARENA_HOURS, LUNCH_ARENA, LIVE, staleBattle } from "./collect.js?v=20261103j";
+import { newTradeRef, changeTrade, setDoc, ck, ckMessage } from "./db.js?v=20261103j";
 
 let pick = { who: "", theirs: "", mine: "" };
 let settling = {};
@@ -29,7 +29,7 @@ export function forTrade(st, key) {
   return !!(entry(st, String(key).replace(/^m:/, "")) || {}).forTrade;
 }
 function offerable(st) {   // everything this player could give (the ones up for trade first)
-  const mains = ownedFams(st).filter(f => !isEvent(f)).map(f => "m:" + f);
+  const mains = ownedFams(st).filter(f => !isEvent(f) && !(entry(st, f) || {}).fav).map(f => "m:" + f);   // favorites can't be traded
   const all = (ownedFams(st).length > 1 ? mains : []).concat(spares(st).filter(x => !isEvent(x.fam)).map(x => "s:" + x.id));
   return all.filter(k => forTrade(st, k)).concat(all.filter(k => !forTrade(st, k)));
 }
@@ -39,7 +39,10 @@ function pic(t) {
   const src = t.sparkle ? c.img.replace("assets/creatures/", "assets/creatures/sparkle/") : c.img;
   return '<img class="trimg" src="' + src + '" alt="" style="--rc:' + RARITY_COLOR[c.rarity] + '">';
 }
-function inBattle(ctx, id) { return (ctx.battles || []).some(b => ["invite", "team", "lead"].includes(b.status) && (b.a.id === id || b.b.id === id)); }
+// Not in this player's lorebook yet (they've never had this form)
+function newFor(st, t) { const c = formOf(t.fam, t.lvl); return !!c && !seenSet(st).has(c.id); }
+const NEW_TAG = '<span class="trnew">\u{1F4D6} NEW</span>';
+function inBattle(ctx, id) { return (ctx.battles || []).some(b => LIVE.includes(b.status) && !staleBattle(b) && (b.a.id === id || b.b.id === id)); }
 
 const open = t => t.status === "offer";
 const mineOf = (ctx, s) => (ctx.trades || []).filter(t => t.a && t.b && (t.a.id === s.id || t.b.id === s.id));
@@ -55,13 +58,13 @@ export function tradeCard(ctx) {
   let h = '<div class="card tradecard"><div class="card-head"><h2>\u{1F504} Trading</h2><span class="fact ' + (isOpen ? "open" : "") + '">' + (isOpen ? "OPEN" : "closed") + "</span></div>";
 
   incoming.forEach(t => {
-    h += '<div class="trrow in"><div class="trside">' + pic(t.give) + "<small><b>" + esc(t.a.name) + "</b> gives<br>" + esc(label(t.give)) + "</small></div>" +
+    h += '<div class="trrow in"><div class="trside">' + pic(t.give) + "<small><b>" + esc(t.a.name) + "</b> gives<br>" + esc(label(t.give)) + (newFor(s, t.give) ? "<br>" + NEW_TAG : "") + "</small></div>" +
       '<span class="trarrow">⇄</span><div class="trside">' + pic(t.get) + "<small>for your<br>" + esc(label(t.get)) + "</small></div>" +
       '<div class="trbtns">' + (isOpen ? '<button class="btn small" data-tr="accept" data-t="' + t.id + '">Accept</button>' : '<span class="muted small">Accept when trading opens</span>') + '<button class="btn ghost small" data-tr="decline" data-t="' + t.id + '">No thanks</button></div></div>';
   });
   outgoing.forEach(t => {
     h += '<div class="trrow out"><div class="trside">' + pic(t.give) + "<small>Your<br>" + esc(label(t.give)) + "</small></div>" +
-      '<span class="trarrow">⇄</span><div class="trside">' + pic(t.get) + "<small><b>" + esc(t.b.name) + "’s</b><br>" + esc(label(t.get)) + "</small></div>" +
+      '<span class="trarrow">⇄</span><div class="trside">' + pic(t.get) + "<small><b>" + esc(t.b.name) + "’s</b><br>" + esc(label(t.get)) + (newFor(s, t.get) ? "<br>" + NEW_TAG : "") + "</small></div>" +
       '<div class="trbtns"><span class="muted small">Waiting for ' + esc(t.b.name) + "…</span>" +
       '<button class="btn ghost small" data-tr="cancel" data-t="' + t.id + '">Cancel</button></div></div>';
   });
@@ -94,7 +97,7 @@ export function tradeCard(ctx) {
   const mineMarked = offerable(s).filter(k => forTrade(s, k)).length;
   h += '<div class="trboard"><b>\u{1F504} Up for trade</b>' + (board.length
     ? board.map(r => '<div class="trbrow"><span class="trbwho">' + esc(r.x.name) + '</span><div class="trbitems">' +
-        r.keys.map(k => { const t = snap(r.x, k); return '<button class="trbitem' + (pick.who === r.x.id && pick.theirs === k ? " on" : "") + '" data-tr="want" data-who="' + r.x.id + '" data-key="' + esc(k) + '">' + pic(t) + "<small>" + esc(label(t)) + "</small></button>"; }).join("") + "</div></div>").join("")
+        r.keys.map(k => { const t = snap(r.x, k); return '<button class="trbitem' + (pick.who === r.x.id && pick.theirs === k ? " on" : "") + '" data-tr="want" data-who="' + r.x.id + '" data-key="' + esc(k) + '">' + pic(t) + "<small>" + esc(label(t)) + "</small>" + (newFor(s, t) ? NEW_TAG : "") + "</button>"; }).join("") + "</div></div>").join("")
     : '<p class="muted small" style="margin:4px 0;">Nobody has marked anything up for trade yet.</p>') +
     '<p class="muted small" style="margin-top:4px;">' + (mineMarked ? "You have <b>" + mineMarked + "</b> up for trade." : "Tap \u{1F504} on a creature in My creatures to put it up for trade.") + "</p></div>";
   const opt = (v, t, on) => '<option value="' + esc(v) + '"' + (on ? " selected" : "") + ">" + esc(t) + "</option>";
@@ -102,11 +105,11 @@ export function tradeCard(ctx) {
     '<div class="field"><label for="trWho">Trade with</label><select id="trWho" data-trsel="who">' + opt("", "Choose a player") +
       others.map(x => opt(x.id, x.name, x.id === pick.who)).join("") + "</select></div>" +
     '<div class="field"><label for="trTheirs">You want</label><select id="trTheirs" data-trsel="theirs"' + (who ? "" : " disabled") + ">" + opt("", who ? (theirsOk.length ? "Choose their creature" : "Nothing you don’t already have") : "Choose a player first") +
-      theirsOk.map(f => opt(f, (forTrade(who, f) ? "\u{1F504} " : "") + label(snap(who, f)), f === pick.theirs)).join("") + "</select></div>" +
+      theirsOk.map(f => opt(f, (forTrade(who, f) ? "\u{1F504} " : "") + label(snap(who, f)) + (newFor(s, snap(who, f)) ? "  \u{1F4D6} NEW for you" : ""), f === pick.theirs)).join("") + "</select></div>" +
     '<div class="field"><label for="trMine">You give</label><select id="trMine" data-trsel="mine">' + opt("", mineOk.length ? "Choose your creature" : "Nothing they don’t already have") +
-      mineOk.map(f => opt(f, (forTrade(s, f) ? "\u{1F504} " : "") + label(snap(s, f)), f === pick.mine)).join("") + "</select></div>" +
+      mineOk.map(f => opt(f, (forTrade(s, f) ? "\u{1F504} " : "") + label(snap(s, f)) + (who && newFor(who, snap(s, f)) ? "  \u{1F4D6} NEW for them" : ""), f === pick.mine)).join("") + "</select></div>" +
     '<button class="btn" data-tr="offer"' + (who && pick.theirs && pick.mine ? "" : " disabled") + ">\u{1F504} Send offer</button></div>" +
-    '<p class="muted small" style="margin-top:6px;">You both have to agree. You can’t trade your last creature or limited event Legendaries, and you can’t get a creature family you already have.</p></div>';
+    '<p class="muted small" style="margin-top:6px;">\u{1F4D6} NEW = not in your lorebook yet (or theirs). You both have to agree. You can’t trade your last creature, a \u2B50 favorite, or limited event Legendaries, and you can’t get a creature family you already have.</p></div>';
   return h + "</div>";
 }
 
@@ -123,6 +126,7 @@ function problem(ctx, giver, g, taker, w) {
   if (!g.fam || !has(giver, g)) return giver.name + " doesn\u2019t have that creature anymore.";
   if (!w.fam || !has(taker, w)) return taker.name + " doesn\u2019t have that creature anymore.";
   if (isEvent(g.fam) || isEvent(w.fam)) return "Limited event Legendaries can\u2019t be traded.";
+  if ((!g.spare && (entry(giver, g.fam) || {}).fav) || (!w.spare && (entry(taker, w.fam) || {}).fav)) return "Favorite creatures can\u2019t be traded. Take the \u2B50 off first.";
   if ((!g.spare && ownedFams(giver).length < 2) || (!w.spare && ownedFams(taker).length < 2)) return "You can\u2019t trade away your last creature.";
   if (inBattle(ctx, giver.id) || inBattle(ctx, taker.id)) return "Finish your battle first!";
   return null;
@@ -137,24 +141,33 @@ export async function onTradeClick(el, ctx) {
     if (!tradeOpenFor(s, ctx.cls) || !tradeOpenFor(o, ctx.cls)) return ctx.flash("Trading isn\u2019t open for both of you right now.");
     if (!o.tradeReady) return ctx.flash(o.name + " isn\u2019t ready to trade right now.");
     if (mineOf(ctx, s).some(t => open(t) && t.a.id === s.id && t.b.id === o.id)) return ctx.flash("You already have an offer waiting for " + o.name + ".");
-    await setDoc(newTradeRef(), { a: { id: s.id, name: s.name }, b: { id: o.id, name: o.name }, give: g, get: w, status: "offer", created: new Date().toISOString() });
+    await setDoc(newTradeRef(), { a: { id: s.id, name: s.name }, b: { id: o.id, name: o.name }, ids: [s.id, o.id], give: g, get: w, status: "offer", created: new Date().toISOString() });
     pick = { who: "", theirs: "", mine: "" };
     ctx.flash("Offer sent to " + o.name + "!", true); return;
   }
   if (a === "want") { pick = { who: el.dataset.who, theirs: el.dataset.key, mine: "" }; return ctx.render(true); }
   const id = el.dataset.t, t = (ctx.trades || []).find(x => x.id === id); if (!t) return;
   if (a === "cancel" || a === "decline") {
-    await changeTrade(id, d => (d.status === "offer" ? Object.assign(d, { status: a === "cancel" ? "cancelled" : "declined" }) : null));
+    const r = await changeTrade(id, d => (d.status === "offer" ? Object.assign(d, { status: a === "cancel" ? "cancelled" : "declined" }) : null));
+    if (!r) ctx.flash("That offer isn\u2019t waiting anymore.");
     return ctx.render(true);
   }
   if (a === "accept") {
     if (!tradeOpenFor(s, ctx.cls)) return ctx.flash("Trading is closed right now \u2014 you can accept when it opens.");
+    // a student accepting: the server checks both sides and moves both creatures at once
+    if (!s.isTeacher) {
+      try { const r = await ck("acceptTrade", { tradeId: id }); if (r.declined) return ctx.flash(r.declined);
+        ctx.flash("Trade complete! Say hi to your new " + label(r.give).replace(/ \(Lv.*/, "") + "!", true); }
+      catch (e) { ctx.flash(ckMessage(e)); }
+      return ctx.render(true);
+    }
     const giver = ctx.students.find(x => x.id === t.a.id); if (!giver) return ctx.flash("That player isn’t here anymore.");
     const g = t.give.spare ? snap(giver, "s:" + t.give.spare) : snap(giver, "m:" + t.give.fam), w = t.get.spare ? snap(s, "s:" + t.get.spare) : snap(s, "m:" + t.get.fam);
     const why = problem(ctx, giver, g, s, w);
     if (why) { await changeTrade(id, d => (d.status === "offer" ? Object.assign(d, { status: "declined", why }) : null)); return ctx.flash(why); }
     // lock in the creatures as they are right now
     const done = await changeTrade(id, d => (d.status === "offer" ? Object.assign(d, { status: "accepted", give: g, get: w, at: new Date().toISOString() }) : null));
+    if (!done) return ctx.flash("That offer isn\u2019t waiting anymore (it was cancelled or already answered).");
     if (done) { await settleTrades(Object.assign({}, ctx, { trades: [Object.assign({ id }, done)] })); ctx.flash("Trade complete! Say hi to your new " + label(done.give).replace(/ \(Lv.*/, "") + "!", true); }
   }
 }
@@ -165,6 +178,10 @@ export async function settleTrades(ctx) {
   const todo = (ctx.trades || []).filter(t => t.status === "accepted" && !t["applied_" + s.id] && !settling[t.id] && t.a && t.b && (t.a.id === s.id || t.b.id === s.id));
   for (const t of todo) {
     settling[t.id] = true;
+    if (!s.isTeacher) {   // a student's side is moved by the server
+      try { await ck("settleTrade", { tradeId: t.id }); } catch (e) {} finally { delete settling[t.id]; }
+      continue;
+    }
     const iAmA = t.a.id === s.id, giveUp = iAmA ? t.give : t.get, receive = iAmA ? t.get : t.give;
     const coll = Object.assign({}, owned(s)), dex = new Set(s.dex || []);
     let sp = spares(s).slice();

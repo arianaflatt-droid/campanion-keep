@@ -1,0 +1,255 @@
+rules_version = '2';
+// Companion Keep rules, version 3.1 (Oct 25, 2026: + announcement picture, Battle Ms. Ariana). Tests: tests/rules.test.mjs (run with the Firebase emulator).
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Put your school Google email here too (same as js/firebase-config.js).
+    function isTeacher() {
+      return request.auth != null
+        && request.auth.token.get("email_verified", false) == true
+        && request.auth.token.get("email", "") in ["ariana.flatt@unbound.school"];
+    }
+
+    match /classes/{classId} {
+      // The class doc holds settings (events, goal, banner), nothing about any one student.
+      // Every visitor's page needs it (even before it is linked) to know whether personal links are required.
+      allow read: if request.auth != null;
+      allow write: if isTeacher();
+
+      // ---- Personal links ----
+      // Each student's personal link carries a code. The first device to open it saves seats/{its sign-in id} = { sid, k, at }.
+      // k must match private/keys[sid], which only the teacher can read. A device is then a member of the class, as that one student.
+      function seatPath() { return /databases/$(database)/documents/classes/$(classId)/seats/$(request.auth.uid); }
+      function seated() { return request.auth != null && exists(seatPath()); }
+      function mySid() { return get(seatPath()).data.sid; }
+      function member() { return isTeacher() || seated(); }
+
+      match /seats/{uid} {
+        allow read: if isTeacher() || (request.auth != null && request.auth.uid == uid);
+        allow create, update: if request.auth != null && request.auth.uid == uid
+          && request.resource.data.keys().hasOnly(["sid", "k", "at"])
+          && request.resource.data.sid is string && request.resource.data.k is string && request.resource.data.k.size() >= 8
+          && request.resource.data.k == get(/databases/$(database)/documents/classes/$(classId)/private/keys).data.get(request.resource.data.sid, "")
+          && exists(/databases/$(database)/documents/classes/$(classId)/students/$(request.resource.data.sid));
+        allow delete: if isTeacher();
+      }
+      // Personal-link codes, the feeder key: teacher only.
+      match /private/{docId} {
+        allow read, write: if isTeacher();
+      }
+      // Rollback snapshots: teacher only.
+      match /snaps/{snapId} {
+        allow read, write: if isTeacher();
+      }
+
+      // ---- Arena battles ----
+      // Only the two players (or the teacher) can start or change a battle, the players can't be swapped, and each step has
+      // to follow the game: b accepts, each player locks in their OWN creatures (at their real levels, within real stats),
+      // stats can't change mid-battle, a win needs the other team knocked out (or the other player to forfeit),
+      // and a finished battle can't be rewritten. (The damage each round is still worked out on the players' computers.)
+      match /battles/{battleId} {
+        function bch() { return request.resource.data.diff(resource.data).affectedKeys(); }
+        function side() { return mySid() == resource.data.a.id ? "A" : "B"; }
+        function oth(x) { return x == "A" ? "B" : "A"; }
+        function seenKey() { return "seen_" + mySid(); }
+        function capHp(l) { return (118 + 7.8 * (l - 1)) * 1.2 + 1; }
+        function capDmg(l) { return (38 + 2.9 * (l - 1)) * 1.2 + 1; }
+        function lockOk(t, i, coll) {
+          return t.size() <= i || (t[i] is map && t[i].get("fam", "") in coll && t[i].get("lvl", 0) is int
+            && t[i].lvl == coll[t[i].fam].get("lvl", 1) && t[i].get("hp", 0) is number && t[i].get("dmg", 0) is number
+            && t[i].hp <= capHp(t[i].lvl) && t[i].dmg <= capDmg(t[i].lvl) && t[i].get("cur", -1) == t[i].hp);
+        }
+        function sameF(a, b, i) {
+          return a.size() <= i || (a[i].fam == b[i].fam && a[i].lvl == b[i].lvl && a[i].hp == b[i].hp && a[i].dmg == b[i].dmg
+            && a[i].get("cur", 0) is number && a[i].get("cur", 0) <= a[i].hp);
+        }
+        function teamSame(a, b) { return a is list && b is list && a.size() == b.size() && sameF(a, b, 0) && sameF(a, b, 1) && sameF(a, b, 2) && sameF(a, b, 3); }
+        function out(t, i) { return t.size() <= i || t[i].get("cur", 0) <= 0; }
+        function allOut(t) { return out(t, 0) && out(t, 1) && out(t, 2) && out(t, 3); }
+        function step() {
+          let o = resource.data;
+          let n = request.resource.data;
+          let me = side();
+          return false
+            // a finished battle: you can only mark that you've seen it
+            || (o.status in ["done", "ended", "declined"] && n.status == o.status && bch().hasOnly([seenKey()]))
+            // either player can end a live battle
+            || (o.status in ["invite", "team", "lead", "fight"] && n.status == "ended" && n.get("endedBy", "") == mySid()
+                && bch().hasOnly(["status", "endedBy", "endedName", seenKey(), "moves", "upd"]))
+            // b accepts or declines the challenge
+            || (o.status == "invite" && me == "B" && n.status == "team" && n.get("n", 0) is int && n.n >= 0 && n.n <= 4
+                && n.team == {"A": null, "B": null} && bch().hasOnly(["status", "n", "turn", "team", "active", "log", "upd"]))
+            || (o.status == "invite" && me == "B" && n.status == "declined" && bch().hasOnly(["status", seenKey(), "upd"]))
+            // lock in your own team, once (the other team stays as it was)
+            || (o.status == "team" && o.team[me] == null && n.status in ["team", "lead"] && bch().hasOnly(["team", "status", "upd"])
+                && n.team[oth(me)] == o.team[oth(me)] && n.team[me] is list && n.team[me].size() == o.n
+                && lockOk(n.team[me], 0, get(/databases/$(database)/documents/classes/$(classId)/students/$(mySid())).data.get("coll", {}))
+                && lockOk(n.team[me], 1, get(/databases/$(database)/documents/classes/$(classId)/students/$(mySid())).data.get("coll", {}))
+                && lockOk(n.team[me], 2, get(/databases/$(database)/documents/classes/$(classId)/students/$(mySid())).data.get("coll", {}))
+                && lockOk(n.team[me], 3, get(/databases/$(database)/documents/classes/$(classId)/students/$(mySid())).data.get("coll", {}))
+                && (n.status == "team" || n.team[oth(me)] != null))
+            // send out a lead creature
+            || (o.status == "lead" && n.status in ["lead", "fight"] && bch().hasOnly(["active", "log", "status", "moves", "upd"]))
+            // pick moves / play a round: stats stay the same; a win needs the other team all knocked out
+            || (o.status == "fight" && n.status in ["fight", "done"]
+                && bch().hasOnly(["moves", "team", "active", "log", "round", "status", "winner", "turn", "upd"])
+                && teamSame(n.team.A, o.team.A) && teamSame(n.team.B, o.team.B)
+                && (n.status == "fight" || (n.get("winner", "") in ["A", "B"] && allOut(n.team[oth(n.winner)]))))
+            // forfeit: you give the win to the other player
+            || (o.status in ["lead", "fight"] && n.status == "done" && n.get("forfeit", "") == me && n.get("winner", "") == oth(me)
+                && bch().hasOnly(["status", "winner", "forfeit", "moves", "log", "upd"]));
+        }
+        allow read: if member();
+        allow create: if isTeacher() || (seated() && request.resource.data.ids is list && request.resource.data.ids.size() == 2
+          && request.resource.data.a.id == mySid() && request.resource.data.ids[0] == request.resource.data.a.id
+          && request.resource.data.ids[1] == request.resource.data.b.id && request.resource.data.a.id != request.resource.data.b.id
+          && request.resource.data.status == "invite" && request.resource.data.keys().hasOnly(["a", "b", "ids", "status", "created", "log", "upd"]));
+        allow update: if isTeacher() || (seated() && mySid() in resource.data.ids
+          && request.resource.data.ids == resource.data.ids && request.resource.data.a.id == resource.data.a.id && request.resource.data.b.id == resource.data.b.id
+          && step());
+        allow delete: if isTeacher();
+      }
+
+      // ---- Creature trades ----
+      // Player a makes an offer. Only a can cancel it; only b can decline or accept it (accepting locks in the creatures).
+      // After that, each player can only mark that they've moved their OWN creatures (applied_<their id> = true, once).
+      match /trades/{tradeId} {
+        function tchanged() { return request.resource.data.diff(resource.data).affectedKeys(); }
+        function sameTerms() {
+          return request.resource.data.ids == resource.data.ids && request.resource.data.a == resource.data.a && request.resource.data.b == resource.data.b;
+        }
+        function sameDeal() {
+          return request.resource.data.give.get("fam", "") == resource.data.give.get("fam", "") && request.resource.data.give.get("spare", "") == resource.data.give.get("spare", "")
+            && request.resource.data["get"].get("fam", "") == resource.data["get"].get("fam", "") && request.resource.data["get"].get("spare", "") == resource.data["get"].get("spare", "");
+        }
+        allow read: if member();
+        allow create: if isTeacher() || (seated() && request.resource.data.status == "offer"
+          && request.resource.data.ids is list && request.resource.data.ids.size() == 2
+          && request.resource.data.a.id == mySid() && request.resource.data.ids[0] == request.resource.data.a.id
+          && request.resource.data.ids[1] == request.resource.data.b.id && request.resource.data.a.id != request.resource.data.b.id);
+        allow update: if isTeacher() || (seated() && mySid() in resource.data.ids && sameTerms() && (
+             // a cancels their own offer
+             (resource.data.status == "offer" && request.resource.data.status == "cancelled" && mySid() == resource.data.a.id
+               && tchanged().hasOnly(["status"]))
+             // b declines (sometimes with a reason)
+          || (resource.data.status == "offer" && request.resource.data.status == "declined" && mySid() == resource.data.b.id
+               && tchanged().hasOnly(["status", "why"]))
+             // b accepts: the same creatures, levels taken from the two saves right now
+          || (resource.data.status == "offer" && request.resource.data.status == "accepted" && mySid() == resource.data.b.id
+               && tchanged().hasOnly(["status", "give", "get", "at"]) && sameDeal())
+             // after accepting: mark your own side done, once
+          || (resource.data.status == "accepted" && request.resource.data.status == "accepted"
+               && tchanged().hasOnly(["applied_" + mySid()]) && request.resource.data["applied_" + mySid()] == true)));
+        allow delete: if isTeacher();
+      }
+
+      // Live XP from Timeback. The CK Feeder bookmark signs in anonymously and may only write live/xp, and only with
+      // the class's feeder key (made in the teacher console, kept in private/feeder, which only the teacher can read).
+      match /live/{docId} {
+        allow read: if isTeacher();
+        allow write: if isTeacher() || (request.auth != null && docId == "xp"
+          && request.resource.data.key == get(/databases/$(database)/documents/classes/$(classId)/private/feeder).data.key);
+      }
+      // Ms. Ariana's announcement picture: like the class doc, nothing about any one student
+      match /news/{docId} {
+        allow read: if request.auth != null;
+        allow write: if isTeacher();
+      }
+      // Weekly Reward pictures: each student sees only their own; only the teacher changes them.
+      match /rewards/{docId} {
+        allow read: if isTeacher() || (seated() && mySid() == docId);
+        allow write: if isTeacher();
+      }
+
+      // ---- Public cards ---- what classmates see of each other: the save WITHOUT the private parts, under the display name.
+      // A student can only write their own card, and it has to match their real save exactly (except the private parts),
+      // so nobody can show fake creatures, levels or badges. Keep PRIVATE in step with js/card.js.
+      match /cards/{sid} {
+        function privateKeys() { return ["name", "fullName", "questPass", "questDone", "questXP", "reward", "goalSubject",
+          "birthdayEggs", "birthdayUsed", "bdaySeen", "ideas", "spinLog"]; }
+        function cardOk() {
+          let st = get(/databases/$(database)/documents/classes/$(classId)/students/$(sid)).data;
+          let c = request.resource.data;
+          return !c.keys().hasAny(["fullName", "questPass", "questDone", "questXP", "reward", "goalSubject", "birthdayEggs", "birthdayUsed", "bdaySeen", "ideas", "spinLog"])
+            && c.get("name", "") == st.get("pubName", "")
+            && c.diff(st).affectedKeys().hasOnly(privateKeys());
+        }
+        allow read: if member();
+        allow create, update: if isTeacher() || (seated() && mySid() == sid && cardOk());
+        allow delete: if isTeacher();
+      }
+
+      match /students/{studentId} {
+        // A full save (with full name, test results, personal reward...) is private: only that student's linked computer
+        // and the teacher can read it. Classmates see the public card instead.
+        allow read: if isTeacher() || (seated() && mySid() == studentId);
+        allow create, delete: if isTeacher();
+        // A linked computer can save ONLY its own student, never the things that come from Ms. Ariana
+        // (names, XP, the daily record, the special eggs and bonuses she gives out), and creatures only change a little at a time.
+        allow update: if isTeacher() || (seated() && mySid() == studentId
+          && !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+               "name", "order", "goalSubject", "xp", "lunchXp", "status", "early", "xpHist", "deaths", "items",
+               "streakCarry", "streakWeek", "candyBank", "bonusXP", "bonusPulls", "cpEarned", "questPass",
+               "birthdayEggs", "pickleEggs", "ghostEggs", "ghost2", "turkeyEggs", "turkey2", "grinchEggs", "grinch2", "yetiEggs", "yeti2", "heartEggs", "heart2", "potionLegEggs", "feastLegEggs", "gingerLegEggs", "snowmanLegEggs", "candyboxLegEggs",
+               "potionDays", "feastDays", "gingerDays", "snowmanDays", "candyboxDays", "isTeacher", "reward", "pubName", "tbUsed", "secretWin", "secretWins", "grade", "ultraUsed"])
+          && collOk() && countsOk(request.resource.data.diff(resource.data).affectedKeys()));
+
+        // ---- Rewards and counters ----
+        // What a student earns can only go up a little per save (the biggest single real reward, plus room to spare),
+        // and what they've used or spent can never go back down. Only fields this save actually changes are checked.
+        function wasNum(k) { let v = resource.data.get(k, 0); return v is number ? v : 0; }
+        function upTo(ch, k, most) { return !(k in ch) || (request.resource.data.get(k, 0) is number && request.resource.data.get(k, 0) <= wasNum(k) + most); }
+        function notDown(ch, k) { return !(k in ch) || (request.resource.data.get(k, 0) is number && request.resource.data.get(k, 0) >= wasNum(k)); }
+        function wasLen(k) { let v = resource.data.get(k, []); return v is list ? v.size() : 0; }
+        function listUp(ch, k) { return !(k in ch) || (request.resource.data.get(k, []) is list && request.resource.data.get(k, []).size() <= wasLen(k) + 1); }
+        function countsOk(ch) {
+          return upTo(ch, "doorEggs", 3) && upTo(ch, "legendaryPulls", 1) && upTo(ch, "vaultLegEggs", 1) && upTo(ch, "revengeLeg", 1) && notDown(ch, "revengeLegUsed") && upTo(ch, "heistLeg", 1) && notDown(ch, "heistLegUsed") && upTo(ch, "ultraEggs", 1)
+            && upTo(ch, "soloBrewLeg", 1) && upTo(ch, "soloFeastLeg", 1) && upTo(ch, "soloGingerLeg", 1) && upTo(ch, "soloSnowLeg", 1) && upTo(ch, "soloBoxLeg", 1)
+            && upTo(ch, "doorXP", 600) && upTo(ch, "questXP", 250) && upTo(ch, "xpPrize", 500) && upTo(ch, "xpReleased", 300)
+            && upTo(ch, "candyBonus", 200) && upTo(ch, "stolen", 50) && upTo(ch, "cpBonus", 200)
+            && upTo(ch, "spins", 1) && upTo(ch, "extraAttacks", 1) && upTo(ch, "brews", 1) && upTo(ch, "starterLvl", 5)
+            && listUp(ch, "themeEggs") && listUp(ch, "goalEggs")
+            && notDown(ch, "pullsUsed") && notDown(ch, "legendaryUsed") && notDown(ch, "birthdayUsed") && notDown(ch, "pickleUsed")
+            && notDown(ch, "potionLegUsed") && notDown(ch, "feastLegUsed") && notDown(ch, "gingerLegUsed") && notDown(ch, "snowmanLegUsed")
+            && notDown(ch, "candyboxLegUsed") && notDown(ch, "vaultLegUsed") && notDown(ch, "themeUsed") && notDown(ch, "goalUsed")
+            && notDown(ch, "ghostEggsUsed") && notDown(ch, "turkeyEggsUsed") && notDown(ch, "grinchEggsUsed") && notDown(ch, "yetiEggsUsed") && notDown(ch, "heartEggsUsed")
+            && notDown(ch, "xpSpent") && notDown(ch, "candySpent") && notDown(ch, "cpSpent")
+            // the companion level bar: its start day is set once, and the last counted day only moves forward
+            && (!("compStart" in ch) || resource.data.get("compStart", null) == null)
+            && (!("compThru" in ch) || (request.resource.data.get("compThru", "") is string
+                  && request.resource.data.get("compThru", "") >= (resource.data.get("compThru", "") is string ? resource.data.get("compThru", "") : "")));
+        }
+
+        // ---- Creatures ----
+        // One save may change at most 3 creature families and add at most 1. Every family it touches must be a real
+        // family id (C-/U-/R-/S-/L-##), at level 1-100, and a creature can go up at most 5 levels in one save
+        // (hatching a copy = +1, Morning Quest training = up to +5). Releasing (removing) is always allowed.
+        // Firestore rules can't loop over the creatures that changed, so the game names them in collTouch (up to 3);
+        // the rules check that list is exactly the families that were added or changed, then check each one.
+        function collOk() {
+          let before = resource.data.get("coll", {});
+          let after = request.resource.data.get("coll", {});
+          let d = after.diff(before);
+          let touched = d.addedKeys().union(d.changedKeys());
+          let hint = request.resource.data.get("collTouch", []);
+          return after is map && d.affectedKeys().size() <= 3 && after.size() <= before.size() + 1
+            && (touched.size() == 0
+                || (hint is list && hint.size() <= 3 && touched.hasOnly(hint) && hint.toSet().size() == touched.size()
+                    && entryOk(hint, 0, before, after) && entryOk(hint, 1, before, after) && entryOk(hint, 2, before, after)));
+        }
+        function entryOk(ks, i, before, after) {
+          return ks.size() <= i || famOk(ks[i], before, after[ks[i]]);
+        }
+        function famOk(k, before, e) {
+          let lvl = e is map ? e.get("lvl", 1) : 0;
+          let had = k in before;
+          let old = had ? before[k].get("lvl", 1) : 1;
+          return k.matches("^[CURSL]-[0-9]{1,3}$") && e is map && lvl is int && lvl >= 1 && lvl <= 100
+            && (had ? lvl <= old + 5
+                    // a new family starts at level 1, unless it arrived by trade (or from a traded spare), which keeps its level
+                    : (lvl == 1 || e.get("traded", false) == true));
+        }
+      }
+    }
+  }
+}

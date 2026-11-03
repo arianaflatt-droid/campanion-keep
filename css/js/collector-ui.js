@@ -1,12 +1,18 @@
 // Student side of the Creature Collector: the tab, egg hatching, the lorebook and arena battles.
 import {
   CREATURES, FAMILIES, creature, family, xpTotal, pullsLeft, legendaryLeft, bankXP, xpToNextPull, owned, ownedFams, hasStarter,
-  formIndex, formOf, statsOf, seenSet, rollRarity, doPull, arenaOpen, arenaOpenFor, lunchHour, hitGoalToday, LUNCH_ARENA, ARENA_HOURS, fighterFrom, teamSize, alive, resolve,
-  birthdayLeft, themeLeft, nextTheme, THEME_TYPES, THEME_EGG, WISH_FAM, spares, spareId, releaseXP, releaseProblem, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
-  EVENTS, eventOpen, eventWindow, eventStreak, hasEvent, eventUnlocked, azToday, rollTeacherRarity, TEACHER_ODDS
-} from "./collect.js";
-import { newBattleRef, changeBattle, setDoc } from "./db.js";
-import { tradeCard } from "./trade-ui.js";
+  formIndex, formOf, statsOf, seenSet, rollRarity, doPull, arenaOpen, arenaOpenFor, lunchHour, hitGoalToday, LUNCH_ARENA, ARENA_HOURS, fighterFrom, teamSize, alive, resolve, resolveRound, moveOk, MOVES, hitDamage,
+  birthdayLeft, pickleLeft, PICKLE_FAM, brewLegLeft, BREW_FAM, feastLegLeft, HARVEST_FAM, gingerLegLeft, GINGER_FAM, snowLegLeft, SNOW_FAM, candyLegLeft, CANDY_FAM, ghostEggLeft, GHOST_FAM, BOSS2_LIST, boss2EggLeft, vaultLegLeft, revengeLegLeft, heistLegLeft, goalLeft, nextGoal, rollRareUp, themeLeft, nextTheme, THEME_TYPES, THEME_EGG, WISH_FAM, spares, spareId, releaseXP, releaseProblem, isStarterFam, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
+  EVENTS, eventOpen, eventWindow, eventStreak, hasEvent, eventUnlocked, azToday, rollTeacherRarity, TEACHER_ODDS, LIVE, staleBattle
+} from "./collect.js?v=20261103j";
+import { newBattleRef, battleRef, updateDoc, changeBattle as changeBattleRaw, setDoc, liveBattlesNow, ck, ckMessage } from "./db.js?v=20261103j";
+// every change to a battle is stamped with the time (upd), so a battle nobody has touched in a while can be ended
+let locking = null, leaving = null;   // battle id while "Lock in team" is saving
+const changeBattle = (id, fn) => changeBattleRaw(id, bt => { const n = fn(bt); if (n) n.upd = new Date().toISOString(); return n; });
+
+import { tradeCard } from "./trade-ui.js?v=20261103j";
+import { ultraLeft, isUltra } from "./collect.js?v=20261103j";
+import { ultraSection, ultraInfoHTML } from "./ultra.js?v=20261103j";
 
 const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const PER_PAGE = 20;
@@ -16,8 +22,29 @@ let hatch = null;                // { phase: shake|crack|reveal, res, legendary 
 let book = null;                 // { open: bool, opening, page, detail, flip }
 let battleOpen = null, picks = [], shown = {}, animated = {}, replayTimer = null, busyUntil = 0;
 export function isBusy() { return Date.now() < busyUntil; }
+// A battle is on screen (Oct 26): the pages then draw only the battle, not the whole page under it, so each replay step stays quick.
+export function battleShowing() { return !!battleOpen && !!ctx && (ctx.battles || []).some(b => b.id === battleOpen); }
 function hold(ms) { busyUntil = Date.now() + ms; }
 function later(ms, fn) { setTimeout(() => { fn(); ctx.render(true); }, ms); }
+// Students' eggs hatch on the server (it checks the egg and rolls the creature); the egg shakes while it works.
+// The teacher's own eggs still hatch here (they're saved on the class doc).
+async function serverHatch(c, kind, k, look) {
+  const t0 = Date.now();
+  hatch = Object.assign({ phase: "shake", res: null }, look || {});
+  hold(60000); c.render(true);
+  try { hatch.res = await ck("hatch", { kind, k }); }
+  catch (e) { hatch = null; busyUntil = 0; c.flash(ckMessage(e)); return c.render(true); }
+  const wait = Math.max(0, 1900 - (Date.now() - t0));
+  hold(wait + 1400);
+  later(wait, () => { hatch.phase = "crack"; hold(1400); });
+  later(wait + 900, () => { hatch.phase = "reveal"; busyUntil = 0; });
+}
+// Other collection changes on the server: show its message if it says no.
+async function serverDo(c, op, input, ok) {
+  try { const r = await ck(op, input); if (ok) ok(r); }
+  catch (e) { c.flash(ckMessage(e)); }
+  return c.render(true);
+}
 
 function img(c, cls, sp) {
   const src = sp && !String(c.img).includes("/sparkle/") ? sparkleImg(c) : c.img;
@@ -39,19 +66,45 @@ export function collectorTab(c) {
     stat("\u{1F95A}", pulls, "egg" + (pulls === 1 ? "" : "s") + " to hatch") +
     (leg ? stat("\u{1F31F}", leg, "legendary egg" + (leg === 1 ? "" : "s")) : "") +
     (birthdayLeft(s) ? stat("\u{1F382}", birthdayLeft(s), "birthday egg" + (birthdayLeft(s) === 1 ? "" : "s")) : "") +
+    (pickleLeft(s) ? stat("\u{1F952}", pickleLeft(s), "Cluckledill egg" + (pickleLeft(s) === 1 ? "" : "s")) : "") +
+    (brewLegLeft(s) ? stat("\u{1F9EA}", brewLegLeft(s), "Brewraith egg" + (brewLegLeft(s) === 1 ? "" : "s")) : "") +
+    (heistLegLeft(s) ? stat("\u2728", heistLegLeft(s), "Sparkle Grinch-a-Duck egg" + (heistLegLeft(s) === 1 ? "" : "s")) : "") +
+    (revengeLegLeft(s) ? stat("\u2728", revengeLegLeft(s), "Sparkle Turducken egg" + (revengeLegLeft(s) === 1 ? "" : "s")) : "") +
+    (ultraLeft(s) ? stat("\u{1F308}", ultraLeft(s), "Ultra egg" + (ultraLeft(s) === 1 ? "" : "s")) : "") +
+    (vaultLegLeft(s) ? stat("\u{1F48E}", vaultLegLeft(s), "Sparkle Legendary egg" + (vaultLegLeft(s) === 1 ? "" : "s")) : "") +
+    BOSS2_LIST.map(B => boss2EggLeft(s, B) ? stat(B.icon, boss2EggLeft(s, B), B.boss + " egg" + (boss2EggLeft(s, B) === 1 ? "" : "s")) : "").join("") +
+    (candyLegLeft(s) ? stat("\u{1F36B}", candyLegLeft(s), "Candivora egg" + (candyLegLeft(s) === 1 ? "" : "s")) : "") +
+    (snowLegLeft(s) ? stat("\u2603\uFE0F", snowLegLeft(s), "Snowmorrow egg" + (snowLegLeft(s) === 1 ? "" : "s")) : "") +
+    (gingerLegLeft(s) ? stat("\u{1F36A}", gingerLegLeft(s), "Gingermischief egg" + (gingerLegLeft(s) === 1 ? "" : "s")) : "") +
+    (feastLegLeft(s) ? stat("\u{1F983}", feastLegLeft(s), "Cornucopia egg" + (feastLegLeft(s) === 1 ? "" : "s")) : "") +
     (themeLeft(s) ? stat("\u2728", themeLeft(s), "event egg" + (themeLeft(s) === 1 ? "" : "s")) : "") +
+    (goalLeft(s) ? stat("\u{1F3AF}", goalLeft(s), "Goal egg" + (goalLeft(s) === 1 ? "" : "s") + " (Rare+)") : "") +
     stat("⭐", bank.toLocaleString(), "XP in your bank") +
     stat("\u{1F4D6}", seen.size + " / " + CREATURES.length, "in your lorebook") + "</div>" +
     (s.isTeacher
       ? '<p class="muted" style="margin:10px 0 12px;">Each day you finalize gives you <b>1 egg for every student who hit 120 XP</b> and <b>' + LEVEL_XP + " banked XP (1 level) for every student who didn\u2019t</b>. If everyone hits 120, you still get " + LEVEL_XP + " XP. Excused days don\u2019t count.</p>"
       : '<p class="muted" style="margin:10px 0 12px;">Reach ' + PULL_XP + " XP in a day for an egg, and every " + PULL_XP + " more that day earns another." + (c.cls && c.cls.lunchBonus === false ? "" : " \u2600\uFE0F Hit " + PULL_XP + " <b>before lunch</b> for a bonus egg!") + " Next egg today in <b>" + xpToNextPull(s, c.cls) + " XP</b>. All your XP also goes into your bank to level up creatures (" + LEVEL_XP + " XP = 1 level).</p>") +
     '<div class="row"><button class="btn big" data-cc="hatch"' + (pulls ? "" : " disabled") + ">\u{1F95A} Hatch an egg</button>" +
+    (pulls >= 2 ? '<button class="btn big gold" data-cc="hatchAll">\u{1F95A}\u{1F95A} Hatch all ' + pulls + "</button>" : "") +
     (leg ? '<button class="btn big gold" data-cc="hatchLeg">\u{1F31F} Hatch a legendary egg</button>' : "") +
     (birthdayLeft(s) ? '<button class="btn big bday" data-cc="hatchBday">\u{1F382} Hatch your birthday egg!</button>' : "") +
+    (pickleLeft(s) ? '<button class="btn big gold" data-cc="hatchPickle">\u{1F952} Hatch your special event egg!</button>' : "") +
+    (brewLegLeft(s) ? '<button class="btn big gold" data-cc="hatchBrew">\u{1F9EA} Hatch your Top Brewers egg!</button>' : "") +
+    (heistLegLeft(s) && !s.isTeacher ? '<button class="btn big gold" data-cc="hatchHeist">\u2728 Hatch your Sparkle Grinch-a-Duck egg!</button>' : "") +
+    (revengeLegLeft(s) && !s.isTeacher ? '<button class="btn big gold" data-cc="hatchRevenge">\u2728 Hatch your Sparkle Turducken egg!</button>' : "") +
+    (ultraLeft(s) && !s.isTeacher ? '<button class="btn big ultrabtn" data-cc="hatchUltra">\u{1F308} Hatch your Ultra egg!</button>' : "") +
+    (vaultLegLeft(s) ? '<button class="btn big gold" data-cc="hatchVault">\u{1F48E} Hatch your Treasure Vault Sparkle Legendary egg!</button>' : "") +
+    BOSS2_LIST.map(B => boss2EggLeft(s, B) ? '<button class="btn big gold" data-cc="hatchBoss2" data-k="' + B.key + '">' + B.icon + " Hatch your " + B.boss + " egg!</button>" : "").join("") +
+    (candyLegLeft(s) ? '<button class="btn big gold" data-cc="hatchCandy">\u{1F36B} Hatch your Top Candy Box egg!</button>' : "") +
+    (snowLegLeft(s) ? '<button class="btn big gold" data-cc="hatchSnow">\u2603\uFE0F Hatch your Top Snowman egg!</button>' : "") +
+    (gingerLegLeft(s) ? '<button class="btn big gold" data-cc="hatchGinger">\u{1F36A} Hatch your Top Bakers egg!</button>' : "") +
+    (feastLegLeft(s) ? '<button class="btn big gold" data-cc="hatchHarvest">\u{1F983} Hatch your Top Feast egg!</button>' : "") +
+    (goalLeft(s) ? '<button class="btn big gold" data-cc="hatchGoal">\u{1F3AF} Hatch a Goal egg' + (goalLeft(s) > 1 ? " (" + goalLeft(s) + ")" : "") + "</button>" : "") +
     (themeLeft(s) ? '<button class="btn big gold" data-cc="hatchTheme"><img src="assets/egg-' + nextTheme(s) + '.webp" alt="" style="height:1.5em;vertical-align:middle;margin:-4px 4px -4px 0;">Hatch your ' + THEME_EGG[nextTheme(s)] + "!</button>" : "") +
     '<button class="btn ghost big" data-cc="book">\u{1F4D6} Open lorebook</button></div>' +
-    '<p class="muted" style="margin-top:8px;">Egg odds: ' + (s.isTeacher ? TEACHER_ODDS : ODDS).map(([r, p]) => r + " " + (p < 0.01 ? (p * 100).toFixed(2) : Math.round(p * 100)) + "%").join(" · ") + "</p></div>";
-  if (!s.isTeacher) h += eventCards(s, c.cls);
+    '<p class="muted" style="margin-top:8px;">Egg odds: ' + (s.isTeacher ? TEACHER_ODDS : ODDS).map(([r, p]) => r + " " + (p < 0.01 ? (p * 100).toFixed(2) : Number.isInteger(Math.round(p * 1000) / 10) ? Math.round(p * 100) : (p * 100).toFixed(1)) + "%").join(" · ") + "</p></div>";
+  if (!s.isTeacher) h += eventCards(s, c.cls) + ideaCard(s, c.cls);
+  h += ultraSection(s, c.cls);   // 🌈 Ultra Legendaries get their own section
   h += myCreatures(s, bank);
   h += arenaCard(s);
   h += tradeCard(c);
@@ -65,11 +118,13 @@ function eventCard(ev, s, cls) {
   const nice = d => new Date(d + "T12:00:00").toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
   let when;
   if (ev.haunt) when = "Haunt-O-Ween only";
+  else if (ev.frost) when = "Frostbite Festival only";
+  else if (ev.heart) when = "Sweetheart Showdown only";
   else { const left = w.days.filter(d => d >= azToday()).length; when = nice(w.start) + " \u2013 " + nice(w.end) + " \u00b7 " + left + " school day" + (left === 1 ? "" : "s") + " left"; }
   const msg = got ? "You caught " + esc(dc.name) + "! Each egg still has a 1% chance to be another one (a free level up)."
     : on ? "<b>Unlocked!</b> Every egg you hatch has a <b>95% chance</b> to be " + esc(dc.name) + " until you catch it."
     : ev.boss ? "\u{1F512} <b>Defeat the " + esc(ev.bossName) + "</b> with your class to unlock " + esc(dc.name) + "! Then every egg you hatch has a <b>95% chance</b> to be it."
-    : "Hit " + goal120(cls) + " XP <b>" + ev.streak + " school days in a row</b>" + (ev.haunt ? " during Haunt-O-Ween" : ev.label ? " during " + ev.label : "") + " to unlock it. Your streak: <b>" + Math.min(st.current, ev.streak) + " / " + ev.streak + "</b>.";
+    : "Hit " + goal120(cls) + " XP <b>" + ev.streak + " school days in a row</b>" + (ev.haunt ? " during Haunt-O-Ween" : ev.frost ? " during Frostbite Festival" : ev.heart ? " during Sweetheart Showdown" : ev.label ? " during " + ev.label : "") + " to unlock it. Your streak: <b>" + Math.min(st.current, ev.streak) + " / " + ev.streak + "</b>.";
   return '<div class="card duckcard ev-' + ev.key + (on && !got ? " on" : "") + (got ? " got" : "") + '">' + img(dc, "duckimg", got && isSparkle(s, ev.fam)) +
     '<div class="duckt"><span class="duckk">' + ev.icon + " Limited event \u00b7 " + when + "</span>" +
     "<h3>" + esc(dc.name) + " <small>" + esc(dc.title || "") + "</small></h3><p>" + msg + "</p>" +
@@ -90,10 +145,11 @@ function starterView() {
 let naming = null;
 let releasing = null;   // "m:FAM" or "s:ID" waiting for "Yes, release"
 let releaseMsg = null;  // { key, why }: shown right on the card when a release can't happen
+let RELS = null;   // the student whose collection is on screen (for the starter warning)
 function releaseRow(key, fam, name) {
   const xp = releaseXP(fam);
   if (releaseMsg && releaseMsg.key === key) return '<small class="relwhy">\u26A0\uFE0F ' + esc(releaseMsg.why) + "</small>";
-  if (releasing === key) return '<div class="relask"><small>Release ' + esc(name) + " for <b>" + xp + ' XP</b>? It\u2019s gone for good.</small>' +
+  if (releasing === key) return '<div class="relask"><small>Release ' + esc(name) + " for <b>" + xp + ' XP</b>? It\u2019s gone for good.' + (RELS && isStarterFam(RELS, fam) ? " <b>This is your starter!</b> Your companion becomes your new starter and its companion level starts over." : "") + "</small>" +
     '<div class="row" style="gap:4px;justify-content:center;"><button class="btn small danger" data-cc="releaseOk" data-key="' + esc(key) + '">Yes, release</button><button class="btn ghost small" data-cc="releaseCancel">Keep it</button></div></div>';
   return '<button class="relbtn" data-cc="release" data-key="' + esc(key) + '" title="Release it for ' + xp + ' XP">\u{1F54A}\uFE0F Release \u00b7 ' + xp + " XP</button>";
 }
@@ -104,6 +160,15 @@ function nameRow(f, e, c) {
   return (e.nick ? "<b>" + esc(e.nick) + '</b><small class="muted">' + esc(c.name) + "</small>" : "<b>" + esc(c.name) + "</b>") +
     '<button class="nickbtn" data-cc="nick" data-fam="' + f + '" title="Give it a name">\u270F\uFE0F ' + (e.nick ? "Rename" : "Name it") + "</button>";
 }
+// Battle team picker (Oct 30): favorites + the 10 highest-level creatures (anything already picked stays), or everything with "Show all".
+let teamAll = false;
+function teamChoices(s) {
+  const o = owned(s), fams = ownedFams(s);
+  if (teamAll) return sortedFams(s);
+  const lv = f => o[f].lvl || 1, byLvl = fams.slice().sort((a, b) => lv(b) - lv(a) || formOf(a, 1).id - formOf(b, 1).id);
+  const keep = new Set(fams.filter(f => o[f].fav).concat(byLvl.slice(0, 10), picks.filter(f => o[f])));
+  return byLvl.filter(f => keep.has(f)).sort((a, b) => (o[b].fav ? 1 : 0) - (o[a].fav ? 1 : 0));   // favorites first, then highest level
+}
 // Favorites (coll[fam].fav) come first, then the rest in lorebook order.
 function sortedFams(s) {
   const o = owned(s);
@@ -111,9 +176,15 @@ function sortedFams(s) {
 }
 const favBtn = (f, e) => '<button class="favbtn' + (e.fav ? " on" : "") + '" data-cc="fav" data-fam="' + f + '" title="' + (e.fav ? "Remove from favorites" : "Add to favorites") + '" aria-label="Favorite">' + (e.fav ? "\u2B50" : "\u2606") + "</button>";
 const tradeBtn = (key, on) => '<button class="tradebtn' + (on ? " on" : "") + '" data-cc="forTrade" data-key="' + key + '" title="' + (on ? "Take it off the trade list" : "Put it up for trade") + '">\u{1F504} ' + (on ? "Up for trade" : "Trade?") + "</button>";
+// ➖ Minimize "My creatures" (saved on this device only, no database write). Fewer pictures on the page also keeps redraws fast.
+let collMin = (() => { try { return localStorage.getItem("ck-collMin") === "1"; } catch (e) { return false; } })();
 function myCreatures(s, bank) {
-  const fams = sortedFams(s), nFav = fams.filter(f => owned(s)[f].fav).length;
-  let h = '<div class="card"><div class="card-head"><h2>My creatures</h2><span class="fact">' + fams.length + " families" + (nFav ? " \u00b7 \u2B50 " + nFav : "") + "</span></div>" + '<p class="muted small" style="margin:-4px 0 10px;">Tap \u2606 to favorite a creature. Favorites show first here and when you pick a battle team.</p>' + '<div class="mygrid">';
+  RELS = s;
+  const fams = sortedFams(s).filter(f => !isUltra(f)), nFav = fams.filter(f => owned(s)[f].fav).length, nSp = spares(s).length;   // Ultras are in their own section
+  const minBtn = '<button class="btn ghost small" data-cc="collMin" style="margin-left:8px;">' + (collMin ? "\u2795 Show" : "\u2796 Minimize") + "</button>";
+  if (collMin) return '<div class="card"><div class="card-head"><h2>My creatures</h2><span class="fact">' + fams.length + " families" + (nFav ? " \u00b7 \u2B50 " + nFav : "") + (nSp ? " \u00b7 \u{1F504} " + nSp + " spare" + (nSp === 1 ? "" : "s") : "") + minBtn + "</span></div>" +
+    '<p class="muted small" style="margin:0;">Your creatures are hidden. Tap <b>\u2795 Show</b> to see them.</p></div>';
+  let h = '<div class="card"><div class="card-head"><h2>My creatures</h2><span class="fact">' + fams.length + " families" + (nFav ? " \u00b7 \u2B50 " + nFav : "") + minBtn + "</span></div>" + '<p class="muted small" style="margin:-4px 0 10px;">Tap \u2606 to favorite a creature. Favorites show first here and when you pick a battle team.</p>' + '<div class="mygrid">';
   fams.forEach(f => {
     const e = owned(s)[f], lvl = e.lvl || 1, c = formOf(f, lvl), st = statsOf(c, lvl), maxed = lvl >= MAX_LEVEL;
     const next = family(f).forms[formIndex(f, lvl) + 1], evoAt = c.evolvesAt;
@@ -122,8 +193,8 @@ function myCreatures(s, bank) {
       '<small class="muted">❤ ' + st.hp + " · \u{1F6E1} " + st.df + " · ⚔ " + st.dmg + "</small>" +
       (next && evoAt ? '<small class="evo">Evolves at Lv ' + evoAt + "</small>" : "") +
       '<button class="btn small" data-cc="lvl" data-fam="' + f + '"' + (bank >= LEVEL_XP && !maxed ? "" : " disabled") + ">" + (maxed ? "Max level" : "⬆ Level up · " + LEVEL_XP + " XP") + "</button>" +
-      (fams.length > 1 && !family(f).event ? tradeBtn("m:" + f, e.forTrade) : "") +
-      (fams.length > 1 && !family(f).event && s.starter !== f && s.petCreature !== f ? releaseRow("m:" + f, f, e.nick || c.name) : "") + "</div>";
+      (fams.length > 1 && !family(f).event ? (e.fav ? '<small class="muted" style="margin-top:4px;">\u2B50 Favorites can\u2019t be traded</small>' : tradeBtn("m:" + f, e.forTrade)) : "") +
+      (fams.length > 1 && !family(f).event && s.petCreature !== f ? releaseRow("m:" + f, f, e.nick || c.name) : "") + "</div>";
   });
   h += "</div>";
   const sp = spares(s);
@@ -133,7 +204,7 @@ function myCreatures(s, bank) {
       const c = formOf(x.fam, x.lvl || 1), mine = owned(s)[x.fam];
       h += '<div class="mycard spare" style="--rc:' + RARITY_COLOR[c.rarity] + '"><div class="mypic">' + img(c, "", !!x.sparkle) + "</div>" +
         "<b>" + (x.sparkle ? "\u2728 " : "") + esc(c.name) + '</b><span class="lv">Lv ' + (x.lvl || 1) + " \u00b7 spare</span>" +
-        '<button class="btn small ghost" data-cc="useSpare" data-sp="' + x.id + '">' + (mine ? "\u2B06 Use for +1 level" : "Add to my collection") + "</button>" +
+        '<button class="btn small ghost" data-cc="useSpare" data-spare="' + x.id + '">' + (mine ? "\u2B06 Use for +1 level" : "Add to my collection") + "</button>" +
         (family(x.fam).event ? "" : tradeBtn("s:" + x.id, x.forTrade) + releaseRow("s:" + x.id, x.fam, c.name)) + "</div>";
     });
     h += "</div>";
@@ -141,15 +212,62 @@ function myCreatures(s, bank) {
   return h + "</div>";
 }
 
+/* ================= creature ideas ================= */
+// Hit 120 XP in a day and you can send Ms. Ariana one idea for a new creature that day.
+const IDEA_TYPES = ["Air", "Arcane", "Crystal", "Dark", "Dragon", "Earth", "Electric", "Fire", "Ghost", "Ice", "Light", "Nature", "Normal", "Poison", "Rock", "Steel", "Water"];
+let ideaOpen = false, ideaTypes = [], ideaKind = "creature", ideaSlot = "hat";
+const IDEA_SLOTS = { hat: "\u{1F3A9} On the head", eyes: "\u{1F576}\uFE0F On the eyes", snack: "\u{1F36A} A snack / held item", other: "\u2728 Something else" };
+const ROOM_SLOTS = { wallpaper: "\u{1F9F1} Wallpaper", flooring: "\u{1FAB5} Floor", rug: "\u{1F7EB} Rug", ceiling: "\u{1F4A1} Ceiling light", window: "\u{1FA9F} Window",
+  bed: "\u{1F6CF}\uFE0F Bed", chair: "\u{1FA91} Chair", plant: "\u{1FAB4} Plant", wall_art: "\u{1F5BC}\uFE0F Wall art", shelf: "\u{1F3C6} Shelf decor", other: "\u2728 Something else" };
+let roomSlot = "bed";
+const ideaKeep = ["ideaName", "ideaAnimal", "ideaLore"];
+function keepIdeaFields(fn) {
+  const keep = ideaKeep.map(id => { const n = document.getElementById(id); return n ? n.value : null; });
+  fn(); ideaKeep.forEach((id, i) => { const n = document.getElementById(id); if (n && keep[i] != null) n.value = keep[i]; });
+}
+function ideaCard(s, cls) {
+  const today = azToday(), sent = (s.ideas || []).filter(x => x.date === today).length, ok = hitGoalToday(s, cls);
+  let h = '<div class="card ideacard"><div class="card-head"><h2>\u{1F4A1} Invent something!</h2><span class="fact">' + (s.ideas || []).length + " sent</span></div>";
+  if (!ok) return h + '<p class="lede">Hit <b>' + ((cls && cls.goal) || 120) + " XP</b> today and you can send Ms. Ariana an idea for a brand-new creature, accessory or room decoration!</p></div>";
+  if (sent) return h + '<p class="lede">\u2705 Your idea for today is sent! Hit ' + ((cls && cls.goal) || 120) + " XP another day to send another one.</p>" + ideaList(s) + "</div>";
+  if (!ideaOpen) return h + '<p class="lede">You hit ' + ((cls && cls.goal) || 120) + " XP today, so you can send one idea! Ms. Ariana might add it to the game.</p>" +
+    '<div class="row"><button class="btn" data-cc="ideaStart" data-k="creature">\u{1F43E} Invent a creature</button><button class="btn" data-cc="ideaStart" data-k="gear">\u{1F3A9} Invent an accessory</button><button class="btn" data-cc="ideaStart" data-k="room">\u{1F6CF}\uFE0F Invent room decor</button></div>' + ideaList(s) + "</div>";
+  const tabs = '<div class="row" style="margin-bottom:10px;gap:6px;">' + [["creature", "\u{1F43E} Creature"], ["gear", "\u{1F3A9} Accessory"], ["room", "\u{1F6CF}\uFE0F Room decor"]].map(([k, l]) =>
+    '<button class="tpill2' + (ideaKind === k ? " on" : "") + '" data-cc="ideaKind" data-k="' + k + '">' + l + "</button>").join("") + "</div>";
+  if (ideaKind === "room") return h + tabs +
+    '<div class="field"><label for="ideaName">Decoration name</label><input id="ideaName" type="text" maxlength="30" placeholder="e.g. Cloud Hammock"></div>' +
+    '<p class="muted small" style="margin:10px 0 6px;">Where does it go in your companion\u2019s room?</p><div class="typepick">' +
+    Object.keys(ROOM_SLOTS).map(k => '<button class="tpill2' + (roomSlot === k ? " on" : "") + '" data-cc="roomSlot" data-k="' + k + '">' + ROOM_SLOTS[k] + "</button>").join("") + "</div>" +
+    '<div class="field" style="margin-top:10px;"><label for="ideaLore">What does it look like? (optional)</label><textarea id="ideaLore" rows="3" maxlength="600" placeholder="e.g. A fluffy cloud bed that floats a little off the floor"></textarea></div>' +
+    '<div class="row" style="margin-top:10px;"><button class="btn" data-cc="ideaSend">Send my idea</button><button class="btn ghost" data-cc="ideaCancel">Cancel</button></div></div>';
+  if (ideaKind === "gear") return h + tabs +
+    '<div class="field"><label for="ideaName">Accessory name</label><input id="ideaName" type="text" maxlength="30" placeholder="e.g. Rainbow Scarf"></div>' +
+    '<p class="muted small" style="margin:10px 0 6px;">Where does your companion wear it?</p><div class="typepick">' +
+    Object.keys(IDEA_SLOTS).map(k => '<button class="tpill2' + (ideaSlot === k ? " on" : "") + '" data-cc="ideaSlot" data-k="' + k + '">' + IDEA_SLOTS[k] + "</button>").join("") + "</div>" +
+    '<div class="field" style="margin-top:10px;"><label for="ideaLore">What does it look like? What does it do? (optional)</label><textarea id="ideaLore" rows="3" maxlength="600" placeholder="e.g. A fuzzy striped scarf that makes your companion +5 cozy"></textarea></div>' +
+    '<div class="row" style="margin-top:10px;"><button class="btn" data-cc="ideaSend">Send my idea</button><button class="btn ghost" data-cc="ideaCancel">Cancel</button></div></div>';
+  h += tabs;
+  return h + '<div class="field"><label for="ideaName">Creature name</label><input id="ideaName" type="text" maxlength="30" placeholder="e.g. Blazewhisker"></div>' +
+    '<p class="muted small" style="margin:10px 0 6px;">Type (pick 1 or 2)</p><div class="typepick">' +
+    IDEA_TYPES.map(t => '<button class="tpill2' + (ideaTypes.includes(t) ? " on" : "") + '" data-cc="ideaType" data-t="' + t + '">' + (TYPE_FX[t] || "") + " " + t + "</button>").join("") + "</div>" +
+    '<div class="field" style="margin-top:10px;"><label for="ideaAnimal">What animal is it based on? (optional)</label><input id="ideaAnimal" type="text" maxlength="40" placeholder="e.g. a fox, a jellyfish"></div>' +
+    '<div class="field" style="margin-top:10px;"><label for="ideaLore">Lorebook story (optional)</label><textarea id="ideaLore" rows="3" maxlength="600" placeholder="Where does it live? What is it like?"></textarea></div>' +
+    '<div class="row" style="margin-top:10px;"><button class="btn" data-cc="ideaSend">Send my idea</button><button class="btn ghost" data-cc="ideaCancel">Cancel</button></div></div>';
+}
+function ideaList(s) {
+  const l = (s.ideas || []).slice().reverse().slice(0, 5); if (!l.length) return "";
+  return '<p class="muted small" style="margin:12px 0 4px;">Your ideas</p><div class="inv">' + l.map(x => "<span>" + (x.kind === "gear" ? "\u{1F3A9}" : x.kind === "room" ? "\u{1F6CF}\uFE0F" : "\u{1F43E}") + " <b>" + esc(x.name) + "</b>" + (x.kind === "gear" || x.kind === "room" ? "" : " \u00b7 " + esc((x.types || []).join("/"))) + "</span>").join("") + "</div>";
+}
+
 /* ================= arena ================= */
 function myBattle(s) {
   return (ctx.battles || []).filter(b => (b.a.id === s.id || b.b.id === s.id) &&
-    (["invite", "team", "lead"].includes(b.status) || (b.status === "done" && !b["seen_" + s.id])))
+    ((LIVE.includes(b.status) && !staleBattle(b)) || (["done", "ended"].includes(b.status) && !b["seen_" + s.id])))
     .sort((x, y) => String(y.created).localeCompare(String(x.created)))[0] || null;
 }
 function busyIds() {
   const ids = new Set();
-  (ctx.battles || []).forEach(b => { if (["invite", "team", "lead"].includes(b.status)) { ids.add(b.a.id); ids.add(b.b.id); } });
+  (ctx.battles || []).forEach(b => { if (LIVE.includes(b.status) && !staleBattle(b)) { ids.add(b.a.id); ids.add(b.b.id); } });
   return ids;
 }
 function arenaCard(s) {
@@ -163,7 +281,7 @@ function arenaCard(s) {
       '<div class="row" style="margin-top:10px;"><button class="btn" data-cc="accept" data-b="' + mine.id + '">Accept</button><button class="btn ghost" data-cc="decline" data-b="' + mine.id + '">Decline</button></div></div>';
     if (mine.status === "invite") return h + '<p class="lede">Waiting for <b>' + esc(them.name) + "</b> to accept your challenge…</p>" +
       '<div class="row" style="margin-top:10px;"><button class="btn ghost" data-cc="decline" data-b="' + mine.id + '">Cancel challenge</button></div></div>';
-    return h + '<p class="lede">You’re in a battle with <b>' + esc(them.name) + '</b>!</p><div class="row" style="margin-top:10px;"><button class="btn big" data-cc="enter" data-b="' + mine.id + '">⚔️ ' + (mine.status === "done" ? "See the result" : "Go to battle") + "</button></div></div>";
+    return h + '<p class="lede">' + (mine.status === "ended" ? "Your battle with <b>" + esc(them.name) + "</b> ended." : mine.status === "done" ? "Your battle with <b>" + esc(them.name) + "</b> is over!" : "You’re in a battle with <b>" + esc(them.name) + "</b>!") + '</p><div class="row" style="margin-top:10px;"><button class="btn big" data-cc="enter" data-b="' + mine.id + '">⚔️ ' + (mine.status === "done" ? "See the result" : mine.status === "ended" ? "See what happened" : "Go to battle") + "</button></div></div>";
   }
   // a battle already started can always be finished; new ones only while the arena is open
   if (!open) return h + '<p class="lede">The arena opens ' + esc(ARENA_HOURS) + ".</p>" +
@@ -173,7 +291,9 @@ function arenaCard(s) {
   if (lunchOnly) h += '<p class="lede" style="margin-bottom:10px;">' + (ctx.cls && ctx.cls.goalArena ? "\u2B50 <b>120 XP battlers</b> \u2014 you hit 120 XP today, so you can battle other players who did too!" : "\u2600\uFE0F <b>Lunch arena</b> until 1 pm \u2014 you hit 120 XP today, so you can battle other players who did too!") + "</p>";
   const ready = !!s.arenaReady, busy = busyIds();
   h += '<label class="modebox" style="margin-bottom:12px;"><input type="checkbox" data-cc="ready"' + (ready ? " checked" : "") + "><span><b>I’m ready to battle</b><small>Other ready players can challenge you, and you can challenge them.</small></span></label>";
-  const others = ctx.students.filter(x => x.id !== s.id && x.arenaReady && hasStarter(x) && arenaOpenFor(x, ctx.cls));   // during the lunch arena, only other 120 XP players
+  // Ms. Ariana isn't in the open challenge list: students earn a battle with her (Weekly Door) and she starts it
+  if (s.isTeacher) return h + '<p class="lede">Students ask you for battles when they reach 600 XP in a week. Start them from <b>\u{1F34E} Battle requests</b> above.</p></div>';
+  const others = ctx.students.filter(x => x.id !== s.id && !x.isTeacher && x.arenaReady && hasStarter(x) && arenaOpenFor(x, ctx.cls));   // during the lunch arena, only other 120 XP players
   if (!ready) return h + "</div>";
   if (!others.length) return h + '<p class="lede">Nobody else is ready yet. Hang tight!</p></div>';
   h += '<div class="readylist">' + others.map(o => {
@@ -187,9 +307,38 @@ function arenaCard(s) {
 /* ================= overlays ================= */
 export function overlays(c) {
   ctx = c;
-  return hatchOverlay() + bookOverlay() + battleOverlay();
+  let bo = "";
+  try { bo = battleOverlay(); } catch (e) { console.error(e); bo = '<div class="battleover"><div class="bpanel"><h3>Oops!</h3><p>The battle screen hit a problem: ' + esc(String(e && e.message || e)) + '</p><button class="btn" data-cc="leaveBattle">Close</button></div></div>'; }
+  return hatchOverlay() + bulkHatchOverlay() + bookOverlay() + bo;
 }
 
+/* ---------- 🥚 Hatch all (Oct 25): regular eggs, one server hatch each, then one list of what came out ---------- */
+let bulkHatch = null;   // { done, n, got: [res], over }
+async function hatchAll(c) {
+  const s = c.me; if (bulkHatch) return;
+  const n = pullsLeft(s, c.cls); if (n < 1) return;
+  bulkHatch = { done: 0, n, got: [], over: false }; hold(600000); c.render(true);
+  if (s.isTeacher) {   // Ms. Ariana's eggs hatch right here (no server), then ONE save for all of them
+    let st = Object.assign({}, s);
+    for (let i = 0; i < n; i++) { const r = doPull(st, rollTeacherRarity(), c.cls, {}); st = Object.assign({}, st, { coll: r.coll }); bulkHatch.got.push(r); bulkHatch.done++; }
+    try { await c.patch({ coll: st.coll, pullsUsed: (Number(s.pullsUsed) || 0) + n }, true); }
+    catch (e) { c.flash("Couldn\u2019t save your eggs \u2014 " + ((e && (e.code || e.message)) || e)); bulkHatch = null; busyUntil = 0; return c.render(true); }
+    bulkHatch.over = true; busyUntil = 0; return c.render(true);
+  }
+  for (let i = 0; i < n; i++) {
+    try { bulkHatch.got.push(await ck("hatch", { kind: "normal" })); bulkHatch.done++; c.render(true); }
+    catch (e) { c.flash(ckMessage(e)); break; }
+  }
+  bulkHatch.over = true; busyUntil = 0; c.render(true);
+}
+function bulkHatchOverlay() {
+  const b = bulkHatch; if (!b) return "";
+  const row = r => { const cr = creature(r.id) || formOf(r.fam, r.lvl || 1); return '<div class="bhrow r-' + String(r.rarity || "").replace(" ", "") + '">' + (cr ? img(cr, "bhimg", r.sparkle) : "") +
+    "<span><b>" + esc((r.sparkle ? "\u2728 " : "") + (cr ? cr.name : r.fam)) + "</b><small>" + esc(r.rarity || "") + (r.dupe ? " \u00b7 already had one: up a level" : " \u00b7 NEW!") + "</small></span></div>"; };
+  return '<div class="prizeover" role="dialog" aria-label="Hatching eggs"><div class="prizebox bulkbox bhbox"><h2>\u{1F95A} ' + (b.over ? "You hatched " + b.done + " egg" + (b.done === 1 ? "" : "s") + "!" : "Hatching\u2026 " + b.done + " / " + b.n) + "</h2>" +
+    '<div class="bulklist">' + b.got.slice().reverse().slice(0, 150).map(row).join("") + (b.got.length > 150 ? '<p class="muted small">\u2026and ' + (b.got.length - 150) + " more</p>" : "") + "</div>" +
+    (b.over ? '<button class="attackbtn" data-cc="hatchAllClose">Yay! \u{1F389}</button>' : '<p class="arena-foot">Cracking your eggs\u2026</p>') + "</div></div>";
+}
 function hatchOverlay() {
   if (!hatch) return "";
   const r = hatch.res, c = r && creature(r.id);
@@ -199,22 +348,32 @@ function hatchOverlay() {
     const ek = c ? { "Common": "common", "Uncommon": "uncommon", "Rare": "rare", "Super Rare": "superrare", "Legendary": "legendary" }[c.rarity] : null;
     // during Haunt-O-Ween, Ghost-type creatures (and Hexaduck, the Haunt-O-Ween event Legendary) hatch from the spooky egg
     const th = hatch.theme;   // an event egg from a Golden Present always shows that event's egg
-    const spooky = th ? th === "haunt" : c && ctx.cls && ctx.cls.haunt && !ctx.cls.gobble && !ctx.cls.jingle && (c.types.includes("Ghost") || c.event === "hex");
+    const hr = ctx.cls && ctx.cls.heart, fr = ctx.cls && ctx.cls.frost && !hr;
+    const spooky = th ? th === "haunt" : c && ctx.cls && ctx.cls.haunt && !ctx.cls.gobble && !ctx.cls.jingle && !fr && !hr && (c.types.includes("Ghost") || c.event === "hex");
     // during Gobble-Palooza, Nature-type creatures (and Thanksolotl) hatch from the harvest egg
-    const harvest = th ? th === "gobble" : !spooky && c && ctx.cls && ctx.cls.gobble && !ctx.cls.jingle && (c.types.includes("Nature") || c.event === "thanks");
+    const harvest = th ? th === "gobble" : !spooky && c && ctx.cls && ctx.cls.gobble && !ctx.cls.jingle && !fr && !hr && (c.types.includes("Nature") || c.event === "thanks");
     // during Jingle Jam, Ice- and Light-type creatures (and Jinglotl) hatch from the Jingle egg
-    const jingly = th ? th === "jingle" : !spooky && !harvest && c && ctx.cls && ctx.cls.jingle && (c.types.includes("Ice") || c.types.includes("Light") || c.event === "jingle");
-    const egg = spooky ? "assets/egg-haunt.webp" : harvest ? "assets/egg-gobble.webp" : jingly ? "assets/egg-jingle.webp" : ek ? "assets/egg-" + ek + ".webp" : "assets/egg.png";
-    h += '<div class="eggwrap ' + hatch.phase + (hatch.legendary || (c && c.rarity === "Legendary") ? " leg" : "") + (spooky ? " haunt" : harvest ? " harvest" : jingly ? " jingly" : "") + '" style="--rc:' + (spooky ? "#B45CFF" : harvest ? "#F2A541" : jingly ? "#9EE3FF" : c ? RARITY_COLOR[c.rarity] : "#FFE6AA") + '"><img class="egg whole" src="' + egg + '" alt="">' +
+    const jingly = th ? th === "jingle" : !spooky && !harvest && c && ctx.cls && ctx.cls.jingle && !fr && !hr && (c.types.includes("Ice") || c.types.includes("Light") || c.event === "jingle");
+    // during Frostbite Festival, Ice-type creatures (and Midniduck) hatch from the Frostbite egg
+    const frosty = th ? th === "frost" : !spooky && !harvest && !jingly && c && fr && (c.types.includes("Ice") || c.event === "frost");
+    // during Sweetheart Showdown, Light- and Nature-type creatures (and Amorduck) hatch from the Sweetheart egg
+    const hearty = th ? th === "heart" : !spooky && !harvest && !jingly && !frosty && c && hr && (c.types.includes("Light") || c.types.includes("Nature") || c.event === "heart");
+    const egg = spooky ? "assets/egg-haunt.webp" : harvest ? "assets/egg-gobble.webp" : jingly ? "assets/egg-jingle.webp" : frosty ? "assets/egg-frost.webp" : hearty ? "assets/egg-heart.webp" : ek ? "assets/egg-" + ek + ".webp" : "assets/egg.png";
+    const ultra = hatch.ultra || (c && c.rarity === "Ultra");
+    if (ultra) h += '<div class="eggwrap ' + hatch.phase + ' leg ultra" style="--rc:#D13BE8"><img class="egg whole" src="assets/egg-legendary.webp" alt=""><img class="egg top" src="assets/egg-legendary.webp" alt=""><img class="egg bot" src="assets/egg-legendary.webp" alt=""><span class="flash"></span></div>' +
+      '<p class="hatchtxt">' + (hatch.phase === "shake" ? "\u{1F308} An ULTRA egg is waking up\u2026" : "") + "</p>";
+    else h += '<div class="eggwrap ' + hatch.phase + (hatch.legendary || (c && c.rarity === "Legendary") ? " leg" : "") + (spooky ? " haunt" : harvest ? " harvest" : jingly ? " jingly" : frosty ? " frosty" : hearty ? " hearty" : "") + '" style="--rc:' + (spooky ? "#B45CFF" : harvest ? "#F2A541" : jingly ? "#9EE3FF" : frosty ? "#BDE6FF" : hearty ? "#FF9EC4" : c ? RARITY_COLOR[c.rarity] : "#FFE6AA") + '"><img class="egg whole" src="' + egg + '" alt="">' +
       '<img class="egg top" src="' + egg + '" alt=""><img class="egg bot" src="' + egg + '" alt=""><span class="flash"></span></div>' +
       '<p class="hatchtxt">' + (hatch.phase === "shake" ? "Something is moving…" : "") + "</p>";
   } else {
     h += '<div class="reveal" style="--rc:' + RARITY_COLOR[c.rarity] + '"><span class="rays"></span>' + img(c, "revimg", r.sparkle) + "</div>" +
       '<div class="revtxt">' + rarityPill(c.rarity) + (r.sparkle ? ' <span class="rpill" style="background:linear-gradient(90deg,#ff7ad9,#ffd84d,#7ae7ff)">\u2728 SPARKLE</span>' : "") + "<h2>" + (r.sparkle ? "\u2728 " : "") + esc(c.name) + "</h2>" +
       (r.event === "bday" ? '<p class="eventmsg ev-bday">\u{1F382} HAPPY BIRTHDAY! ' + (r.dupe ? "Another Wisholotl came to celebrate!" : "<b>Wisholotl, " + esc(c.title || "") + "</b>, came to make your wish come true!") + "</p>" : "") +
-      (r.event && r.event !== "bday" ? '<p class="eventmsg ev-' + r.event + '">' + (r.event === "hex" ? "\u{1F383}" : r.event === "thanks" ? "\u{1F983}" : r.event === "jingle" ? "\u{1F384}" : "\u{1F986}") + " LIMITED EVENT LEGENDARY! " + (r.dupe ? "Another " + esc(c.name) + "!" : "You caught <b>" + esc(c.name) + ", " + esc(c.title || "") + "</b>! It\u2019s yours forever.") + "</p>" : "") +
+      (r.ultra ? '<p class="eventmsg ev-ultra">\u{1F308} ULTRA LEGENDARY! <b>' + esc(c.name) + ", " + esc(c.title || "") + "</b>" + (r.dupe ? " came back to train with you!" : " joined your collection!") + "</p>" : "") +
+      (r.event && r.event !== "bday" && !r.ultra ? '<p class="eventmsg ev-' + r.event + '">' + (r.event === "hex" ? "\u{1F383}" : r.event === "thanks" ? "\u{1F983}" : r.event === "jingle" ? "\u{1F384}" : r.event === "pickle" ? "\u{1F952}" : r.event === "brew" ? "\u{1F9EA}" : r.event === "harvest" ? "\u{1F983}" : r.event === "gingerbread" ? "\u{1F36A}" : r.event === "snowman" ? "\u2603\uFE0F" : r.event === "frost" ? "\u{1F386}" : r.event === "heart" ? "\u{1F498}" : r.event === "candybox" ? "\u{1F36B}" : /2$/.test(r.event) ? ((BOSS2_LIST.find(B => B.fam === r.fam) || {}).icon || "\u{1F47B}") : "\u{1F986}") + (r.event === "pickle" || r.event === "brew" || r.event === "harvest" || r.event === "gingerbread" || r.event === "snowman" || r.event === "candybox" || /2$/.test(r.event) ? " EXCLUSIVE EVENT LEGENDARY! " : " LIMITED EVENT LEGENDARY! ") + (r.dupe ? "Another " + esc(c.name) + "!" : "You caught <b>" + esc(c.name) + ", " + esc(c.title || "") + "</b>! It\u2019s yours forever.") + "</p>" : "") +
       (r.newSparkle ? '<p class="sparkmsg">WOW! A 1-in-2,000 Sparkle! Your ' + esc(c.name) + " family is now Sparkle forever.</p>" : "") +
-      (r.dupe && r.kept ? "<p>\u{1F504} Kept as a <b>spare for trading</b>. Find it under My creatures.</p>"
+      (r.ultra ? (r.dupe ? "<p>You already had " + esc(c.name) + " \u2014 <b>+" + (r.gained || 5) + " levels! Now Lv " + r.lvl + "</b></p>" : "<p><b>NEW!</b> Find it in your \u{1F308} Ultra Legendaries section.</p>")
+        : r.dupe && r.kept ? "<p>\u{1F504} Kept as a <b>spare for trading</b>. Find it under My creatures.</p>"
         : r.dupe ? '<p>You already had this family — <b>free level up! Now Lv ' + r.lvl + "</b>" + (r.evolved ? " and it <b>evolved!</b>" : "") + "</p>" +
           (ctx.cls && ctx.cls.tradeOff ? "" : '<p><button class="btn small ghost" data-cc="keepSpare">\u{1F504} Keep it as a spare for trading instead</button></p>')
         : "<p><b>NEW!</b> Added to your lorebook.</p>") +
@@ -254,8 +413,22 @@ function detailPage(c, seen) {
   let h = '<div class="dtop"><button class="btn small ghost" data-cc="back">◀ Back to lorebook</button><span class="num">#' + c.id + "</span></div>" +
     '<div class="dhead">' + img(c, "dimg") + "<div><h2>" + esc(c.name) + "</h2>" + (e && e.nick && cur ? '<p class="dline">Your <b>' + esc(e.nick) + "</b></p>" : "") + rarityPill(c.rarity) + " " + typePills(c) +
     '<p class="dline"><b>Weak to:</b> ' + esc(c.weak.join(", ")) + " (takes double damage)</p>" +
-    (c.title ? '<p class="dline"><i>' + esc(c.title) + "</i>" + (c.event ? ' <span class="rpill" style="background:#2B6FD6">\u{1F986} Limited event</span>' : "") + "</p>" : "") +
-    '<p class="dline"><b>' + (c.move ? "Signature move" : "Attack") + ":</b> " + esc(c.attack) + "</p>" + (c.move ? '<p class="dline muted">' + esc(c.move) + "</p>" : "") + "</div></div>" +
+    (c.title ? '<p class="dline"><i>' + esc(c.title) + "</i>" + (c.ultra ? ' <span class="rpill upill">\u{1F308} Ultra Legendary</span>' : c.event ? ' <span class="rpill" style="background:#2B6FD6">\u{1F986} Limited event</span>' : "") + "</p>" : "") +
+    (c.ultra ? ultraInfoHTML(c) : "") +
+    '<p class="dline"' + (c.ultra ? ' hidden' : "") + '><b>' + (c.move ? "Signature move" : "Attack") + ":</b> " + esc(c.attack) + "</p>" + (c.move ? '<p class="dline muted">' + esc(c.move) + "</p>" : "") +
+    (c.dodge ? '<p class="dline"><b>\u{1F4A8} Speedy:</b> dodges ' + Math.round(c.dodge * 100) + "% of attacks in battle</p>" : "") +
+    (c.daze ? '<p class="dline"><b>\u2728 Dazzle:</b> ' + Math.round(c.daze * 100) + "% chance to make the opponent\u2019s next attack " + Math.round((c.dazePct || 0) * 100) + "% weaker</p>" : "") +
+    (c.atkHeal ? '<p class="dline"><b>\u{1F49A} Recovery:</b> heals ' + Math.round(c.atkHeal * 100) + "% of its HP after every " + esc(c.attack) + "</p>" : "") +
+    (c.alt && c.alt.shield ? '<p class="dline"><b>\u2744\uFE0F Snow Barrier:</b> after ' + esc(c.alt.name) + ", the next hit on it does " + Math.round(c.alt.shield * 100) + "% less damage</p>" : "") +
+    (c.cheer ? '<p class="dline"><b>\u{1F386} Celebration:</b> after ' + esc(c.attack) + ", every teammate still standing does " + Math.round(c.cheer * 100) + "% more damage on its next attack</p>" : "") +
+    (c.alt && c.alt.crit ? '<p class="dline"><b>\u2728 Lucky Star:</b> ' + esc(c.alt.name) + " lands a critical hit " + Math.round(c.alt.crit * 100) + "% of the time</p>" : "") +
+    (c.teamHeal ? '<p class="dline"><b>\u{1F357} Sharing:</b> its ' + esc(c.attack) + " also heals each teammate still standing by " + Math.round(c.teamHeal * 100) + "%</p>" : "") +
+    (c.alt && c.alt.daze ? '<p class="dline"><b>\u{1F967} Splat:</b> ' + Math.round(c.alt.daze * 100) + "% chance " + esc(c.alt.name) + " makes the opponent\u2019s next attack " + Math.round((c.alt.dazePct || 0.2) * 100) + "% weaker</p>" : "") +
+    (c.atkDefDown ? '<p class="dline"><b>\u{1F311} Gravity:</b> ' + Math.round(c.atkDefDown * 100) + "% chance its " + esc(c.attack) + " lowers the opponent\u2019s Defense by " + Math.round((c.atkDefPct || 0.15) * 100) + "% for a turn</p>" : "") +
+    (c.alt && c.alt.evade ? '<p class="dline"><b>\u{1F300} Portal:</b> ' + Math.round(c.alt.evade * 100) + "% chance " + esc(c.alt.name) + " lets it dodge the opponent\u2019s next attack</p>" : "") +
+    (c.brewFx ? '<p class="dline"><b>\u{1F9EA} Witch\u2019s Brew:</b> every hit does one surprise thing \u2014 poisons the opponent, lowers its Defense for a round, or heals Brewraith a little</p>' : "") +
+    (c.poison ? '<p class="dline"><b>\u{1F922} Poison:</b> ' + Math.round(c.poison * 100) + "% chance its attack poisons the opponent (loses a little HP for 3 rounds)</p>" : "") +
+    (c.alt && !c.ultra ? '<p class="dline"><b>Second attack:</b> ' + esc(c.alt.name) + (c.alt.type ? " (" + esc(c.alt.type) + ")" : "") + " \u2014 a bit less damage" + (c.alt.heal ? ", and heals " + Math.round(c.alt.heal * 100) + "% of its HP" : "") + (c.alt.defDown ? ", " + Math.round(c.alt.defDown * 100) + "% chance to lower the opponent\u2019s defense" + (c.alt.defTemp ? " for its next turn" : "") : "") + "</p>" + (c.alt.desc ? '<p class="dline muted">' + esc(c.alt.desc) + "</p>" : "") : "") + "</div></div>" +
     '<div class="dstats"><span>❤ HP <b>' + st.hp + "</b></span><span>\u{1F6E1} Defense <b>" + st.df + "</b></span><span>⚔ Damage <b>" + st.dmg + "</b></span><span>Lv <b>" + (cur ? lvl : 1) + "</b></span></div>" +
     '<p class="muted" style="text-align:center;margin:2px 0 8px;">' + (cur ? "Your creature’s stats at level " + lvl : "Stats at level 1") + " · grows +" + c.ghp + " HP, +" + c.gdf + " DEF, +" + c.gdmg + " DMG per level</p>";
   if (fam.forms.length > 1) h += '<div class="dchain">' + fam.forms.map((id, i) => { const f = creature(id), got = seen.has(id);
@@ -277,8 +450,26 @@ function viewState(bt, k) {
     if (e.k === "coin") st.line = "\u{1FA99} Coin flip: " + esc(e.s === "A" ? bt.a.name : bt.b.name) + " goes first!";
     if (e.k === "send") { st[e.s].i = e.i; st.line = esc(e.who) + " sends out <b>" + esc(e.n) + "</b>!"; }
     if (e.k === "hit") { const o = e.s === "A" ? "B" : "A"; st[o].hp[e.di] = e.left; st[e.s].i = e.ai; st[o].i = e.di; st.last = e;
-      st.line = "<b>" + esc(e.a) + "</b> used " + esc(e.atk) + "! " + (e.crit ? "\u{1F4A5} Critical hit! " : "") + (e.weak ? "It’s super effective! " : "") + e.dmg + " damage."; }
+      st.line = "<b>" + esc(e.a) + "</b> used " + esc(e.atk) + "! " + (e.dodged && e.portal ? "\u{1F300} " + esc(e.d) + " vanished through a portal!" : e.dodged ? "\u{1F4A8} " + esc(e.d) + " zoomed out of the way!" : e.miss ? "It missed!" : (e.crit ? "\u{1F4A5} Critical hit! " : "") + (e.weak ? "It’s super effective! " : "") + (e.guarded ? "\u{1F6E1}\uFE0F Guarded! " : "") + (e.dazedHit ? "(Still dazzled \u2014 weaker!) " : "") + (e.pierced ? "\u{1F47B} Went right through its Defense! " : "") + e.dmg + " damage."); }
+    if (e.k === "swap") { st[e.s].i = e.i; st.line = "\u{1F504} " + esc(e.who) + " swaps " + esc(e.from) + " for <b>" + esc(e.n) + "</b>!"; }
+    if (e.k === "heal") { st[e.s].hp[e.i] = e.left; if (!e.team) st[e.s].i = e.i; st.line = (e.team ? "\u{1F357} The feast shares with <b>" : "\u{1F49A} <b>") + esc(e.n) + "</b>" + (e.team ? " (+" + e.amt + " HP)!" : " healed " + e.amt + " HP!"); }
+    if (e.k === "guard") { st[e.s].i = e.i; st.line = "\u{1F6E1}\uFE0F <b>" + esc(e.n) + "</b> is guarding!"; }
+    if (e.k === "poison") st.line = "\u{1F952} <b>" + esc(e.d) + "</b> was poisoned!";
+    if (e.k === "shield") st.line = "\u2744\uFE0F <b>" + esc(e.n) + "</b> builds a snow barrier! The next hit on it does " + e.pct + "% less damage.";
+    if (e.k === "cheer") st.line = "\u{1F386} 3\u2026 2\u2026 1\u2026 Happy New Year! <b>" + esc(e.n) + "</b>\u2019s fireworks cheer the team: +" + e.pct + "% damage on the next attack!";
+    if (e.k === "candy") st.line = e.c === "hard" ? "\u{1F36C} Hard candy! <b>" + esc(e.n) + "</b>\u2019s Candy Crush does 20% more damage!" : e.c === "choc" ? "\u{1F36B} Chocolate! <b>" + esc(e.n) + "</b> heals " + (e.amt || 0) + " HP." : "\u{1F497} Conversation hearts rain on <b>" + esc(e.d) + "</b>! Its defense dropped 15% for a turn.";
+    if (e.k === "evade") st.line = "\u{1F300} <b>" + esc(e.n) + "</b> slipped into a tiny portal \u2014 it will dodge the next attack!";
+    if (e.k === "defdown" && e.src === "crumble") st.line = "\u{1F36A} Cookie crumbs cover <b>" + esc(e.d) + "</b>! Its defense dropped " + e.pct + "% for a turn.";
+    else if (e.k === "defdown" && e.src === "void") st.line = "\u{1F311} Gravity crushes <b>" + esc(e.d) + "</b>! Its defense dropped " + e.pct + "% for a turn.";
+    else if (e.k === "defdown" && e.src === "brew") st.line = "\u{1F9EA} Witch\u2019s Brew splashes <b>" + esc(e.d) + "</b>! Its defense dropped " + e.pct + "% for a turn.";
+    else if (e.k === "defdown") st.line = (e.temp ? "\u{1F338} Blossoms swirl around <b>" + esc(e.d) + "</b>! Its defense dropped " + e.pct + "% for a turn." : "\u{1F4A7} Brine soaked <b>" + esc(e.d) + "</b>! Its defense dropped " + e.pct + "%.");
+    if (e.k === "psn") { st[e.s].hp[e.i] = e.left; st[e.s].i = e.i; st.line = e.burn ? "\u{1F525} <b>" + esc(e.n) + "</b> is hurt by its burn (-" + e.amt + ")." : "\u{1F922} <b>" + esc(e.n) + "</b> is hurt by poison (-" + e.amt + ")."; }
+    if (e.k === "ux") { if (e.left != null) { st[e.s].hp[e.i] = e.left; st[e.s].i = e.i; } st.line = (e.sp ? '<span class="uxsp">' : "") + esc(e.t) + (e.sp ? "</span>" : ""); }
+    if (e.k === "daze" && e.gum) st.line = "\u{1F36C} The gumdrop bursts all over <b>" + esc(e.d) + "</b>! Its next attack does " + e.pct + "% less damage.";
+    else if (e.k === "daze" && e.pie) st.line = "\u{1F967} SPLAT! <b>" + esc(e.d) + "</b> got a pie on the head! Its next attack does " + e.pct + "% less damage.";
+    else if (e.k === "daze") st.line = "\u2728 <b>" + esc(e.d) + "</b> is dazzled! Its next attack does " + e.pct + "% less damage.";
     if (e.k === "faint") st.line = "<b>" + esc(e.n) + "</b> fainted!";
+    if (e.k === "forfeit") st.line = "\u{1F3F3}\uFE0F " + esc(e.who) + " gave up.";
     if (e.k === "win") st.line = "\u{1F3C6} <b>" + esc(e.s === "A" ? bt.a.name : bt.b.name) + "</b> wins the battle!";
   });
   return st;
@@ -306,6 +497,9 @@ function playFor(e, me) {
   if (e.k === "hit") { noise(0.25, 0.1, 0, 1200); tone(e.crit ? 180 : 140, 0.22, "triangle", 0.25, 60, 0.35); if (e.crit) { tone(880, 0.12, "square", 0.08, null, 0.35); tone(1320, 0.18, "square", 0.08, null, 0.47); } else if (e.weak) tone(660, 0.15, "sawtooth", 0.06, 990, 0.38); }
   if (e.k === "send") { tone(330, 0.12, "square", 0.07); tone(495, 0.12, "square", 0.07, null, 0.1); tone(660, 0.18, "square", 0.07, null, 0.2); }
   if (e.k === "faint") tone(440, 0.6, "triangle", 0.15, 110);
+  if (e.k === "heal") { tone(523, 0.15, "sine", 0.1); tone(784, 0.25, "sine", 0.1, null, 0.12); }
+  if (e.k === "guard") tone(220, 0.25, "square", 0.06, 330);
+  if (e.k === "swap") { tone(440, 0.1, "square", 0.06); tone(330, 0.12, "square", 0.06, null, 0.1); }
   if (e.k === "win") { const up = e.s === me; (up ? [523, 659, 784, 1047] : [392, 349, 330, 262]).forEach((f, i) => tone(f, 0.22, "square", 0.08, null, i * 0.15)); }
 }
 
@@ -315,22 +509,32 @@ function battleOverlay() {
   if (!bt) { battleOpen = null; return ""; }
   const me = sideOf(bt), them = me === "A" ? "B" : "A", meN = me === "A" ? bt.a.name : bt.b.name, thN = them === "A" ? bt.a.name : bt.b.name;
   const logLen = (bt.log || []).length, k = Math.min(shown[bt.id] || 0, logLen);
-  if (k < logLen && !replayTimer) replayTimer = setTimeout(() => { replayTimer = null; shown[bt.id] = (shown[bt.id] || 0) + 1; ctx.render(true); }, k === 0 ? 400 : 1100);
+  // Replay pace (Oct 30, faster): big moments get a beat to read, small effect lines go quickly, and a long backlog (rejoining) speeds through.
+  if (k < logLen && !replayTimer) { const nx = bt.log[k] || {}, behind = logLen - k;
+    const ms = k === 0 ? 200 : behind > 4 ? 140 : nx.k === "hit" || nx.k === "faint" ? 600 : nx.k === "send" || nx.k === "win" ? 500 : 320;   // Nov 3: quicker
+    replayTimer = setTimeout(() => { replayTimer = null; shown[bt.id] = (shown[bt.id] || 0) + 1; ctx.render(true); }, ms); }
   const caught = k >= logLen, v = viewState(bt, k);
-  let h = '<div class="battleover" style="background-image:url(assets/arena-bg.jpg)"><div class="bhead"><b>' + esc(meN) + "</b> vs <b>" + esc(thN) + '</b><button class="btn ghost small" data-cc="mute" aria-label="Sound">' + (muted() ? "\u{1F507}" : "\u{1F50A}") + '</button><button class="btn ghost small" data-cc="leaveBattle">Leave</button></div>';
+  let h = '<div class="battleover" style="background-image:url(assets/arena-bg.jpg)"><div class="bhead"><b>' + esc(meN) + "</b> vs <b>" + esc(thN) + '</b><button class="btn ghost small" data-cc="mute" aria-label="Sound">' + (muted() ? "\u{1F507}" : "\u{1F50A}") + '</button>' + (caught ? "" : '<button class="btn ghost small" data-cc="skipReplay" title="Skip to now">\u23E9 Skip</button>') + '<button class="btn ghost small" data-cc="leaveBattle">' + (LIVE.includes(bt.status) ? "\u{1F6AA} Leave (ends the battle)" : "Close") + "</button></div>";
   if (bt.status === "declined") return h + '<div class="bpanel"><p>The challenge was declined.</p></div></div>';
+  if (bt.status === "ended") return h + '<div class="bpanel"><h3>Battle ended</h3><p>' + (bt.endedBy === "teacher" ? "Ms. Ariana ended this battle." : bt.endedBy === "time" ? "Nobody moved for a while, so the battle ended." : esc(bt.endedBy === ctx.me.id ? "You" : bt.endedName || thN) + " left the battle.") +
+    ' It doesn\u2019t count for anyone.</p><button class="btn big" data-cc="closeBattle">Close</button></div></div>';
+  if (leaving === bt.id) h += '<div class="bpanel small"><p>Ending the battle\u2026</p></div>';
   if (bt.status === "invite") return h + '<div class="bpanel"><p>Waiting for ' + esc(thN) + " to accept…</p></div></div>";
   if (bt.status === "team" && !(bt.team && bt.team[me])) {
-    const fams = sortedFams(ctx.me);
-    return h + '<div class="bpanel"><h3>Choose your team: pick ' + bt.n + "</h3><div class=\"teamgrid\">" + fams.map(f => { const c = formOf(f, owned(ctx.me)[f].lvl || 1), on = picks.includes(f);
+    const fams = teamChoices(ctx.me), all = ownedFams(ctx.me).length, more = all - fams.length;
+    return h + '<div class="bpanel"><h3>Choose your team: pick ' + bt.n + "</h3>" +
+      '<p class="muted small" style="margin:-4px 0 8px;">' + (teamAll ? "Showing all " + all + " of your creatures." : "\u2B50 Your favorites + your top 10 by level.") +
+      (more > 0 || teamAll ? ' <button class="btn ghost small" data-cc="teamAll">' + (teamAll ? "Show favorites + top 10" : "Show all " + all) + "</button>" : "") + "</p>" +
+      "<div class=\"teamgrid\">" + fams.map(f => { const c = formOf(f, owned(ctx.me)[f].lvl || 1), on = picks.includes(f);
       return '<button class="tpick' + (on ? " on" : "") + '" data-cc="pickTeam" data-fam="' + f + '">' + (owned(ctx.me)[f].fav ? '<span class="tfav">\u2B50</span>' : "") + img(c, "", spOf(f)) + "<b>" + esc(owned(ctx.me)[f].nick || c.name) + "</b><small>Lv " + (owned(ctx.me)[f].lvl || 1) + "</small></button>"; }).join("") +
-      '</div><button class="btn big" data-cc="lockTeam"' + (picks.length === bt.n ? "" : " disabled") + ">Lock in team (" + picks.length + "/" + bt.n + ")</button></div></div>";
+      '</div><button class="btn big" data-cc="lockTeam"' + (picks.length === bt.n && locking !== bt.id ? "" : " disabled") + ">" + (locking === bt.id ? "Locking in\u2026" : "Lock in team (" + picks.length + "/" + bt.n + ")") + "</button></div></div>";
   }
   if (bt.status === "team") return h + '<div class="bpanel"><p>Team locked in! Waiting for ' + esc(thN) + " to choose…</p></div></div>";
   // field: animate only the event that was just revealed
   const lastEv = (bt.log || [])[k - 1], fresh = lastEv && animated[bt.id] !== k ? lastEv : null;
   animated[bt.id] = k;
   const anim = fresh && fresh.k === "hit" ? fresh : null;
+  const healFx = fresh && fresh.k === "heal" ? fresh : null, guardFx = fresh && fresh.k === "guard" ? fresh : null;
   if (fresh) playFor(fresh, me);
   const winner = caught && bt.status === "done" ? bt.winner : null;
   const bob = "animation-delay:-" + (Date.now() % 2600) + "ms";
@@ -345,8 +549,9 @@ function battleOverlay() {
     const att = bt.team[anim.s][anim.ai], fromMine = anim.s === me, fx = TYPE_FX[att.type] || "\u{1F4AB}";
     h += '<div class="bfx ' + (fromMine ? "up" : "down") + (anim.crit ? " crit" : "") + '"><span class="proj">' + fx + "</span><span class=\"proj p2\">" + fx + "</span><span class=\"proj p3\">" + fx + "</span>" +
       '<span class="boom">' + fx + "</span>" +
-      '<span class="dnum' + (anim.crit ? " crit" : anim.weak ? " weak" : "") + '">' + (anim.crit ? "CRIT! " : "") + "-" + anim.dmg + (anim.weak && !anim.crit ? "<small>super effective!</small>" : "") + "</span></div>";
+      '<span class="dnum' + (anim.crit ? " crit" : anim.weak ? " weak" : "") + '">' + (anim.miss ? "MISS!" : (anim.crit ? "CRIT! " : "") + "-" + anim.dmg + (anim.weak && !anim.crit ? "<small>super effective!</small>" : anim.guarded ? "<small>guarded</small>" : "")) + "</span></div>";
   }
+  if (healFx || guardFx) { const e = healFx || guardFx; h += '<div class="bfx2 ' + (e.s === me ? "mine" : "theirs") + '"><span>' + (healFx ? "\u{1F49A} +" + healFx.amt : "\u{1F6E1}\uFE0F") + "</span></div>"; }
   if (winner) h += '<div class="confetti">' + Array.from({ length: 36 }, (_, n) => '<i style="left:' + ((n * 37) % 100) + "%;animation-delay:" + ((n * 97) % 1400) + "ms;background:" + ["#FFD34D", "#FF7AD9", "#7AE7FF", "#8BF08B", "#B08CFF"][n % 5] + '"></i>').join("") + "</div>";
   h += "</div>";
   h += '<div class="bline">' + (v.line || "&nbsp;") + "</div>";
@@ -355,17 +560,174 @@ function battleOverlay() {
     h += '<div class="bpanel"><h3>' + ((bt.log || []).some(e => e.k === "send" && e.s === me) ? "Send out your next creature" : "Who goes first?") + '</h3><div class="teamgrid">' +
       opts.map(o => '<button class="tpick" data-cc="lead" data-i="' + o.i + '">' + img(o.f, "", o.f.sparkle) + "<b>" + esc(o.f.name) + "</b><small>❤ " + o.f.cur + "/" + o.f.hp + "</small></button>").join("") + "</div></div>";
   } else if (caught && bt.status === "lead") h += '<div class="bpanel small"><p>Waiting for ' + esc(thN) + " to choose…</p></div>";
-  if (caught && bt.status === "done") h += '<div class="bpanel"><h3>' + (bt.winner === me ? "\u{1F3C6} You win!" : "Good battle!") + '</h3><button class="btn big" data-cc="closeBattle">Close</button></div>';
+  if (caught && bt.status === "fight") h += movePanel(bt, me, them, thN);
+  if (caught && bt.status === "done") h += '<div class="bpanel"><h3>' + (bt.forfeit ? (bt.forfeit === me ? "You gave up this battle." : "\u{1F3F3}\uFE0F " + esc(thN) + " gave up.") + '</h3><p class="small" style="margin:-4px 0 10px;color:#CFC3E6;">Battles that end with Give up don\u2019t count toward badges.</p><h3 style="display:none">' : bt.winner === me ? "\u{1F3C6} You win!" : "Good battle!") + '</h3><button class="btn big" data-cc="closeBattle">Close</button></div>';
   return h + "</div>";
+}
+
+// Pick a move: attack, power move, guard, heal, or swap. Both players pick, then the round plays out.
+function movePanel(bt, me, them, thN) {
+  const mine = bt.moves && bt.moves[me], theirs = bt.moves && bt.moves[them];
+  if (mine) return '<div class="bpanel small"><p>' + MOVES[mine.m].icon + " You picked <b>" + (mine.m === "swap" ? "Swap to " + esc(bt.team[me][mine.to].name) : mine.m === "alt" ? esc((bt.team[me][bt.active[me]].alt || {}).name || "Special") : MOVES[mine.m].name) + "</b>. Waiting for " + esc(thN) + "\u2026</p>" +
+    '<button class="btn ghost small" data-cc="undoMove">Change my move</button></div>';
+  const f = bt.team[me][bt.active[me]], o = bt.team[them][bt.active[them]];
+  const dmg = hitDamage(f, o, false), back = hitDamage(o, f, false);
+  let hint = "";
+  if (dmg.weak) hint += '<span class="bhint good">\u2B50 Your ' + esc(f.type) + " attack is super effective!</span>";
+  if (back.weak) hint += '<span class="bhint bad">\u26A0\uFE0F Their ' + esc(o.type) + " attack is super effective on " + esc(f.name) + "! Maybe swap?</span>";
+  const btn = (m, label, sub, ok) => '<button class="mvbtn mv-' + m + '" data-cc="move" data-m="' + m + '"' + (ok ? "" : " disabled") + ">" + MOVES[m].icon + " <b>" + label + "</b><small>" + sub + "</small></button>";
+  const bench = bt.team[me].map((x, i) => ({ x, i })).filter(r => r.i !== bt.active[me] && r.x.cur > 0);
+  return '<div class="bpanel"><h3>What will ' + esc(f.name) + " do?</h3>" + (theirs ? '<p class="muted small" style="margin:-4px 0 8px;color:#CFC3E6;">' + esc(thN) + " has picked a move!</p>" : "") +
+    (hint ? '<div class="bhints">' + hint + "</div>" : "") +
+    '<div class="mvgrid">' +
+      btn("attack", esc(f.attack), "about " + dmg.dmg + " damage" + (f.daze ? " \u00b7 " + Math.round(f.daze * 100) + "% chance to dazzle" : "") + (f.poison ? " \u00b7 " + Math.round(f.poison * 100) + "% chance to poison" : "") + (f.atkHeal ? " \u00b7 heals +" + Math.round(f.hp * f.atkHeal) + " HP" : "") + (f.brewFx ? " \u00b7 surprise: poison, Defense down or heal" : "") + (f.atkDefDown ? " \u00b7 " + Math.round(f.atkDefDown * 100) + "% chance to lower Defense" : "") + (f.teamHeal ? " \u00b7 heals the team" : "") + (f.cheer ? " \u00b7 boosts the team" : ""), true) +
+      (f.alt ? (() => { const ad = hitDamage(f.alt.type ? Object.assign({}, f, { type: f.alt.type }) : f, o, false);
+        return btn("alt", esc(f.alt.name), "about " + Math.max(1, Math.round(ad.dmg * (f.alt.mult || 1))) + " damage" + (ad.weak ? " \u2B50" : "") + (f.alt.heal ? " \u00b7 heals +" + Math.round(f.hp * f.alt.heal) + " HP" : "") + (f.alt.defDown ? " \u00b7 " + Math.round(f.alt.defDown * 100) + "% chance to lower defense" : "") + (f.alt.evade ? " \u00b7 " + Math.round(f.alt.evade * 100) + "% chance to dodge the next attack" : "") + (f.alt.daze ? " \u00b7 " + Math.round(f.alt.daze * 100) + "% chance to weaken their next attack" : "") + (f.alt.crit ? " \u00b7 " + Math.round(f.alt.crit * 100) + "% crit chance" : "") + (f.alt.shield ? " \u00b7 snow barrier" : ""), true); })() : "") +
+      (f.sp || []).map(k => { const M = MOVES[k], used = !!(f.spUsed || {})[k], gd = hitDamage(Object.assign({}, f, { type: M.type }), M.pierce ? Object.assign({}, o, { df: 0 }) : o, false);
+        return btn(k, M.name, used ? "already used this battle" : "about " + Math.round(gd.dmg * M.mult) + " " + M.type + " damage" + (gd.weak ? " \u2B50" : "") + (M.hit ? " \u00b7 ignores Defense \u00b7 " + Math.round(M.hit * 100) + "% to hit" : " \u00b7 never misses") + " \u00b7 once", !used); }).join("") +
+      btn("power", "Power Move", "about " + Math.round(dmg.dmg * MOVES.power.mult) + " damage \u00b7 75% to hit", true) +
+      btn("guard", "Guard", "take half damage this round", true) +
+      btn("heal", "Heal", f.healed ? "already used" : f.cur >= f.hp ? "already full health" : "+" + Math.min(f.hp - f.cur, Math.round(f.hp * MOVES.heal.pct)) + " HP \u00b7 once", !f.healed && f.cur < f.hp) +
+    "</div>" +
+    (bench.length ? '<p class="muted small" style="margin:10px 0 6px;color:#CFC3E6;">\u{1F504} Or swap (uses your turn):</p><div class="teamgrid">' +
+      bench.map(r => { const w = hitDamage(o, r.x, false).weak, g = hitDamage(r.x, o, false).weak;
+        return '<button class="tpick" data-cc="move" data-m="swap" data-to="' + r.i + '">' + img(r.x, "", r.x.sparkle) + "<b>" + esc(r.x.name) + "</b><small>\u2764 " + r.x.cur + "/" + r.x.hp + "</small>" +
+          (g ? '<small class="good">\u2B50 strong vs them</small>' : w ? '<small class="bad">\u26A0\uFE0F weak to them</small>' : "") + "</button>"; }).join("") + "</div>" : "") +
+    "</div>";
+}
+let busyForfeit = false, busyLeave = false;
+// Leaving the page ends the battle (Nov 3): closing the tab, going to another page, or being on another tab for a minute.
+// It ends for both players and doesn't count for anyone, the same as pressing Leave.
+export async function endMyBattle(why) {
+  if (!ctx || !ctx.me || leaving) return false;
+  const me = ctx.me.id, bt = (ctx.battles || []).find(b => LIVE.includes(b.status) && !staleBattle(b) && b.a && b.b && (b.a.id === me || b.b.id === me));
+  if (!bt) return false;
+  const end = { status: "ended", endedBy: me, endedName: ctx.me.name, ["seen_" + me]: true, moves: { A: null, B: null }, upd: new Date().toISOString() };
+  // the tab is closing: one quick write (no read first), so it can get out before the page is gone
+  if (why === "left") { try { updateDoc(battleRef(bt.id), end).catch(() => {}); } catch (e) {} battleOpen = null; return true; }
+  leaving = bt.id;
+  try {
+    await changeBattle(bt.id, b => (LIVE.includes(b.status) ? Object.assign(b, { status: "ended", endedBy: me, endedName: ctx.me.name, ["seen_" + me]: true, moves: { A: null, B: null } }) : null));
+    if (battleOpen === bt.id) battleOpen = null;
+    return true;
+  } catch (e) { return false; }
+  finally { leaving = null; }
 }
 
 /* ================= clicks ================= */
 export async function onClick(el, c) {
   ctx = c;
   const a = el.dataset.cc, s = c.me;
+  if (a === "hatchAll") return hatchAll(c);
+  if (a === "collMin") { collMin = !collMin; try { localStorage.setItem("ck-collMin", collMin ? "1" : "0"); } catch (e) {} return c.render(true); }
+  if (a === "hatchAllClose") { bulkHatch = null; busyUntil = 0; return c.render(true); }
+  if (a === "starter" && !s.isTeacher) { if (hasStarter(s)) return; return serverDo(c, "starter", { fam: el.dataset.fam }); }
   if (a === "starter") { if (hasStarter(s)) return; return c.patch({ coll: { [el.dataset.fam]: { lvl: 1, at: new Date().toISOString() } }, starter: el.dataset.fam }); }
+  if (a === "hatchPickle") {
+    if (!pickleLeft(s)) return;
+    if (!s.isTeacher) return serverHatch(c, "pickle", null, { legendary: true });
+    const res = doPull(s, "Legendary", c.cls, { force: PICKLE_FAM });
+    hatch = { phase: "shake", res, legendary: true };
+    hold(3200); c.render(true);
+    c.patch({ coll: res.coll, pickleUsed: (Number(s.pickleUsed) || 0) + 1 }, true);
+    later(1900, () => { hatch.phase = "crack"; hold(1400); });
+    later(2800, () => { hatch.phase = "reveal"; busyUntil = 0; });
+    return;
+  }
+  if (a === "hatchUltra") { if (!ultraLeft(s) || s.isTeacher) return; return serverHatch(c, "ultra", null, { legendary: true, ultra: true }); }
+  if (a === "hatchHeist") { if (!heistLegLeft(s) || s.isTeacher) return; return serverHatch(c, "heist", null, { legendary: true }); }
+  if (a === "hatchRevenge") { if (!revengeLegLeft(s) || s.isTeacher) return; return serverHatch(c, "revenge", null, { legendary: true }); }
+  if (a === "hatchVault") {
+    if (!vaultLegLeft(s)) return;
+    if (!s.isTeacher) return serverHatch(c, "vault", null, { legendary: true });
+    const res = doPull(s, "Legendary", c.cls, { sparkle: true, noEvent: true });
+    hatch = { phase: "shake", res, legendary: true };
+    hold(3200); c.render(true);
+    c.patch({ coll: res.coll, vaultLegUsed: (Number(s.vaultLegUsed) || 0) + 1 }, true);
+    later(1900, () => { hatch.phase = "crack"; hold(1400); });
+    later(2800, () => { hatch.phase = "reveal"; busyUntil = 0; });
+    return;
+  }
+  if (a === "hatchBoss2") {
+    const B = BOSS2_LIST.find(x => x.key === el.dataset.k);
+    if (!B || !boss2EggLeft(s, B)) return;
+    if (!s.isTeacher) return serverHatch(c, "boss2", B.key, { legendary: true });
+    const res = doPull(s, "Legendary", c.cls, { force: B.fam });
+    hatch = { phase: "shake", res, legendary: true };
+    hold(3200); c.render(true);
+    c.patch({ coll: res.coll, [B.used]: (Number(s[B.used]) || 0) + 1 }, true);
+    later(1900, () => { hatch.phase = "crack"; hold(1400); });
+    later(2800, () => { hatch.phase = "reveal"; busyUntil = 0; });
+    return;
+  }
+  if (a === "hatchCandy") {
+    if (!candyLegLeft(s)) return;
+    if (!s.isTeacher) return serverHatch(c, "candy", null, { legendary: true });
+    const res = doPull(s, "Legendary", c.cls, { force: CANDY_FAM });
+    hatch = { phase: "shake", res, legendary: true };
+    hold(3200); c.render(true);
+    c.patch({ coll: res.coll, candyboxLegUsed: (Number(s.candyboxLegUsed) || 0) + 1 }, true);
+    later(1900, () => { hatch.phase = "crack"; hold(1400); });
+    later(2800, () => { hatch.phase = "reveal"; busyUntil = 0; });
+    return;
+  }  if (a === "hatchSnow") {
+    if (!snowLegLeft(s)) return;
+    if (!s.isTeacher) return serverHatch(c, "snow", null, { legendary: true });
+    const res = doPull(s, "Legendary", c.cls, { force: SNOW_FAM });
+    hatch = { phase: "shake", res, legendary: true };
+    hold(3200); c.render(true);
+    c.patch({ coll: res.coll, snowmanLegUsed: (Number(s.snowmanLegUsed) || 0) + 1 }, true);
+    later(1900, () => { hatch.phase = "crack"; hold(1400); });
+    later(2800, () => { hatch.phase = "reveal"; busyUntil = 0; });
+    return;
+  }
+  if (a === "hatchGinger") {
+    if (!gingerLegLeft(s)) return;
+    if (!s.isTeacher) return serverHatch(c, "ginger", null, { legendary: true });
+    const res = doPull(s, "Legendary", c.cls, { force: GINGER_FAM });
+    hatch = { phase: "shake", res, legendary: true };
+    hold(3200); c.render(true);
+    c.patch({ coll: res.coll, gingerLegUsed: (Number(s.gingerLegUsed) || 0) + 1 }, true);
+    later(1900, () => { hatch.phase = "crack"; hold(1400); });
+    later(2800, () => { hatch.phase = "reveal"; busyUntil = 0; });
+    return;
+  }
+  if (a === "hatchHarvest") {
+    if (!feastLegLeft(s)) return;
+    if (!s.isTeacher) return serverHatch(c, "harvest", null, { legendary: true });
+    const res = doPull(s, "Legendary", c.cls, { force: HARVEST_FAM });
+    hatch = { phase: "shake", res, legendary: true };
+    hold(3200); c.render(true);
+    c.patch({ coll: res.coll, feastLegUsed: (Number(s.feastLegUsed) || 0) + 1 }, true);
+    later(1900, () => { hatch.phase = "crack"; hold(1400); });
+    later(2800, () => { hatch.phase = "reveal"; busyUntil = 0; });
+    return;
+  }
+  if (a === "hatchBrew") {
+    if (!brewLegLeft(s)) return;
+    if (!s.isTeacher) return serverHatch(c, "brew", null, { legendary: true });
+    const res = doPull(s, "Legendary", c.cls, { force: BREW_FAM });
+    hatch = { phase: "shake", res, legendary: true };
+    hold(3200); c.render(true);
+    c.patch({ coll: res.coll, potionLegUsed: (Number(s.potionLegUsed) || 0) + 1 }, true);
+    later(1900, () => { hatch.phase = "crack"; hold(1400); });
+    later(2800, () => { hatch.phase = "reveal"; busyUntil = 0; });
+    return;
+  }
+  if (a === "hatchGoal") {
+    const key = nextGoal(s); if (!goalLeft(s) || !key) return;
+    if (!s.isTeacher) return serverHatch(c, "goal", null, { legendary: key !== "rare" });
+    const res = key === "rare" ? doPull(s, rollRareUp(), c.cls) : doPull(s, "Legendary", c.cls, { force: key });
+    hatch = { phase: "shake", res, legendary: key !== "rare" };
+    hold(3200); c.render(true);
+    c.patch({ coll: res.coll, goalUsed: (Number(s.goalUsed) || 0) + 1 }, true);
+    later(1900, () => { hatch.phase = "crack"; hold(1400); });
+    later(2800, () => { hatch.phase = "reveal"; busyUntil = 0; });
+    return;
+  }
   if (a === "hatchTheme") {
     const key = nextTheme(s); if (!themeLeft(s) || !key) return;
+    if (!s.isTeacher) return serverHatch(c, "theme", null, { theme: key });
     const res = doPull(s, rollRarity(), c.cls, { types: THEME_TYPES[key] || [] });
     hatch = { phase: "shake", res, theme: key };
     hold(3200); c.render(true);
@@ -377,10 +739,17 @@ export async function onClick(el, c) {
   if (a === "hatch" || a === "hatchLeg" || a === "hatchBday") {
     const leg = a === "hatchLeg", bday = a === "hatchBday";
     if (bday ? !birthdayLeft(s) : leg ? !legendaryLeft(s) : !pullsLeft(s, c.cls)) return;
+    if (!s.isTeacher) return serverHatch(c, bday ? "bday" : leg ? "leg" : "normal", null, { legendary: leg || bday });
     const res = bday ? doPull(s, "Legendary", c.cls, { force: WISH_FAM })
-      : doPull(s, leg ? "Legendary" : s.isTeacher ? rollTeacherRarity() : rollRarity(), c.cls, { legendaryEgg: leg });
+      : (() => { const eb = s.eggBoost || {}, plain = !leg && !s.isTeacher;
+          let r = leg ? "Legendary" : s.isTeacher ? rollTeacherRarity() : rollRarity();
+          if (plain && eb.rare > 0 && (r === "Common" || r === "Uncommon")) r = "Rare";   // VIP Party Mystery Box Rare egg: at least Rare
+          else if (plain && eb.lucky > 0 && r === "Common") r = "Uncommon";   // Campfire Kitchen Lucky Egg: at least Uncommon
+          return doPull(s, r, c.cls, { legendaryEgg: leg, sparkleChance: plain && eb.sparkle > 0 ? 0.05 : 0 }); })();
     hatch = { phase: "shake", res, legendary: leg || bday };
     const data = { coll: res.coll };
+    if (!leg && !bday && !s.isTeacher && ((s.eggBoost || {}).lucky > 0 || (s.eggBoost || {}).sparkle > 0 || (s.eggBoost || {}).rare > 0)) {   // a meal/party egg boost is used up on this egg
+      const eb = Object.assign({}, s.eggBoost); if (eb.rare > 0) eb.rare--; else if (eb.lucky > 0) eb.lucky--; if (eb.sparkle > 0) eb.sparkle--; data.eggBoost = eb; }
     if (bday) data.birthdayUsed = (Number(s.birthdayUsed) || 0) + 1;
     else if (leg) data.legendaryUsed = (Number(s.legendaryUsed) || 0) + 1; else data.pullsUsed = (Number(s.pullsUsed) || 0) + 1;
     hold(3200); c.render(true);
@@ -392,15 +761,17 @@ export async function onClick(el, c) {
   if (a === "hatchDone") { hatch = null; return c.render(true); }
   if (a === "keepSpare") {   // undo the free level and keep the duplicate as a spare instead
     const r = hatch && hatch.res; if (!r || !r.dupe || r.kept || !r.prev) return;
+    if (!s.isTeacher) return serverDo(c, "keepSpare", {}, x => { r.kept = true; r.id = x.id; });
     const coll = Object.assign({}, owned(s)); coll[r.fam] = Object.assign({}, r.prev);
     const list = spares(s).concat([{ id: spareId(), fam: r.fam, lvl: 1, at: new Date().toISOString(), ...(r.sparkle ? { sparkle: true } : {}) }]);
     r.kept = true; r.id = formOf(r.fam, 1).id;
     return c.patch({ coll, spares: list });
   }
   if (a === "useSpare") {   // turn a spare back into a free level (or make it the main one if you don't have that family)
-    const sp = spares(s).find(x => x.id === el.dataset.sp); if (!sp) return;
+    const sp = spares(s).find(x => x.id === el.dataset.spare); if (!sp) return;
+    if (!s.isTeacher) return serverDo(c, "useSpare", { sp: sp.id }, x => c.flash(x.had ? "Used your spare: +1 level!" : "It\u2019s part of your collection now!", true));
     const coll = Object.assign({}, owned(s)), had = coll[sp.fam];
-    coll[sp.fam] = had ? Object.assign({}, had, { lvl: Math.min(MAX_LEVEL, (had.lvl || 1) + 1) }) : { lvl: sp.lvl || 1, at: new Date().toISOString(), ...(sp.sparkle ? { sparkle: true } : {}) };
+    coll[sp.fam] = had ? Object.assign({}, had, { lvl: Math.min(MAX_LEVEL, (had.lvl || 1) + 1) }) : { lvl: sp.lvl || 1, at: new Date().toISOString(), ...(sp.sparkle ? { sparkle: true } : {}), ...(sp.traded ? { traded: true } : {}) };   // a traded spare keeps its level (the rules check the traded mark)
     c.flash(had ? "Used your spare: +1 level!" : "It\u2019s part of your collection now!", true);
     return c.patch({ coll, spares: spares(s).filter(x => x.id !== sp.id) });
   }
@@ -410,6 +781,7 @@ export async function onClick(el, c) {
     const key = el.dataset.key; releasing = null;
     const why = releaseProblem(s, key, c.battles, c.trades);
     if (why) { releaseMsg = { key, why }; c.render(true); setTimeout(() => { if (releaseMsg && releaseMsg.key === key) { releaseMsg = null; c.render(true); } }, 5000); return; }
+    if (!s.isTeacher) return serverDo(c, "release", { key }, x => c.flash("Bye, " + x.name + "! +" + x.xp + " XP in your bank.", true));
     let fam, name, data;
     if (key.startsWith("s:")) {
       const sp = spares(s).find(x => x.id === key.slice(2)); fam = sp.fam; name = formOf(fam, sp.lvl || 1).name;
@@ -420,6 +792,8 @@ export async function onClick(el, c) {
       const coll = Object.assign({}, owned(s)); delete coll[fam];
       const dex = new Set(s.dex || []); family(fam).forms.forEach((id, i) => { if (i <= top) dex.add(id); });   // the lorebook keeps it
       data = { coll, dex: [...dex] };
+      // Releasing the starter: the current companion becomes the new starter and its companion level bar starts over
+      if (isStarterFam(s, fam)) { data.starter = s.petCreature; const bar = Object.assign({}, s.compBar || {}); delete bar.starter; delete bar[s.petCreature]; data.compBar = bar; }
     }
     const xp = releaseXP(fam); data.xpReleased = (Number(s.xpReleased) || 0) + xp;
     c.flash("Bye, " + name + "! +" + xp + " XP in your bank.", true);
@@ -437,14 +811,38 @@ export async function onClick(el, c) {
   if (a === "nick") { naming = el.dataset.fam; c.render(true); const i = document.getElementById("nickIn"); if (i) { i.focus(); i.select(); } return; }
   if (a === "forTrade") {
     const k = el.dataset.key;
+    if (!s.isTeacher) return serverDo(c, "forTrade", { key: k });
     if (k.startsWith("s:")) { const list = spares(s).map(x => (x.id === k.slice(2) ? Object.assign({}, x, { forTrade: !x.forTrade }) : x)); return c.patch({ spares: list }); }
     const f = k.slice(2), e = owned(s)[f]; if (!e) return;
     const coll = Object.assign({}, owned(s)); coll[f] = Object.assign({}, e); if (e.forTrade) delete coll[f].forTrade; else coll[f].forTrade = true;
     return c.patch({ coll });
   }
+  if (a === "ideaStart") { ideaOpen = true; ideaTypes = []; ideaKind = el.dataset.k || "creature"; ideaSlot = "hat"; roomSlot = "bed"; return c.render(true); }
+  if (a === "ideaKind") { return keepIdeaFields(() => { ideaKind = el.dataset.k; c.render(true); }); }
+  if (a === "roomSlot") { return keepIdeaFields(() => { roomSlot = el.dataset.k; c.render(true); }); }
+  if (a === "ideaSlot") { return keepIdeaFields(() => { ideaSlot = el.dataset.k; c.render(true); }); }
+  if (a === "ideaCancel") { ideaOpen = false; return c.render(true); }
+  if (a === "ideaType") {
+    const t = el.dataset.t;
+    return keepIdeaFields(() => { ideaTypes = ideaTypes.includes(t) ? ideaTypes.filter(x => x !== t) : ideaTypes.length < 2 ? ideaTypes.concat([t]) : [ideaTypes[1], t]; c.render(true); });
+  }
+  if (a === "ideaSend") {
+    const v = id => ((document.getElementById(id) || {}).value || "").replace(/\s+/g, " ").trim();
+    const name = v("ideaName").slice(0, 30), animal = v("ideaAnimal").slice(0, 40), lore = ((document.getElementById("ideaLore") || {}).value || "").trim().slice(0, 600);
+    const gear = ideaKind === "gear", room = ideaKind === "room";
+    if (!name) return c.flash(gear ? "Give your accessory a name!" : room ? "Give your decoration a name!" : "Give your creature a name!");
+    if (!gear && !room && !ideaTypes.length) return c.flash("Pick at least one type!");
+    const today = azToday();
+    if (!hitGoalToday(s, c.cls) || (s.ideas || []).some(x => x.date === today)) return;
+    const idea = room ? { date: today, kind: "room", name, slot: roomSlot, at: new Date().toISOString() } : gear ? { date: today, kind: "gear", name, slot: ideaSlot, at: new Date().toISOString() } : { date: today, kind: "creature", name, types: ideaTypes.slice(), at: new Date().toISOString() };
+    if (lore) idea.lore = lore; if (animal && !gear && !room) idea.animal = animal;
+    ideaOpen = false; ideaTypes = [];
+    await c.patch({ ideas: (s.ideas || []).concat([idea]) });
+    return c.flash("\u{1F4A1} Idea sent to Ms. Ariana!", true);
+  }
   if (a === "fav") {
     const f = el.dataset.fam, e = owned(s)[f]; if (!e) return;
-    const coll = Object.assign({}, owned(s)); coll[f] = Object.assign({}, e); if (e.fav) delete coll[f].fav; else coll[f].fav = true;
+    const coll = Object.assign({}, owned(s)); coll[f] = Object.assign({}, e); if (e.fav) delete coll[f].fav; else { coll[f].fav = true; delete coll[f].forTrade; }
     return c.patch({ coll });
   }
   if (a === "nickCancel") { naming = null; return c.render(true); }
@@ -462,6 +860,8 @@ export async function onClick(el, c) {
   if (a === "back") { book.detail = null; book.flip = "in-prev"; return c.render(true); }
   if (a === "lvl") {
     const f = el.dataset.fam, e = owned(s)[f]; if (!e || bankXP(s, c.cls) < LEVEL_XP || (e.lvl || 1) >= MAX_LEVEL) return;
+    if (!s.isTeacher) return serverDo(c, "levelUp", { fam: f }, x => { if (book && book.detail === x.before) book.detail = x.after;
+      c.flash(x.after !== x.before ? "\u2728 " + x.beforeName + " evolved into " + x.afterName + "!" : x.beforeName + " is now Lv " + x.lvl + "!", true); });
     const before = formOf(f, e.lvl || 1), coll = Object.assign({}, owned(s), { [f]: Object.assign({}, e, { lvl: (e.lvl || 1) + 1 }) }), after = formOf(f, (e.lvl || 1) + 1);
     if (book && book.detail === before.id) book.detail = after.id;
     await c.patch({ coll, xpSpent: (Number(s.xpSpent) || 0) + LEVEL_XP });
@@ -471,8 +871,14 @@ export async function onClick(el, c) {
   // arena
   if (a === "ready") return c.patch({ arenaReady: !s.arenaReady });
   if (a === "challenge") {
-    const o = c.students.find(x => x.id === el.dataset.o); if (!o || busyIds().has(o.id) || busyIds().has(s.id)) return;
-    await setDoc(newBattleRef(), { a: { id: s.id, name: s.name }, b: { id: o.id, name: o.name }, status: "invite", created: new Date().toISOString(), log: [] });
+    const o = c.students.find(x => x.id === el.dataset.o); if (!o) return;
+    if (busyIds().has(s.id)) return c.flash("Finish your battle first!");
+    // Student pages don't follow other kids' battles (it saves a lot of Firebase reads), so check right now.
+    let live = [];
+    try { live = await liveBattlesNow(); } catch (e) { live = c.battles || []; }
+    if (live.some(b => !staleBattle(b) && b.a && b.b && (b.a.id === o.id || b.b.id === o.id))) return c.flash(o.name + " is in a battle right now \u2014 try again in a bit!");
+    if (live.some(b => !staleBattle(b) && b.a && b.b && (b.a.id === s.id || b.b.id === s.id))) return c.flash("Finish your battle first!");
+    await setDoc(newBattleRef(), { a: { id: s.id, name: s.name }, b: { id: o.id, name: o.name }, ids: [s.id, o.id], status: "invite", created: new Date().toISOString(), log: [] });
     return c.flash("Challenge sent to " + o.name + "!", true);
   }
   if (a === "accept") {
@@ -486,21 +892,49 @@ export async function onClick(el, c) {
     });
     battleOpen = id; picks = []; return c.render(true);
   }
-  if (a === "decline") { await changeBattle(el.dataset.b, bt => (bt.status === "invite" ? Object.assign(bt, { status: "declined" }) : null)); return; }
-  if (a === "enter") { battleOpen = el.dataset.b; picks = []; return c.render(true); }
+  if (a === "decline") {
+    const r = await changeBattle(el.dataset.b, bt => (bt.status === "invite" ? Object.assign(bt, { status: "declined", ["seen_" + s.id]: true }) : null));
+    if (!r) c.flash("That challenge already started or was cancelled.");
+    return c.render(true);
+  }
+  if (a === "enter") { battleOpen = el.dataset.b; picks = []; busyLeave = false; return c.render(true); }
   if (a === "mute") { try { localStorage.setItem("ck-mute", muted() ? "0" : "1"); } catch (e) {} if (!muted()) tone(660, 0.1, "square", 0.06); return c.render(true); }
-  if (a === "leaveBattle") { battleOpen = null; return c.render(true); }
+  if (a === "leaveCancel") { busyLeave = false; return c.render(true); }
+  if (a === "leaveBattle") {
+    const bt = (c.battles || []).find(b => b.id === battleOpen);
+    if (!bt || !LIVE.includes(bt.status)) { battleOpen = null; busyLeave = false; return c.render(true); }
+    if (leaving) return;   // Leave ends the battle right away for both players (Nov 3: no "are you sure?" step)
+    busyLeave = false; const id = battleOpen; leaving = id; c.render(true);
+    try {
+      await changeBattle(id, b => (LIVE.includes(b.status) ? Object.assign(b, { status: "ended", endedBy: s.id, endedName: s.name, ["seen_" + s.id]: true, moves: { A: null, B: null } }) : null));
+      battleOpen = null;
+    } catch (e) { c.flash("Couldn\u2019t end the battle \u2014 try again. (" + (e.code || e.message) + ")"); }
+    finally { leaving = null; }
+    return c.render(true);
+  }
+  if (a === "skipReplay") { const bt = c.battles.find(b => b.id === battleOpen); if (bt) shown[bt.id] = (bt.log || []).length; clearTimeout(replayTimer); replayTimer = null; return c.render(true); }
+  if (a === "teamAll") { teamAll = !teamAll; return c.render(true); }
   if (a === "pickTeam") {
     const bt = c.battles.find(b => b.id === battleOpen), f = el.dataset.fam;
     picks = picks.includes(f) ? picks.filter(x => x !== f) : picks.length < bt.n ? picks.concat([f]) : picks;
+    // update just the tapped card and the Lock in button (no full redraw: a big collection has hundreds of pictures)
+    const lock = document.querySelector('[data-cc="lockTeam"]');
+    if (lock && el.classList) { el.classList.toggle("on", picks.includes(f)); lock.textContent = "Lock in team (" + picks.length + "/" + bt.n + ")"; lock.disabled = !(picks.length === bt.n && locking !== bt.id); return; }
     return c.render(true);
   }
   if (a === "lockTeam") {
-    const team = picks.map(f => fighterFrom(s, f));
-    await changeBattle(battleOpen, bt => {
-      const me = sideOf(bt); if (bt.status !== "team" || bt.team[me]) return null;
-      bt.team[me] = team; if (bt.team.A && bt.team.B) bt.status = "lead"; return bt;
-    });
+    if (locking) return;
+    const team = JSON.parse(JSON.stringify(picks.map(f => fighterFrom(s, f)).filter(Boolean)));
+    const bt0 = (c.battles || []).find(b => b.id === battleOpen);
+    if (!bt0 || team.length !== bt0.n) { picks = picks.filter(f => owned(s)[f]); c.flash("One of those creatures isn\u2019t on your team anymore \u2014 pick again."); return c.render(true); }
+    locking = battleOpen; c.render(true);   // show "Locking in…" right away
+    try {
+      const r = await changeBattle(battleOpen, bt => {
+        const me = sideOf(bt); if (bt.status !== "team" || bt.team[me]) return null;
+        bt.team[me] = team; if (bt.team.A && bt.team.B) bt.status = "lead"; return bt;
+      });
+      if (!r) c.flash("That battle already moved on (or ended).");
+    } finally { locking = null; c.render(true); }
     return;
   }
   if (a === "lead") {
@@ -508,10 +942,35 @@ export async function onClick(el, c) {
     await changeBattle(battleOpen, bt => {
       const me = sideOf(bt); if (bt.status !== "lead" || bt.active[me] != null || !(bt.team[me][i].cur > 0)) return null;
       bt.active[me] = i; bt.log.push({ k: "send", s: me, i, n: bt.team[me][i].name, who: me === "A" ? bt.a.name : bt.b.name });
-      if (bt.active.A != null && bt.active.B != null) resolve(bt);
+      if (bt.active.A != null && bt.active.B != null) { bt.status = "fight"; bt.moves = { A: null, B: null }; }
       return bt;
     });
     return;
+  }
+  if (a === "move") {
+    const mv = { m: el.dataset.m }; if (mv.m === "swap") mv.to = Number(el.dataset.to);
+    busyForfeit = false;
+    await changeBattle(battleOpen, bt => {
+      const me = sideOf(bt), them = me === "A" ? "B" : "A";
+      if (bt.status !== "fight" || (bt.moves && bt.moves[me]) || !moveOk(bt, me, mv)) return null;
+      bt.moves = Object.assign({ A: null, B: null }, bt.moves || {}); bt.moves[me] = mv;
+      if (bt.moves[them]) resolveRound(bt);
+      return bt;
+    });
+    return c.render(true);
+  }
+  if (a === "undoMove") {
+    await changeBattle(battleOpen, bt => { const me = sideOf(bt); if (bt.status !== "fight" || !bt.moves || !bt.moves[me]) return null; bt.moves[me] = null; return bt; });
+    return c.render(true);
+  }
+  if (a === "forfeit") {
+    if (!busyForfeit) { busyForfeit = true; return c.render(true); }
+    busyForfeit = false;
+    await changeBattle(battleOpen, bt => { const me = sideOf(bt), them = me === "A" ? "B" : "A";
+      if (!["lead", "fight"].includes(bt.status)) return null;
+      bt.status = "done"; bt.winner = them; bt.forfeit = me; bt.moves = { A: null, B: null };
+      bt.log.push({ k: "forfeit", s: me, who: me === "A" ? bt.a.name : bt.b.name }); bt.log.push({ k: "win", s: them }); return bt; });
+    return c.render(true);
   }
   if (a === "closeBattle") {
     const id = battleOpen; battleOpen = null;

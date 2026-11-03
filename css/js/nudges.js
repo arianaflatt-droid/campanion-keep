@@ -1,14 +1,21 @@
 // Nudge messages: short, friendly "you're close!" notes at the top of a student's page.
 // Each rule returns a nudge or null; the most useful few are shown (lower pri = shown first).
-import { seasonOf, dayXP, simulate, GEAR, goalXP, arr5, esc, isHaunt, battleOn, nextAttack, companionOf, bossState } from "./game.js";
-import { birthdayLeft, EVENTS, eventOpen, eventUnlocked, hasEvent, eventStreak, creature, family, azNow, pullsLeft, legendaryLeft, bankXP, LEVEL_XP, PULL_XP, hasStarter, owned, MAX_LEVEL } from "./collect.js";
-import { badgeState } from "./badges.js";
+import { seasonOf, dayXP, simulate, GEAR, goalXP, arr5, esc, isHaunt, battleOn, nextAttack, companionOf, bossState } from "./game.js?v=20261103j";
+import { azToday, brewLegLeft, feastLegLeft, gingerLegLeft, snowLegLeft, candyLegLeft, ghostEggLeft, BOSS2_LIST, boss2EggLeft, vaultLegLeft, pickleLeft, birthdayLeft, EVENTS, eventOpen, eventUnlocked, hasEvent, eventStreak, creature, family, azNow, pullsLeft, legendaryLeft, bankXP, LEVEL_XP, PULL_XP, hasStarter, owned, MAX_LEVEL } from "./collect.js?v=20261103j";
+import { badgeState } from "./badges.js?v=20261103j";
+import { mqReady } from "./morning.js?v=20261103j";
+import { unthanked } from "./kindness.js?v=20261103j";
+import { pettedToday } from "./bond.js?v=20261103j";
+import { mealsReady } from "./meals.js?v=20261103j";
+import { passReady } from "./pass.js?v=20261103j";
+import { doorsLive, goldenReady, doorName } from "./doors.js?v=20261103j";
 
 const MAX_SHOWN = 3;
 const WEEKDAY = { Mon: 0, Tue: 1, Wed: 2, Thu: 3, Fri: 4 };
 const plural = (n, w) => n.toLocaleString() + " " + w + (n === 1 ? "" : "s");
 
 export function nudges(st, cls, battles, students) {
+  const kindN = students ? unthanked(st, students, cls).length : 0;
   const goal = goalXP(cls), sim = simulate(st, cls), c = companionOf(st), pet = esc(st.petName || (c && c.name) || "your companion");
   const d = WEEKDAY[azNow().day];                       // today as a school-day index (undefined on weekends)
   const hasToday = d != null && (arr5(st.xp, null)[d] != null || arr5(st.lunchXp, null)[d] != null);
@@ -16,6 +23,20 @@ export function nudges(st, cls, battles, students) {
   const out = [];
   const add = (pri, icon, html, tab) => out.push({ pri, icon, html, tab });
 
+  if (kindN) out.push({ pri: 0, icon: "\u{1F48C}", html: "<b>" + (kindN === 1 ? "A classmate sent you a shout-out!" : kindN + " classmates sent you shout-outs!") + "</b> Read " + (kindN === 1 ? "it" : "them") + " on the Kindness Board.", tab: "pet" });
+  { const n = mealsReady(st, cls); if (n) add(0, "\u{1F525}", "<b>" + (n === 1 ? "A meal is" : "Breakfast and lunch are") + " ready to cook!</b> Cook for " + pet + " in the Campfire Kitchen for a surprise boost.", "pet"); }
+  // ---- Season Pass rewards waiting ----
+  { const n = passReady(st, cls); if (n) add(0, "\u{1F39F}\uFE0F", "<b>" + (n === 1 ? "A Season Pass reward is" : n + " Season Pass rewards are") + " ready!</b> Claim " + (n === 1 ? "it" : "them") + " on the Season Pass tab.", "pass"); }
+  // ---- Bonding meter: a daily pet ----
+  if (!pettedToday(st)) add(4, "\u{1F43E}", "<b>Pet " + pet + " today</b> to fill a friendship heart and unlock new tricks!", "pet");
+  // ---- Morning Quest Board ----
+  { const n = mqReady(st, cls); if (n) add(0, "\u{1F305}", "<b>" + (n === 1 ? "A morning quest is" : n + " morning quests are") + " ready!</b> Catch creatures, dig for treasure and more on the Morning Quest Board.", "morning"); }
+  // ---- presents from earlier days' doors (approved after the day ended) ----
+  if (doorsLive(cls)) {
+    const t = azToday(), earlier = Object.keys(st.doors || {}).filter(x => x < t);
+    const n = earlier.reduce((k, x) => k + Object.keys(st.doors[x] || {}).filter(i => i !== "g" && (st.doors[x][i] || {}).st === "ok").length + (goldenReady(st, cls, x) ? 1 : 0), 0);
+    if (n) add(0, "\u{1F381}", "<b>You have " + (n === 1 ? "a present" : n + " presents") + " from an earlier day\u2019s doors!</b> Open " + (n === 1 ? "it" : "them") + " in " + esc(doorName()) + ".", "doors");
+  }
   // ---- today's XP ----
   if (today != null && today < goal) {
     const left = goal - today, lunchOpen = !(cls && cls.lunchBonus === false) && azNow().h < 12;
@@ -27,13 +48,13 @@ export function nudges(st, cls, battles, students) {
   } else if (sim.atRisk) {
     add(0, "⚠️", pet + " is at half health. Hit <b>" + goal + " XP</b> today to heal it!");
   } else if (!sim.alive && sim.capeReady) {
-    add(0, "\u{1F9B8}", "You earned a Hero Cape! Ask your teacher to bring " + pet + " back.");
+    add(0, "\u{1F9B8}", "You earned a Hero Cape! " + pet + " is on the way back.");
   } else if (!sim.alive) {
     add(0, "\u{1F4AA}", "Hit <b>" + goal + " XP</b> to earn a Hero Cape and bring " + pet + " back!");
   }
 
   // ---- streak gear ----
-  const nextGear = GEAR.filter(g => !g.ghost && !g.turkey && !g.jingle && !sim.unlocked.includes(g.id)).sort((a, b) => a.streak - b.streak)[0];
+  const nextGear = GEAR.filter(g => !g.ghost && !g.turkey && !g.jingle && !g.frost && !g.heart && !g.months && !sim.unlocked.includes(g.id)).sort((a, b) => a.streak - b.streak)[0];
   if (nextGear && sim.alive) {
     const need = Math.max(1, nextGear.streak - sim.hitRun);
     if (need <= 2) add(2, "\u{1F525}", "<b>" + plural(need, "more " + goal + " XP day") + "</b> in a row unlocks the <b>" + esc(nextGear.name) + "</b>!");
@@ -42,6 +63,15 @@ export function nudges(st, cls, battles, students) {
   // ---- Creature Collector ----
   if (hasStarter(st)) {
     if (birthdayLeft(st)) add(0, "\u{1F382}", "<b>Happy birthday!</b> Ms. Ariana sent you a birthday egg. Go hatch it!", "collect");
+    if ((Number(st.ultraEggs) || 0) > (Number(st.ultraUsed) || 0)) add(0, "\u{1F308}", "<b>ULTRA LEGENDARY egg!</b> You earned an Ultra egg. Go hatch it!", "collect");
+    if (vaultLegLeft(st)) add(0, "\u{1F48E}", "<b>Treasure Vault treasure!</b> You have a Sparkle Legendary egg waiting. Go hatch it!", "collect");
+    BOSS2_LIST.forEach(B => { if (boss2EggLeft(st, B)) add(0, B.icon, "<b>You helped beat the " + B.boss + " a 2nd time!</b> You got a " + B.boss + " egg. Go hatch it!", "collect"); });
+    if (candyLegLeft(st)) add(0, "\u{1F36B}", "<b>You earned a special Candivora egg!</b> Go hatch it!", "collect");
+    if (snowLegLeft(st)) add(0, "\u2603\uFE0F", "<b>You earned a special Snowmorrow egg!</b> Go hatch it!", "collect");
+    if (gingerLegLeft(st)) add(0, "\u{1F36A}", "<b>You earned a special Gingermischief egg!</b> Go hatch it!", "collect");
+    if (feastLegLeft(st)) add(0, "\u{1F983}", "<b>You earned a special Cornucopia egg!</b> Go hatch it!", "collect");
+    if (brewLegLeft(st)) add(0, "\u{1F9EA}", "<b>Your Potion Team won Haunt-O-Ween!</b> You got a special Brewraith egg. Go hatch it!", "collect");
+    if (pickleLeft(st)) add(0, "\u{1F952}", "<b>Thanks for coming to the event!</b> Ms. Ariana sent you a special egg. Go hatch it!", "collect");
     const eggs = pullsLeft(st, cls) + legendaryLeft(st);
     if (eggs) add(2, "\u{1F95A}", "You have <b>" + plural(eggs, "egg") + "</b> waiting to hatch!", "collect");
     const bank = bankXP(st, cls), canLevel = Object.values(owned(st)).some(e => (e.lvl || 1) < MAX_LEVEL);
@@ -67,7 +97,7 @@ export function nudges(st, cls, battles, students) {
   // ---- Haunt-O-Ween / Gobble-Palooza ----
   if (battleOn(cls) && !bossState(cls, students).defeated) {
     const atk = nextAttack(st, cls).count;
-    if (atk) add(1, "⚔️", "You have <b>" + plural(atk, "attack") + "</b> ready for the " + seasonOf(cls).boss + "!", "haunt");
+    if (atk && !(cls && (cls.brewSolo || cls.feastSolo))) add(1, "⚔️", "You have <b>" + plural(atk, "attack") + "</b> ready for the " + seasonOf(cls).boss + "!", "haunt");
   }
 
   return out.sort((a, b) => a.pri - b.pri).slice(0, MAX_SHOWN);
