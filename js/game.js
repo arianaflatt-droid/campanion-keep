@@ -1,10 +1,10 @@
-import { CREATURE_LAYOUT, CREATURE_FIT_ID } from "./creature-fit.js?v=20261103d";
-import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261103d";
-import { heldWeapon } from "./quest.js?v=20261103d";
+import { CREATURE_LAYOUT, CREATURE_FIT_ID } from "./creature-fit.js?v=20261103e";
+import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261103e";
+import { heldWeapon } from "./quest.js?v=20261103e";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261103d";
+export const APP_V = "20261103e";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -600,6 +600,7 @@ export const OUTFITS = [].concat(
   OF("xmas", "xmas", [["elfhat", "Elf Hat"], ["candycane", "Candy Cane Headband"], ["gingerbread", "Gingerbread Hat"], ["ornament", "Ornament Headband"], ["holly", "Holly Crown"], ["bow", "Present Bow"], ["star", "Star Topper"], ["nutcracker", "Nutcracker Hat"]]),
   OF("rv", "revenge", [["piehat", "Pie Hat"]]),
   OF("leaf", "leaf", [["leafcrown", "Autumn Leaf Crown"], ["acorn", "Acorn Cap"], ["beanie", "Cozy Knit Beanie"], ["squirrel", "Squirrel Ears"], ["pinecone", "Pinecone Hat"], ["mapleclip", "Sparkly Maple Clip"], ["scarf", "Plaid Scarf"], ["mushroom", "Mushroom Cap"]]),   // 🍂 Leaf Pile Jump   // 🦃 Turducken's Revenge chapter 3 reward
+  OF("orn", "orn", [["antlers", "Reindeer Antlers"], ["santa", "Santa Hat"], ["tiara", "Snowflake Tiara"], ["earmuffs", "Fluffy Earmuffs"], ["lights", "Twinkle Light Necklace"], ["bell", "Golden Jingle Bell Collar"], ["penguin", "Penguin Hood"], ["snowman", "Snowman Top Hat"]]),   // 🎄 Ornament Hunt (Nov 3)
   OF("lib", "lib", [["candles", "Candle Crown"], ["nightcap", "Starry Nightcap"], ["wizard", "Wizard Reading Cap"], ["bookhat", "Book Hat"], ["bun", "Ghost Librarian Bun"], ["scholar", "Moonlight Scholar Cap"], ["owl", "Owl Ear Headband"], ["bookworm", "Bookworm Antennae"]]));
 export const outfitOf = id => OUTFITS.find(o => o.id === id) || null;
 export const headImg = (c, img) => '<span class="phat cos" style="' + (c ? partyStyle(c, "hat") : "") + '"><img src="' + img + '" alt=""></span>';

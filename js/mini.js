@@ -17,12 +17,12 @@
    While an event is on, every companion wears a random costume from it, and The Keep gets the event's colors.
    Saved on the student: mini = { id, used: { date: n }, cos, maze, stop, stamps, elf: { d, found, peek: [] }, got }
    plus outfits / outfitOn (game.js). */
-import { esc, HEAD_FNS, OUTFITS, candyLeft, companionOf } from "./game.js?v=20261103d";
-import { azToday, creature, FAMILIES } from "./collect.js?v=20261103d";
-import { CREATURES } from "./creatures.js?v=20261103d";
-import { xpOn } from "./surprise.js?v=20261103d";
-import { SEASON, boostExtra } from "./game.js?v=20261103d";
-import { readingOn, readingOnBoosted } from "./readmap.js?v=20261103d";
+import { esc, HEAD_FNS, OUTFITS, candyLeft, companionOf } from "./game.js?v=20261103e";
+import { azToday, creature, FAMILIES } from "./collect.js?v=20261103e";
+import { CREATURES } from "./creatures.js?v=20261103e";
+import { xpOn } from "./surprise.js?v=20261103e";
+import { SEASON, boostExtra } from "./game.js?v=20261103e";
+import { readingOn, readingOnBoosted } from "./readmap.js?v=20261103e";
 
 export const PER_TICKET = 10, OUTFIT_COST = 60;
 const typesOf = fam => { const f = FAMILIES.find(x => x.id === fam); const c = f && CREATURES.find(x => x.id === f.forms[0]); return (c && c.types) || []; };
@@ -435,7 +435,10 @@ const LIB_FURN = [["bed", "Midnight Library Bed", 120], ["chair", "Reading Armch
 // 🍂 Leaf Pile Jump: the Leafy Hideaway room set (item ids kind_leafy)
 const LEAF_FURN = [["bed", "Leaf Pile Bed", 120], ["chair", "Tree Stump Armchair", 80], ["wallpaper", "Acorn & Leaf Wallpaper", 80], ["flooring", "Maple Wood Floor", 80],
   ["ceiling", "Acorn Lantern Light", 80], ["rug", "Braided Maple Rug", 60], ["wall_art", "Golden Forest Painting", 60], ["plant", "Little Maple Tree", 60], ["shelf", "Acorn Jar & Pumpkin", 60]];
-const FURN = { lib: { list: () => LIB_FURN, th: "library", title: "Midnight Library" }, leaf: { list: () => LEAF_FURN, th: "leafy", title: "Leafy Hideaway" } };
+// 🎄 Ornament Hunt: the Cozy Cabin room set (item ids kind_cabin)
+const CABIN_FURN = [["bed", "Log Cabin Bed", 120], ["chair", "Plaid Armchair", 80], ["wallpaper", "Twinkle Log Wall", 80], ["flooring", "Snowy Plank Floor", 80],
+  ["ceiling", "Wagon Wheel Chandelier", 80], ["rug", "Braided Plaid Rug", 60], ["wall_art", "Snowy Cabin Painting", 60], ["plant", "Little Christmas Tree", 60], ["shelf", "Lantern & Cocoa", 60]];
+const FURN = { lib: { list: () => LIB_FURN, th: "library", title: "Midnight Library" }, leaf: { list: () => LEAF_FURN, th: "leafy", title: "Leafy Hideaway" }, orn: { list: () => CABIN_FURN, th: "cabin", title: "Cozy Cabin" } };
 function furnHTML(st, E) {
   const F = FURN[E.key]; if (!F) return "";
   const have = st.roomOwned || [], left = candyLeft(st);
