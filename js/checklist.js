@@ -3,21 +3,21 @@
    Each step checks itself off from the student's save; tapping a step opens the tab where it's done.
    The Treasure Vault step is "check your progress", so it counts as done once the student opens it today
    (remembered on this computer only). */
-import { rvStarted, rvStock, rvBeatCount } from "./revenge.js?v=20261103g";
-import { heistTodo } from "./heist.js?v=20261103g";
-import { mapOn, mapState, todayReading, PER_ISLAND } from "./readmap.js?v=20261103g";
-import { tbLeft, tbLive } from "./teachbattle.js?v=20261103g";
-import { esc, simulate, companionOf, goalXP } from "./game.js?v=20261103g";
+import { rvStarted, rvStock, rvBeatCount } from "./revenge.js?v=20261103h";
+import { heistTodo } from "./heist.js?v=20261103h";
+import { mapOn, mapState, todayReading, PER_ISLAND } from "./readmap.js?v=20261103h";
+import { tbLeft, tbLive } from "./teachbattle.js?v=20261103h";
+import { esc, simulate, companionOf, goalXP } from "./game.js?v=20261103h";
 import { azToday, azNow, todayXP, pullsLeft, legendaryLeft, birthdayLeft, pickleLeft, vaultLegLeft, BOSS2_LIST, boss2EggLeft, candyLegLeft, snowLegLeft,
-  gingerLegLeft, feastLegLeft, brewLegLeft, goalLeft, themeLeft, hasStarter, bankXP, LEVEL_XP } from "./collect.js?v=20261103g";
-import { mqReady } from "./morning.js?v=20261103g";
-import { doorsLive, doorName, goldenReady, weekDoorState, vaultState, vaultGoal, subReq, todayPlan } from "./doors.js?v=20261103g";
-import { soloOn, soloReady, soloCfg } from "./solobrew.js?v=20261103g";
-import { passReady } from "./pass.js?v=20261103g";
-import { pettedToday } from "./bond.js?v=20261103g";
-import { mealsReady } from "./meals.js?v=20261103g";
-import { readyTests } from "./quest.js?v=20261103g";
-import { unthanked } from "./kindness.js?v=20261103g";
+  gingerLegLeft, feastLegLeft, brewLegLeft, goalLeft, themeLeft, hasStarter, bankXP, LEVEL_XP } from "./collect.js?v=20261103h";
+import { mqReady } from "./morning.js?v=20261103h";
+import { doorsLive, doorName, goldenReady, weekDoorState, vaultState, vaultGoal, subReq, todayPlan } from "./doors.js?v=20261103h";
+import { soloOn, soloReady, soloCfg } from "./solobrew.js?v=20261103h";
+import { passReady } from "./pass.js?v=20261103h";
+import { pettedToday } from "./bond.js?v=20261103h";
+import { mealsReady } from "./meals.js?v=20261103h";
+import { readyTests } from "./quest.js?v=20261103h";
+import { unthanked } from "./kindness.js?v=20261103h";
 
 const seenKey = (id, what) => "ck-seen-" + azToday() + "-" + id + "-" + what;
 export function markSeen(id, what) { try { localStorage.setItem(seenKey(id, what), "1"); } catch (e) {} }
@@ -55,7 +55,7 @@ export function steps(s, cls, students, battles) {
     add("eggs", "collect", "\u{1F95A}", "Hatch your eggs", n ? "You have " + plural(n, "egg") + " to hatch!" : "No eggs right now." + (lv ? " You can level up a creature " + plural(lv, "time") + "!" : " 120 XP in a day earns one."), !n); }
   else add("eggs", "collect", "\u{1F95A}", "Pick your starter creature", "Go to the Creature Collector to pick one.", false);
   // 6. doors & presents
-  if (doorsLive(cls)) { const n = presentsReady(s, cls), wk = weekDoorState(s, cls) === "ready";
+  if (doorsLive(cls)) { const n = presentsReady(s, cls), wk = false;   // Nov 3: no Weekly Door (its rewards are in the vault)
     add("doors", "doors", "\u{1F6AA}", "Check your " + doorName(), n || wk ? (n ? plural(n, "present") + " to open" : "") + (n && wk ? " and " : "") + (wk ? "your Weekly Door is ready!" : "!") : "Finish a door’s task, then tap “I did it!”", !n && !wk); }
   // 7. Treasure Vault
   { const st = vaultState(s, cls), v = vaultGoal(s, cls), unit = v.sub && v.sub !== "all" ? "XP in your goal subject" : "XP";
@@ -93,7 +93,7 @@ function workCard(s, cls) {
   const p = todayPlan(s, cls, azToday()); if (!p || (!p.schoolToday && p.rows.every(r => !r.target))) return "";
   const all = p.rows.every(r => r.today >= r.target);
   return '<div class="ckwork"><b>\u{1F4DA} ' + (p.weekend ? "Make-up work this weekend" : "Today\u2019s subjects") + "</b>" +
-    '<span class="small">' + (p.weekend ? "Finish what\u2019s still missing this week:" : "Do these every school day (they add up for your Weekly Door and Vault):") + "</span>" +
+    '<span class="small">' + (p.weekend ? "Finish what\u2019s still missing this week:" : "Do these every school day (they add up for your Treasure Vault):") + "</span>" +
     p.rows.map(r => { const ok = r.today >= r.target;
       return '<div class="ckwrow' + (ok ? " ok" : "") + '"><span class="ckwname">' + (SUB_IC[r.src] || "\u{1F4D8}") + " " + esc(r.name) + "</span>" +
         '<span class="pbar"><span style="width:' + (r.target ? Math.min(100, r.today / r.target * 100) : 100) + '%"></span></span>' +

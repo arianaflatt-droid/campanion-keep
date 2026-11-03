@@ -17,12 +17,12 @@
    While an event is on, every companion wears a random costume from it, and The Keep gets the event's colors.
    Saved on the student: mini = { id, used: { date: n }, cos, maze, stop, stamps, elf: { d, found, peek: [] }, got }
    plus outfits / outfitOn (game.js). */
-import { esc, HEAD_FNS, OUTFITS, candyLeft, companionOf } from "./game.js?v=20261103g";
-import { azToday, creature, FAMILIES } from "./collect.js?v=20261103g";
-import { CREATURES } from "./creatures.js?v=20261103g";
-import { xpOn } from "./surprise.js?v=20261103g";
-import { SEASON, boostExtra } from "./game.js?v=20261103g";
-import { readingOn, readingOnBoosted } from "./readmap.js?v=20261103g";
+import { esc, HEAD_FNS, OUTFITS, candyLeft, companionOf } from "./game.js?v=20261103h";
+import { azToday, creature, FAMILIES } from "./collect.js?v=20261103h";
+import { CREATURES } from "./creatures.js?v=20261103h";
+import { xpOn } from "./surprise.js?v=20261103h";
+import { SEASON, boostExtra } from "./game.js?v=20261103h";
+import { readingOn, readingOnBoosted } from "./readmap.js?v=20261103h";
 
 export const PER_TICKET = 10, OUTFIT_COST = 60;
 const typesOf = fam => { const f = FAMILIES.find(x => x.id === fam); const c = f && CREATURES.find(x => x.id === f.forms[0]); return (c && c.types) || []; };
@@ -250,7 +250,7 @@ export function miniOverlay(st, cls) {
       h += ORN_SPOTS.map(([x, y, sz], i) => '<button class="ornball' + (G.jump === i ? " jingle" : "") + (t ? "" : " notix") + '" data-mini="hunt" data-i="' + i + '"' + (t && G.jump == null ? "" : " disabled") + ' aria-label="Tap an ornament" style="left:' + x + "%;top:" + y + "%;--s:" + sz + ";--d:" + (i * 0.29) + 's">' +
           '<img src="assets/orn/orn-ball-' + ((i % 3) + 1) + '.webp" alt="">' +
           (G.jump === i ? '<span class="burst">' + "✨❄️✨⭐✨❄️✨⭐".match(/./gu).filter(x => x.trim() && x !== "\uFE0F").map((l, k) => '<em style="--k:' + k + '">' + l + "</em>").join("") + "</span>" : "") + "</button>").join("") +
-        '<div class="libcard orncard"><img class="lantic" src="assets/orn/orn-icon.webp" alt=""> Ornament Box: ' + Array.from({ length: 10 }, (_, i) => '<span class="' + (i < got % 10 ? "on" : "") + '">' + (i < got % 10 ? ORN_TYPES[i] : "·") + "</span>").join("") + "</div>" +
+        '<div class="libcard orncard"><img class="ornboxic" src="assets/orn/orn-box.webp" alt=""> Ornament Box: ' + Array.from({ length: 10 }, (_, i) => '<span class="' + (i < got % 10 ? "on" : "") + '">' + (i < got % 10 ? ORN_TYPES[i] : "·") + "</span>").join("") + "</div>" +
         '<div class="mhint">' + (G.jump != null ? "Jingle jingle! \u{1F514}" : t ? "Tap an ornament on the tree! What's hiding behind it?" : noTix) + "</div>";
     }
     return h + "</div></div>";

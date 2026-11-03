@@ -1,10 +1,10 @@
-import { CREATURE_LAYOUT, CREATURE_FIT_ID, CREATURE_NECK_ID } from "./creature-fit.js?v=20261103g";
-import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261103g";
-import { heldWeapon } from "./quest.js?v=20261103g";
+import { CREATURE_LAYOUT, CREATURE_FIT_ID, CREATURE_NECK_ID } from "./creature-fit.js?v=20261103h";
+import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261103h";
+import { heldWeapon } from "./quest.js?v=20261103h";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261103g";
+export const APP_V = "20261103h";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -19,7 +19,7 @@ export const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 export const SHORT = ["Mon", "Tue", "Wed", "Thu", "Fri"];
 export const MAX_HP = 120, HALF_HP = 60;
 export const BANNER_TEXT = 'Keep Your Companion at Full Health Today and Earn <b>80 Comfort Points</b>!' +
-  '<span class="rings">\u{1F6AA} Get to <b>600 XP</b> This Week and Get a <b>Legendary Egg</b>! \u{1F95A}</span>';
+  '<span class="rings">\u{1F48E} Get to <b>600 XP</b> This Week and Open the <b>Treasure Vault</b>! \u{1F95A}</span>';
 export const BANNER = '<div class="hero"><h2>' + BANNER_TEXT + "</h2></div>";
 export const HAUNT_BANNER = '<div class="hero haunt"><p class="haunt-tag">\u{1F383} Haunt-O-Ween Mode \u{1F47B}</p><h2>' + BANNER_TEXT +
   '</h2><p class="haunt-sub">Every XP is a piece of candy! Your companion eats the first 120 each day to power its attack \u2014 the rest fills your pumpkin basket.</p></div>';

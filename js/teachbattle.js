@@ -1,10 +1,10 @@
-// Battle Ms. Ariana (Oct 20): a student earns one battle with the teacher each week they reach the Weekly Door goal.
+// Battle Ms. Ariana (Oct 20): a student earns one battle with the teacher each week they reach the weekly XP goal.
 // Unused battles carry over. The student asks (tbAsk = when they asked); Ms. Ariana starts it from her console,
 // which makes a normal battle invite with tb = the week it uses. A finished battle is written to tbUsed by the
 // console (students can't change tbUsed). A battle that's declined or ended by Ms. Ariana/timeout gives the battle back.
-import { weekKey, weekDoorState, subReq } from "./doors.js?v=20261103g";
-import { TEACHER_ID } from "./collect.js?v=20261103g";
-import { esc } from "./game.js?v=20261103g";
+import { weekKey, weekDoorState, subReq } from "./doors.js?v=20261103h";
+import { TEACHER_ID } from "./collect.js?v=20261103h";
+import { esc } from "./game.js?v=20261103h";
 
 export const TB_SINCE = "2026-10-19";   // weeks before this don't count (it started this week)
 const LIVE = ["invite", "team", "lead", "fight"];
@@ -32,7 +32,7 @@ export function tbCard(st, cls, battles, tName) {
   const left = tbLeft(st, cls, battles), live = tbLive(st, battles), T = esc(tName || "Ms. Ariana");
   let body;
   if (live) body = live.status === "invite" ? "<b>" + T + " started your battle!</b> Scroll down to the Battle Arena and tap <b>Accept</b>." : "Your battle with " + T + " is going on now. Go get ’em!";
-  else if (!left.length) body = "Reach the <b>Weekly Door goal</b> to earn a battle with " + T + "!";
+  else if (!left.length) body = "Reach <b>600 XP this week</b> to earn a battle with " + T + "!";
   else if (st.tbAsk) body = '✅ You asked! ' + T + ' will start your battle when she’s ready. <button class="btn ghost small" data-act="tbCancel">Never mind</button>';
   else body = "You earned " + (left.length === 1 ? "a battle" : left.length + " battles") + " with " + T + '! <button class="btn small" data-act="tbAsk">\u{1F34E} Ask for a battle!</button>';
   return '<div class="card tbcard"><div class="card-head"><h2>\u{1F34E} Battle ' + T + '</h2><span class="fact">' + (left.length ? left.length + " earned" : "weekly goal") + '</span></div><p class="lede" style="margin:0;">' + body + "</p></div>";
@@ -48,7 +48,7 @@ export function tbRequestsCard(students, cls, battles, teacherBusy) {
   const ago = t => { const m = Math.round((Date.now() - new Date(t).getTime()) / 60000); return m < 1 ? "just now" : m < 60 ? m + " min ago" : m < 1440 ? Math.round(m / 60) + " hr ago" : Math.round(m / 1440) + " days ago"; };
   const earned = students.filter(st => tbLeft(st, cls, battles).length && !st.tbAsk && !tbLive(st, battles)).length;
   let h = '<div class="card tbreq"><div class="card-head"><h2>\u{1F34E} Battle requests</h2><span class="fact">' + req.length + " waiting</span></div>" +
-    '<p class="lede" style="font-size:13.5px;">Students earn one battle with you each week they reach the Weekly Door goal (unused ones carry over). When they ask, they show up here. Tap <b>Start</b> and they get the challenge on their page.' +
+    '<p class="lede" style="font-size:13.5px;">Students earn one battle with you each week they reach the weekly XP goal (unused ones carry over). When they ask, they show up here. Tap <b>Start</b> and they get the challenge on their page.' +
     (earned ? " " + earned + " more student" + (earned === 1 ? " has" : "s have") + " earned one but hasn’t asked yet." : "") + "</p>";
   if (live.length) h += live.map(([st, b]) => '<div class="dcheck"><span class="what">⚔️ <b>' + esc(st.name) + '</b> <span class="muted small">' + (b.status === "invite" ? "challenge sent, waiting for them to accept" : "battling now") + "</span></span></div>").join("");
   h += req.length ? req.map(st => { const n = tbLeft(st, cls, battles).length;

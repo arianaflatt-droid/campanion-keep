@@ -8,9 +8,9 @@
    Class switch: cls.revenge = { on, id, from, to }. Student save: revenge = { id, used, hp{n}, mh[3], beat{n}, pw{pie,shield,cry,rage},
      tw, th, best, fe, got{}, rounds }. Rewards use fields students may write (rules countsOk): candyBonus, doorEggs, eggBoost,
    legendaryPulls, outfits, roomOwned, revengeLeg (✨ Sparkle Turducken egg, hatched by the server kind "revenge"). */
-import { esc, SEASON } from "./game.js?v=20261103g";
-import { azToday } from "./collect.js?v=20261103g";
-import { subFor } from "./teams.js?v=20261103g";
+import { esc, SEASON } from "./game.js?v=20261103h";
+import { azToday } from "./collect.js?v=20261103h";
+import { subFor } from "./teams.js?v=20261103h";
 
 export const PER_ENERGY = 10, ROUND_SEC = 20;
 const A = "assets/revenge/";
@@ -112,7 +112,7 @@ function drawHub() {
     ? "Wave <b>" + (Number(r.tw) || 1) + "</b> · best: wave " + (Number(r.best) || 0) + ' <button class="btn small gold" data-rv="fight" data-n="tower"' + (k.energy ? "" : " disabled") + ">🗼 Climb!</button>" +
       '<br><small>Wave 5: 50 corn · 10: an egg · 15: a Golden Feather · 20, 30, 40…: a Rare+ egg. The highest wave goes in the Hall of Fame!</small>'
     : "<small>\u{1F512} Beat MEGA TURDUCKEN to unlock endless mode.</small>") + "</div>";
-  h += '<div class="rvfeath">\u{1FAB6} Golden Feathers: <b>' + ((Number(r.fe) || 0) % 5) + " / 5</b> <small>(rare drops after a round — 5 = a Legendary egg)</small></div>";
+  h += '<div class="rvfeath"><img class="rvfeathic" src="' + A + 'golden-feather.webp" alt="" onerror="this.replaceWith(\'\u{1FAB6}\')"> Golden Feathers: <b>' + ((Number(r.fe) || 0) % 5) + " / 5</b> <small>(rare drops after a round — 5 = a Legendary egg)</small></div>";
   // the chase board: where everyone is (classmates' cards)
   const rows = (C.students || []).filter(s => s.companionId && !s.isTeacher).map(s => ({ s, n: rvBeatCount(s, cls), w: rvBest(s, cls) })).filter(x => x.n || x.w).sort((a, b) => b.n - a.n || b.w - a.w).slice(0, 12);
   if (rows.length) h += '<div class="rvboard"><b>\u{1F3C3} The Chase</b>' + rows.map((x, i) => '<span class="' + (x.s.id === st.id ? "me" : "") + '">' + (i + 1) + ". " + esc(String(x.s.name || "").split(" ")[0]) + " — " + (x.n >= 5 ? "\u{1F3C6} MEGA beaten" + (x.w ? " · wave " + x.w : "") : "chapter " + (x.n + 1)) + "</span>").join("") + "</div>";
@@ -146,7 +146,7 @@ function drawFight() {
     '<div class="rvbar"><i id="rvHP"></i><span id="rvHPt"></span></div>' +
     '<div class="rvcombo"><i id="rvCombo"></i><span>\u{1F525} COMBO</span></div>' +
     '<button class="rvboss" id="rvBoss" data-rv="hit" aria-label="Hit the Turducken"><img src="' + bossImg + '" alt="" draggable="false"></button>' +
-    (ch.gim === "minions" ? [0, 1, 2].map(i => '<button class="rvmin" id="rvMin' + i + '" data-rv="min" data-i="' + i + '" style="left:' + (22 + i * 28) + '%"><img src="' + A + 'tk-angry.webp" alt="" draggable="false"><i></i></button>').join("") : "") +
+    (ch.gim === "minions" ? [0, 1, 2].map(i => '<button class="rvmin" id="rvMin' + i + '" data-rv="min" data-i="' + i + '" style="left:' + (22 + i * 28) + '%"><img src="' + A + 'minion-balloon.webp" alt="" draggable="false" onerror="this.onerror=null;this.src=\'' + A + 'tk-angry.webp\';this.parentNode.classList.add(\'ph\')"><i></i></button>').join("") : "") +
     '<div class="rvwarn" id="rvWarn">!</div><div id="rvFx"></div>' +
     '<div class="rvcount" id="rvCount">' + esc(F.tower ? "Wave " + F.wave + "!" : ch.intro) + "</div></div>" +
     '<div class="rvbtns"><button class="rvdodge" data-rv="dodge">\u{1F4A8} DODGE</button>' +

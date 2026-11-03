@@ -1,42 +1,42 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261103g";
-import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261103g";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261103g";
-import { cpEarnedCalc } from "./room.js?v=20261103g";
-import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261103g";
-import { rewardFor } from "./doors.js?v=20261103g";
-import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet, subReq, subRuleOn, SUB_DAY, addDays } from "./doors.js?v=20261103g";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing } from "./collector-ui.js?v=20261103g";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261103h";
+import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261103h";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261103h";
+import { cpEarnedCalc } from "./room.js?v=20261103h";
+import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261103h";
+import { rewardFor } from "./doors.js?v=20261103h";
+import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet, subReq, subRuleOn, SUB_DAY, addDays } from "./doors.js?v=20261103h";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing } from "./collector-ui.js?v=20261103h";
 import {
   newsHTML, boostOn, boostHTML, countdownHTML, applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   boss2Of, boss2Prize, simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, weekCandyBefore, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, isFrost, isHeart, heartUnlocked, saveProblems, yetiUnlocked, wallMarks, WALL_BLOCK, BOSS_START_HP, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261103g";
-import { MQ_CUTOFF } from "./morning.js?v=20261103g";
-import { kindAdmin } from "./kindness.js?v=20261103g";
-import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261103g";
-import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261103g";
-import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261103g";
-import { passAdmin } from "./pass.js?v=20261103g";
-import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261103g";
-import { watchSecret, secretRef } from "./db.js?v=20261103g";
-import { secretAdmin, secretClick, autoPick, secretBanner } from "./secret.js?v=20261103g";
-import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef, newBattleRef, newsPicRef, watchNewsPic } from "./db.js?v=20261103g";
-import { mapAdmin } from "./readmap.js?v=20261103g";
-import { wheelTab, wheelClick } from "./subwheel.js?v=20261103g";
-import { tbRequestsCard, tbInvite, tbToSettle } from "./teachbattle.js?v=20261103g";
-import { rewardAdmin, rgWaiting, rgOf, shrinkImage } from "./weekgoal.js?v=20261103g";
-import { soloAdmin, soloCfg, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261103g";
-import { feederLink } from "./feeder.js?v=20261103g";
-import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261103g";
+} from "./game.js?v=20261103h";
+import { MQ_CUTOFF } from "./morning.js?v=20261103h";
+import { kindAdmin } from "./kindness.js?v=20261103h";
+import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261103h";
+import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261103h";
+import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261103h";
+import { passAdmin } from "./pass.js?v=20261103h";
+import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261103h";
+import { watchSecret, secretRef } from "./db.js?v=20261103h";
+import { secretAdmin, secretClick, autoPick, secretBanner } from "./secret.js?v=20261103h";
+import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef, newBattleRef, newsPicRef, watchNewsPic } from "./db.js?v=20261103h";
+import { mapAdmin } from "./readmap.js?v=20261103h";
+import { wheelTab, wheelClick } from "./subwheel.js?v=20261103h";
+import { tbRequestsCard, tbInvite, tbToSettle } from "./teachbattle.js?v=20261103h";
+import { rewardAdmin, rgWaiting, rgOf, shrinkImage } from "./weekgoal.js?v=20261103h";
+import { soloAdmin, soloCfg, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261103h";
+import { feederLink } from "./feeder.js?v=20261103h";
+import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261103h";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef, watchSeats, watchCards
-} from "./db.js?v=20261103g";
-import { G, guardCard, guardClick, guardInput, autoSnap, personalLink, syncCards } from "./guard.js?v=20261103g";
-import { lockCard, lockClick } from "./lock.js?v=20261103g";
-import { revengeAdmin, revengeAction } from "./revenge.js?v=20261103g";
-import { heistAdmin, heistAction } from "./heist.js?v=20261103g";
+} from "./db.js?v=20261103h";
+import { G, guardCard, guardClick, guardInput, autoSnap, personalLink, syncCards } from "./guard.js?v=20261103h";
+import { lockCard, lockClick } from "./lock.js?v=20261103h";
+import { revengeAdmin, revengeAction } from "./revenge.js?v=20261103h";
+import { heistAdmin, heistAction } from "./heist.js?v=20261103h";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -479,7 +479,7 @@ function viewIdeas() {
 }
 function teacherCollectorCard() {
   return '<div class="card"><div class="card-head"><h2>\u{1F9D1}\u200D\u{1F3EB} Your collection</h2><span class="fact">battle your students!</span></div>' +
-    '<p class="lede" style="font-size:13.5px;">Your own collection. Students battle you as <b>' + esc(tplayer().name) + "</b> after they reach the Weekly Door goal and ask (see Battle requests).</p>" +
+    '<p class="lede" style="font-size:13.5px;">Your own collection. Students battle you as <b>' + esc(tplayer().name) + "</b> after they reach the weekly XP goal and ask (see Battle requests).</p>" +
     (() => { const c = (cls.teacher || {}).coll || {}, ks = Object.keys(c), low = ks.filter(k => (Number(c[k] && c[k].lvl) || 1) < 100).length;
       return ks.length ? '<div class="row" style="margin-top:8px;align-items:center;gap:10px;"><button class="btn small" data-act="teacherMax"' + (low ? "" : " disabled") + ">\u2B06\uFE0F Set all my creatures to level 100</button>" +
         '<span class="muted small">' + (low ? low + " of " + ks.length + " below level 100" : "All " + ks.length + " are level 100 \u2705") + "</span></div>" : ""; })() + "</div>" +
@@ -645,7 +645,7 @@ const BOOST_SUBS = [["r", "Reading"], ["m", "Math"], ["l", "Language"], ["f", "F
 function boostAdmin() {
   const on = boostOn(cls), cur = on ? cls.boost.subs : {};
   return '<div class="card boostadmin"><div class="card-head"><h2>\u26A1 Subject Boost</h2><span class="fact">' + (on ? "on this week" : "off") + "</span></div>" +
-    '<p class="lede" style="font-size:13.5px;">Make a subject worth \u00d72 or \u00d73 this week. The extra goes to <b>' + esc(SEASON.cur || "candy") + "</b>, <b>mini event tickets</b> and <b>event progress</b> (potion ingredients, Reading Map). Real XP is never changed: the daily goal, Weekly Door, Vault, core subjects, Season Pass, Hero Quest, records and badges all use real XP. It turns off by itself when you start a new week.</p>" +
+    '<p class="lede" style="font-size:13.5px;">Make a subject worth \u00d72 or \u00d73 this week. The extra goes to <b>' + esc(SEASON.cur || "candy") + "</b>, <b>mini event tickets</b> and <b>event progress</b> (potion ingredients, Reading Map). Real XP is never changed: the daily goal, Treasure Vault, core subjects, Season Pass, records and badges all use real XP. It turns off by itself when you start a new week.</p>" +
     '<div class="boostgrid">' + BOOST_SUBS.map(([k, n]) => '<label class="small"><b>' + n + '</b><select id="boost-' + k + '">' + [1, 2, 3].map(v => '<option value="' + v + '"' + ((Number(cur[k]) || 1) === v ? " selected" : "") + ">" + (v === 1 ? "normal" : "\u00d7" + v) + "</option>").join("") + "</select></label>").join("") + "</div>" +
     '<div class="row" style="gap:8px;margin-top:10px;"><button class="btn small" data-act="boostSave">Save for this week</button>' + (on ? '<button class="btn ghost small" data-act="boostOff">Turn off</button>' : "") + "</div>" +
     (on ? '<div style="margin-top:10px;"><p class="muted small">Students see:</p>' + boostHTML(cls) + "</div>" : "") + "</div>";
@@ -932,8 +932,8 @@ function viewWeekDoor() {
   const st = x => ((x.weekDoor || {})[wk]) || (weekTotal(x, cls) >= goal && subReq(x, cls).ok ? "ready" : "");
   const opened = kids.filter(x => st(x) === "open"), ready = kids.filter(x => st(x) === "ready");
   const custom = goal !== WEEK_DOOR_XP;
-  let h = '<div class="card" id="weekDoorCard"><div class="card-head"><h2>\u{1F6AA} Weekly Door</h2><span class="fact">' + opened.length + " opened \u00b7 " + ready.length + " ready</span></div>" +
-    '<p class="lede" style="font-size:13.5px;">Students who reach <b>' + goal.toLocaleString() + " XP this week</b> (all their days added up) unlock a door with a Legendary egg and a Golden Present. It opens by itself as soon as their week adds up.</p>" +
+  let h = '<div class="card" id="weekDoorCard"><div class="card-head"><h2>\u{1F5D3}\uFE0F This Week\u2019s Goal</h2><span class="fact">' + opened.length + " opened \u00b7 " + ready.length + " ready</span></div>" +
+    '<p class="lede" style="font-size:13.5px;">Students who reach <b>' + goal.toLocaleString() + " XP this week</b> (all their days added up) earn a battle with you. The old Weekly Door\u2019s Legendary egg and Golden Present are now inside the <b>Treasure Vault</b>.</p>" +
     '<div class="row" style="gap:8px;align-items:flex-end;margin-top:8px;"><div class="field"><label for="weekGoalBox">XP goal for this week' + (custom ? " (normal is " + WEEK_DOOR_XP + ")" : "") + '</label><input id="weekGoalBox" type="number" min="1" step="10" style="width:110px;" value="' + goal + '"></div>' +
     '<button class="btn small" data-act="saveWeekGoal">Save for this week</button>' + (custom ? '<button class="btn ghost small" data-act="resetWeekGoal">Back to ' + WEEK_DOOR_XP + "</button>" : "") +
     '<button class="btn ghost small" data-act="weekCheck">\u{1F504} Unlock for everyone who made it</button></div>' +
@@ -953,7 +953,7 @@ function subSwapCard() {
   const SUBS = { m: "Math", f: "Fast Math", r: "Reading", w: "Writing", l: "Language", v: "Vocabulary", sc: "Science", ss: "Social Studies" };
   const nSw = kids.filter(x => Object.keys(sw[x.id] || {}).some(k => (sw[x.id] || {})[k])).length;
   return '<div class="card"><div class="card-head"><h2>\u{1F501} Subject swaps</h2><span class="fact">' + (nSw ? nSw + " student" + (nSw === 1 ? "" : "s") + " swapped" : "no swaps") + "</span></div>" +
-    '<p class="lede" style="font-size:13.5px;">For students on their own plan: pick the subject that replaces Math, Reading or Language. It changes their core subjects (Weekly Door and Treasure Vault), their daily goal doors and any potion / feast ingredients. Saves right away.</p>' +
+    '<p class="lede" style="font-size:13.5px;">For students on their own plan: pick the subject that replaces Math, Reading or Language. It changes their core subjects (Treasure Vault and Treasure Vault), their daily goal doors and any potion / feast ingredients. Saves right away.</p>' +
     '<div style="overflow-x:auto;"><table class="mini"><thead><tr><th>Student</th><th>Math</th><th>Reading</th><th>Language</th></tr></thead><tbody>' +
     kids.map(x => { const q = on ? subReq(x, cls, wk) : null;
       return "<tr><td><b>" + esc(x.name) + "</b></td>" + ["m", "r", "l"].map(k => { const cur = (sw[x.id] || {})[k] || "", cell = q && q.cells.find(c => c.k === k);
@@ -969,7 +969,7 @@ function subRuleCard(kids, wk) {
   const rows = kids.map(x => ({ x, q: subReq(x, cls, wk) })), shortN = rows.filter(r => !r.q.ok).length;
   let h = '<details class="subrule" style="margin-top:12px;border-top:1px solid var(--line-2);padding-top:10px;"' + (busy.subRuleOpen ? " open" : "") + '><summary data-act="subRuleOpen"><b>\u{1F4DA} Core subjects: 25 Math, 25 Reading, 25 Language a day</b> <span class="muted small">' +
     (on ? (shortN ? shortN + " still short this week" : "everyone is on track") : "turned off") + "</span></summary>" +
-    '<p class="small" style="margin:6px 0;">The Weekly Door and the Treasure Vault also need <b>' + SUB_DAY + " XP in each subject for every school day</b>, added up for the week (5 days = " + 5 * SUB_DAY + " each). Weekend work counts, so a missed day can be made up. " +
+    '<p class="small" style="margin:6px 0;">The Treasure Vault also needs <b>' + SUB_DAY + " XP in each subject for every school day</b>, added up for the week (5 days = " + 5 * SUB_DAY + " each). Weekend work counts, so a missed day can be made up. " +
     "Excused days still have to be made up; only a no-school day for everyone lowers it. Students with their own plan: pick the subject that replaces Math, Reading or Language (their daily doors switch too).</p>" +
     '<label class="modebox" style="margin:6px 0;"><input type="checkbox" id="subRuleBox"' + (on ? " checked" : "") + "><span><b>Use the core subjects rule</b></span></label>" +
     '<div class="row" style="gap:10px;flex-wrap:wrap;margin:6px 0;"><span class="small"><b>No school (everyone):</b></span>' +
@@ -1450,7 +1450,7 @@ function pasteBox() {
     DAYS.map((n, i) => '<button class="btn small' + (i === pd ? "" : " ghost") + '" data-pday="' + i + '">' + n + (i === ti && wd >= 1 && wd <= 5 ? " (today)" : "") + "</button>").join("") +
     (wkend ? extra.map(i => '<button class="btn small' + (pd === i ? "" : " ghost") + '" data-pday="' + i + '">' + PASTE_CHIP[i] + "</button>").join("") : "") + "</div>" +
     (busy.pasteDay == null && mpd != null ? '<p class="small" style="margin:-2px 0 6px;color:var(--accent);"><b>\u{1F305} It\u2019s morning, so end-of-day data goes on ' + (PASTE_NAME[mpd] || DAYS[mpd]) + ".</b> Tap a different day if this file is for another day.</p>" : "") +
-    (extra.length ? '<p class="muted small" style="margin:-2px 0 6px;">\u{1F4C5} Weekend work counts toward the week it finished (Weekly Door + Treasure Vault), and for eggs and creature XP.</p>' : "") +
+    (extra.length ? '<p class="muted small" style="margin:-2px 0 6px;">\u{1F4C5} Weekend work counts toward the week it finished (Treasure Vault), and for eggs and creature XP.</p>' : "") +
     (warnPrev ? '<div class="banner warn" style="margin:6px 0;">\u26A0\uFE0F <b>' + cap(nm(prev)) + " doesn\u2019t have end-of-day XP yet.</b> If this file is " + nm(prev) + "\u2019s data, pick <b>" + (PASTE_CHIP[prev] || DAYS[prev]) +
       '</b> above \u2014 saving it on today would get replaced by today\u2019s numbers later, and ' + nm(prev) + "\u2019s eggs wouldn\u2019t count.</div>" : "") +
     '<p class="muted small" style="margin:4px 0 8px;">Select the whole table on the XP page, copy it, and paste it here. Only the first number before the slash (like <b>291</b> in \u201c291 / 120\u201d) is used for each student.</p>' +
@@ -1561,7 +1561,7 @@ async function applyUpload(up) {
   try { await batch.commit(); } catch (e) { flash("Upload didn’t save — " + (e.code || e.message)); return 0; }
   { const fill = surpriseBaseFill(students, cls); if (fill) try { await updateDoc(classRef, fill); } catch (e) {} }   // Snack Drop / Secret Target starting points
   if (!up.auto) busy.upReport = { kind: up.kind, day: d, file: up.file, matched, hit, missing, unmatched, autoN };
-  const weekMsg = (weekN ? " \u{1F6AA} " + weekN + " student" + (weekN === 1 ? "" : "s") + " unlocked the Weekly Door!" : "") + (vaultN ? " \u{1F48E} " + vaultN + " student" + (vaultN === 1 ? "" : "s") + " unlocked the TREASURE VAULT!" : "");
+  const weekMsg = (weekN ? " \u{1F6AA} " + weekN + " student" + (weekN === 1 ? "" : "s") + " reached 600 XP this week!" : "") + (vaultN ? " \u{1F48E} " + vaultN + " student" + (vaultN === 1 ? "" : "s") + " unlocked the TREASURE VAULT!" : "");
   const potMsg = pots.filter(x => x.r.newTeams.length).map(x => " " + x.E.icon + " " + x.E.done + " " + x.r.newTeams.map(t => t.name).join(", ")).join("") + weekMsg;
   if (autoN || potMsg) flash((autoN ? "\u{1F6AA} Auto-approved " + autoN + " door" + (autoN === 1 ? "" : "s") + " from the subject XP." : "") + potMsg);
   render();
@@ -2024,11 +2024,11 @@ document.addEventListener("click", async ev => {
     try {
       await updateDoc(classRef, { weekGoal: v === WEEK_DOOR_XP ? null : { week: weekKey(cls), xp: v }, ["weekGoals." + weekKey(cls)]: v });
       const n = await weekCheck(v);
-      flash("Saved \u2014 the Weekly Door is " + v.toLocaleString() + " XP this week." + (n ? " " + n + " student" + (n === 1 ? "" : "s") + " unlocked it!" : ""));
+      flash("Saved \u2014 the weekly goal is " + v.toLocaleString() + " XP this week." + (n ? " " + n + " student" + (n === 1 ? "" : "s") + " unlocked it!" : ""));
     } catch (e) { flash("Couldn\u2019t save \u2014 " + (e.code || e.message)); }
     return;
   }
-  if (act === "weekCheck") { try { const n = await weekCheck(); flash(n ? "\u{1F6AA} Unlocked the Weekly Door for " + n + " student" + (n === 1 ? "" : "s") + "!" : "Nobody new has reached the goal yet."); } catch (e) { flash("Couldn\u2019t save \u2014 " + (e.code || e.message)); } return; }
+  if (act === "weekCheck") { try { const n = await weekCheck(); flash(n ? "\u{1F5D3}\uFE0F Marked the weekly goal for " + n + " student" + (n === 1 ? "" : "s") + "!" : "Nobody new has reached the goal yet."); } catch (e) { flash("Couldn\u2019t save \u2014 " + (e.code || e.message)); } return; }
   if (act && act.startsWith("tev")) {
     const E = TEAM_EVENTS[el.dataset.ev]; if (!E) return;
     if (act === "tevToggle") { const on = !cls[E.p + "On"]; try { await updateDoc(classRef, { [E.p + "On"]: on }); flash("Saved \u2014 " + E.title + " " + (on ? "on" : "off") + "."); } catch (e) { flash("Couldn\u2019t change that \u2014 " + e.code); } return; }
