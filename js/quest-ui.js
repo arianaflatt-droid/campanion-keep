@@ -1,8 +1,8 @@
 // Grade Level Quest screens: the student's road + guardian battles, and the teacher's tracker.
-import { esc } from "./game.js?v=20261103h";
-import { owned, ownedFams, fighterFrom, formOf, resolveRound, hitDamage, alive, MOVES, RARITY_COLOR } from "./collect.js?v=20261103h";
+import { esc } from "./game.js?v=20261103i";
+import { owned, ownedFams, fighterFrom, formOf, resolveRound, hitDamage, alive, MOVES, RARITY_COLOR } from "./collect.js?v=20261103i";
 import { SUBJECTS, GRADES, ROAD_SPOTS, roadArt, battleArt, QUEST_XP, QUEST_CP, WEAPON_KINDS, weapon, weaponId, qKey, startOf, passOf, doneOf,
-  testState, currentGrade, doneCount, readyTests, weaponsOwned, heldWeapon } from "./quest.js?v=20261103h";
+  testState, currentGrade, doneCount, readyTests, weaponsOwned, heldWeapon } from "./quest.js?v=20261103i";
 
 const SUBJ = Object.fromEntries(SUBJECTS.map(([k, n, i]) => [k, { n, i }]));
 let qb = null;   // the guardian battle in progress (only on this page; nothing is saved until the student wins)
@@ -99,6 +99,7 @@ function lineOf(e) {
   if (e.k === "poison") return "\u{1F922} <b>" + esc(e.d) + "</b> was poisoned!";
   if (e.k === "psn") return "\u{1F922} <b>" + esc(e.n) + "</b> is hurt by poison.";
   if (e.k === "daze") return "✨ <b>" + esc(e.d) + "</b> is dazzled!";
+  if (e.k === "ux") return esc(e.t);
   if (e.k === "defdown") return "\u{1F4A7} <b>" + esc(e.d) + "</b>’s defense dropped!";
   if (e.k === "win") return "\u{1F3C6} You won!";
   return "";
@@ -169,10 +170,14 @@ export function questTracker(students) {
     '<p class="lede" style="font-size:13px;">Set where each student <b>starts</b> (grades below it are done — they get those weapons, no other rewards). ' +
     "Then click <b>M</b>, <b>R</b> or <b>L</b> when a student passes a test: they get a guardian battle on their page. " +
     "⚔️ = passed, waiting for them to battle · ✅ = won · ⏳ = passed early, saved until the grades below are finished.</p>" +
-    '<div class="scroll-x"><table class="tbl qtrack"><thead><tr><th>Student</th><th>Starts at</th>' + GRADES.map(G => "<th>" + esc(G.short) + "</th>").join("") + "</tr></thead><tbody>";
+    '<p class="lede" style="font-size:13px;">\u{1F308} <b>Grade</b> = the student\u2019s own grade (4th or 5th). Finishing all 3 tests at that grade gives them an <b>Ultra Legendary egg</b> (once). The \u{1F308} column shows the Ultras they have.</p>' +
+    '<div class="scroll-x"><table class="tbl qtrack"><thead><tr><th>Student</th><th>\u{1F308} Grade</th><th>\u{1F308}</th><th>Starts at</th>' + GRADES.map(G => "<th>" + esc(G.short) + "</th>").join("") + "</tr></thead><tbody>";
   team.forEach(s => {
     const start = startOf(s), cur = currentGrade(s);
-    h += "<tr><td><b>" + esc(s.name) + "</b></td><td><select data-qstart=\"" + s.id + '">' + GRADES.map((G, i) => '<option value="' + i + '"' + (i === start ? " selected" : "") + ">" + esc(G.short) + "</option>").join("") +
+    const ug = Number(s.grade) || 0, nU = Object.keys(s.coll || {}).filter(f => /^L-(4[6-9]|5\d|6[0-2])$/.test(f)).length, uEgg = Math.max(0, (Number(s.ultraEggs) || 0) - (Number(s.ultraUsed) || 0));
+    h += "<tr><td><b>" + esc(s.name) + '</b></td><td><select data-ugrade="' + s.id + '"><option value="0">\u2013</option>' + [4, 5].map(n => '<option value="' + n + '"' + (ug === n ? " selected" : "") + ">" + n + "th</option>").join("") + "</select></td>" +
+      '<td title="Ultras they have' + (uEgg ? " + Ultra eggs to hatch" : "") + '">' + nU + (uEgg ? " <small>(+" + uEgg + " \u{1F95A})</small>" : "") + (s.ultraGoals && s.ultraGoals.q ? " \u2705" : "") + "</td>" +
+      "<td><select data-qstart=\"" + s.id + '">' + GRADES.map((G, i) => '<option value="' + i + '"' + (i === start ? " selected" : "") + ">" + esc(G.short) + "</option>").join("") +
       '<option value="9"' + (start === 9 ? " selected" : "") + ">done</option></select></td>";
     GRADES.forEach((G, g) => {
       h += '<td class="' + (g === cur ? "qcur" : "") + '">' + (g < start ? '<span class="qall">✅</span>' : SUBJECTS.map(([k, n]) => {
@@ -192,4 +197,7 @@ export async function questTeacherClick(el, ctx) {
   if (pass[key]) delete pass[key]; else pass[key] = new Date().toISOString().slice(0, 10);
   return ctx.patch(sid, { questPass: pass });
 }
-export async function questTeacherChange(el, ctx) { return ctx.patch(el.dataset.qstart, { questStart: Number(el.value) || 0 }); }
+export async function questTeacherChange(el, ctx) {
+  if (el.dataset.ugrade) return ctx.patch(el.dataset.ugrade, { grade: Number(el.value) || null });   // 🌈 the student's own grade (Ultra goal)
+  return ctx.patch(el.dataset.qstart, { questStart: Number(el.value) || 0 });
+}

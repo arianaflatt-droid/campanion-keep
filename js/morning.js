@@ -5,10 +5,10 @@
    mystery nest (pick 1 of 3 eggs) and training (level up a creature). Higher quests = rarer creatures and a better Sparkle chance.
    Every finished quest also pays a bonus (MQ_BONUS). Saved on the student: mq = { date, done: { tier: {...} }, hunt: { tier: [dug squares] } },
    mqCatch (creatures caught here), mqFull (whole boards finished). */
-import { esc, eventMode, seasonOf } from "./game.js?v=20261103h";
-import { soloOn, soloCfg, freeIngredient } from "./solobrew.js?v=20261103h";
-import { CREATURES, FAMILIES } from "./creatures.js?v=20261103h";
-import { azToday, azNow, owned, ownedFams, formOf, fighterFrom, resolveRound, hitDamage, MOVES, doPull, MAX_LEVEL, sparkleImg, RARITY_COLOR } from "./collect.js?v=20261103h";
+import { esc, eventMode, seasonOf } from "./game.js?v=20261103i";
+import { soloOn, soloCfg, freeIngredient } from "./solobrew.js?v=20261103i";
+import { CREATURES, FAMILIES } from "./creatures.js?v=20261103i";
+import { azToday, azNow, owned, ownedFams, formOf, fighterFrom, resolveRound, hitDamage, MOVES, doPull, MAX_LEVEL, sparkleImg, RARITY_COLOR } from "./collect.js?v=20261103i";
 
 export const MQ_TIERS = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120];
 export const MQ_CUTOFF = "08:30";        // morning data for today is only accepted before this (Arizona time)
@@ -156,7 +156,7 @@ function playCatch(mv) {
   const bt = mq.bt, before = bt.log.length, r = Math.random();
   bt.moves = { A: mv, B: r < 0.75 ? { m: "attack" } : { m: "guard" } };
   resolveRound(bt);
-  mq.lines = bt.log.slice(before).map(e => e.k === "hit" ? "<b>" + esc(e.a) + "</b> used " + esc(e.atk) + "! " + (e.miss ? "It missed!" : (e.weak ? "Super effective! " : "") + e.dmg + " damage.") : e.k === "faint" ? "<b>" + esc(e.n) + "</b> fainted!" : e.k === "guard" ? "\u{1F6E1}️ <b>" + esc(e.n) + "</b> is guarding." : e.k === "heal" ? "\u{1F49A} <b>" + esc(e.n) + "</b> healed!" : "").filter(Boolean);
+  mq.lines = bt.log.slice(before).map(e => e.k === "hit" ? "<b>" + esc(e.a) + "</b> used " + esc(e.atk) + "! " + (e.miss ? "It missed!" : (e.weak ? "Super effective! " : "") + e.dmg + " damage.") : e.k === "faint" ? "<b>" + esc(e.n) + "</b> fainted!" : e.k === "guard" ? "\u{1F6E1}️ <b>" + esc(e.n) + "</b> is guarding." : e.k === "heal" ? "\u{1F49A} <b>" + esc(e.n) + "</b> healed!" : e.k === "ux" ? esc(e.t) : "").filter(Boolean);
   if (bt.team.B[0].cur <= 0) mq.phase = "caught";
   else if (bt.team.A[0].cur <= 0) mq.phase = "lost";
 }

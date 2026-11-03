@@ -97,3 +97,21 @@ test("companion credit runs (and can be empty)", () => {
   const out = run("credit", amy({ compStart: "2026-10-01", compThru: "2026-10-30" }));
   assert.ok(out.result && typeof out.result.ups === "number");
 });
+/* 🌈 Ultra Legendaries (Nov 3) */
+test("an Ultra egg: a random Ultra at Lv 1, or +5 levels on one you have; never a spare", () => {
+  refuses(() => run("hatch", amy(), { kind: "ultra" }), /egg/);
+  refuses(() => run("hatch", amy({ ultraEggs: 1, ultraUsed: 1 }), { kind: "ultra" }), /egg/);
+  const u = run("hatch", amy({ ultraEggs: 1 }), { kind: "ultra" });
+  assert.equal(u.update.ultraUsed, 1); assert.equal(u.result.rarity, "Ultra"); assert.match(u.result.fam, /^L-(4[6-9]|5[0-9]|6[0-2])$/);
+  assert.equal(u.update.coll[u.result.fam].lvl, 1); assert.equal(u.update.lastHatch, null);
+  const coll = {}; for (let n = 46; n <= 62; n++) coll["L-" + n] = { lvl: 98, at: "t" };
+  const d = run("hatch", amy({ ultraEggs: 1, coll }), { kind: "ultra" });
+  assert.equal(d.result.dupe, true); assert.equal(d.update.coll[d.result.fam].lvl, 100);   // +5, but never past 100
+  refuses(() => run("release", amy({ coll: Object.assign({ "C-01": { lvl: 3 } }, { [u.result.fam]: { lvl: 1 } }) }), { key: "m:" + u.result.fam }), /event/);
+});
+test("normal and Legendary eggs never hatch an Ultra", () => {
+  for (let i = 0; i < 300; i++) {
+    const r = run("hatch", amy({ legendaryPulls: 1, bonusPulls: 1 }), { kind: i % 2 ? "leg" : "normal" });
+    assert.notEqual(r.result.rarity, "Ultra"); assert.ok(!/^L-(4[6-9]|5[0-9]|6[0-2])$/.test(r.result.fam));
+  }
+});

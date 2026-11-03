@@ -4,13 +4,15 @@ import {
   formIndex, formOf, statsOf, seenSet, rollRarity, doPull, arenaOpen, arenaOpenFor, lunchHour, hitGoalToday, LUNCH_ARENA, ARENA_HOURS, fighterFrom, teamSize, alive, resolve, resolveRound, moveOk, MOVES, hitDamage,
   birthdayLeft, pickleLeft, PICKLE_FAM, brewLegLeft, BREW_FAM, feastLegLeft, HARVEST_FAM, gingerLegLeft, GINGER_FAM, snowLegLeft, SNOW_FAM, candyLegLeft, CANDY_FAM, ghostEggLeft, GHOST_FAM, BOSS2_LIST, boss2EggLeft, vaultLegLeft, revengeLegLeft, heistLegLeft, goalLeft, nextGoal, rollRareUp, themeLeft, nextTheme, THEME_TYPES, THEME_EGG, WISH_FAM, spares, spareId, releaseXP, releaseProblem, isStarterFam, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
   EVENTS, eventOpen, eventWindow, eventStreak, hasEvent, eventUnlocked, azToday, rollTeacherRarity, TEACHER_ODDS, LIVE, staleBattle
-} from "./collect.js?v=20261103h";
-import { newBattleRef, battleRef, updateDoc, changeBattle as changeBattleRaw, setDoc, liveBattlesNow, ck, ckMessage } from "./db.js?v=20261103h";
+} from "./collect.js?v=20261103i";
+import { newBattleRef, battleRef, updateDoc, changeBattle as changeBattleRaw, setDoc, liveBattlesNow, ck, ckMessage } from "./db.js?v=20261103i";
 // every change to a battle is stamped with the time (upd), so a battle nobody has touched in a while can be ended
 let locking = null, leaving = null;   // battle id while "Lock in team" is saving
 const changeBattle = (id, fn) => changeBattleRaw(id, bt => { const n = fn(bt); if (n) n.upd = new Date().toISOString(); return n; });
 
-import { tradeCard } from "./trade-ui.js?v=20261103h";
+import { tradeCard } from "./trade-ui.js?v=20261103i";
+import { ultraLeft, isUltra } from "./collect.js?v=20261103i";
+import { ultraSection, ultraInfoHTML } from "./ultra.js?v=20261103i";
 
 const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const PER_PAGE = 20;
@@ -68,6 +70,7 @@ export function collectorTab(c) {
     (brewLegLeft(s) ? stat("\u{1F9EA}", brewLegLeft(s), "Brewraith egg" + (brewLegLeft(s) === 1 ? "" : "s")) : "") +
     (heistLegLeft(s) ? stat("\u2728", heistLegLeft(s), "Sparkle Grinch-a-Duck egg" + (heistLegLeft(s) === 1 ? "" : "s")) : "") +
     (revengeLegLeft(s) ? stat("\u2728", revengeLegLeft(s), "Sparkle Turducken egg" + (revengeLegLeft(s) === 1 ? "" : "s")) : "") +
+    (ultraLeft(s) ? stat("\u{1F308}", ultraLeft(s), "Ultra egg" + (ultraLeft(s) === 1 ? "" : "s")) : "") +
     (vaultLegLeft(s) ? stat("\u{1F48E}", vaultLegLeft(s), "Sparkle Legendary egg" + (vaultLegLeft(s) === 1 ? "" : "s")) : "") +
     BOSS2_LIST.map(B => boss2EggLeft(s, B) ? stat(B.icon, boss2EggLeft(s, B), B.boss + " egg" + (boss2EggLeft(s, B) === 1 ? "" : "s")) : "").join("") +
     (candyLegLeft(s) ? stat("\u{1F36B}", candyLegLeft(s), "Candivora egg" + (candyLegLeft(s) === 1 ? "" : "s")) : "") +
@@ -89,6 +92,7 @@ export function collectorTab(c) {
     (brewLegLeft(s) ? '<button class="btn big gold" data-cc="hatchBrew">\u{1F9EA} Hatch your Top Brewers egg!</button>' : "") +
     (heistLegLeft(s) && !s.isTeacher ? '<button class="btn big gold" data-cc="hatchHeist">\u2728 Hatch your Sparkle Grinch-a-Duck egg!</button>' : "") +
     (revengeLegLeft(s) && !s.isTeacher ? '<button class="btn big gold" data-cc="hatchRevenge">\u2728 Hatch your Sparkle Turducken egg!</button>' : "") +
+    (ultraLeft(s) && !s.isTeacher ? '<button class="btn big ultrabtn" data-cc="hatchUltra">\u{1F308} Hatch your Ultra egg!</button>' : "") +
     (vaultLegLeft(s) ? '<button class="btn big gold" data-cc="hatchVault">\u{1F48E} Hatch your Treasure Vault Sparkle Legendary egg!</button>' : "") +
     BOSS2_LIST.map(B => boss2EggLeft(s, B) ? '<button class="btn big gold" data-cc="hatchBoss2" data-k="' + B.key + '">' + B.icon + " Hatch your " + B.boss + " egg!</button>" : "").join("") +
     (candyLegLeft(s) ? '<button class="btn big gold" data-cc="hatchCandy">\u{1F36B} Hatch your Top Candy Box egg!</button>' : "") +
@@ -100,6 +104,7 @@ export function collectorTab(c) {
     '<button class="btn ghost big" data-cc="book">\u{1F4D6} Open lorebook</button></div>' +
     '<p class="muted" style="margin-top:8px;">Egg odds: ' + (s.isTeacher ? TEACHER_ODDS : ODDS).map(([r, p]) => r + " " + (p < 0.01 ? (p * 100).toFixed(2) : Number.isInteger(Math.round(p * 1000) / 10) ? Math.round(p * 100) : (p * 100).toFixed(1)) + "%").join(" · ") + "</p></div>";
   if (!s.isTeacher) h += eventCards(s, c.cls) + ideaCard(s, c.cls);
+  h += ultraSection(s, c.cls);   // 🌈 Ultra Legendaries get their own section
   h += myCreatures(s, bank);
   h += arenaCard(s);
   h += tradeCard(c);
@@ -175,7 +180,7 @@ const tradeBtn = (key, on) => '<button class="tradebtn' + (on ? " on" : "") + '"
 let collMin = (() => { try { return localStorage.getItem("ck-collMin") === "1"; } catch (e) { return false; } })();
 function myCreatures(s, bank) {
   RELS = s;
-  const fams = sortedFams(s), nFav = fams.filter(f => owned(s)[f].fav).length, nSp = spares(s).length;
+  const fams = sortedFams(s).filter(f => !isUltra(f)), nFav = fams.filter(f => owned(s)[f].fav).length, nSp = spares(s).length;   // Ultras are in their own section
   const minBtn = '<button class="btn ghost small" data-cc="collMin" style="margin-left:8px;">' + (collMin ? "\u2795 Show" : "\u2796 Minimize") + "</button>";
   if (collMin) return '<div class="card"><div class="card-head"><h2>My creatures</h2><span class="fact">' + fams.length + " families" + (nFav ? " \u00b7 \u2B50 " + nFav : "") + (nSp ? " \u00b7 \u{1F504} " + nSp + " spare" + (nSp === 1 ? "" : "s") : "") + minBtn + "</span></div>" +
     '<p class="muted small" style="margin:0;">Your creatures are hidden. Tap <b>\u2795 Show</b> to see them.</p></div>';
@@ -354,16 +359,21 @@ function hatchOverlay() {
     // during Sweetheart Showdown, Light- and Nature-type creatures (and Amorduck) hatch from the Sweetheart egg
     const hearty = th ? th === "heart" : !spooky && !harvest && !jingly && !frosty && c && hr && (c.types.includes("Light") || c.types.includes("Nature") || c.event === "heart");
     const egg = spooky ? "assets/egg-haunt.webp" : harvest ? "assets/egg-gobble.webp" : jingly ? "assets/egg-jingle.webp" : frosty ? "assets/egg-frost.webp" : hearty ? "assets/egg-heart.webp" : ek ? "assets/egg-" + ek + ".webp" : "assets/egg.png";
-    h += '<div class="eggwrap ' + hatch.phase + (hatch.legendary || (c && c.rarity === "Legendary") ? " leg" : "") + (spooky ? " haunt" : harvest ? " harvest" : jingly ? " jingly" : frosty ? " frosty" : hearty ? " hearty" : "") + '" style="--rc:' + (spooky ? "#B45CFF" : harvest ? "#F2A541" : jingly ? "#9EE3FF" : frosty ? "#BDE6FF" : hearty ? "#FF9EC4" : c ? RARITY_COLOR[c.rarity] : "#FFE6AA") + '"><img class="egg whole" src="' + egg + '" alt="">' +
+    const ultra = hatch.ultra || (c && c.rarity === "Ultra");
+    if (ultra) h += '<div class="eggwrap ' + hatch.phase + ' leg ultra" style="--rc:#D13BE8"><img class="egg whole" src="assets/egg-legendary.webp" alt=""><img class="egg top" src="assets/egg-legendary.webp" alt=""><img class="egg bot" src="assets/egg-legendary.webp" alt=""><span class="flash"></span></div>' +
+      '<p class="hatchtxt">' + (hatch.phase === "shake" ? "\u{1F308} An ULTRA egg is waking up\u2026" : "") + "</p>";
+    else h += '<div class="eggwrap ' + hatch.phase + (hatch.legendary || (c && c.rarity === "Legendary") ? " leg" : "") + (spooky ? " haunt" : harvest ? " harvest" : jingly ? " jingly" : frosty ? " frosty" : hearty ? " hearty" : "") + '" style="--rc:' + (spooky ? "#B45CFF" : harvest ? "#F2A541" : jingly ? "#9EE3FF" : frosty ? "#BDE6FF" : hearty ? "#FF9EC4" : c ? RARITY_COLOR[c.rarity] : "#FFE6AA") + '"><img class="egg whole" src="' + egg + '" alt="">' +
       '<img class="egg top" src="' + egg + '" alt=""><img class="egg bot" src="' + egg + '" alt=""><span class="flash"></span></div>' +
       '<p class="hatchtxt">' + (hatch.phase === "shake" ? "Something is moving…" : "") + "</p>";
   } else {
     h += '<div class="reveal" style="--rc:' + RARITY_COLOR[c.rarity] + '"><span class="rays"></span>' + img(c, "revimg", r.sparkle) + "</div>" +
       '<div class="revtxt">' + rarityPill(c.rarity) + (r.sparkle ? ' <span class="rpill" style="background:linear-gradient(90deg,#ff7ad9,#ffd84d,#7ae7ff)">\u2728 SPARKLE</span>' : "") + "<h2>" + (r.sparkle ? "\u2728 " : "") + esc(c.name) + "</h2>" +
       (r.event === "bday" ? '<p class="eventmsg ev-bday">\u{1F382} HAPPY BIRTHDAY! ' + (r.dupe ? "Another Wisholotl came to celebrate!" : "<b>Wisholotl, " + esc(c.title || "") + "</b>, came to make your wish come true!") + "</p>" : "") +
-      (r.event && r.event !== "bday" ? '<p class="eventmsg ev-' + r.event + '">' + (r.event === "hex" ? "\u{1F383}" : r.event === "thanks" ? "\u{1F983}" : r.event === "jingle" ? "\u{1F384}" : r.event === "pickle" ? "\u{1F952}" : r.event === "brew" ? "\u{1F9EA}" : r.event === "harvest" ? "\u{1F983}" : r.event === "gingerbread" ? "\u{1F36A}" : r.event === "snowman" ? "\u2603\uFE0F" : r.event === "frost" ? "\u{1F386}" : r.event === "heart" ? "\u{1F498}" : r.event === "candybox" ? "\u{1F36B}" : /2$/.test(r.event) ? ((BOSS2_LIST.find(B => B.fam === r.fam) || {}).icon || "\u{1F47B}") : "\u{1F986}") + (r.event === "pickle" || r.event === "brew" || r.event === "harvest" || r.event === "gingerbread" || r.event === "snowman" || r.event === "candybox" || /2$/.test(r.event) ? " EXCLUSIVE EVENT LEGENDARY! " : " LIMITED EVENT LEGENDARY! ") + (r.dupe ? "Another " + esc(c.name) + "!" : "You caught <b>" + esc(c.name) + ", " + esc(c.title || "") + "</b>! It\u2019s yours forever.") + "</p>" : "") +
+      (r.ultra ? '<p class="eventmsg ev-ultra">\u{1F308} ULTRA LEGENDARY! <b>' + esc(c.name) + ", " + esc(c.title || "") + "</b>" + (r.dupe ? " came back to train with you!" : " joined your collection!") + "</p>" : "") +
+      (r.event && r.event !== "bday" && !r.ultra ? '<p class="eventmsg ev-' + r.event + '">' + (r.event === "hex" ? "\u{1F383}" : r.event === "thanks" ? "\u{1F983}" : r.event === "jingle" ? "\u{1F384}" : r.event === "pickle" ? "\u{1F952}" : r.event === "brew" ? "\u{1F9EA}" : r.event === "harvest" ? "\u{1F983}" : r.event === "gingerbread" ? "\u{1F36A}" : r.event === "snowman" ? "\u2603\uFE0F" : r.event === "frost" ? "\u{1F386}" : r.event === "heart" ? "\u{1F498}" : r.event === "candybox" ? "\u{1F36B}" : /2$/.test(r.event) ? ((BOSS2_LIST.find(B => B.fam === r.fam) || {}).icon || "\u{1F47B}") : "\u{1F986}") + (r.event === "pickle" || r.event === "brew" || r.event === "harvest" || r.event === "gingerbread" || r.event === "snowman" || r.event === "candybox" || /2$/.test(r.event) ? " EXCLUSIVE EVENT LEGENDARY! " : " LIMITED EVENT LEGENDARY! ") + (r.dupe ? "Another " + esc(c.name) + "!" : "You caught <b>" + esc(c.name) + ", " + esc(c.title || "") + "</b>! It\u2019s yours forever.") + "</p>" : "") +
       (r.newSparkle ? '<p class="sparkmsg">WOW! A 1-in-2,000 Sparkle! Your ' + esc(c.name) + " family is now Sparkle forever.</p>" : "") +
-      (r.dupe && r.kept ? "<p>\u{1F504} Kept as a <b>spare for trading</b>. Find it under My creatures.</p>"
+      (r.ultra ? (r.dupe ? "<p>You already had " + esc(c.name) + " \u2014 <b>+" + (r.gained || 5) + " levels! Now Lv " + r.lvl + "</b></p>" : "<p><b>NEW!</b> Find it in your \u{1F308} Ultra Legendaries section.</p>")
+        : r.dupe && r.kept ? "<p>\u{1F504} Kept as a <b>spare for trading</b>. Find it under My creatures.</p>"
         : r.dupe ? '<p>You already had this family — <b>free level up! Now Lv ' + r.lvl + "</b>" + (r.evolved ? " and it <b>evolved!</b>" : "") + "</p>" +
           (ctx.cls && ctx.cls.tradeOff ? "" : '<p><button class="btn small ghost" data-cc="keepSpare">\u{1F504} Keep it as a spare for trading instead</button></p>')
         : "<p><b>NEW!</b> Added to your lorebook.</p>") +
@@ -403,8 +413,9 @@ function detailPage(c, seen) {
   let h = '<div class="dtop"><button class="btn small ghost" data-cc="back">◀ Back to lorebook</button><span class="num">#' + c.id + "</span></div>" +
     '<div class="dhead">' + img(c, "dimg") + "<div><h2>" + esc(c.name) + "</h2>" + (e && e.nick && cur ? '<p class="dline">Your <b>' + esc(e.nick) + "</b></p>" : "") + rarityPill(c.rarity) + " " + typePills(c) +
     '<p class="dline"><b>Weak to:</b> ' + esc(c.weak.join(", ")) + " (takes double damage)</p>" +
-    (c.title ? '<p class="dline"><i>' + esc(c.title) + "</i>" + (c.event ? ' <span class="rpill" style="background:#2B6FD6">\u{1F986} Limited event</span>' : "") + "</p>" : "") +
-    '<p class="dline"><b>' + (c.move ? "Signature move" : "Attack") + ":</b> " + esc(c.attack) + "</p>" + (c.move ? '<p class="dline muted">' + esc(c.move) + "</p>" : "") +
+    (c.title ? '<p class="dline"><i>' + esc(c.title) + "</i>" + (c.ultra ? ' <span class="rpill upill">\u{1F308} Ultra Legendary</span>' : c.event ? ' <span class="rpill" style="background:#2B6FD6">\u{1F986} Limited event</span>' : "") + "</p>" : "") +
+    (c.ultra ? ultraInfoHTML(c) : "") +
+    '<p class="dline"' + (c.ultra ? ' hidden' : "") + '><b>' + (c.move ? "Signature move" : "Attack") + ":</b> " + esc(c.attack) + "</p>" + (c.move ? '<p class="dline muted">' + esc(c.move) + "</p>" : "") +
     (c.dodge ? '<p class="dline"><b>\u{1F4A8} Speedy:</b> dodges ' + Math.round(c.dodge * 100) + "% of attacks in battle</p>" : "") +
     (c.daze ? '<p class="dline"><b>\u2728 Dazzle:</b> ' + Math.round(c.daze * 100) + "% chance to make the opponent\u2019s next attack " + Math.round((c.dazePct || 0) * 100) + "% weaker</p>" : "") +
     (c.atkHeal ? '<p class="dline"><b>\u{1F49A} Recovery:</b> heals ' + Math.round(c.atkHeal * 100) + "% of its HP after every " + esc(c.attack) + "</p>" : "") +
@@ -417,7 +428,7 @@ function detailPage(c, seen) {
     (c.alt && c.alt.evade ? '<p class="dline"><b>\u{1F300} Portal:</b> ' + Math.round(c.alt.evade * 100) + "% chance " + esc(c.alt.name) + " lets it dodge the opponent\u2019s next attack</p>" : "") +
     (c.brewFx ? '<p class="dline"><b>\u{1F9EA} Witch\u2019s Brew:</b> every hit does one surprise thing \u2014 poisons the opponent, lowers its Defense for a round, or heals Brewraith a little</p>' : "") +
     (c.poison ? '<p class="dline"><b>\u{1F922} Poison:</b> ' + Math.round(c.poison * 100) + "% chance its attack poisons the opponent (loses a little HP for 3 rounds)</p>" : "") +
-    (c.alt ? '<p class="dline"><b>Second attack:</b> ' + esc(c.alt.name) + (c.alt.type ? " (" + esc(c.alt.type) + ")" : "") + " \u2014 a bit less damage" + (c.alt.heal ? ", and heals " + Math.round(c.alt.heal * 100) + "% of its HP" : "") + (c.alt.defDown ? ", " + Math.round(c.alt.defDown * 100) + "% chance to lower the opponent\u2019s defense" + (c.alt.defTemp ? " for its next turn" : "") : "") + "</p>" + (c.alt.desc ? '<p class="dline muted">' + esc(c.alt.desc) + "</p>" : "") : "") + "</div></div>" +
+    (c.alt && !c.ultra ? '<p class="dline"><b>Second attack:</b> ' + esc(c.alt.name) + (c.alt.type ? " (" + esc(c.alt.type) + ")" : "") + " \u2014 a bit less damage" + (c.alt.heal ? ", and heals " + Math.round(c.alt.heal * 100) + "% of its HP" : "") + (c.alt.defDown ? ", " + Math.round(c.alt.defDown * 100) + "% chance to lower the opponent\u2019s defense" + (c.alt.defTemp ? " for its next turn" : "") : "") + "</p>" + (c.alt.desc ? '<p class="dline muted">' + esc(c.alt.desc) + "</p>" : "") : "") + "</div></div>" +
     '<div class="dstats"><span>❤ HP <b>' + st.hp + "</b></span><span>\u{1F6E1} Defense <b>" + st.df + "</b></span><span>⚔ Damage <b>" + st.dmg + "</b></span><span>Lv <b>" + (cur ? lvl : 1) + "</b></span></div>" +
     '<p class="muted" style="text-align:center;margin:2px 0 8px;">' + (cur ? "Your creature’s stats at level " + lvl : "Stats at level 1") + " · grows +" + c.ghp + " HP, +" + c.gdf + " DEF, +" + c.gdmg + " DMG per level</p>";
   if (fam.forms.length > 1) h += '<div class="dchain">' + fam.forms.map((id, i) => { const f = creature(id), got = seen.has(id);
@@ -452,7 +463,8 @@ function viewState(bt, k) {
     else if (e.k === "defdown" && e.src === "void") st.line = "\u{1F311} Gravity crushes <b>" + esc(e.d) + "</b>! Its defense dropped " + e.pct + "% for a turn.";
     else if (e.k === "defdown" && e.src === "brew") st.line = "\u{1F9EA} Witch\u2019s Brew splashes <b>" + esc(e.d) + "</b>! Its defense dropped " + e.pct + "% for a turn.";
     else if (e.k === "defdown") st.line = (e.temp ? "\u{1F338} Blossoms swirl around <b>" + esc(e.d) + "</b>! Its defense dropped " + e.pct + "% for a turn." : "\u{1F4A7} Brine soaked <b>" + esc(e.d) + "</b>! Its defense dropped " + e.pct + "%.");
-    if (e.k === "psn") { st[e.s].hp[e.i] = e.left; st[e.s].i = e.i; st.line = "\u{1F922} <b>" + esc(e.n) + "</b> is hurt by poison (-" + e.amt + ")."; }
+    if (e.k === "psn") { st[e.s].hp[e.i] = e.left; st[e.s].i = e.i; st.line = e.burn ? "\u{1F525} <b>" + esc(e.n) + "</b> is hurt by its burn (-" + e.amt + ")." : "\u{1F922} <b>" + esc(e.n) + "</b> is hurt by poison (-" + e.amt + ")."; }
+    if (e.k === "ux") { if (e.left != null) { st[e.s].hp[e.i] = e.left; st[e.s].i = e.i; } st.line = (e.sp ? '<span class="uxsp">' : "") + esc(e.t) + (e.sp ? "</span>" : ""); }
     if (e.k === "daze" && e.gum) st.line = "\u{1F36C} The gumdrop bursts all over <b>" + esc(e.d) + "</b>! Its next attack does " + e.pct + "% less damage.";
     else if (e.k === "daze" && e.pie) st.line = "\u{1F967} SPLAT! <b>" + esc(e.d) + "</b> got a pie on the head! Its next attack does " + e.pct + "% less damage.";
     else if (e.k === "daze") st.line = "\u2728 <b>" + esc(e.d) + "</b> is dazzled! Its next attack does " + e.pct + "% less damage.";
@@ -622,6 +634,7 @@ export async function onClick(el, c) {
     later(2800, () => { hatch.phase = "reveal"; busyUntil = 0; });
     return;
   }
+  if (a === "hatchUltra") { if (!ultraLeft(s) || s.isTeacher) return; return serverHatch(c, "ultra", null, { legendary: true, ultra: true }); }
   if (a === "hatchHeist") { if (!heistLegLeft(s) || s.isTeacher) return; return serverHatch(c, "heist", null, { legendary: true }); }
   if (a === "hatchRevenge") { if (!revengeLegLeft(s) || s.isTeacher) return; return serverHatch(c, "revenge", null, { legendary: true }); }
   if (a === "hatchVault") {
