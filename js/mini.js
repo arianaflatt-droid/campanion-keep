@@ -9,17 +9,20 @@
    🍂 leaf = Leaf Pile Jump (fall, Oct 29): jumps come from READING XP only (1 per 10 Reading XP today). Jump into leaf piles in a fall
              park: Nature/Earth/Air creatures pop out with a fall riddle (right answer = double), or treasure, or a golden leaf (egg).
              10 leaves on the leaf collection card = an egg. Pays the current season's currency. Art: assets/leaf/ (falls back if missing).
+   🎄 orn  = Ornament Hunt (December, Nov 3): hunts come from READING XP only (1 per 10 Reading XP). Tap an ornament on a giant tree:
+             Ice/Light/Crystal creatures pop out with a winter riddle (right answer = double), or treasure, or a golden ornament (egg).
+             10 ornaments in the Ornament Box = an egg. Pays the current season's currency. Art: assets/orn/.
    Tickets: 1 for every 10 XP today (best of morning / lunch / end-of-day numbers). Rewards are the season currency
    (candyBonus) and sometimes an egg (doorEggs). Each event has a "this time only" outfit shop (60 each, kept forever).
    While an event is on, every companion wears a random costume from it, and The Keep gets the event's colors.
    Saved on the student: mini = { id, used: { date: n }, cos, maze, stop, stamps, elf: { d, found, peek: [] }, got }
    plus outfits / outfitOn (game.js). */
-import { esc, HEAD_FNS, OUTFITS, candyLeft, companionOf } from "./game.js?v=20261103c";
-import { azToday, creature, FAMILIES } from "./collect.js?v=20261103c";
-import { CREATURES } from "./creatures.js?v=20261103c";
-import { xpOn } from "./surprise.js?v=20261103c";
-import { SEASON, boostExtra } from "./game.js?v=20261103c";
-import { readingOn, readingOnBoosted } from "./readmap.js?v=20261103c";
+import { esc, HEAD_FNS, OUTFITS, candyLeft, companionOf } from "./game.js?v=20261103d";
+import { azToday, creature, FAMILIES } from "./collect.js?v=20261103d";
+import { CREATURES } from "./creatures.js?v=20261103d";
+import { xpOn } from "./surprise.js?v=20261103d";
+import { SEASON, boostExtra } from "./game.js?v=20261103d";
+import { readingOn, readingOnBoosted } from "./readmap.js?v=20261103d";
 
 export const PER_TICKET = 10, OUTFIT_COST = 60;
 const typesOf = fam => { const f = FAMILIES.find(x => x.id === fam); const c = f && CREATURES.find(x => x.id === f.forms[0]); return (c && c.types) || []; };
@@ -37,7 +40,10 @@ export const MINI = {
     fams: () => pool(["Ghost", "Dark", "Arcane"], [], []).filter(f => !f.startsWith("L-")) },
   leaf: { key: "leaf", name: "Leaf Pile Jump", icon: "\u{1F342}", bg: "assets/leaf/leaf-park.webp", theme: "fall · Reading XP", reading: true, tix: "jump", tixs: "jumps", tixImg: "assets/leaf/leaf-icon.webp",
     get cur() { return SEASON.cur || "candy"; }, get coin() { return SEASON.coin || "\u{1F36C}"; },
-    fams: () => pool(["Nature", "Earth", "Air"], [], []).filter(f => !f.startsWith("L-")) }
+    fams: () => pool(["Nature", "Earth", "Air"], [], []).filter(f => !f.startsWith("L-")) },
+  orn: { key: "orn", name: "Ornament Hunt", icon: "\u{1F384}", bg: "assets/orn/orn-room.webp", theme: "December · Reading XP", reading: true, tix: "hunt", tixs: "hunts", tixImg: "assets/orn/orn-icon.webp",
+    get cur() { return SEASON.cur || "candy"; }, get coin() { return SEASON.coin || "\u{1F36C}"; },
+    fams: () => pool(["Ice", "Light", "Crystal"], [], []).filter(f => !f.startsWith("L-")) }
 };
 let FAMS = {};
 const famsOf = k => (FAMS[k] = FAMS[k] || MINI[k].fams());
@@ -67,6 +73,8 @@ const tixWord = (E, n) => E.tix ? (n === 1 ? E.tix : E.tixs) : (n === 1 ? "ticke
 const hasShop = E => OUTFITS.some(o => o.ev === E.key);
 const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
 const hash = s => { let h = 7; for (const ch of String(s)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return h; };
+// riddle answers come in a random order each time (Nov 3: the right answer used to always be first)
+const mixQ = q => { const ord = [0, 1, 2].slice(0, q.opts.length).sort(() => Math.random() - 0.5); return { q: q.q, opts: ord.map(i => q.opts[i]), a: ord.indexOf(q.a) }; };
 const RW = [["Common", 45], ["Uncommon", 28], ["Rare", 15], ["Super Rare", 8], ["Legendary", 4]];
 function visitor(k) {
   const all = famsOf(k).map(id => FAMILIES.find(f => f.id === id)).filter(Boolean);
@@ -87,7 +95,7 @@ HEAD_FNS.push(st => {
 // Call on every render (both pages): remembers the class for the costume and sets The Keep's event colors.
 export function miniSync(cls) {
   CLS = cls; const E = miniOn(cls);
-  ["tot", "fest", "xmas", "lib", "leaf"].forEach(k => document.body.classList.toggle("mini-" + k, !!E && E.key === k));
+  ["tot", "fest", "xmas", "lib", "leaf", "orn"].forEach(k => document.body.classList.toggle("mini-" + k, !!E && E.key === k));
 }
 
 /* ---------- lines ---------- */
@@ -154,7 +162,7 @@ export function miniCard(st, cls) {
   const t = ticketsLeft(st, cls);
   return '<div class="card minicard mc-' + E.key + '"><div class="mctxt"><h3>' + E.icon + " " + E.name + '!</h3><p><b>' + t + "</b> " + tixWord(E, t) +
     " · 1 " + tixWord(E, 1) + " for every " + PER_TICKET + (E.reading ? " <b>Reading</b>" : "") + " XP" + (ticketDays(st, cls).some(x => x.date !== azToday()) ? " (some are from earlier days)." : " today.") + (readX2(cls) ? " \u{1F4DA} <b>Reading XP counts double!</b>" : "") + " You have <b>" + candyLeft(st).toLocaleString() + " " + E.coin + "</b>.</p>" +
-    '<button class="btn gold" data-mini="open">' + (E.key === "tot" ? "\u{1F6AA} Go trick-or-treating!" : E.key === "fest" ? "\u{1F3A1} Go to the festival!" : E.key === "lib" ? "\u{1F56F}️ Sneak into the library!" : E.key === "leaf" ? "\u{1F342} Jump in the leaves!" : "\u{1F682} Go to the station!") + "</button> " +
+    '<button class="btn gold" data-mini="open">' + (E.key === "tot" ? "\u{1F6AA} Go trick-or-treating!" : E.key === "fest" ? "\u{1F3A1} Go to the festival!" : E.key === "lib" ? "\u{1F56F}️ Sneak into the library!" : E.key === "leaf" ? "\u{1F342} Jump in the leaves!" : E.key === "orn" ? "\u{1F384} Hunt for ornaments!" : "\u{1F682} Go to the station!") + "</button> " +
     (hasShop(E) ? '<button class="btn ghost" data-mini="shop">\u{1F6CD}️ ' + (FURN[E.key] ? "Outfit & room shop" : "Outfit shop") + "</button>" : "") + "</div></div>";
 }
 
@@ -229,6 +237,24 @@ export function miniOverlay(st, cls) {
     }
     return h + "</div></div>";
   }
+  if (E.key === "orn") {
+    const got = Number(m.orns) || 0;
+    h += top(E, st, cls) + '<div class="mstage ornstage" ' + bgs + '>';
+    if (G.res) {
+      const r = G.res;
+      h += '<div class="mpop ornpop">' + (r.gold ? '<img class="mbigimg pop orngold" src="assets/orn/orn-golden.webp" alt=""><h2>A golden ornament!</h2>' : "") + (r.v ? visHTML(r.v, r.line) : '<p class="mfound">' + esc(r.line) + "</p>") +
+        (r.q && r.ans == null ? '<p class="libq">\u{1F914} ' + esc(r.q.q) + '</p><div class="libans">' + r.q.opts.map((o, i) => '<button class="btn" data-mini="answer" data-i="' + i + '">' + esc(o) + "</button>").join("") + "</div>"
+          : (r.q ? '<p class="libq ' + (r.right ? "ok" : "no") + '">' + (r.right ? "\u{1F389} You got it! Double " + E.cur + "!" : "\u{1F605} Nice try! The answer was <b>" + esc(r.q.opts[r.q.a]) + "</b>.") + "</p>" : "") +
+            gotHTML(E, r.n, r.egg) + (r.stampEgg ? "<p>\u{1F384} Your Ornament Box is full: a bonus egg! A new box starts.</p>" : "") + '<button class="btn big" data-mini="ok">Hunt for another</button>') + "</div>";
+    } else {
+      h += ORN_SPOTS.map(([x, y, sz], i) => '<button class="ornball' + (G.jump === i ? " jingle" : "") + (t ? "" : " notix") + '" data-mini="hunt" data-i="' + i + '"' + (t && G.jump == null ? "" : " disabled") + ' aria-label="Tap an ornament" style="left:' + x + "%;top:" + y + "%;--s:" + sz + ";--d:" + (i * 0.29) + 's">' +
+          '<img src="assets/orn/orn-ball-' + ((i % 3) + 1) + '.webp" alt="">' +
+          (G.jump === i ? '<span class="burst">' + "✨❄️✨⭐✨❄️✨⭐".match(/./gu).filter(x => x.trim() && x !== "\uFE0F").map((l, k) => '<em style="--k:' + k + '">' + l + "</em>").join("") + "</span>" : "") + "</button>").join("") +
+        '<div class="libcard orncard"><img class="lantic" src="assets/orn/orn-icon.webp" alt=""> Ornament Box: ' + Array.from({ length: 10 }, (_, i) => '<span class="' + (i < got % 10 ? "on" : "") + '">' + (i < got % 10 ? ORN_TYPES[i] : "·") + "</span>").join("") + "</div>" +
+        '<div class="mhint">' + (G.jump != null ? "Jingle jingle! \u{1F514}" : t ? "Tap an ornament on the tree! What's hiding behind it?" : noTix) + "</div>";
+    }
+    return h + "</div></div>";
+  }
   if (E.key === "lib") {
     const stamps = Number(m.books) || 0;
     h += top(E, st, cls) + '<div class="mstage libstage" ' + bgs + '>';
@@ -299,7 +325,7 @@ export async function miniClick(el, c) {
   }
   if (a === "go") { const v = el.dataset.v; G = { view: v, bg: { maze: "assets/fest/fest-maze.webp", patch: "assets/fest/fest-patch.webp", ferris: "assets/fest/fest-ferris-top.webp", train: "assets/xmas/xmas-station.webp", elf: "assets/xmas/xmas-livingroom.webp" }[v] }; return c.render(true); }
   if (a === "ok" || a === "next") { G.res = null; if (E.key === "fest" && G.view === "maze") G.bg = "assets/fest/fest-maze.webp"; return c.render(true); }
-  if (a === "answer" && (E.key === "lib" || E.key === "leaf") && G && G.res && G.res.q && G.res.ans == null) {
+  if (a === "answer" && (E.key === "lib" || E.key === "leaf" || E.key === "orn") && G && G.res && G.res.q && G.res.ans == null) {
     const r = G.res, i = Number(el.dataset.i); r.ans = i; r.right = i === r.q.a;
     if (r.right) { r.n *= 2; chime(3); } else chime(1);
     G.busy = true; try { const mm = Object.assign({}, mine(s, cls)); mm.got = (Number(mm.got) || 0) + r.n; const data = { mini: mm, candyBonus: (Number(s.candyBonus) || 0) + r.n }; if (r.egg) data.doorEggs = (Number(s.doorEggs) || 0) + 1; await c.patch(data, true); } finally { G.busy = false; }
@@ -357,7 +383,7 @@ export async function miniClick(el, c) {
     const i = Number(el.dataset.i); if (G.jump != null) return;
     use(); m.leaves = (Number(m.leaves) || 0) + 1; const stampEgg = m.leaves % 10 === 0, r = Math.random(); let res;
     if (r < 0.05) res = { gold: true, n: 15, egg: true, line: "A golden leaf floats down… with an egg tucked underneath!" };
-    else if (r < 0.55) { const v = visitor("leaf"), q = LEAF_RIDDLES[rnd(0, LEAF_RIDDLES.length - 1)]; res = { v, n: v.n, line: LEAF_LINES[rnd(0, LEAF_LINES.length - 1)], q }; }
+    else if (r < 0.55) { const v = visitor("leaf"), q = mixQ(LEAF_RIDDLES[rnd(0, LEAF_RIDDLES.length - 1)]); res = { v, n: v.n, line: LEAF_LINES[rnd(0, LEAF_LINES.length - 1)], q }; }
     else if (r < 0.85) res = { n: rnd(3, 6), line: ["You landed on a hidden pile of " + E.cur + "!", "A squirrel was saving " + E.cur + " in here. It says you can have some!", "Crunch! There was " + E.cur + " at the bottom of the pile!"][rnd(0, 2)] };
     else res = { n: rnd(2, 4), line: LEAF_FINDS[rnd(0, LEAF_FINDS.length - 1)] };
     res.stampEgg = stampEgg; if (stampEgg) res.egg = true;
@@ -366,10 +392,23 @@ export async function miniClick(el, c) {
     await new Promise(ok => setTimeout(ok, 900));
     if (!G) return; G.jump = null; G.res = res; chime(res.gold ? 3 : 1); return c.render(true);
   }
+  if (a === "hunt" && E.key === "orn") {
+    const i = Number(el.dataset.i); if (G.jump != null) return;
+    use(); m.orns = (Number(m.orns) || 0) + 1; const stampEgg = m.orns % 10 === 0, r = Math.random(); let res;
+    if (r < 0.05) res = { gold: true, n: 15, egg: true, line: "The ornament glows gold… and an egg rolls out of the branches!" };
+    else if (r < 0.55) { const v = visitor("orn"), q = mixQ(ORN_RIDDLES[rnd(0, ORN_RIDDLES.length - 1)]); res = { v, n: v.n, line: ORN_LINES[rnd(0, ORN_LINES.length - 1)], q }; }
+    else if (r < 0.85) res = { n: rnd(3, 6), line: ["A squirrel tucked some " + E.cur + " in the branches. You found them!", "Jingle! " + E.cur.charAt(0).toUpperCase() + E.cur.slice(1) + " tumbled out from behind the ornament!", "Someone hid " + E.cur + " deep in the pine needles!"][rnd(0, 2)] };
+    else res = { n: rnd(2, 4), line: ORN_FINDS[rnd(0, ORN_FINDS.length - 1)] };
+    res.stampEgg = stampEgg; if (stampEgg) res.egg = true;
+    G.jump = i; G.busy = true; jingleSound(); c.render(true);
+    try { if (!res.q) await c.patch(pay(res.n, res.egg), true); else await c.patch({ mini: m }, true); } finally { G.busy = false; }
+    await new Promise(ok => setTimeout(ok, 900));
+    if (!G) return; G.jump = null; G.res = res; chime(res.gold ? 3 : 1); return c.render(true);
+  }
   if (a === "book" && E.key === "lib") {
     use(); m.books = (Number(m.books) || 0) + 1; const stampEgg = m.books % 10 === 0, r = Math.random(); let res;
     if (r < 0.05) res = { gold: true, n: 15, egg: true, line: "The pages glow gold… there\u2019s an egg tucked inside!" };
-    else if (r < 0.55) { const v = visitor("lib"), q = RIDDLES[rnd(0, RIDDLES.length - 1)]; res = { v, n: v.n, line: LIB_LINES[rnd(0, LIB_LINES.length - 1)], q }; }
+    else if (r < 0.55) { const v = visitor("lib"), q = mixQ(RIDDLES[rnd(0, RIDDLES.length - 1)]); res = { v, n: v.n, line: LIB_LINES[rnd(0, LIB_LINES.length - 1)], q }; }
     else if (r < 0.85) res = { n: rnd(3, 6), line: ["A pile of " + E.cur + " was pressed between the pages like a flower!", "The book was hollow inside… and full of " + E.cur + "!", "A bookmark made of " + E.cur + "! Yum."][rnd(0, 2)] };
     else res = { n: rnd(2, 4), line: STORY_PAGES[rnd(0, STORY_PAGES.length - 1)] };
     res.stampEgg = stampEgg; if (stampEgg) res.egg = true;
@@ -480,6 +519,38 @@ const LEAF_RIDDLES = [
   { q: "What has bark but no bite?", opts: ["A tree", "A puppy", "A shark"], a: 0 }
 ];
 
+/* ---------- 🎄 Ornament Hunt: tree spots, lines, finds and winter riddles ---------- */
+// [left %, top %, size] of each ornament on the tree picture (top % is where the hook hangs)
+const ORN_SPOTS = [[42, 19, 0.85], [51, 21, 0.85], [35, 45, 1], [49, 46, 1], [62, 45, 1], [27, 59, 1.05], [41, 58, 1.05], [56, 60, 1.05], [48, 76, 1.1]];
+const ORN_TYPES = ["\u{1F534}", "\u{1F535}", "\u{1F7E2}", "\u{1F7E1}", "\u{1F7E3}", "\u{1F534}", "\u{1F535}", "\u{1F7E2}", "\u{1F7E1}", "⭐"];
+const ORN_LINES = ["Brrr! I was napping behind that ornament! Riddle time!", "Jingle jingle! You found my cozy branch!", "I love the twinkle lights. They're like tiny stars! Want a riddle?",
+  "Achoo! Pine needles tickle my nose. Here's a riddle!", "I'm the tree's secret helper. Solve my riddle!", "Shhh, I'm hiding from the snowball fight. Riddle me this!",
+  "I climbed all the way up here to see the star! Try my riddle!", "Ho ho ho! Just kidding, I'm not Santa. But I have a riddle!"];
+const ORN_FINDS = ["You found a tangled string of lights… with treats stuck inside!", "A sleepy owl peeked out and handed you a snack!", "You found a lost mitten in the branches… with treats inside!",
+  "A candy cane was hanging behind the ornament! Treats fell off it!", "A pinecone dropped down with a few treats stuck to it!"];
+const ORN_RIDDLES = [
+  { q: "What falls in winter but never gets hurt?", opts: ["Snow", "Rocks", "Apples"], a: 0 },
+  { q: "What do snowmen eat for breakfast?", opts: ["Frosted Flakes", "Pancakes", "Toast"], a: 0 },
+  { q: "What has a trunk and lights but never goes on a trip?", opts: ["A Christmas tree", "An elephant", "A car"], a: 0 },
+  { q: "What do you call a snowman with a six-pack?", opts: ["An abdominal snowman", "Frosty", "A snow cone"], a: 0 },
+  { q: "Where do snowmen keep their money?", opts: ["In a snow bank", "In a piggy bank", "Under the bed"], a: 0 },
+  { q: "What is white and goes up?", opts: ["A confused snowflake", "A cloud", "A ghost"], a: 0 },
+  { q: "What do you get when you cross a snowman and a vampire?", opts: ["Frostbite", "A snow cone", "A cold bat"], a: 0 },
+  { q: "Which animal is always cold?", opts: ["A brrr-d", "A fish", "A lion"], a: 0 },
+  { q: "What do you call a penguin in the desert?", opts: ["Lost", "Hot", "A sand-guin"], a: 0 },
+  { q: "What did the tree say to the ornament?", opts: ["Quit hanging around!", "Hello!", "Go away"], a: 0 },
+  { q: "What season comes after fall?", opts: ["Winter", "Spring", "Summer"], a: 0 },
+  { q: "What has ears but can't hear and lives in the snow?", opts: ["Earmuffs", "A bunny", "A rock"], a: 0 },
+  { q: "How does a snowman get to school?", opts: ["By icicle", "By bus", "He walks"], a: 0 },
+  { q: "What do reindeer hang on their trees?", opts: ["Horn-aments", "Socks", "Carrots"], a: 0 },
+  { q: "What kind of ball doesn't bounce?", opts: ["A snowball", "A beach ball", "A basketball"], a: 0 },
+  { q: "What did one snowflake say to the other?", opts: ["You're one of a kind!", "It's hot!", "Bye!"], a: 0 },
+  { q: "What do you call an elf who sings?", opts: ["A wrapper", "A drummer", "A snowman"], a: 0 },
+  { q: "Why did the ornament go to school?", opts: ["To get brighter", "To eat lunch", "To see friends"], a: 0 },
+  { q: "What is a polar bear's favorite cereal?", opts: ["Ice Krispies", "Oatmeal", "Corn flakes"], a: 0 },
+  { q: "What goes ho ho swoosh?", opts: ["Santa in a revolving door", "A sled", "The wind"], a: 0 }
+];
+
 /* ---------- The Keep banner + teacher controls ---------- */
 export function miniBanner(students, cls) {
   const E = miniOn(cls); if (!E) return "";
@@ -515,6 +586,9 @@ function leafSound() { if (!ac()) return; const t = AC.currentTime, n = Math.flo
   for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 2) * (Math.random() < 0.3 ? 1 : 0.3);   // crunchy leaves
   const s = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain(); f.type = "bandpass"; f.frequency.value = 2600; f.Q.value = 0.7; g.gain.value = 0.5;
   s.buffer = b; s.connect(f); f.connect(g); g.connect(AC.destination); s.start(t); }
+function jingleSound() { if (!ac()) return; const t = AC.currentTime;   // little sleigh bells
+  for (let k = 0; k < 7; k++) { const at = t + k * 0.06 + Math.random() * 0.02; [2093, 2637, 3136].forEach((f, j) => { const o = AC.createOscillator(), g = AC.createGain(); o.type = "sine"; o.frequency.value = f * (1 + (k % 2) * 0.03);
+    g.gain.setValueAtTime(0.05 / (j + 1), at); g.gain.exponentialRampToValueAtTime(0.0005, at + 0.25); o.connect(g); g.connect(AC.destination); o.start(at); o.stop(at + 0.27); }); } }
 function knockSound() { if (!ac()) return; const t = AC.currentTime; thud(t); thud(t + 0.22); thud(t + 0.44); }
 function chime(n) { if (!ac()) return; const t = AC.currentTime; [784, 988, 1175, 1568].slice(0, (n || 1) + 1).forEach((f, i) => { const o = AC.createOscillator(), g = AC.createGain(); o.type = "triangle"; o.frequency.value = f; g.gain.setValueAtTime(0.15, t + i * 0.09); g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.09 + 0.35); o.connect(g); g.connect(AC.destination); o.start(t + i * 0.09); o.stop(t + i * 0.09 + 0.4); }); }
 function trainSound() { if (!ac()) return; const t = AC.currentTime; [0, 0.25].forEach(d => { const o = AC.createOscillator(), g = AC.createGain(); o.type = "square"; o.frequency.value = 520; g.gain.setValueAtTime(0.08, t + d); g.gain.exponentialRampToValueAtTime(0.001, t + d + 0.22); o.connect(g); g.connect(AC.destination); o.start(t + d); o.stop(t + d + 0.25); }); }
