@@ -1619,6 +1619,7 @@ img.pfavor.open{ animation:vaultpop .6s ease-out; }
 
 /* ---------- 🎪 Mini events ---------- */
 .phat.cos{ width:.8em; transform:translateX(-50%); }
+.phat.cos.neck{ width:.9em; z-index:5; }
 .minicard{ display:flex; gap:14px; align-items:center; border:2px solid var(--accent); }
 .minicard h3{ margin:0 0 4px; } .minicard p{ margin:0 0 8px; }
 .mc-tot{ background:linear-gradient(135deg,#2B1240,#5A2A6E 60%,#E8740C); color:#fff; border-color:#E8740C; } .mc-tot h3, .mc-tot p{ color:#fff; }

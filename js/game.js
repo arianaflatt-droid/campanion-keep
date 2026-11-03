@@ -1,10 +1,10 @@
-import { CREATURE_LAYOUT, CREATURE_FIT_ID } from "./creature-fit.js?v=20261103e";
-import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261103e";
-import { heldWeapon } from "./quest.js?v=20261103e";
+import { CREATURE_LAYOUT, CREATURE_FIT_ID, CREATURE_NECK_ID } from "./creature-fit.js?v=20261103f";
+import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261103f";
+import { heldWeapon } from "./quest.js?v=20261103f";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261103e";
+export const APP_V = "20261103f";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -593,7 +593,23 @@ function partyStyle(c, kind) {
 }
 /* 🎭 Event outfits (mini events): head pieces bought in a mini event's shop are kept forever (outfits = { id: true }, outfitOn = id).
    During a mini event every companion also wears that event's random costume (js/mini.js adds it through HEAD_FNS). */
-const OF = (ev, dir, list) => list.map(([k, name]) => ({ id: ev + "-" + k, ev, name, img: "assets/" + dir + "/" + (ev === "tot" ? "costume-" : "outfit-") + k + ".webp" }));
+const OF = (ev, dir, list) => list.map(([k, name]) => ({ id: ev + "-" + k, ev, name, img: "assets/" + dir + "/" + (ev === "tot" ? "costume-" : "outfit-") + k + ".webp", neck: NECK.includes(ev + "-" + k) }));
+// 🧣 Neck pieces (Nov 3): these sit at the companion's neck (under the chin) instead of on the head, so a shop hat can stay on too.
+const NECK = ["leaf-scarf", "orn-lights", "orn-bell"];
+const outfitByImg = img => OUTFITS.find(o => o.img === img) || null;
+// The neck spot: worked out from the head spot and the eyes (the chin is about as far below the eyes as the eyes are below the top of the head).
+// NECK_FIT nudges one form (by picture id, or "r:" + id for the basic companions): [move right, move down, size ×]
+const NECK_FIT = {};
+function neckStyle(c) {
+  const f = (c && c.fit) || {}, [hx, hy, hs] = f.hat || [0.6, 0.2, 0.45], [ex, ey] = f.eyes || [hx, hy + 0.2];
+  const id = c && c.creature ? (c.formId || "") : "r:" + (c && c.id), adj = NECK_FIT[id] || [0, 0, 1];
+  // most creature pictures have a worked-out head spot but a stand-in eye spot (always 0.205 below the head), so their neck comes from the head size
+  const guessEyes = !f.eyes || Math.abs(ey - hy - 0.205) < 0.003, dy = Math.max(0.1, ey - hy);
+  const N = c && c.creature && CREATURE_NECK_ID[c.formId];   // worked out from the picture
+  const x = (N ? N[0] : guessEyes ? hx : ex + (ex - hx) * 0.3) + adj[0], y = (N ? N[1] : guessEyes ? hy + hs * 1.0 : ey + dy * 1.25) + adj[1];
+  const size = Math.max(0.36, Math.min(0.66, hs * 1.15)) * adj[2];
+  return pos(x, y) + "font-size:" + size.toFixed(3) + "em;transform:translate(-50%,-35%);transform-origin:50% 35%;";
+}
 export const OUTFITS = [].concat(
   OF("tot", "tot", [["pumpkin", "Pumpkin Hat"], ["cat", "Black Cat Ears"], ["bat", "Bat Headband"], ["wizard", "Wizard Hat"], ["mummy", "Mummy Wrap"], ["candycorn", "Candy Corn Hat"], ["spider", "Spider Headband"], ["horns", "Little Devil Horns"]]),
   OF("fest", "fest", [["beanie", "Knit Beanie"], ["scarecrow", "Scarecrow Hat"], ["acorn", "Acorn Cap"], ["leafcrown", "Autumn Leaf Crown"], ["sunflower", "Sunflower Headband"], ["turkey", "Turkey Feathers"], ["apple", "Apple Hat"], ["earmuffs", "Plaid Earmuffs"]]),
@@ -603,7 +619,9 @@ export const OUTFITS = [].concat(
   OF("orn", "orn", [["antlers", "Reindeer Antlers"], ["santa", "Santa Hat"], ["tiara", "Snowflake Tiara"], ["earmuffs", "Fluffy Earmuffs"], ["lights", "Twinkle Light Necklace"], ["bell", "Golden Jingle Bell Collar"], ["penguin", "Penguin Hood"], ["snowman", "Snowman Top Hat"]]),   // 🎄 Ornament Hunt (Nov 3)
   OF("lib", "lib", [["candles", "Candle Crown"], ["nightcap", "Starry Nightcap"], ["wizard", "Wizard Reading Cap"], ["bookhat", "Book Hat"], ["bun", "Ghost Librarian Bun"], ["scholar", "Moonlight Scholar Cap"], ["owl", "Owl Ear Headband"], ["bookworm", "Bookworm Antennae"]]));
 export const outfitOf = id => OUTFITS.find(o => o.id === id) || null;
-export const headImg = (c, img) => '<span class="phat cos" style="' + (c ? partyStyle(c, "hat") : "") + '"><img src="' + img + '" alt=""></span>';
+export const headImg = (c, img) => { const o = outfitByImg(img);
+  return o && o.neck ? '<span class="phat cos neck" style="' + (c ? neckStyle(c) : "") + '"><img src="' + img + '" alt=""></span>'
+    : '<span class="phat cos" style="' + (c ? partyStyle(c, "hat") : "") + '"><img src="' + img + '" alt=""></span>'; };
 export const HEAD_FNS = [st => { const o = st && st.outfitOn && ((st.outfits || {})[st.outfitOn]) ? outfitOf(st.outfitOn) : null; return o ? o.img : ""; }];
 // Something extra on the head (a bought outfit, then an event costume). The shop hat comes off while it's on.
 export function headExtra(st, c) { if (vipHat(st)) return ""; for (const f of HEAD_FNS) { const img = f(st, c); if (img) return headImg(c, img); } return ""; }
@@ -619,7 +637,7 @@ export const paintClass = st => {
   return p + sp;
 };
 export const painted = (st, html) => { const k = paintClass(st); return k ? html.replace('class="petwrap', 'class="petwrap' + k) : html; };
-export const petWithHead = (st, c, worn, held) => { const x = headExtra(st, c); return painted(st, withVipHat(st, onPet(petHTML(c, x ? headFree(worn) : vipWorn(st, worn), held), x), c)); };
+export const petWithHead = (st, c, worn, held) => { const x = headExtra(st, c), nk = x.includes("phat cos neck"); return painted(st, withVipHat(st, onPet(petHTML(c, x && !nk ? headFree(worn) : vipWorn(st, worn), held), x), c)); };   // a neck piece keeps the shop hat on
 export const partyHat = (c, seed) => hatHTML(seed, "", c ? partyStyle(c, "hat") : "");
 export const partyCrown = c => '<span class="pcrown"' + (c ? ' style="' + partyStyle(c, "crown") + '"' : "") + ">\u{1F451}</span>";
 // While a party hat or crown is on, a shop hat comes off (shades and snacks stay)
