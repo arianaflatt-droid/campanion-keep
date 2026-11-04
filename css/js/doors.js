@@ -8,9 +8,9 @@
    Saved on the student: doors = { "YYYY-MM-DD": { "0": { st: "wait"|"ok"|"no"|"open", at, r }, g: { st: "open", r } } }
    plus lastDoor = "YYYY-MM-DD/<door>" (which door the last save touched; the save rules check it).
    Class: doorsOn (on/off), doorList (default list), doorDays = { "YYYY-MM-DD": [..] } (one-day lists). */
-import { azToday } from "./collect.js?v=20261103j";
-import { SEASON, eventMode, esc, dayXP, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261103j";
-import { subFor, SUB_NAMES } from "./teams.js?v=20261103j";
+import { azToday } from "./collect.js?v=20261104d";
+import { SEASON, eventMode, esc, dayXP, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261104d";
+import { subFor, SUB_NAMES } from "./teams.js?v=20261104d";
 
 // A door that starts with "!" is always open (not locked behind the first doors). The "!" isn't shown.
 export const DOOR_DEFAULT = [
@@ -46,9 +46,9 @@ export const doorText = (task, st, cls) => {
   if (cls && st) t = t.replace(/\b(\d+)\s+(Math|Reading|Language)\s+XP\b/gi, (all, n, w) => { const k = { math: "m", reading: "r", language: "l" }[w.toLowerCase()], to = subFor(cls, st, k); return to !== k ? n + " " + SUB_NAMES[to] + " XP" : all; });
   return t;
 };
-export const DOOR_NAMES = { haunt: "Haunted Doors", gobble: "Harvest Doors", jingle: "Advent Calendar", frost: "Frozen Doors", heart: "Mailbox Doors" };
-export const DOOR_ICON = { haunt: "\u{1F6AA}", gobble: "\u{1F6AA}", jingle: "\u{1F4C5}", frost: "\u{1F6AA}", heart: "\u{1F4EC}" };
-export const DOOR_ART = { haunt: "assets/doors/door-haunt.webp", gobble: "assets/doors/door-gobble.webp", jingle: "assets/doors/door-jingle.webp", frost: "assets/doors/door-frost.webp", heart: "assets/doors/door-heart.webp" };
+export const DOOR_NAMES = { haunt: "Haunted Doors", gobble: "Harvest Doors", jingle: "Advent Calendar", frost: "Frozen Doors", heart: "Mailbox Doors", lucky: "Rainbow Doors" };
+export const DOOR_ICON = { haunt: "\u{1F6AA}", gobble: "\u{1F6AA}", jingle: "\u{1F4C5}", frost: "\u{1F6AA}", heart: "\u{1F4EC}", lucky: "\u{1F308}" };
+export const DOOR_ART = { haunt: "assets/doors/door-haunt.webp", gobble: "assets/doors/door-gobble.webp", jingle: "assets/doors/door-jingle.webp", frost: "assets/doors/door-frost.webp", heart: "assets/doors/door-heart.webp", lucky: "assets/doors/door-lucky.webp" };
 export const doorName = () => DOOR_NAMES[SEASON.key] || "Daily Doors";
 
 export function doorsLive(cls) { return !!(cls && cls.doorsOn) && eventMode(cls); }
@@ -115,7 +115,7 @@ export function goalTier(task) {
 export const GOAL_CP = { g1: 20, g2: 20, g3: 20, g4: 40, g2i: 20, g3i: 20 };   // g2i/g3i = g2/g3 in potion mode (a free ingredient instead of the brew/attack)
 export const GOAL_CANDY = { g1: 75, g2: 25, g2i: 25 };
 export const GOAL_LEG_CHANCE = 0.01;
-export const SEASON_LEGENDARY = { haunt: "L-27", gobble: "L-29", jingle: "L-30", frost: "L-37", heart: "L-39" };
+export const SEASON_LEGENDARY = { haunt: "L-27", gobble: "L-29", jingle: "L-30", frost: "L-37", heart: "L-39", lucky: "L-64" };
 // Comfort Points from opened Goal Presents (added to Comfort Points by the teacher console).
 export function goalCP(st) {
   let n = 0;

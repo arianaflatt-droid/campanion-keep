@@ -6,8 +6,8 @@
    Saved on the class (p = the event's prefix, e.g. "potion" or "feast"):
      <p>On, <p>Teams [{ id, name, members }], <p>Recipe { date: { teamId: { e, b, s } } }, <p>Brews { date: [teamId] }, <p>Top { at, teams }
    Saved on the student: <p>Days { date: { team, fx? } } (days done + rewards given), <p>LegEggs (special Legendary eggs from the top team) */
-import { isHaunt, isGobble, isJingle, isFrost, isHeart, esc, boostMult } from "./game.js?v=20261103j";
-import { azToday } from "./collect.js?v=20261103j";
+import { isHaunt, isGobble, isJingle, isFrost, isHeart, isLucky, esc, boostMult } from "./game.js?v=20261104d";
+import { azToday } from "./collect.js?v=20261104d";
 
 export const PER_XP = 25;
 // The Feast Table: one dish shows up on a team's table for every menu it finishes (the 10th finishes the feast).
@@ -65,6 +65,22 @@ export const CHOCS = [
   { k: "orange", name: "Orange Dream", ing: [["Chocolate", "\u{1F36B}"], ["Oranges", "\u{1F34A}"], ["Honey", "\u{1F36F}"]] },
   { k: "bonbon", name: "Golden Sweetheart Bonbon", ing: [["Chocolate", "\u{1F36B}"], ["Gold Sprinkles", "\u2728"], ["Pink Frosting", "\u{1F496}"]] }
 ];
+// 🪤 Build a Leprechaun Trap (Lucky Leprechaun Hunt): one trap piece a day goes onto the grassy base.
+// Pictures: assets/lucky/trap-base.webp and trap-1.webp ... trap-10.webp (numbered by day).
+export const TRAP_STEPS = [
+  { k: "box", name: "Wooden Box", ing: [["Planks", "\u{1FAB5}"], ["Nails", "\u{1F529}"], ["Saws", "\u{1FA9A}"]] },
+  { k: "stick", name: "Stick Prop-Up", ing: [["Sticks", "\u{1F333}"], ["String", "\u{1F9F5}"], ["Knots", "\u{1FAA2}"]] },
+  { k: "ramp", name: "Rainbow Ramp", ing: [["Paint", "\u{1F3A8}"], ["Colors", "\u{1F308}"], ["Brushes", "\u{1F58C}\uFE0F"]] },
+  { k: "carpet", name: "Clover Carpet", ing: [["Clovers", "\u{1F340}"], ["Yarn", "\u{1F9F6}"], ["Scissors", "\u2702\uFE0F"]] },
+  { k: "ladder", name: "Tiny Ladder", ing: [["Rungs", "\u{1FA9C}"], ["Rails", "\u{1FAB5}"], ["Screws", "\u{1F529}"]] },
+  { k: "glitter", name: "Glitter Path", ing: [["Glitter", "\u2728"], ["Glue", "\u{1F9F4}"], ["Gold Dust", "\u{1F31F}"]] },
+  { k: "coins", name: "Gold Coin Bait", ing: [["Coins", "\u{1FA99}"], ["Chocolate", "\u{1F36B}"], ["Wrappers", "\u{1F381}"]] },
+  { k: "cereal", name: "Lucky Charms Snack", ing: [["Cereal", "\u{1F963}"], ["Marshmallows", "\u2601\uFE0F"], ["Milk", "\u{1F95B}"]] },
+  { k: "hat", name: "Mini Top Hat Decoy", ing: [["Felt", "\u{1F3A9}"], ["Green Ribbon", "\u{1F380}"], ["Buckles", "\u{1F7E8}"]] },
+  { k: "bell", name: "Golden Bell Alarm", ing: [["Bells", "\u{1F514}"], ["Gold", "\u{1F7E1}"], ["Bows", "\u{1F380}"]] }
+];
+// Where each piece sits on the trap base: centre x, centre y and width, as fractions of the base picture (drawn in this order).
+const TRAP_SPOTS = [[.5, .38, .34], [.68, .3, .11], [.27, .45, .3], [.5, .6, .3], [.82, .42, .12], [.5, .74, .3], [.52, .42, .16], [.36, .62, .13], [.66, .62, .13], [.69, .12, .12]];
 // Where each day's chocolate sits in the box picture: centre x, centre y and width, as fractions of the box.
 const BOX_SPOTS = [[.268, .488, .165], [.452, .483, .15], [.611, .483, .15], [.765, .485, .145], [.278, .625, .17], [.5, .622, .18], [.722, .622, .17], [.25, .775, .18], [.503, .778, .18], [.75, .772, .18]];
 // The Feast Table: today's menu is the team's next dish, and its ingredients are that dish's real ingredients
@@ -141,6 +157,18 @@ export const TEAM_EVENTS = {
     recipe: "chocolate", fill: "make it with your team!", leg: "L-40", legName: "Candivora", fx: false,
     steps: CHOCS, stepWord: "chocolate", today: "Today\u2019s chocolate", doneLine: "is in your candy box!", againWord: "extra sweets", countWord: " in the box",
     build: true, box: true, thing: "candy box", extra: "Extra Sweets", makeLine: "make it with your team to put it in your candy box!"
+  },
+  trap: {
+    key: "trap", p: "trap", title: "Build a Leprechaun Trap", icon: "\u{1FAA4}", tab: "\u{1FAA4} Trap", season: isLucky, seasonName: "the Lucky Leprechaun Hunt",
+    ing: [
+      { k: "e", sub: "m", name: "Wood", icon: "\u{1FAB5}", subject: "Math" },
+      { k: "b", sub: "r", name: "Rainbows", icon: "\u{1F308}", subject: "Reading" },
+      { k: "s", sub: "l", name: "Gold Coins", icon: "\u{1FA99}", subject: "Language" }],
+    cur: 30, curName: "coins", xp: 50, eggs: 1, badge: "Master Trapper", badgeN: 10, one: "trap piece", many: "trap pieces", done: "Trap piece built!",
+    recipe: "trap piece", fill: "build it with your team!", leg: "L-65", legName: "Prismalotl", fx: false,
+    steps: TRAP_STEPS, stepWord: "piece", today: "Today\u2019s trap piece", doneLine: "is on your trap!", againWord: "extra traps", countWord: " built",
+    build: true, box: true, thing: "leprechaun trap", extra: "Extra Trap Fun", makeLine: "build it with your team to add it to your leprechaun trap!",
+    boxImg: "assets/lucky/trap-base.webp", pieceImg: i => "assets/lucky/trap-" + (i + 1) + ".webp", spots: TRAP_SPOTS, fullLine: "\u{1F340} Trap set! Lepre-quack is caught!", unit: "pieces"
   }
 };
 export const EVENT_LIST = Object.values(TEAM_EVENTS);
@@ -276,14 +304,15 @@ export function houseHTML(c, cls) {
 
 // Candy Box: the open box with one chocolate in its slot for every finished day. Today's chocolate shows faintly in its slot.
 const seenBox = {};
-export function boxHTML(c, cls) {
-  const E = c.E, L = E.steps.length, n = Math.min(L, brewCount(E, cls, c.team.id)), was = seenBox[c.team.id] == null ? n : seenBox[c.team.id];
-  seenBox[c.team.id] = n;
-  const choc = (i, extra) => '<img class="cb-choc' + extra + '" src="assets/heart/box/choc-' + (i + 1) + '.webp" alt="" title="' + esc(E.steps[i].name) + '" style="left:' + (BOX_SPOTS[i][0] * 100) + "%;top:" + (BOX_SPOTS[i][1] * 100) + "%;width:" + (BOX_SPOTS[i][2] * 100) + '%;">';
-  let h = '<div class="candybox' + (n >= L ? " done" : "") + '" aria-hidden="true"><img class="cb-box" src="assets/heart/box/candy-box.webp" alt="">';
+export function boxHTML(c, cls, count) {
+  const E = c.E, L = E.steps.length, n = Math.min(L, count != null ? count : brewCount(E, cls, c.team.id)), sk = E.key + ":" + c.team.id, was = seenBox[sk] == null ? n : seenBox[sk];
+  seenBox[sk] = n;
+  const SP = E.spots || BOX_SPOTS, src = i => (E.pieceImg ? E.pieceImg(i) : "assets/heart/box/choc-" + (i + 1) + ".webp");
+  const choc = (i, extra) => '<img class="cb-choc' + extra + '" src="' + src(i) + '" alt="" title="' + esc(E.steps[i].name) + '" style="left:' + (SP[i][0] * 100) + "%;top:" + (SP[i][1] * 100) + "%;width:" + (SP[i][2] * 100) + '%;">';
+  let h = '<div class="candybox cbx-' + E.key + (n >= L ? " done" : "") + '" aria-hidden="true"><img class="cb-box" src="' + (E.boxImg || "assets/heart/box/candy-box.webp") + '" alt="">';
   for (let i = 0; i < n; i++) h += choc(i, i >= was ? " new" : "");
   if (!c.brewed && n < L) h += choc(n, " ghost");
-  return h + '<span class="cb-step">' + (n >= L ? "\u{1F3C6} Box full!" : n + " / " + L + " chocolates") + "</span></div>";
+  return h + '<span class="cb-step">' + (n >= L ? (E.fullLine || "\u{1F3C6} Box full!") : n + " / " + L + " " + (E.unit || "chocolates")) + "</span></div>";
 }
 
 /* ---------- student card ---------- */
@@ -326,6 +355,11 @@ export function soloHouseHTML(key, count, ek) {
     '<span class="gh-step">' + (n >= L ? "\u{1F3C6} Finished!" : "Step " + n + " / " + L) + "</span></div>";
 }
 
+// 🍀 Solo Trap Building: one student's own leprechaun trap (count = pieces built so far; the picture stops at the full trap).
+export function soloTrapHTML(key, count, brewed) {
+  const E = TEAM_EVENTS.trap, L = E.steps.length, n = Math.min(L, count);
+  return boxHTML({ E, team: { id: key }, brewed }, null, n);
+}
 // Solo Chocolate Making: one student's own candy box (count = chocolates made so far).
 export function soloBoxHTML(key, count, brewed) {
   const E = TEAM_EVENTS.candybox, c = { brewed }, L = E.steps.length, n = Math.min(L, count), was = seenBox[key] == null ? n : seenBox[key];

@@ -8,10 +8,10 @@
      🗺️ finishing all 3 Grade Level Quest tests at their own grade (st.grade = 4 or 5, set by Ms. Ariana; once)
    Saved on the student: ultraEggs, ultraUsed (server), ultraGoals = { st: { s: run start, n: given }, wk: { s, n }, vault: vaults rolled,
      q: true }, ultraLog = [{ why, at }] (newest last). */
-import { esc, weekKey, weekGoal } from "./game.js?v=20261103j";
-import { ULTRA_FAMS, ULTRA_DUPE, ultraLeft, owned, formOf, family, creature, statsOf, bankXP, LEVEL_XP, MAX_LEVEL } from "./collect.js?v=20261103j";
-import { doneCount, GRADES } from "./quest.js?v=20261103j";
-import { addDays, mondayOf, histWeekTotal } from "./doors.js?v=20261103j";
+import { esc, weekKey, weekGoal } from "./game.js?v=20261104d";
+import { ULTRA_FAMS, ULTRA_DUPE, ultraLeft, owned, formOf, family, creature, statsOf, bankXP, LEVEL_XP, MAX_LEVEL } from "./collect.js?v=20261104d";
+import { doneCount, GRADES } from "./quest.js?v=20261104d";
+import { addDays, mondayOf, histWeekTotal } from "./doors.js?v=20261104d";
 
 export const STREAK_DAYS = 30, WEEKS_IN_ROW = 4, WEEK_XP = 600, VAULT_ULTRA = 0.25;
 export const ULTRA_GRADES = [4, 5];
@@ -157,13 +157,13 @@ function fxText(f, who) {
 }
 export function ultraInfoHTML(c) {
   const u = c && c.ux; if (!u) return "";
-  const p = u.pass, sp = u.sp, bits = [];
+  const p = u.pass, sp = u.sp || {}, bits = [];
   if (sp.heal) bits.push("heals " + P(sp.heal) + " of its HP"); if (sp.def) bits.push("+" + P(sp.def) + " Defense"); if (sp.atk) bits.push("+" + P(sp.atk) + " Attack");
   if (sp.boost) bits.push("its next " + (sp.bt ? sp.bt.join(" or ") + " " : "") + "attack does +" + P(sp.boost)); if (sp.shield) bits.push("the next hit on it does " + P(sp.shield) + " less");
   const pass = !p ? "" : p.fx === "first" ? "the first hit it takes in a battle does " + P(p.pct) + " less damage"
     : p.fx === "halfHeal" ? "the first time it drops below 50% HP, it heals " + P(p.pct) + " of its HP" : "the first time it drops below 50% HP, its Defense goes up " + P(p.pct);
   return '<div class="uinfo"><p class="dline"><b>⚔️ ' + esc(c.attack) + "</b> (" + esc(c.atkType || c.types[0]) + ", main attack): " + esc(fxText(u.main, c.name)) + "</p>" +
-    '<p class="dline"><b>✨ ' + esc(c.alt.name) + "</b> (" + esc(c.alt.type) + ", second attack): " + esc(fxText(u.alt, c.name)) + "</p>" +
+    '<p class="dline"><b>✨ ' + esc(c.alt.name) + "</b> (" + esc(c.alt.type) + ", second attack): " + esc(u.alt ? fxText(u.alt, c.name) : c.alt.evade ? P(c.alt.evade) + " chance it dodges the opponent\u2019s next attack" : c.alt.heal ? "heals " + P(c.alt.heal) + " of its HP" : "a bit less damage") + "</p>" +
     (p ? '<p class="dline"><b>\u{1F6E1}️ ' + esc(p.name) + "</b> (always on): " + esc(pass) + "</p>" : "") +
-    '<p class="dline"><b>\u{1F308} ' + esc(sp.name) + "</b> (Ultra special, once per battle below 30% HP): " + esc(bits.join(", ")) + "</p></div>";
+    (!u.sp ? "</div>" : "") + (!u.sp ? "" : '<p class="dline"><b>\u{1F308} ' + esc(sp.name) + "</b> (Ultra special, once per battle below 30% HP): " + esc(bits.join(", ")) + "</p></div>");
 }

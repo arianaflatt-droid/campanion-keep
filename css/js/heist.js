@@ -11,9 +11,9 @@
    Class switch: cls.heist = { on, id, from, to }. Student save: heist = { id, used, bonus, hp{n}, mh{n:[3]}, beat{n}, pw{pie,shield,cry,rage},
      tw, th, best, bells, got{}, rounds }. Rewards use fields students may write (rules countsOk): candyBonus, doorEggs, eggBoost,
    legendaryPulls, outfits, roomOwned, heistLeg (✨ Sparkle Grinch-a-Duck egg, hatched by the server kind "heist"). */
-import { esc, SEASON } from "./game.js?v=20261103j";
-import { azToday } from "./collect.js?v=20261103j";
-import { subFor } from "./teams.js?v=20261103j";
+import { esc, SEASON } from "./game.js?v=20261104d";
+import { azToday } from "./collect.js?v=20261104d";
+import { subFor } from "./teams.js?v=20261104d";
 
 export const PER_ENERGY = 10, ROUND_SEC = 20, XMAS_DAY = 4;
 const A = "assets/heist/";
@@ -427,7 +427,9 @@ function sfx(k) {
 
 /* ---------- console card ---------- */
 export function heistAdmin(students, cls) {
-  const on = hsOn(cls), w = win(cls), kids = students.filter(s => s.companionId && !s.isTeacher).slice().sort((a, b) => String(a.name).localeCompare(String(b.name)));
+  const t0 = azToday(), w0 = win(cls);
+  if (!hsOn(cls) && t0.slice(5, 7) !== "12" && !(w0 && w0.from && w0.to && t0 >= w0.from && t0 <= w0.to)) return "";   // only shows in December (or while it runs)
+  const on = hsOn(cls), w = w0, kids = students.filter(s => s.companionId && !s.isTeacher).slice().sort((a, b) => String(a.name).localeCompare(String(b.name)));
   let h = '<div class="card"><div class="card-head"><h2>\u{1F384} The Great Present Heist</h2><span class="fact">' + (on ? (hsStarted(cls) ? "running" : "starts " + w.from) : "off") + "</span></div>" +
     '<p class="lede" style="font-size:13.5px;">Christmas break event: each student chases the Grinch-a-Duck on their own through 10 chapters with a fast tap-to-attack fight, then an endless Present Mountain. ' +
     "Chapter 1 opens on the first day and a new one opens every day after (none on Christmas Day, which has a free present instead), but beating a chapter opens the next one right away. " +

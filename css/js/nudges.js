@@ -1,14 +1,14 @@
 // Nudge messages: short, friendly "you're close!" notes at the top of a student's page.
 // Each rule returns a nudge or null; the most useful few are shown (lower pri = shown first).
-import { seasonOf, dayXP, simulate, GEAR, goalXP, arr5, esc, isHaunt, battleOn, nextAttack, companionOf, bossState } from "./game.js?v=20261103j";
-import { azToday, brewLegLeft, feastLegLeft, gingerLegLeft, snowLegLeft, candyLegLeft, ghostEggLeft, BOSS2_LIST, boss2EggLeft, vaultLegLeft, pickleLeft, birthdayLeft, EVENTS, eventOpen, eventUnlocked, hasEvent, eventStreak, creature, family, azNow, pullsLeft, legendaryLeft, bankXP, LEVEL_XP, PULL_XP, hasStarter, owned, MAX_LEVEL } from "./collect.js?v=20261103j";
-import { badgeState } from "./badges.js?v=20261103j";
-import { mqReady } from "./morning.js?v=20261103j";
-import { unthanked } from "./kindness.js?v=20261103j";
-import { pettedToday } from "./bond.js?v=20261103j";
-import { mealsReady } from "./meals.js?v=20261103j";
-import { passReady } from "./pass.js?v=20261103j";
-import { doorsLive, goldenReady, doorName } from "./doors.js?v=20261103j";
+import { seasonOf, dayXP, simulate, GEAR, goalXP, arr5, esc, isHaunt, battleOn, nextAttack, companionOf, bossState } from "./game.js?v=20261104d";
+import { azToday, brewLegLeft, feastLegLeft, gingerLegLeft, snowLegLeft, candyLegLeft, ghostEggLeft, BOSS2_LIST, boss2EggLeft, vaultLegLeft, pickleLeft, birthdayLeft, EVENTS, eventOpen, eventUnlocked, hasEvent, eventStreak, creature, family, azNow, pullsLeft, legendaryLeft, bankXP, LEVEL_XP, PULL_XP, hasStarter, owned, MAX_LEVEL } from "./collect.js?v=20261104d";
+import { badgeState } from "./badges.js?v=20261104d";
+import { mqReady } from "./morning.js?v=20261104d";
+import { unthanked } from "./kindness.js?v=20261104d";
+import { pettedToday } from "./bond.js?v=20261104d";
+import { mealsReady } from "./meals.js?v=20261104d";
+import { passReady } from "./pass.js?v=20261104d";
+import { doorsLive, goldenReady, doorName } from "./doors.js?v=20261104d";
 
 const MAX_SHOWN = 3;
 const WEEKDAY = { Mon: 0, Tue: 1, Wed: 2, Thu: 3, Fri: 4 };
@@ -54,7 +54,7 @@ export function nudges(st, cls, battles, students) {
   }
 
   // ---- streak gear ----
-  const nextGear = GEAR.filter(g => !g.ghost && !g.turkey && !g.jingle && !g.frost && !g.heart && !g.months && !sim.unlocked.includes(g.id)).sort((a, b) => a.streak - b.streak)[0];
+  const nextGear = GEAR.filter(g => !g.ghost && !g.turkey && !g.jingle && !g.frost && !g.heart && !g.lucky && !g.months && !sim.unlocked.includes(g.id)).sort((a, b) => a.streak - b.streak)[0];
   if (nextGear && sim.alive) {
     const need = Math.max(1, nextGear.streak - sim.hitRun);
     if (need <= 2) add(2, "\u{1F525}", "<b>" + plural(need, "more " + goal + " XP day") + "</b> in a row unlocks the <b>" + esc(nextGear.name) + "</b>!");
@@ -64,6 +64,7 @@ export function nudges(st, cls, battles, students) {
   if (hasStarter(st)) {
     if (birthdayLeft(st)) add(0, "\u{1F382}", "<b>Happy birthday!</b> Ms. Ariana sent you a birthday egg. Go hatch it!", "collect");
     if ((Number(st.ultraEggs) || 0) > (Number(st.ultraUsed) || 0)) add(0, "\u{1F308}", "<b>ULTRA LEGENDARY egg!</b> You earned an Ultra egg. Go hatch it!", "collect");
+    if ((Number(st.trapLegEggs) || 0) + (Number(st.soloTrapLeg) || 0) > (Number(st.trapLegUsed) || 0)) add(0, "\u{1F308}", "<b>Your leprechaun trap paid off!</b> You have a Prismalotl egg waiting. Go hatch it!", "collect");
     if (vaultLegLeft(st)) add(0, "\u{1F48E}", "<b>Treasure Vault treasure!</b> You have a Sparkle Legendary egg waiting. Go hatch it!", "collect");
     BOSS2_LIST.forEach(B => { if (boss2EggLeft(st, B)) add(0, B.icon, "<b>You helped beat the " + B.boss + " a 2nd time!</b> You got a " + B.boss + " egg. Go hatch it!", "collect"); });
     if (candyLegLeft(st)) add(0, "\u{1F36B}", "<b>You earned a special Candivora egg!</b> Go hatch it!", "collect");

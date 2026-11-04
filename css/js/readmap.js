@@ -4,10 +4,10 @@
    chests (XP, event currency or Comfort Points), Water creatures to catch, eggs, and a Rare-or-better egg at the end.
    Students with their own plan read from their swapped subject (cls.subSwap[id].r), same as the core subjects rule.
    Ms. Ariana turns it on/off in the console (cls.readMap). Saved on the student: rmap = { wk, got: [island indexes], log: { i: text } } */
-import { esc, SEASON, boostMult } from "./game.js?v=20261103j";
-import { azToday, doPull, formOf } from "./collect.js?v=20261103j";
-import { weekKey, addDays } from "./doors.js?v=20261103j";
-import { subFor, SUB_NAMES } from "./teams.js?v=20261103j";
+import { esc, SEASON, boostMult } from "./game.js?v=20261104d";
+import { azToday, doPull, formOf } from "./collect.js?v=20261104d";
+import { weekKey, addDays } from "./doors.js?v=20261104d";
+import { subFor, SUB_NAMES } from "./teams.js?v=20261104d";
 
 export const PER_ISLAND = 25;
 export const ISLANDS = [
@@ -22,7 +22,7 @@ export const ISLANDS = [
   { n: "Bookworm Bay", k: "chest", x: 82, y: 30 },
   { n: "Treasure Isle", k: "final", x: 90, y: 70 }
 ];
-export const mapOn = cls => !!(cls && cls.readMap);
+export const mapOn = cls => false;   // Nov 4 (Ms. Ariana): the Reading Treasure Map is removed (was: !!(cls && cls.readMap))
 const readSub = (st, cls) => subFor(cls, st, "r");
 // Reading XP this week (Mon–Sun)
 export function weekReading(st, cls) {

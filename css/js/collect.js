@@ -1,5 +1,5 @@
 // Creature Collector: pulls, XP bank, levels, evolutions, lorebook and arena battles.
-import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261103j";
+import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261104d";
 
 export const PULL_XP = 120;          // every 120 XP (all-time since the collector started) = 1 pull
 export const LEVEL_XP = 120;         // 120 banked XP = 1 level
@@ -118,7 +118,8 @@ export const BOSS2 = {
   gobble: { fam: "L-42", boss: "Turducken", icon: "\u{1F983}", defeat: "turkeyDefeated", flag: "turkey2Done", stu: "turkey2", eggs: "turkeyEggs", used: "turkeyEggsUsed", atk: "turkey2Atk", move: "turkeyMove", mv: "feast", side: "turkeysp", badge: "turkey-2", badgeName: "Turkey Takedown II", prize: "make Ms. Ariana dress up as a turkey for class" },
   jingle: { fam: "L-43", boss: "Grinch-a-Duck", icon: "\u{1F986}", defeat: "grinchDefeated", flag: "grinch2Done", stu: "grinch2", eggs: "grinchEggs", used: "grinchEggsUsed", atk: "grinch2Atk", move: "grinchMove", mv: "sack", side: "grinchsp", badge: "grinch-2", badgeName: "Grinch Grabber II", prize: "pick Ms. Ariana\u2019s holiday sweater" },
   frost:  { fam: "L-44", boss: "Snowlotl", icon: "\u26C4", defeat: "yetiDefeated", flag: "yeti2Done", stu: "yeti2", eggs: "yetiEggs", used: "yetiEggsUsed", atk: "yeti2Atk", move: "yetiMove", mv: "blizzard", side: "yetisp", badge: "yeti-2", badgeName: "Snowlotl Smasher II", prize: "have a class pajama day" },
-  heart:  { fam: "L-45", boss: "Heartbreaker-otl", icon: "\u{1F494}", defeat: "heartDefeated", flag: "heart2Done", stu: "heart2", eggs: "heartEggs", used: "heartEggsUsed", atk: "heart2Atk", move: "heartMove", mv: "shatter", side: "heartsp", badge: "heart-2", badgeName: "Heart Mender II", prize: "pick Ms. Ariana\u2019s outfit for a day" }
+  heart:  { fam: "L-45", boss: "Heartbreaker-otl", icon: "\u{1F494}", defeat: "heartDefeated", flag: "heart2Done", stu: "heart2", eggs: "heartEggs", used: "heartEggsUsed", atk: "heart2Atk", move: "heartMove", mv: "shatter", side: "heartsp", badge: "heart-2", badgeName: "Heart Mender II", prize: "pick Ms. Ariana\u2019s outfit for a day" },
+  lucky:  { fam: "L-63", boss: "Lepre-quack", icon: "\u{1F340}", defeat: "luckyDefeated", flag: "lucky2Done", stu: "lucky2", eggs: "luckyEggs", used: "luckyEggsUsed", atk: "lucky2Atk", move: "luckyMove", mv: "goldrush", side: "leprsp", badge: "lucky-2", badgeName: "Leprechaun Catcher II", prize: "dress Ms. Ariana like a leprechaun for a day" }
 };
 export const BOSS2_LIST = Object.keys(BOSS2).map(k => Object.assign({ key: k }, BOSS2[k]));
 export function boss2EggLeft(st, B) { return Math.max(0, (Number(st && st[B.eggs]) || 0) - (Number(st && st[B.used]) || 0)); }
@@ -126,6 +127,8 @@ export const GHOST_FAM = "L-41";
 export function vaultLegLeft(st) { return Math.max(0, (Number(st && st.vaultLegEggs) || 0) - (Number(st && st.vaultLegUsed) || 0)); }   // Treasure Vault: Sparkle Legendary eggs
 export function ghostEggLeft(st) { return boss2EggLeft(st, BOSS2.haunt); }
 export const CANDY_FAM = "L-40";   // Candivora: the top Candy Box team's special egg
+export const PRISM_FAM = "L-65";   // Prismalotl: the top Leprechaun Trap team's special egg
+export function trapLegLeft(st) { return Math.max(0, (Number(st && st.trapLegEggs) || 0) + (Number(st && st.soloTrapLeg) || 0) - (Number(st && st.trapLegUsed) || 0)); }
 export function candyLegLeft(st) { return Math.max(0, (Number(st && st.candyboxLegEggs) || 0) + (Number(st && st.soloBoxLeg) || 0) - (Number(st && st.candyboxLegUsed) || 0)); }
 export function snowLegLeft(st) { return Math.max(0, (Number(st && st.snowmanLegEggs) || 0) + (Number(st && st.soloSnowLeg) || 0) - (Number(st && st.snowmanLegUsed) || 0)); }
 export const GINGER_FAM = "L-36";   // Gingermischief: the top Gingerbread House team's special egg
@@ -138,8 +141,8 @@ export function legendaryLeft(st) { return Math.max(0, (Number(st.legendaryPulls
 export function bankXP(st, cls) { return Math.max(0, xpTotal(st, cls) + (Number(st.bonusXP) || 0) + (Number(st.xpReleased) || 0) + (Number(st.xpPrize) || 0) + (Number(st.doorXP) || 0) + (Number(st.questXP) || 0) - (Number(st.xpSpent) || 0)); }
 // Event eggs (from a Golden Present): st.themeEggs = ["jingle", ...], st.themeUsed = how many are hatched.
 // Each one hatches a creature of that event's types (normal rarity odds).
-export const THEME_TYPES = { haunt: ["Ghost"], gobble: ["Nature"], jingle: ["Ice", "Light"], frost: ["Ice"], heart: ["Light", "Nature"] };
-export const THEME_EGG = { haunt: "Haunt-O-Ween egg", gobble: "Gobble-Palooza egg", jingle: "Jingle egg", frost: "Frostbite egg", heart: "Sweetheart egg" };
+export const THEME_TYPES = { haunt: ["Ghost"], gobble: ["Nature"], jingle: ["Ice", "Light"], frost: ["Ice"], heart: ["Light", "Nature"], lucky: ["Nature", "Earth"] };
+export const THEME_EGG = { haunt: "Haunt-O-Ween egg", gobble: "Gobble-Palooza egg", jingle: "Jingle egg", frost: "Frostbite egg", heart: "Sweetheart egg", lucky: "Lucky egg" };
 // Goal eggs (from a 125 XP Goal Subject door): st.goalEggs = ["rare" | event Legendary family id], st.goalUsed = hatched.
 export function goalLeft(st) { return Math.max(0, ((st && st.goalEggs) || []).length - (Number(st && st.goalUsed) || 0)); }
 export function nextGoal(st) { return ((st && st.goalEggs) || [])[Number(st && st.goalUsed) || 0] || null; }
@@ -230,6 +233,8 @@ export const EVENTS = [
   { key: "frost", fam: "L-37", icon: "\u{1F386}", frost: true, label: "Frostbite Festival", boss: "yetiDefeated", bossName: "Abominable Snowlotl", streak: 5, first: 0.95, again: 0.01, againAfter: true },
   // Amorduck: Sweetheart Showdown (February). On while the teacher has Sweetheart Showdown switched on. Unlocks for everyone once the class defeats the Heartbreaker-otl.
   { key: "heart", fam: "L-39", icon: "\u{1F498}", heart: true, label: "Sweetheart Showdown", boss: "heartDefeated", bossName: "Heartbreaker-otl", streak: 5, first: 0.95, again: 0.01, againAfter: true },
+  // 🍀 Cloverduck: Lucky Leprechaun Hunt (March). On while the teacher has it switched on. Unlocks for everyone once the class defeats Lepre-quack.
+  { key: "lucky", fam: "L-64", icon: "\u{1F340}", lucky: true, label: "Lucky Leprechaun Hunt", boss: "luckyDefeated", bossName: "Lepre-quack", streak: 5, first: 0.95, again: 0.01, againAfter: true },
   { key: "jingle", fam: "L-30", icon: "\u{1F384}", from: "2026-12-01", to: "2026-12-31", label: "Jingle Jam", boss: "grinchDefeated", bossName: "Grinch-a-Duck", streak: 5, first: 0.95, again: 0.01, againAfter: true },
 ];
 export const DUCK = EVENTS[0], HEX = EVENTS[1];
@@ -253,13 +258,15 @@ export function eventWindow(ev, cls) {
   if (ev.haunt) return { start: (cls && cls.hauntSince) || "0000-00-00", end: null };
   if (ev.frost) return { start: (cls && cls.frostSince) || "0000-00-00", end: null };
   if (ev.heart) return { start: (cls && cls.heartSince) || "0000-00-00", end: null };
+  if (ev.lucky) return { start: (cls && cls.luckySince) || "0000-00-00", end: null };
   return duckWindow(cls);
 }
 export function eventOpen(ev, cls, date) {
   if (ev.from) { if (cls && cls[ev.key + "Off"]) return false; const t = azToday(date); return t >= ev.from && t <= ev.to; }
   if (ev.haunt) return !!(cls && cls.haunt);
-  if (ev.frost) return !!(cls && cls.frost && !cls.heart);
-  if (ev.heart) return !!(cls && cls.heart);
+  if (ev.frost) return !!(cls && cls.frost && !cls.heart && !cls.lucky);
+  if (ev.heart) return !!(cls && cls.heart && !cls.lucky);
+  if (ev.lucky) return !!(cls && cls.lucky);
   if (cls && cls.duckOff) return false;
   const w = duckWindow(cls), t = azToday(date);
   return t >= w.start && t <= w.end;   // weekends in the middle count too, so eggs can still be hatched
@@ -272,7 +279,7 @@ export function streaks(st, cls, since) {
   Object.keys(h).sort().forEach(date => { if (since && date < since) return; const x = h[date] || {}, v = x.h && !(Number(x.d) >= goal) ? goal : Number(x.d != null ? x.d : x.l) || 0; if (x.e && v < goal) return; run = v >= goal ? run + 1 : 0; best = Math.max(best, run); });
   return { best, current: run };
 }
-export const eventStreak = (ev, st, cls) => streaks(st, cls, ev.haunt || ev.frost || ev.heart || ev.from ? eventWindow(ev, cls).start : null);
+export const eventStreak = (ev, st, cls) => streaks(st, cls, ev.haunt || ev.frost || ev.heart || ev.lucky || ev.from ? eventWindow(ev, cls).start : null);
 export const hasEvent = (ev, st) => !!owned(st)[ev.fam];
 export const hasDuck = st => hasEvent(DUCK, st);
 // Boss events (Hexaduck, Thanksolotl) unlock for everyone once the class has defeated that event's boss (no streak needed).
@@ -303,10 +310,17 @@ export const TEACHER_ID = "teacher";
 export const TEACHER_XP_PER_MISS = 120;   // one level per student who missed 120
 // The teacher's eggs: a 25% chance at a Legendary (the rest keeps the normal 70:20:8:2 split).
 export const TEACHER_ODDS = [["Common", 0.525], ["Uncommon", 0.15], ["Rare", 0.06], ["Super Rare", 0.015], ["Legendary", 0.25]];
+export const teacherLegFam = f => { const fm = family(f); return !!fm && (fm.rarity === "Legendary" || fm.rarity === "Ultra"); };
+// Nov 4: the teacher doesn't earn or spend XP. Her Legendaries (and Ultras) can be set to Lv 100; every other creature stays Lv 1.
+export function teacherColl(coll) {
+  const out = {};
+  Object.keys(coll || {}).forEach(f => { const e = coll[f] || {}; out[f] = Object.assign({}, e, { lvl: teacherLegFam(f) ? Math.min(MAX_LEVEL, e.lvl || 1) : 1 }); });
+  return out;
+}
 export function teacherPlayer(cls, name) {
   const t = (cls && cls.teacher) || {};
-  return { id: TEACHER_ID, isTeacher: true, name: name || t.name || "Ms. Ariana", companionId: "teacher", coll: t.coll || {},
-    pullsUsed: Number(t.pullsUsed) || 0, xpSpent: Number(t.xpSpent) || 0, bonusPulls: Number(t.eggsEarned) || 0, bonusXP: Number(t.xpEarned) || 0, xpReleased: Number(t.xpReleased) || 0,
+  return { id: TEACHER_ID, isTeacher: true, name: name || t.name || "Ms. Ariana", companionId: "teacher", coll: teacherColl(t.coll),
+    pullsUsed: Number(t.pullsUsed) || 0, xpSpent: Number(t.xpSpent) || 0, bonusPulls: Number(t.eggsEarned) || 0, bonusXP: 0, xpReleased: Number(t.xpReleased) || 0,
     legendaryPulls: 0, legendaryUsed: 0, arenaReady: !!t.arenaReady, tradeReady: t.tradeReady !== false, xpHist: {}, spares: t.spares || [], dex: t.dex || [] };
 }
 export function rollTeacherRarity() {
@@ -320,7 +334,7 @@ export function teacherReward(students, d) {
   const team = students.filter(s => s.companionId), hit = team.filter(s => arr(s.status, d) === "c" || (arr(s.status, d) === "e" && ((Number(arr(s.xp, d)) || 0) >= 120 || (Number(arr(s.lunchXp, d)) || 0) >= 120))).length;
   const missed = team.filter(s => { const v = arr(s.status, d); return v !== "c" && v !== "e"; }).length;
   // a day when everyone hit 120 still gives the teacher one level's worth of XP
-  return { eggs: hit, xp: missed > 0 ? missed * TEACHER_XP_PER_MISS : TEACHER_XP_PER_MISS, hit, missed };
+  return { eggs: hit, xp: 0, hit, missed };   // the teacher no longer earns XP (Nov 4)
 }
 
 /* ---------- gacha ---------- */
@@ -430,7 +444,7 @@ function fighterBase(st, fam) {
   const c = formOf(fam, e.lvl || 1), s = statsOf(c, e.lvl || 1);
   return { fam, id: c.id, lvl: e.lvl || 1, name: e.nick || c.name, species: c.name, img: e.sparkle ? sparkleImg(c) : c.img, sparkle: !!e.sparkle, face: c.face || "R", type: c.atkType || c.types[0], ux: c.ux ? JSON.parse(JSON.stringify(c.ux)) : null, types: c.types, weak: c.weak, attack: c.attack, hp: s.hp, df: s.df, dmg: s.dmg, cur: s.hp, dodge: c.dodge || 0,
     daze: c.daze || 0, dazePct: c.dazePct || 0, poison: c.poison || 0, atkHeal: c.atkHeal || 0, brewFx: !!c.brewFx, candyFx: !!c.candyFx, atkDefDown: c.atkDefDown || 0, atkDefPct: c.atkDefPct || 0, pierce: c.atkPierce || 0, sp: BOSS2_LIST.filter(B => st && st[B.move] === fam).map(B => B.mv).concat(((st && st.vaultMoves) || []).includes(fam) ? ["vault"] : []), spUsed: {}, teamHeal: c.teamHeal || 0, cheer: c.cheer || 0,
-    alt: c.alt ? { name: c.alt.name, mult: c.alt.mult || 1, heal: c.alt.heal || 0, type: c.alt.type || "", defDown: c.alt.defDown || 0, defPct: c.alt.defPct || 0, defTemp: !!c.alt.defTemp, evade: c.alt.evade || 0, daze: c.alt.daze || 0, dazePct: c.alt.dazePct || 0, crit: c.alt.crit || 0, shield: c.alt.shield || 0 } : null };
+    alt: c.alt ? { name: c.alt.name, mult: c.alt.mult || 1, heal: c.alt.heal || 0, type: c.alt.type || "", defDown: c.alt.defDown || 0, defPct: c.alt.defPct || 0, defTemp: !!c.alt.defTemp, evade: c.alt.evade || 0, daze: c.alt.daze || 0, dazePct: c.alt.dazePct || 0, crit: c.alt.crit || 0, shield: c.alt.shield || 0, teamHeal: c.alt.teamHeal || 0 } : null };
 }
 export function teamSize(a, b) { return Math.max(0, Math.min(TEAM_MAX, ownedFams(a).length, ownedFams(b).length)); }
 export function hitDamage(att, def, crit) {
@@ -461,6 +475,7 @@ export const MOVES = {
   sack:     { icon: "\u{1F381}", name: "Sack Smash", mult: 1.75, type: "Dark", special: true },
   blizzard: { icon: "\u2744\uFE0F", name: "Blizzard Burst", mult: 1.75, type: "Ice", special: true },
   shatter:  { icon: "\u{1F494}", name: "Shatter Strike", mult: 1.75, type: "Crystal", special: true },
+  goldrush: { icon: "\u{1F308}", name: "Rainbow Gold Rush", mult: 1.75, type: "Light", special: true },
   // Treasure Vault move: any creature can learn it (one lesson per Vault opened). Steel, 2x damage, goes right through
   // Defense, 85% to hit, once per battle.
   vault:    { icon: "\u{1F48E}", name: "Vault Breaker", mult: 2, type: "Steel", special: true, hit: 0.85, pierce: true }
@@ -601,6 +616,7 @@ export function resolveRound(bt) {
     if (!miss && m.m === "attack" && att.teamHeal) (bt.team[s] || []).forEach((f, i) => { if (f && f !== att && f.cur > 0 && f.cur < f.hp) { const amt = Math.min(f.hp - f.cur, Math.round(f.hp * att.teamHeal)); f.cur += amt; bt.log.push({ k: "heal", s, i, n: f.name, amt, left: f.cur, max: f.hp, alt: true, team: true }); } });
     // Pie in the Sky (Cornucopia): a chance to dazzle, so the opponent's next attack is weaker
     if (!miss && alt && att.alt.daze && def.cur > 0 && Math.random() < att.alt.daze) { def.dazed = att.alt.dazePct || 0.2; bt.log.push({ k: "daze", s, d: def.name, pct: Math.round((att.alt.dazePct || 0.2) * 100), pie: att.fam === "L-35", gum: att.fam === "L-36" }); }
+    if (!miss && alt && att.alt.teamHeal) (bt.team[s] || []).forEach((f, i) => { if (f && f !== att && f.cur > 0 && f.cur < f.hp) { const amt = Math.min(f.hp - f.cur, Math.round(f.hp * att.alt.teamHeal)); f.cur += amt; bt.log.push({ k: "heal", s, i, n: f.name, amt, left: f.cur, max: f.hp, alt: true, team: true }); } });   // Rainbow Bridge (Prismalotl)
     if (alt && att.alt.heal && att.cur < att.hp) { const amt = Math.min(att.hp - att.cur, Math.round(att.hp * att.alt.heal)); att.cur += amt; bt.log.push({ k: "heal", s, i: bt.active[s], n: att.name, amt, left: att.cur, max: att.hp, alt: true }); }
     if (!miss && dmg > 0) uxHurt(bt, o, bt.active[o], def);
     if (def.cur <= 0) {

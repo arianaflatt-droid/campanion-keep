@@ -8,10 +8,10 @@
    Each potion: +20 candy and a potion glow for the day. Shelf rewards at 3 / 6 / 10 / 15 potions.
    Saved on the student (student-writable): soloBrew = { days: { date: potions }, fx: { date: effect }, extra: { date: { e|b|s: n } }, got: { "3": true, ... } }
    Shelf rewards use fields the student page may write: doorEggs, candyBonus, doorXP, legendaryPulls, soloBrewLeg (counted by brewLegLeft). */
-import { esc, isHaunt, isGobble, isJingle, isFrost, isHeart, boostMult } from "./game.js?v=20261103j";
-import { azToday } from "./collect.js?v=20261103j";
-import { TEAM_EVENTS, ingOf, subFor, SUB_NAMES, PER_XP, EFFECTS, effect, cauldronHTML, soloTableHTML, soloHouseHTML, soloBoxHTML, DISHES } from "./teams.js?v=20261103j";
-import { SUBJECT_KEYS, addDays } from "./doors.js?v=20261103j";
+import { esc, isHaunt, isGobble, isJingle, isFrost, isHeart, isLucky, boostMult } from "./game.js?v=20261104d";
+import { azToday } from "./collect.js?v=20261104d";
+import { TEAM_EVENTS, ingOf, subFor, SUB_NAMES, PER_XP, EFFECTS, effect, cauldronHTML, soloTableHTML, soloHouseHTML, soloBoxHTML, soloTrapHTML, DISHES } from "./teams.js?v=20261104d";
+import { SUBJECT_KEYS, addDays } from "./doors.js?v=20261104d";
 
 export const BREW = TEAM_EVENTS.potion;
 const FEAST_ING = { key: "solofeast", ing: [
@@ -40,7 +40,7 @@ const GOBBLE = { key: "gobble", E: FEAST_ING, goal: { k: "g", name: "Pie Spice",
     { n: 6, icon: "\u{1F33D}", label: "100 corn + 50 XP" },
     { n: 10, icon: "\u{1F3C5}", label: "Feast Master badge + a Legendary egg" },
     { n: 15, icon: "\u{1F983}", label: "a Cornucopia egg" }] };
-export const soloCfg = cls => isGobble(cls) ? GOBBLE : isJingle(cls) ? JINGLE : isFrost(cls) ? FROST : isHeart(cls) ? HEART : HAUNT;
+export const soloCfg = cls => isLucky(cls) ? LUCKY : isGobble(cls) ? GOBBLE : isJingle(cls) ? JINGLE : isFrost(cls) ? FROST : isHeart(cls) ? HEART : HAUNT;
 const JINGLE_ING = { key: "sologinger", ing: [
   { k: "e", sub: "m", name: "Gingerbread", icon: "\u{1F36A}", subject: "Math" },
   { k: "b", sub: "r", name: "Icing", icon: "\u{1F366}", subject: "Reading" },
@@ -77,6 +77,19 @@ const HEART = { key: "heart", E: HEART_ING, goal: { k: "g", name: "Pink Frosting
     { n: 6, icon: "\u{1F496}", label: "100 hearts + 50 XP" },
     { n: 10, icon: "\u{1F3C5}", label: "Master Chocolatier badge + a Legendary egg" },
     { n: 15, icon: "\u{1F36B}", label: "a Candivora egg" }] };
+// 🍀 Solo Trap Building (Lucky Leprechaun Hunt): each 120 XP builds the next piece of the student's own leprechaun trap.
+const LUCKY_ING = { key: "solotrap", ing: [
+  { k: "e", sub: "m", name: "Wood", icon: "\u{1FAB5}", subject: "Math" },
+  { k: "b", sub: "r", name: "Rainbows", icon: "\u{1F308}", subject: "Reading" },
+  { k: "s", sub: "l", name: "Gold Coins", icon: "\u{1FA99}", subject: "Language" }] };
+const LUCKY = { key: "lucky", E: LUCKY_ING, goal: { k: "g", name: "Shamrocks", icon: "\u2618\uFE0F", goal: true }, field: "soloTrap", legField: "soloTrapLeg", sw: "trapSolo", fx: false,
+  icon: "\u{1FAA4}", title: "Your Leprechaun Trap", one: "trap piece", many: "trap pieces", One: "Trap piece", verb: "Build", done: "built", cur: "coins", where: "trap", bossName: "Lepre-quack",
+  hide: ["attack", "charms", "luckyhat"], badge: "Master Trapper", legLabel: "a Prismalotl egg", shelfTitle: "Your trap pieces", shelfIcon: "\u{1FAA4}", name: "Trap Building", tabName: "Lucky Leprechaun Hunt", cls: "trap", ingFor: "trap piece", art: "trap",
+  shelf: [
+    { n: 3, icon: "\u{1F95A}", label: "an egg" },
+    { n: 6, icon: "\u{1FA99}", label: "100 coins + 50 XP" },
+    { n: 10, icon: "\u{1F3C5}", label: "Master Trapper badge + a Legendary egg" },
+    { n: 15, icon: "\u{1F308}", label: "a Prismalotl egg" }] };
 JINGLE.ingFor = "gingerbread"; JINGLE.art = "ginger"; HAUNT.ingFor = "potion"; GOBBLE.ingFor = "dish";
 HAUNT.name = "Potion Brewing"; HAUNT.tabName = "Haunt-O-Ween"; HAUNT.cls = "potion"; GOBBLE.name = "Feast Cooking"; GOBBLE.tabName = "Gobble-Palooza"; GOBBLE.cls = "feast";
 const ALL_ING = k => k.E.ing.concat([k.goal]);
@@ -88,7 +101,7 @@ const goalOf = () => "any";
 const ingsFor = (st, k) => goalOf(st) ? ALL_ING(k) : k.E.ing;
 const srcName = (st, cls, g) => g.goal ? "any subject" : SUB_NAMES[subFor(cls, st, g.sub)];
 export const SHELF = HAUNT.shelf;
-export const soloOn = cls => !!(cls && ((cls.brewSolo && isHaunt(cls)) || (cls.feastSolo && isGobble(cls)) || (cls.gingerSolo && isJingle(cls)) || (cls.snowSolo && isFrost(cls)) || (cls.boxSolo && isHeart(cls))));
+export const soloOn = cls => !!(cls && ((cls.brewSolo && isHaunt(cls)) || (cls.feastSolo && isGobble(cls)) || (cls.gingerSolo && isJingle(cls)) || (cls.snowSolo && isFrost(cls)) || (cls.boxSolo && isHeart(cls)) || (cls.trapSolo && isLucky(cls))));
 const seed = str => { let h = 2166136261; for (let i = 0; i < str.length; i++) h = Math.imul(h ^ str.charCodeAt(i), 16777619); return ((h >>> 0) % 10007) / 10007; };
 // Today's recipe: 1 of each potion ingredient (25 XP each) + 2 Pumpkin Seeds (45 leftover XP from any subject). Ms. Ariana can change it (cls.soloRecipe[date]).
 export function soloRecipe(cls, date) {
@@ -186,7 +199,7 @@ const bar = (have, need) => '<span class="pbar"><span style="width:' + Math.min(
 export function soloCard(st, cls, flash) {
   const k = soloCfg(cls), d = soloDay(st, cls), wait = soloWaiting(st, cls), nWait = wait.reduce((a, x) => a + x.n, 0), all = d.ready + nWait, fxk = (soloOf(st, k).fx || {})[d.date], fx = fxk ? effect(fxk) : null, ings = ingsFor(st, k);
   const c = { E: k.E, team: { id: "solo-" + st.id }, have: d.left, brewed: d.made > 0 && !d.ready };
-  const pic = k.key === "gobble" ? soloTableHTML("solo-" + st.id, d.total, c.brewed) : k.art === "box" ? soloBoxHTML("solo-" + st.id, d.total, c.brewed) : k.art ? soloHouseHTML("solo-" + st.id, d.total, k.art === "snowman" ? "snowman" : "ginger") : cauldronHTML(c);
+  const pic = k.key === "gobble" ? soloTableHTML("solo-" + st.id, d.total, c.brewed) : k.art === "box" ? soloBoxHTML("solo-" + st.id, d.total, c.brewed) : k.art === "trap" ? soloTrapHTML("solo-" + st.id, d.total, c.brewed) : k.art ? soloHouseHTML("solo-" + st.id, d.total, k.art === "snowman" ? "snowman" : "ginger") : cauldronHTML(c);
   const nm = soloOf(st, k).name;
   let h = '<div class="card potion tev-' + k.cls + ' solobrew"><div class="card-head"><h2>' + k.icon + " " + (nm ? esc(nm) : k.title) + '</h2><span class="fact">' + d.total + " " + (d.total === 1 ? k.one : k.many) + " " + k.done + "</span></div>" +
     (naming === k.field
@@ -206,8 +219,8 @@ export function soloCard(st, cls, flash) {
   }
   if (fx) h += '<div class="banner info" style="margin:8px 0;">✨ Your companion is glowing with a <b>' + fx.icon + " " + esc(fx.name) + "</b> today!</div>";
   // shelf
-  const shown = Math.min(d.total, 15), dish = i => k.key === "gobble" ? '<img src="assets/feast/' + DISHES[i % DISHES.length].k + '.webp" alt="" style="width:100%;height:100%;object-fit:contain" onerror="this.replaceWith(document.createTextNode(\'\\u{1F37D}\\uFE0F\'))">' : k.key === "jingle" ? "\u{1F36A}" : k.key === "frost" ? "\u26C4" : k.key === "heart" ? "\u{1F36B}" : "\u{1F9EA}";
-  h += '<h3 style="margin-top:14px;">' + (k.key === "gobble" ? "\u{1F9C2}" : k.key === "jingle" ? "\u{1F381}" : k.key === "frost" ? "\u2744\uFE0F" : k.key === "heart" ? "\u{1F36C}" : "\u{1F9F4}") + " " + k.shelfTitle + '</h3><div class="pshelf">' + Array.from({ length: 15 }, (_, i) => '<span class="' + (i < shown ? "on" : "") + (k.shelf.some(m => m.n === i + 1) ? " goal" : "") + '">' + (i < shown ? dish(i) : k.shelf.some(m => m.n === i + 1) ? k.shelf.find(m => m.n === i + 1).icon : "") + "</span>").join("") +
+  const shown = Math.min(d.total, 15), dish = i => k.key === "gobble" ? '<img src="assets/feast/' + DISHES[i % DISHES.length].k + '.webp" alt="" style="width:100%;height:100%;object-fit:contain" onerror="this.replaceWith(document.createTextNode(\'\\u{1F37D}\\uFE0F\'))">' : k.key === "jingle" ? "\u{1F36A}" : k.key === "frost" ? "\u26C4" : k.key === "heart" ? "\u{1F36B}" : k.key === "lucky" ? "\u{1FA99}" : "\u{1F9EA}";
+  h += '<h3 style="margin-top:14px;">' + (k.key === "gobble" ? "\u{1F9C2}" : k.key === "jingle" ? "\u{1F381}" : k.key === "frost" ? "\u2744\uFE0F" : k.key === "heart" ? "\u{1F36C}" : k.key === "lucky" ? "\u{1F340}" : "\u{1F9F4}") + " " + k.shelfTitle + '</h3><div class="pshelf">' + Array.from({ length: 15 }, (_, i) => '<span class="' + (i < shown ? "on" : "") + (k.shelf.some(m => m.n === i + 1) ? " goal" : "") + '">' + (i < shown ? dish(i) : k.shelf.some(m => m.n === i + 1) ? k.shelf.find(m => m.n === i + 1).icon : "") + "</span>").join("") +
     (d.total > 15 ? '<span class="more">+' + (d.total - 15) + "</span>" : "") + "</div>";
   h += '<ul class="pmiles">' + k.shelf.map(m => '<li class="' + (d.total >= m.n ? "done" : "") + '"><b>' + m.n + " " + k.many + "</b>: " + m.icon + " " + m.label + (d.total >= m.n ? " ✅" : " (" + (m.n - d.total) + " to go)") + "</li>").join("") + "</ul>";
   const mySw = k.E.ing.filter(g => subFor(cls, st, g.sub) !== g.sub);
@@ -221,7 +234,7 @@ export function soloCard(st, cls, flash) {
 export function soloAdmin(students, cls, today) {
   const k = soloCfg(cls), on = !!cls[k.sw], r = soloRecipe(cls, today), sw = cls.subSwap || {}, kids = students.filter(x => x.companionId).slice().sort((a, b) => String(a.fullName || a.name).localeCompare(String(b.fullName || b.name)));
   let h = '<div class="card"><div class="card-head"><h2>' + k.icon + " Solo " + k.name + '</h2><span class="fact">' + (on ? "ON · " + k.bossName + " hidden" : "off") + "</span></div>" +
-    '<p class="lede" style="margin-bottom:10px;">Turn this on to swap the ' + k.bossName + ' battle for solo ' + k.name.toLowerCase() + ' on the ' + k.tabName + ' tab. ' + (k.key === "gobble" ? "Corn, the Gobble Shop and the Pie Wheel" : k.key === "frost" ? "Snowflakes, the Snow Shop and the Blizzard Wheel" : k.key === "heart" ? "Hearts, the Sweet Shop and the Sweetheart Spinner" : k.key === "jingle" ? "Presents, the Jingle shop and the Present Wheel" : "Candy, the Candy Shop and the wheel") + ' stay. The ' + k.bossName + ' keeps its HP for later.</p>' +
+    '<p class="lede" style="margin-bottom:10px;">Turn this on to swap the ' + k.bossName + ' battle for solo ' + k.name.toLowerCase() + ' on the ' + k.tabName + ' tab. ' + (k.key === "gobble" ? "Corn, the Gobble Shop and the Pie Wheel" : k.key === "frost" ? "Snowflakes, the Snow Shop and the Blizzard Wheel" : k.key === "heart" ? "Hearts, the Sweet Shop and the Sweetheart Spinner" : k.key === "lucky" ? "Coins, the Lucky Shop and the Rainbow Wheel" : k.key === "jingle" ? "Presents, the Jingle shop and the Present Wheel" : "Candy, the Candy Shop and the wheel") + ' stay. The ' + k.bossName + ' keeps its HP for later.</p>' +
     '<button class="btn' + (on ? " ghost" : "") + '" data-act="soloToggle">' + (on ? "\u{1F47B} Switch back to the " + k.bossName + " battle" : k.icon + " Turn on Solo " + k.name) + "</button>";
   if (!on) return h + "</div>";
   h += '<h3 style="margin-top:14px;">Today’s recipe</h3><div class="row" style="gap:10px;align-items:center;">' +

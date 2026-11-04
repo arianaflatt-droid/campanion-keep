@@ -15,17 +15,20 @@
    🌌 aur  = Northern Lights Camp (January, Nov 3): peeks come from READING XP only (1 per 10 Reading XP). Tap a glowing tent or lantern
              on the snow under the northern lights: Ice/Light/Dark creatures pop out with a winter-night riddle (right answer = double),
              or treasure, or the golden lantern (egg). 10 stars in the Star Jar = an egg. Art: assets/aur/. Room set: Aurora Camp (kind_aurora).
+   💌 val  = Valentine Mailroom (February, Nov 3): letters come from READING XP only (1 per 10 Reading XP). Open a valentine in the post
+             office mail slots: Light/Nature/Fire creatures pop out with a sweet riddle (right answer = double), or treasure, or the
+             golden envelope (egg). 10 stamps in the Stamp Book = an egg. Art: assets/val/. Room set: Sweetheart Post Office (kind_valpost).
    Tickets: 1 for every 10 XP today (best of morning / lunch / end-of-day numbers). Rewards are the season currency
    (candyBonus) and sometimes an egg (doorEggs). Each event has a "this time only" outfit shop (60 each, kept forever).
    While an event is on, every companion wears a random costume from it, and The Keep gets the event's colors.
    Saved on the student: mini = { id, used: { date: n }, cos, maze, stop, stamps, elf: { d, found, peek: [] }, got }
    plus outfits / outfitOn (game.js). */
-import { esc, HEAD_FNS, OUTFITS, candyLeft, companionOf } from "./game.js?v=20261103j";
-import { azToday, creature, FAMILIES } from "./collect.js?v=20261103j";
-import { CREATURES } from "./creatures.js?v=20261103j";
-import { xpOn } from "./surprise.js?v=20261103j";
-import { SEASON, boostExtra } from "./game.js?v=20261103j";
-import { readingOn, readingOnBoosted } from "./readmap.js?v=20261103j";
+import { esc, HEAD_FNS, OUTFITS, candyLeft, companionOf } from "./game.js?v=20261104d";
+import { azToday, creature, FAMILIES } from "./collect.js?v=20261104d";
+import { CREATURES } from "./creatures.js?v=20261104d";
+import { xpOn } from "./surprise.js?v=20261104d";
+import { SEASON, boostExtra } from "./game.js?v=20261104d";
+import { readingOn, readingOnBoosted } from "./readmap.js?v=20261104d";
 
 export const PER_TICKET = 10, OUTFIT_COST = 60;
 const typesOf = fam => { const f = FAMILIES.find(x => x.id === fam); const c = f && CREATURES.find(x => x.id === f.forms[0]); return (c && c.types) || []; };
@@ -49,7 +52,10 @@ export const MINI = {
     fams: () => pool(["Ice", "Light", "Crystal"], [], []).filter(f => !f.startsWith("L-")) },
   aur: { key: "aur", name: "Northern Lights Camp", icon: "\u{1F30C}", bg: "assets/aur/aur-camp.webp", theme: "January · Reading XP", reading: true, tix: "peek", tixs: "peeks", tixImg: "assets/aur/aur-icon.webp",
     get cur() { return SEASON.cur || "candy"; }, get coin() { return SEASON.coin || "\u{1F36C}"; },
-    fams: () => pool(["Ice", "Light", "Dark"], [], []).filter(f => !f.startsWith("L-")) }
+    fams: () => pool(["Ice", "Light", "Dark"], [], []).filter(f => !f.startsWith("L-")) },
+  val: { key: "val", name: "Valentine Mailroom", icon: "\u{1F48C}", bg: "assets/val/val-mailroom.webp", theme: "February · Reading XP", reading: true, tix: "letter", tixs: "letters", tixImg: "assets/val/val-icon.webp",
+    get cur() { return SEASON.cur || "candy"; }, get coin() { return SEASON.coin || "\u{1F36C}"; },
+    fams: () => pool(["Light", "Nature", "Fire"], [], []).filter(f => !f.startsWith("L-")) }
 };
 let FAMS = {};
 const famsOf = k => (FAMS[k] = FAMS[k] || MINI[k].fams());
@@ -101,7 +107,7 @@ HEAD_FNS.push(st => {
 // Call on every render (both pages): remembers the class for the costume and sets The Keep's event colors.
 export function miniSync(cls) {
   CLS = cls; const E = miniOn(cls);
-  ["tot", "fest", "xmas", "lib", "leaf", "orn", "aur"].forEach(k => document.body.classList.toggle("mini-" + k, !!E && E.key === k));
+  ["tot", "fest", "xmas", "lib", "leaf", "orn", "aur", "val"].forEach(k => document.body.classList.toggle("mini-" + k, !!E && E.key === k));
 }
 
 /* ---------- lines ---------- */
@@ -168,7 +174,7 @@ export function miniCard(st, cls) {
   const t = ticketsLeft(st, cls);
   return '<div class="card minicard mc-' + E.key + '"><div class="mctxt"><h3>' + E.icon + " " + E.name + '!</h3><p><b>' + t + "</b> " + tixWord(E, t) +
     " · 1 " + tixWord(E, 1) + " for every " + PER_TICKET + (E.reading ? " <b>Reading</b>" : "") + " XP" + (ticketDays(st, cls).some(x => x.date !== azToday()) ? " (some are from earlier days)." : " today.") + (readX2(cls) ? " \u{1F4DA} <b>Reading XP counts double!</b>" : "") + " You have <b>" + candyLeft(st).toLocaleString() + " " + E.coin + "</b>.</p>" +
-    '<button class="btn gold" data-mini="open">' + (E.key === "tot" ? "\u{1F6AA} Go trick-or-treating!" : E.key === "fest" ? "\u{1F3A1} Go to the festival!" : E.key === "lib" ? "\u{1F56F}️ Sneak into the library!" : E.key === "leaf" ? "\u{1F342} Jump in the leaves!" : E.key === "orn" ? "\u{1F384} Hunt for ornaments!" : E.key === "aur" ? "\u{1F3D5}\uFE0F Visit the camp!" : "\u{1F682} Go to the station!") + "</button> " +
+    '<button class="btn gold" data-mini="open">' + (E.key === "tot" ? "\u{1F6AA} Go trick-or-treating!" : E.key === "fest" ? "\u{1F3A1} Go to the festival!" : E.key === "lib" ? "\u{1F56F}️ Sneak into the library!" : E.key === "leaf" ? "\u{1F342} Jump in the leaves!" : E.key === "orn" ? "\u{1F384} Hunt for ornaments!" : E.key === "aur" ? "\u{1F3D5}\uFE0F Visit the camp!" : E.key === "val" ? "\u{1F48C} Open your mail!" : "\u{1F682} Go to the station!") + "</button> " +
     (hasShop(E) ? '<button class="btn ghost" data-mini="shop">\u{1F6CD}️ ' + (FURN[E.key] ? "Outfit & room shop" : "Outfit shop") + "</button>" : "") + "</div></div>";
 }
 
@@ -279,6 +285,24 @@ export function miniOverlay(st, cls) {
     }
     return h + "</div></div>";
   }
+  if (E.key === "val") {
+    const got = Number(m.vals) || 0;
+    h += top(E, st, cls) + '<div class="mstage valstage" ' + bgs + '>';
+    if (G.res) {
+      const r = G.res;
+      h += '<div class="mpop valpop">' + (r.gold ? '<img class="mbigimg pop valgold" src="assets/val/val-golden.webp" alt=""><h2>The golden envelope!</h2>' : "") + (r.v ? visHTML(r.v, r.line) : '<p class="mfound">' + esc(r.line) + "</p>") +
+        (r.q && r.ans == null ? '<p class="libq">\u{1F914} ' + esc(r.q.q) + '</p><div class="libans">' + r.q.opts.map((o, i) => '<button class="btn" data-mini="answer" data-i="' + i + '">' + esc(o) + "</button>").join("") + "</div>"
+          : (r.q ? '<p class="libq ' + (r.right ? "ok" : "no") + '">' + (r.right ? "\u{1F389} You got it! Double " + E.cur + "!" : "\u{1F605} Nice try! The answer was <b>" + esc(r.q.opts[r.q.a]) + "</b>.") + "</p>" : "") +
+            gotHTML(E, r.n, r.egg) + (r.stampEgg ? "<p>\u{1F48C} Your Stamp Book is full: a bonus egg! A new page starts.</p>" : "") + '<button class="btn big" data-mini="ok">Open another letter</button>') + "</div>";
+    } else {
+      h += VAL_SPOTS.map(([x, y], i) => '<button class="valenv' + (G.jump === i ? " open" : "") + (t ? "" : " notix") + '" data-mini="mail" data-i="' + i + '"' + (t && G.jump == null ? "" : " disabled") + ' aria-label="Open a letter" style="left:' + x + "%;top:" + y + "%;--d:" + (i * 0.41) + 's">' +
+          '<img src="assets/val/val-env-' + ((i % 3) + 1) + '.webp" alt="">' +
+          (G.jump === i ? '<span class="burst">' + ["\u2764\uFE0F", "\u{1F495}", "\u{1F496}", "\u2728", "\u{1F497}", "\u{1F48C}"].map((l, k) => '<em style="--k:' + k + '">' + l + "</em>").join("") + "</span>" : "") + "</button>").join("") +
+        '<div class="libcard valcard"><img class="valbookic" src="assets/val/val-book.webp" alt=""> Stamp Book: ' + Array.from({ length: 10 }, (_, i) => '<span class="' + (i < got % 10 ? "on" : "") + '">' + (i < got % 10 ? VAL_STAMPS[i] : "·") + "</span>").join("") + "</div>" +
+        '<div class="mhint">' + (G.jump != null ? "Tearing it open\u2026 \u{1F495}" : t ? "Tap a valentine in the mail slots! Who sent it?" : noTix) + "</div>";
+    }
+    return h + "</div></div>";
+  }
   if (E.key === "lib") {
     const stamps = Number(m.books) || 0;
     h += top(E, st, cls) + '<div class="mstage libstage" ' + bgs + '>';
@@ -349,7 +373,7 @@ export async function miniClick(el, c) {
   }
   if (a === "go") { const v = el.dataset.v; G = { view: v, bg: { maze: "assets/fest/fest-maze.webp", patch: "assets/fest/fest-patch.webp", ferris: "assets/fest/fest-ferris-top.webp", train: "assets/xmas/xmas-station.webp", elf: "assets/xmas/xmas-livingroom.webp" }[v] }; return c.render(true); }
   if (a === "ok" || a === "next") { G.res = null; if (E.key === "fest" && G.view === "maze") G.bg = "assets/fest/fest-maze.webp"; return c.render(true); }
-  if (a === "answer" && (E.key === "lib" || E.key === "leaf" || E.key === "orn" || E.key === "aur") && G && G.res && G.res.q && G.res.ans == null) {
+  if (a === "answer" && (E.key === "lib" || E.key === "leaf" || E.key === "orn" || E.key === "aur" || E.key === "val") && G && G.res && G.res.q && G.res.ans == null) {
     const r = G.res, i = Number(el.dataset.i); r.ans = i; r.right = i === r.q.a;
     if (r.right) { r.n *= 2; chime(3); } else chime(1);
     G.busy = true; try { const mm = Object.assign({}, mine(s, cls)); mm.got = (Number(mm.got) || 0) + r.n; const data = { mini: mm, candyBonus: (Number(s.candyBonus) || 0) + r.n }; if (r.egg) data.doorEggs = (Number(s.doorEggs) || 0) + 1; await c.patch(data, true); } finally { G.busy = false; }
@@ -442,6 +466,19 @@ export async function miniClick(el, c) {
     await new Promise(ok => setTimeout(ok, 900));
     if (!G) return; G.jump = null; G.res = res; chime(res.gold ? 3 : 1); return c.render(true);
   }
+  if (a === "mail" && E.key === "val") {
+    const i = Number(el.dataset.i); if (G.jump != null) return;
+    use(); m.vals = (Number(m.vals) || 0) + 1; const stampEgg = m.vals % 10 === 0, r = Math.random(); let res;
+    if (r < 0.05) res = { gold: true, n: 15, egg: true, line: "A golden envelope! Hearts float out… and an egg is tucked inside!" };
+    else if (r < 0.55) { const v = visitor("val"), q = mixQ(VAL_RIDDLES[rnd(0, VAL_RIDDLES.length - 1)]); res = { v, n: v.n, line: VAL_LINES[rnd(0, VAL_LINES.length - 1)], q }; }
+    else if (r < 0.85) res = { n: rnd(3, 6), line: ["Someone mailed you " + E.cur + "! The note says: Be mine!", "The envelope was stuffed with " + E.cur + " and glitter!", "A secret admirer sent you " + E.cur + "!"][rnd(0, 2)] };
+    else res = { n: rnd(2, 4), line: VAL_FINDS[rnd(0, VAL_FINDS.length - 1)] };
+    res.stampEgg = stampEgg; if (stampEgg) res.egg = true;
+    G.jump = i; G.busy = true; letterSound(); c.render(true);
+    try { if (!res.q) await c.patch(pay(res.n, res.egg), true); else await c.patch({ mini: m }, true); } finally { G.busy = false; }
+    await new Promise(ok => setTimeout(ok, 900));
+    if (!G) return; G.jump = null; G.res = res; chime(res.gold ? 3 : 1); return c.render(true);
+  }
   if (a === "book" && E.key === "lib") {
     use(); m.books = (Number(m.books) || 0) + 1; const stampEgg = m.books % 10 === 0, r = Math.random(); let res;
     if (r < 0.05) res = { gold: true, n: 15, egg: true, line: "The pages glow gold… there\u2019s an egg tucked inside!" };
@@ -478,8 +515,11 @@ const CABIN_FURN = [["bed", "Log Cabin Bed", 120], ["chair", "Plaid Armchair", 8
 // 🌌 Northern Lights Camp: the Aurora Camp room set (item ids kind_aurora)
 const AURORA_FURN = [["bed", "Camp Cot Bed", 120], ["chair", "Camp Chair & Blanket", 80], ["wallpaper", "Northern Lights Wallpaper", 80], ["flooring", "Snowy Camp Deck", 80],
   ["ceiling", "Lantern Beam", 80], ["rug", "Starry Night Rug", 60], ["wall_art", "Aurora Camp Painting", 60], ["plant", "Snowy Star Fir", 60], ["shelf", "Telescope & Cocoa", 60]];
+// 💌 Valentine Mailroom: the Sweetheart Post Office room set (item ids kind_valpost)
+const VALPOST_FURN = [["bed", "Sweetheart Quilt Bed", 120], ["chair", "Heart Velvet Armchair", 80], ["wallpaper", "Love Letter Wallpaper", 80], ["flooring", "Heart Confetti Floor", 80],
+  ["ceiling", "Pink Heart Lamp", 80], ["rug", "Fluffy Heart Rug", 60], ["wall_art", "Mail Dove Stamp Painting", 60], ["plant", "Rose Bouquet", 60], ["shelf", "Mailbox & Candy Hearts", 60]];
 const FURN = { lib: { list: () => LIB_FURN, th: "library", title: "Midnight Library" }, leaf: { list: () => LEAF_FURN, th: "leafy", title: "Leafy Hideaway" }, orn: { list: () => CABIN_FURN, th: "cabin", title: "Cozy Cabin" },
-  aur: { list: () => AURORA_FURN, th: "aurora", title: "Aurora Camp" } };
+  aur: { list: () => AURORA_FURN, th: "aurora", title: "Aurora Camp" }, val: { list: () => VALPOST_FURN, th: "valpost", title: "Sweetheart Post Office" } };
 function furnHTML(st, E) {
   const F = FURN[E.key]; if (!F) return "";
   const have = st.roomOwned || [], left = candyLeft(st);
@@ -627,6 +667,38 @@ const AUR_RIDDLES = [
   { q: "What has a bark but no bite?", opts: ["A tree", "A dog", "A wolf"], a: 0 }
 ];
 
+/* ---------- 💌 Valentine Mailroom: mail slot spots, lines, finds and sweet riddles ---------- */
+// [left %, top %] of the middle of each mail slot that holds a letter (the picture has 6 × 4 empty slots)
+const VAL_SPOTS = [[36.5, 26], [64, 26], [27.5, 40], [45.5, 40], [73, 40], [36.5, 54], [54.5, 54], [45.5, 69], [64, 69]];
+const VAL_STAMPS = ["\u2764\uFE0F", "\u{1F380}", "\u{1F496}", "\u{1F43E}", "\u{1F498}", "\u{1F451}", "\u{1F49D}", "\u{1F36B}", "\u{1F308}", "\u{1F48E}"];
+const VAL_LINES = ["Happy Valentine's Day! I wrote you a riddle!", "I mailed myself to you! Surprise! Want a riddle?", "Roses are red, violets are blue, here is a riddle just for you!",
+  "I've been waiting in this envelope ALL day! Riddle time!", "You're my favorite reader! Try my riddle!", "Special delivery! One riddle, sealed with a heart!",
+  "I licked the stamp myself. Yuck! Anyway, here's a riddle.", "Shhh, I'm your secret valentine! Can you solve this?"];
+const VAL_FINDS = ["A paper heart that says \u201cYou're sweet!\u201d… with treats taped on!", "A tiny love note from a mouse: \u201cSqueak!\u201d Treats fell out!", "A valentine covered in glitter! Treats sprinkled out too!",
+  "A drawing of you and your companion! A few treats were inside!", "A candy heart that says \u201cRead more!\u201d Good advice! Treats inside!"];
+const VAL_RIDDLES = [
+  { q: "What did one heart say to the other?", opts: ["We're a perfect match!", "Hello!", "Go away"], a: 0 },
+  { q: "What do you call two birds in love?", opts: ["Tweethearts", "Pigeons", "Feathers"], a: 0 },
+  { q: "What did the stamp say to the envelope?", opts: ["I'm stuck on you!", "Bye!", "You're heavy"], a: 0 },
+  { q: "What has a heart but no other organs?", opts: ["A deck of cards", "A rock", "A cloud"], a: 0 },
+  { q: "Why did the cookie go to the doctor?", opts: ["It felt crummy", "It was hot", "It was sleepy"], a: 0 },
+  { q: "What color do you get when you mix red and white?", opts: ["Pink", "Green", "Blue"], a: 0 },
+  { q: "What did the bee say to the flower?", opts: ["Hello, honey!", "Buzz off!", "Nice petals"], a: 0 },
+  { q: "What do you write on a robot's valentine?", opts: ["I love you a watt!", "Beep", "Be mine"], a: 0 },
+  { q: "Which month has Valentine's Day?", opts: ["February", "July", "October"], a: 0 },
+  { q: "What did the pencil say to the paper?", opts: ["I dot my i's on you!", "Hi!", "Erase me"], a: 0 },
+  { q: "What do you call a very small valentine?", opts: ["A valen-tiny", "A card", "A sticker"], a: 0 },
+  { q: "What goes on a letter so it can be mailed?", opts: ["A stamp", "A button", "A sock"], a: 0 },
+  { q: "What did the elephant say to its sweetheart?", opts: ["I love you a ton!", "Trumpet!", "Peanuts!"], a: 0 },
+  { q: "What did the octopus say on Valentine's Day?", opts: ["Can I hold your hand, hand, hand…?", "Splash!", "Ink!"], a: 0 },
+  { q: "What do squirrels give for Valentine's Day?", opts: ["Forget-me-nuts", "Roses", "Acorn hats"], a: 0 },
+  { q: "What flower is red and often given on Valentine's Day?", opts: ["A rose", "A sunflower", "A daisy"], a: 0 },
+  { q: "What did the boy owl say to the girl owl?", opts: ["Owl be yours!", "Hoot!", "Good night!"], a: 0 },
+  { q: "What do you call a sheep covered in chocolate?", opts: ["A candy baa", "Wooly", "A lamb"], a: 0 },
+  { q: "Why do skunks love Valentine's Day?", opts: ["They're very scent-imental", "They like roses", "They eat candy"], a: 0 },
+  { q: "What did the frog say to his valentine?", opts: ["You're toad-ally awesome!", "Ribbit", "Jump!"], a: 0 }
+];
+
 /* ---------- The Keep banner + teacher controls ---------- */
 export function miniBanner(students, cls) {
   const E = miniOn(cls); if (!E) return "";
@@ -668,6 +740,10 @@ function jingleSound() { if (!ac()) return; const t = AC.currentTime;   // littl
 function auroraSound() { if (!ac()) return; const t = AC.currentTime;   // a soft shimmering chord
   [523, 659, 784, 1047, 1319].forEach((f, k) => { const o = AC.createOscillator(), g = AC.createGain(); o.type = "sine"; o.frequency.value = f; const at = t + k * 0.09;
     g.gain.setValueAtTime(0.0001, at); g.gain.exponentialRampToValueAtTime(0.06, at + 0.08); g.gain.exponentialRampToValueAtTime(0.0005, at + 0.9); o.connect(g); g.connect(AC.destination); o.start(at); o.stop(at + 0.95); }); }
+function letterSound() { if (!ac()) return; const t = AC.currentTime, n = Math.floor(AC.sampleRate * 0.35), b = AC.createBuffer(1, n, AC.sampleRate), d = b.getChannelData(0);   // paper rip + a little chime
+  for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 1.5) * 0.6;
+  const s = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain(); f.type = "highpass"; f.frequency.value = 1800; g.gain.value = 0.35; s.buffer = b; s.connect(f); f.connect(g); g.connect(AC.destination); s.start(t);
+  [1047, 1319].forEach((fr, k) => { const o = AC.createOscillator(), gg = AC.createGain(), at = t + 0.3 + k * 0.1; o.type = "sine"; o.frequency.value = fr; gg.gain.setValueAtTime(0.06, at); gg.gain.exponentialRampToValueAtTime(0.0005, at + 0.5); o.connect(gg); gg.connect(AC.destination); o.start(at); o.stop(at + 0.55); }); }
 function knockSound() { if (!ac()) return; const t = AC.currentTime; thud(t); thud(t + 0.22); thud(t + 0.44); }
 function chime(n) { if (!ac()) return; const t = AC.currentTime; [784, 988, 1175, 1568].slice(0, (n || 1) + 1).forEach((f, i) => { const o = AC.createOscillator(), g = AC.createGain(); o.type = "triangle"; o.frequency.value = f; g.gain.setValueAtTime(0.15, t + i * 0.09); g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.09 + 0.35); o.connect(g); g.connect(AC.destination); o.start(t + i * 0.09); o.stop(t + i * 0.09 + 0.4); }); }
 function trainSound() { if (!ac()) return; const t = AC.currentTime; [0, 0.25].forEach(d => { const o = AC.createOscillator(), g = AC.createGain(); o.type = "square"; o.frequency.value = 520; g.gain.setValueAtTime(0.08, t + d); g.gain.exponentialRampToValueAtTime(0.001, t + d + 0.22); o.connect(g); g.connect(AC.destination); o.start(t + d); o.stop(t + d + 0.25); }); }
