@@ -1,44 +1,45 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261104j";
-import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261104j";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261104j";
-import { cpEarnedCalc } from "./room.js?v=20261104j";
-import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261104j";
-import { rewardFor } from "./doors.js?v=20261104j";
-import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet, subReq, subRuleOn, SUB_DAY, addDays } from "./doors.js?v=20261104j";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing } from "./collector-ui.js?v=20261104j";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261104k";
+import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261104k";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261104k";
+import { cpEarnedCalc } from "./room.js?v=20261104k";
+import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261104k";
+import { rewardFor } from "./doors.js?v=20261104k";
+import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet, subReq, subRuleOn, SUB_DAY, addDays } from "./doors.js?v=20261104k";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing } from "./collector-ui.js?v=20261104k";
 import {
   newsHTML, boostOn, boostHTML, countdownHTML, applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   boss2Of, boss2Prize, simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, weekCandyBefore, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, isFrost, isHeart, heartUnlocked, isLucky, luckyUnlocked, saveProblems, yetiUnlocked, wallMarks, WALL_BLOCK, BOSS_START_HP, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261104j";
-import { MQ_CUTOFF } from "./morning.js?v=20261104j";
-import { kindAdmin } from "./kindness.js?v=20261104j";
-import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261104j";
-import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261104j";
-import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261104j";
-import { passAdmin } from "./pass.js?v=20261104j";
-import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261104j";
-import { watchSecret, secretRef } from "./db.js?v=20261104j";
-import { secretAdmin, secretClick, autoPick, secretBanner } from "./secret.js?v=20261104j";
-import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef, newBattleRef, newsPicRef, watchNewsPic } from "./db.js?v=20261104j";
-import { mapAdmin } from "./readmap.js?v=20261104j";
-import { wheelTab, wheelClick } from "./subwheel.js?v=20261104j";
-import { tbRequestsCard, tbInvite, tbToSettle } from "./teachbattle.js?v=20261104j";
-import { rewardAdmin, rgWaiting, rgOf, shrinkImage } from "./weekgoal.js?v=20261104j";
-import { soloAdmin, soloCfg, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261104j";
-import { feederLink } from "./feeder.js?v=20261104j";
-import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261104j";
+} from "./game.js?v=20261104k";
+import { MQ_CUTOFF } from "./morning.js?v=20261104k";
+import { kindAdmin } from "./kindness.js?v=20261104k";
+import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261104k";
+import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261104k";
+import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261104k";
+import { passAdmin } from "./pass.js?v=20261104k";
+import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261104k";
+import { watchSecret, secretRef } from "./db.js?v=20261104k";
+import { secretAdmin, secretClick, autoPick, secretBanner } from "./secret.js?v=20261104k";
+import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef, newBattleRef, newsPicRef, watchNewsPic } from "./db.js?v=20261104k";
+import { mapAdmin } from "./readmap.js?v=20261104k";
+import { wheelTab, wheelClick } from "./subwheel.js?v=20261104k";
+import { tbRequestsCard, tbInvite, tbToSettle } from "./teachbattle.js?v=20261104k";
+import { rewardAdmin, rgWaiting, rgOf, shrinkImage } from "./weekgoal.js?v=20261104k";
+import { soloAdmin, soloCfg, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261104k";
+import { feederLink } from "./feeder.js?v=20261104k";
+import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261104k";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef, watchSeats, watchCards, deleteField
-} from "./db.js?v=20261104j";
-import { G, guardCard, guardClick, guardInput, autoSnap, personalLink, syncCards } from "./guard.js?v=20261104j";
-import { lockCard, lockClick } from "./lock.js?v=20261104j";
-import { revengeAdmin, revengeAction } from "./revenge.js?v=20261104j";
-import { heistAdmin, heistAction } from "./heist.js?v=20261104j";
-import { calendarCard, calendarEdit, autoExcuse } from "./calendar.js?v=20261104j";
-import { axoAdmin } from "./axolotl.js?v=20261104j";
+} from "./db.js?v=20261104k";
+import { G, guardCard, guardClick, guardInput, autoSnap, personalLink, syncCards } from "./guard.js?v=20261104k";
+import { lockCard, lockClick } from "./lock.js?v=20261104k";
+import { revengeAdmin, revengeAction } from "./revenge.js?v=20261104k";
+import { heistAdmin, heistAction } from "./heist.js?v=20261104k";
+import { calendarCard, calendarEdit, autoExcuse } from "./calendar.js?v=20261104k";
+import { axoAdmin } from "./axolotl.js?v=20261104k";
+import { clubsAdmin, clubUpload } from "./clubs.js?v=20261104k";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -575,7 +576,7 @@ function render(force) {
     if (np && np > prizeHidden) h += '<div class="banner prizealert"><span>\u{1F381} <b>' + np + " prize" + (np === 1 ? "" : "s") + "</b> to order or give" + prizeNames() + '</span><span class="row" style="gap:8px;"><button class="btn small" data-act="goPrizes">View prizes</button><button class="btn ghost small" data-act="hidePrizes">Hide</button></span></div>';
     h += '<div class="tabs ctabs" role="tablist">' + tabs.map(([k, l]) => '<button role="tab" class="tab' + (ctab === k ? " on" : "") + '" data-ctab="' + k + '" aria-selected="' + (ctab === k) + '">' + l + "</button>").join("") + "</div>";
     if (ctab === "daily") h += secretAdmin(students, cls, secretDoc) + newsAdmin() + countdownAdmin() + boostAdmin() + viewDaily() + miniAdmin(students, cls) + partyAdmin(students, cls) + surpriseAdmin(students, cls) + viewWeekDoor() + viewRewards();
-    else if (ctab === "students") h += lockCard(students, cls) + viewStandings() + passAdmin(students, cls) + viewAssign() + viewLosses() + viewLinks() + guardCard(students, cls) + subSwapCard() + axoAdmin(students, cls, busy, esc);
+    else if (ctab === "students") h += lockCard(students, cls) + viewStandings() + passAdmin(students, cls) + viewAssign() + viewLosses() + viewLinks() + guardCard(students, cls) + subSwapCard() + clubsAdmin(students, cls, busy) + axoAdmin(students, cls, busy, esc);
     else if (ctab === "collector") h += viewLiveBattles() + tbRequestsCard(students, cls, battles, teacherBusy()) + teacherCollectorCard() + viewCollector();
     else if (ctab === "rewards") h += rewardAdmin(students, cls, rpics, busy);   // Subject swaps live on the Students tab only (Nov 4); the vault reads the same setting
     else if (ctab === "quest") h += questTracker(students);
@@ -1766,6 +1767,8 @@ document.addEventListener("change", async ev => {
   if (ev.target.id === "cdOn") { await cdSave({ on: ev.target.checked }); return; }
   if (ev.target.id === "readMapBox") { const on = ev.target.checked; try { await updateDoc(classRef, { readMap: on }); cls.readMap = on; flash("Saved \u2014 the Reading Map is " + (on ? "on! Students see a \u{1F4DA} Reading Map tab." : "off."), true); render(); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
   if (ev.target.id === "subRuleBox") { const on = ev.target.checked; try { await updateDoc(classRef, { subRule: on }); cls.subRule = on; flash("Saved \u2014 the core subjects rule is " + (on ? "on." : "off."), true); render(); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
+  if (ev.target.dataset && ev.target.dataset.clubsteps) { const k = ev.target.dataset.clubsteps, n = Math.max(1, Math.min(20, Math.round(Number(ev.target.value) || 8)));
+    try { await updateDoc(classRef, { ["clubSteps." + k]: n }); flash("Saved \u2014 that club has " + n + " steps.", true); } catch (e) { flash("Couldn\u2019t save \u2014 " + (e.code || e.message)); } return; }
   if (ev.target.dataset && ev.target.dataset.offday) { const d = ev.target.dataset.offday, o = Object.assign({}, cls.offDays || {}); if (ev.target.checked) o[d] = true; else delete o[d];
     try { await updateDoc(classRef, { offDays: o }); cls.offDays = o; flash("Saved \u2014 " + d + (ev.target.checked ? " is a day off: nobody needs core subjects that day." : " is a school day again."), true); render(); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
   if (ev.target.dataset && ev.target.dataset.subswap) {
@@ -1814,6 +1817,19 @@ document.addEventListener("change", async ev => {
   if (id === "lossRange") { busy.lossRange = ev.target.value; render(); return; }
   if (id === "lossFrom") { busy.lossFrom = ev.target.value; render(); return; }
   if (id === "lossTo") { busy.lossTo = ev.target.value; render(); return; }
+  if (id === "clubFile" && ev.target.files[0]) {   // 🎨 Electives: club progress spreadsheet
+    const file = ev.target.files[0]; ev.target.value = "";
+    try {
+      let rows = [];
+      if (/\.csv$/i.test(file.name)) rows = parseCSV(await file.text());
+      else { if (!window.XLSX) throw new Error("The spreadsheet reader didn\u2019t load. Try saving the file as CSV.");
+        const wb = XLSX.read(await file.arrayBuffer(), { type: "array" });
+        for (const nm of wb.SheetNames) { const r = XLSX.utils.sheet_to_json(wb.Sheets[nm], { defval: "" }).map(x => { const o = {}; Object.keys(x).forEach(k => { o[normKey(k)] = x[k]; }); return o; }); if (r.length) { rows = r; break; } } }
+      if (!rows.length || !("student name" in rows[0]) || !("club name" in rows[0])) { flash("That file needs student_name, club_name, step_name and status columns."); return; }
+      busy.clubPreview = clubUpload(rows, students, cls, matchStudent); render();
+    } catch (e) { flash("Couldn\u2019t read that file \u2014 " + e.message); }
+    return;
+  }
   if (id === "rosterFile" && ev.target.files[0]) { await addRosterFromFile(ev.target.files[0]); ev.target.value = ""; return; }
   if ((id !== "upDay" && id !== "upLunch") || !ev.target.files[0]) return;
   const file = ev.target.files[0];
@@ -2336,6 +2352,15 @@ document.addEventListener("click", async ev => {
   if (act === "rewardsFinished") { busy.rewardsFinished = !busy.rewardsFinished; render(); return; }
   if (act === "saveFastRing") { const v = Math.max(1, Math.floor(Number(document.getElementById("fastRing").value) || FAST_RING)); try { await updateDoc(classRef, { fastRing: v }); flash("Saved \u2014 the Fast Math Ring closes at " + v + " FastMath XP."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
   if (act === "duckMore") { busy.duckMore = !busy.duckMore; return; }
+  if (act === "clubCancel") { busy.clubPreview = null; render(); return; }
+  if (act === "clubList") { busy.clubList = !busy.clubList; return; }
+  if (act === "clubSave") {
+    const P = busy.clubPreview; if (!P || !P.ups.length) return;
+    try { for (let i = 0; i < P.ups.length; i += 400) { const batch = writeBatch(db); P.ups.slice(i, i + 400).forEach(([id, d]) => batch.update(studentRef(id), d)); await batch.commit(); }
+      flash("Saved \u2014 " + P.ups.length + " student" + (P.ups.length === 1 ? "" : "s") + " got new club stickers!", true); busy.clubPreview = null; }
+    catch (e) { flash("Couldn\u2019t save \u2014 " + (e.code || e.message)); }
+    render(); return;
+  }
   if (act === "calAdd") {
     const o = calendarEdit("add", el, cls); if (!o) return; if (o.err) return flash(o.err);
     try { await updateDoc(classRef, { offDays: o }); cls.offDays = o; flash("Saved \u2014 break added to the school calendar.", true); excuseSoon(); } catch (e) { flash("Couldn\u2019t save \u2014 " + (e.code || e.message)); }

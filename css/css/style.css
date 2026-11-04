@@ -2286,3 +2286,26 @@ body.mini-kite::before{ content:""; position:fixed; inset:0; pointer-events:none
 body.mini-kite .wrap{ position:relative; z-index:1; } body.mini-kite .tile{ box-shadow:0 0 0 2px #4FB7EE; }
 @media (prefers-reduced-motion: reduce){ .kitefly, .kitefly .burst em, body.mini-kite::before{ animation:none; } }
 @media (max-width: 640px){ .kitefly{ width:9.5%; } }
+
+/* 🎨 Electives (Nov 4) */
+.clubcard{ border-top:6px solid var(--cc); }
+.clubcard.fresh{ box-shadow:0 0 0 3px var(--cc), 0 8px 24px rgba(0,0,0,.12); }
+.clubhead{ display:flex; align-items:center; gap:12px; }
+.clubhead h3{ margin:0; } .clubhead small{ opacity:.75; }
+.clubic{ font-size:40px; line-height:1; }
+.clubn{ margin-left:auto; font-size:22px; color:var(--cc); white-space:nowrap; }
+.clubbody{ display:flex; gap:16px; align-items:center; margin-top:12px; flex-wrap:wrap; }
+.clubbook{ display:grid; grid-template-columns:repeat(4,52px); gap:8px; }
+.clubsticker{ width:52px; height:52px; border-radius:50%; border:2px dashed #ccc; display:flex; align-items:center; justify-content:center; font-size:14px; color:#aaa; background:#fafafa; }
+.clubsticker.on{ border:3px solid var(--cc); background:#fff; font-size:28px; color:inherit; box-shadow:0 3px 0 rgba(0,0,0,.08); }
+.clubsticker.pop{ animation:clubpop .6s ease-out both; }
+@keyframes clubpop{ 0%{ transform:scale(.2) rotate(-30deg); } 70%{ transform:scale(1.25) rotate(8deg); } 100%{ transform:scale(1) rotate(0); } }
+.clubegg{ display:flex; flex-direction:column; align-items:center; gap:4px; min-width:140px; text-align:center; }
+.clubeggimg{ font-size:64px; line-height:1; display:inline-block; }
+.clubeggimg img{ width:110px; height:110px; object-fit:contain; }
+.clubegg.st1 .clubeggimg{ animation:clubwig 2.4s ease-in-out infinite; }
+.clubegg.st2 .clubeggimg{ animation:clubwig 1.4s ease-in-out infinite; filter:drop-shadow(0 0 6px var(--cc)); }
+.clubegg.st3 .clubeggimg{ animation:clubwig .8s ease-in-out infinite; filter:drop-shadow(0 0 12px var(--cc)); }
+@keyframes clubwig{ 0%,100%{ transform:rotate(0); } 25%{ transform:rotate(-10deg); } 75%{ transform:rotate(10deg); } }
+.clubnew{ font-weight:700; color:var(--cc); }
+@media (prefers-reduced-motion: reduce){ .clubsticker.pop, .clubeggimg{ animation:none !important; } }

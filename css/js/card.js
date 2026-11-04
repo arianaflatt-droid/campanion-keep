@@ -3,7 +3,7 @@
    (first name, plus last initial when two share it) that the teacher console saves as pubName.
    Keep PRIVATE in step with cardOk() in firestore.rules. */
 export const PRIVATE = ["name", "fullName", "questPass", "questDone", "questXP", "reward", "goalSubject",
-  "birthdayEggs", "birthdayUsed", "bdaySeen", "ideas", "spinLog", "axo", "axoReset"];   // axo = Bubble's Baby (Nov 4)
+  "birthdayEggs", "birthdayUsed", "bdaySeen", "ideas", "spinLog", "axo", "axoReset", "clubs", "clubSeen", "clubUltra"];   // axo = Bubble's Baby (Nov 4)
 export function cardOf(st) {
   const c = {};
   Object.keys(st || {}).forEach(k => { if (k !== "id" && !PRIVATE.includes(k)) c[k] = st[k]; });
