@@ -2,46 +2,47 @@ import {
   checkVersion, hitOn, gearInSeason, applyDisplayNames, companionOf, petCreatures, pinnedBadgeHTML, DAYS, SHORT, ROSTER, GEAR, SIDEKICKS, BANNER, bannerFor, newsHTML, boostHTML, vipToday, countdownHTML, countdownLeft, isHaunt, battleOn, candyOf, basketHTML, CANDY_FULL, bossState, attacksReady, bossBarHTML, GHOST_IMG, ghostUnlocked, turkeyUnlocked, grinchUnlocked, isJingle, isFrost, isHeart, heartUnlocked, isLucky, luckyUnlocked, attackRefusal, saveProblems, yetiUnlocked, eventMode, isGobble, setSeason, SEASON, seasonOf, STORE, candyLeft, candySpent, ownedCount, ownsItem, storeArt, nextAttack, dmgOf, HAT_BONUS, BREW_BONUS, teamHTML, wallHTML, WHEEL, pickSlice, wheelHTML, spinTo, PRIZES, prizeSlices, bucketState, bucketHTML, baseDamage, EAT_PER_DAY, dayEaten, dayXP, byId, esc, arr5, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, sidekickSVG, petHTML as petBase, vipStage, withVipHat, vipWorn, petWithHead, OUTFITS, itemArt, potionFx, bondLevel,
   ghost2Unlocked, starterFam, boss2Of, BOSS2, BOSS2_LIST, creditCompanion, compKey, compLevel, compFill, COMP_DAYS, creatureCompanion, win1HTML
-} from "./game.js?v=20261104f";
-import { EVENT_LIST, TEAM_EVENTS, eventOn, teamCard, teamOf as tevTeamOf } from "./teams.js?v=20261104f";
-import { lockOf, lockScreen } from "./lock.js?v=20261104f";
-import { revengeCard, revengeSync } from "./revenge.js?v=20261104f";
-import { heistCard, heistSync } from "./heist.js?v=20261104f";
-import { ultraSync, vaultUltra } from "./ultra.js?v=20261104f";
-import { secretBanner, secretOverlay, secretOpen } from "./secret.js?v=20261104f";
-import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=20261104f";
-import { kindCard, gotKindToday } from "./kindness.js?v=20261104f";
-import { partyCards, partyOverlay, partyClick, partyBusy, partyTicker, partySync } from "./party.js?v=20261104f";
-import { kitchenCard, kitchenOverlay, kitchenClick, kitchenBusy, kitchenPointer } from "./meals.js?v=20261104f";
-import { miniCard, miniOverlay, miniClick, miniBusy, miniSync } from "./mini.js?v=20261104f";
-import { paintCard, paintClick } from "./paint.js?v=20261104f";
-import { surpriseCards, surpriseOverlay, surpriseClick, surpriseBusy } from "./surprise.js?v=20261104f";
-import { hofTab, hofParty, hofClick } from "./hof.js?v=20261104f";
-import { passTab, passOverlay, passClick, passBusy, passReady } from "./pass.js?v=20261104f";
-import { bondHTML, moodBubble, playTrick, burst, unlockAt } from "./bond.js?v=20261104f";
-import { morningTab, morningOverlay, morningClick, morningBusy, mqReady } from "./morning.js?v=20261104f";
-import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261104f";
-import { cardOf, sameData } from "./card.js?v=20261104f";
-import { mapOn, mapTab, mapClick, mapReady } from "./readmap.js?v=20261104f";
-import { tbCard, tbLeft } from "./teachbattle.js?v=20261104f";
-import { wheelBanner, wheelWinOverlay, wheelSeen } from "./subwheel.js?v=20261104f";
-import { checklistTab, todoCount, markSeen } from "./checklist.js?v=20261104f";
-import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc as saveDoc, watchRewardPic, watchNewsPic, claimSeat, mySeat, watchCards, watchMe, saveCard, ck } from "./db.js?v=20261104f";
-import { rewardTab, rewardBadge, rgOf, rgProgress, RG_SUBS } from "./weekgoal.js?v=20261104f";
-import { soloOn, soloSwap, soloCard, brewOne, freeIngredient, soloReady, soloCfg, potNaming, potNameData } from "./solobrew.js?v=20261104f";
+} from "./game.js?v=20261104g";
+import { EVENT_LIST, TEAM_EVENTS, eventOn, teamCard, teamOf as tevTeamOf } from "./teams.js?v=20261104g";
+import { lockOf, lockScreen } from "./lock.js?v=20261104g";
+import { revengeCard, revengeSync } from "./revenge.js?v=20261104g";
+import { heistCard, heistSync } from "./heist.js?v=20261104g";
+import { ultraSync, vaultUltra } from "./ultra.js?v=20261104g";
+import { secretBanner, secretOverlay, secretOpen } from "./secret.js?v=20261104g";
+import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=20261104g";
+import { kindCard, gotKindToday } from "./kindness.js?v=20261104g";
+import { partyCards, partyOverlay, partyClick, partyBusy, partyTicker, partySync } from "./party.js?v=20261104g";
+import { kitchenCard, kitchenOverlay, kitchenClick, kitchenBusy, kitchenPointer } from "./meals.js?v=20261104g";
+import { miniCard, miniOverlay, miniClick, miniBusy, miniSync } from "./mini.js?v=20261104g";
+import { paintCard, paintClick } from "./paint.js?v=20261104g";
+import { surpriseCards, surpriseOverlay, surpriseClick, surpriseBusy } from "./surprise.js?v=20261104g";
+import { hofTab, hofParty, hofClick } from "./hof.js?v=20261104g";
+import { passTab, passOverlay, passClick, passBusy, passReady } from "./pass.js?v=20261104g";
+import { bondHTML, moodBubble, playTrick, burst, unlockAt } from "./bond.js?v=20261104g";
+import { morningTab, morningOverlay, morningClick, morningBusy, mqReady } from "./morning.js?v=20261104g";
+import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261104g";
+import { cardOf, sameData } from "./card.js?v=20261104g";
+import { mapOn, mapTab, mapClick, mapReady } from "./readmap.js?v=20261104g";
+import { tbCard, tbLeft } from "./teachbattle.js?v=20261104g";
+import { wheelBanner, wheelWinOverlay, wheelSeen } from "./subwheel.js?v=20261104g";
+import { axoOn, axoSync } from "./axolotl.js?v=20261104g";
+import { checklistTab, todoCount, markSeen } from "./checklist.js?v=20261104g";
+import { PREVIEW, configured, auth, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc as saveDoc, watchRewardPic, watchNewsPic, claimSeat, mySeat, watchCards, watchMe, saveCard, ck } from "./db.js?v=20261104g";
+import { rewardTab, rewardBadge, rgOf, rgProgress, RG_SUBS } from "./weekgoal.js?v=20261104g";
+import { soloOn, soloSwap, soloCard, brewOne, freeIngredient, soloReady, soloCfg, potNaming, potNameData } from "./solobrew.js?v=20261104g";
 let rpic = null, npic = null;
 // The wheel's slices; with Solo Potion Brewing on, Free Attack becomes Free Ingredient (same slice id, so saves still pass)
 const slicesNow = () => soloOn(cls) ? SEASON.slices.map(x => x.id === "attack" ? Object.assign({}, x, { label: "Free Ingredient", icon: soloCfg(cls).icon, note: "A free " + (soloCfg(cls).ingFor || soloCfg(cls).one) + " ingredient!" }) : x) : SEASON.slices;
-import { nudgeCard } from "./nudges.js?v=20261104f";
-import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261104f";
-import { teacherPlayer, hasStarter, MOVES, formOf } from "./collect.js?v=20261104f";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261104f";
-import { addDays, vaultMet, goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked, weekGoal, weekKey, weekTotal, weekDoorState, vaultState, vaultGoal, rewardFor, oldReady, vaultLessonsLeft, VAULT_XP, VAULT_BONUS_XP, VAULT_EGGS, VAULT_MIN, vaultMinOk, vaultNeedsMin, subReq, subReqHTML } from "./doors.js?v=20261104f";
-import { azToday } from "./collect.js?v=20261104f";
+import { nudgeCard } from "./nudges.js?v=20261104g";
+import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261104g";
+import { teacherPlayer, hasStarter, MOVES, formOf } from "./collect.js?v=20261104g";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261104g";
+import { addDays, vaultMet, goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked, weekGoal, weekKey, weekTotal, weekDoorState, vaultState, vaultGoal, rewardFor, oldReady, vaultLessonsLeft, VAULT_XP, VAULT_BONUS_XP, VAULT_EGGS, VAULT_MIN, vaultMinOk, vaultNeedsMin, subReq, subReqHTML } from "./doors.js?v=20261104g";
+import { azToday } from "./collect.js?v=20261104g";
 import { roomHTML, FIT_SLOTS, slotKind, KIND_NAMES, KIND_ICON, EVERYDAY_PRICE, THEMED_PRICE, TROPHY_PRICE, TYPE_THEMES, SEASON_THEMES, THEME_NAMES, TROPHIES,
   itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId,
-  ROOMS, EXTRA_ROOMS, ROOM_PRICE, hasRoom, roomStarters, fitIn, slotTakes, roomExtras, PET_SPOT_KEYS, petSpotLabel, petSpotOf, ACTIVITY_IDS, ACTIVITY_PRICE } from "./room.js?v=20261104f";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing, endMyBattle } from "./collector-ui.js?v=20261104f";
+  ROOMS, EXTRA_ROOMS, ROOM_PRICE, hasRoom, roomStarters, fitIn, slotTakes, roomExtras, PET_SPOT_KEYS, petSpotLabel, petSpotOf, ACTIVITY_IDS, ACTIVITY_PRICE } from "./room.js?v=20261104g";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing, endMyBattle } from "./collector-ui.js?v=20261104g";
 
 let fxFor = null;   // the student whose companion is being drawn (for the potion glow)
 const petHTML = (c, worn, held) => { const h = petBase(c, worn, held), fx = fxFor ? potionFx(fxFor) : ""; return fx ? h.replace('class="petwrap', 'class="petwrap' + fx) : h; };
@@ -292,7 +293,7 @@ function render(force) {
   if (bcur && bcur.companionId && !lockOf(cls, bcur.id) && battleShowing()) {
     if (battleScroll == null) battleScroll = scrollY;
     app.innerHTML = (flashMsg ? '<div class="banner ' + (flashOk ? "info" : "bad") + '">' + esc(flashMsg) + "</div>" : "") + collectorOverlays(collectorCtx(bcur));
-    partySync(collectorCtx(!PREVIEW ? bcur : null)); return; }
+    partySync(collectorCtx(!PREVIEW ? bcur : null)); axoSync(false); return; }
   let h = cls ? bannerFor(cls) + countdownHTML(cls) + newsHTML(cls, npic) + boostHTML(cls) + secretBanner(cls) : BANNER;   // Nov 4: the subject wheel was removed
   if (flashMsg) h += '<div class="banner ' + (flashOk ? "info" : "bad") + '">' + esc(flashMsg) + "</div>";
   if (error) h += '<div class="card"><p class="lede">' + esc(error) + "</p></div>";
@@ -305,7 +306,7 @@ function render(force) {
     h += s ? (s.companionId ? viewMine(s) : viewChoose(s)) : seat ? '<div class="card"><p class="lede">Loading your page\u2026</p></div>' : viewNames();
   }
   const cur = students.find(x => x.id === me);
-  if (cur && cls && lockOf(cls, cur.id)) { app.innerHTML = lockScreen(lockOf(cls, cur.id), cur.name); return; }   // \u{1F512} Ms. Ariana locked this Keep (Nov 1)
+  if (cur && cls && lockOf(cls, cur.id)) { app.innerHTML = lockScreen(lockOf(cls, cur.id), cur.name); axoSync(false); return; }   // \u{1F512} Ms. Ariana locked this Keep (Nov 1)
   if (cur && cur.companionId && cls) lockBadges(cur);
   const bday = !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() && !questBusy() && !morningBusy() && !passBusy() && !surpriseBusy() && !kitchenBusy() && !partyBusy() && !miniBusy() ? birthdayParty(cur) : "";
   const cape = !bday && !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() && !questBusy() && !morningBusy() && !passBusy() && !surpriseBusy() && !kitchenBusy() && !partyBusy() && !miniBusy() ? capeParty(cur) : "";
@@ -315,6 +316,7 @@ function render(force) {
   miniSync(cls);
   app.innerHTML = h + (cur && cur.companionId && cls ? miniOverlay(cur, cls) : "") + partyOverlay(cur && cur.companionId ? cur : null, cls) + (cur && cur.companionId && cls ? kitchenOverlay(cur) : "") + (cur && cur.companionId && cls && !PREVIEW && !bday && !cape && !party && !hof ? surpriseOverlay(cur, cls) : "") + passOverlay() + presentOverlay() + bulkOverlay() + (cur && cur.companionId && !PREVIEW ? secretOverlay(cur) : "") + vaultOverlay() + prizeOverlay() + (cur && cur.companionId && cls ? collectorOverlays(collectorCtx(cur)) + questOverlay(cur) + morningOverlay(cur, cls) : "") + party + cape + bday + hof;
   restoreFields(fields);
+  axoSync(tab === "axo" && !!cur && !!cur.companionId && axoOn(cls), cur && cur.companionId ? cur : null, cls, d => patch(d, true), PREVIEW);   // 🫧 Bubble's Baby lives in its own frame under the page
   revengeSync({ st: cur && cur.companionId ? cur : null, cls, students, patch: d => patch(d, true), flash, preview: PREVIEW });
   heistSync({ st: cur && cur.companionId ? cur : null, cls, students, patch: d => patch(d, true), flash, preview: PREVIEW });   // 🎄 the Great Present Heist, also on its own layer   // 🦃 Turducken's Revenge draws on its own layer
   if (cur && cur.companionId && cls && !collectorBusy()) ultraSync({ st: cur, cls, patch: d => patch(d, true), flash, preview: PREVIEW });   // 🌈 Ultra eggs for goals reached
@@ -368,6 +370,7 @@ function viewMine(s) {
   const doorsOn = doorsLive(cls);
   if (tab === "doors" && !doorsOn) tab = "pet";
   if (tab === "hero") tab = "check";   // Hero Quest was removed (Oct 29)
+  if (tab === "axo" && !axoOn(cls)) tab = "pet";
   const tevs = [];   // team events are turned off (Oct 16) to keep the day simpler
   if (TEAM_EVENTS[tab] && !tevs.includes(TEAM_EVENTS[tab])) tab = "pet";
   let h = notYou(s) + '<div class="tabs" role="tablist">' +
@@ -378,6 +381,7 @@ function viewMine(s) {
       .concat([["collect", "\u{1F95A} Creature Collector"], ["badges", "\u{1F3C5} Badges"]])
       .concat(cls && cls.passOff ? [] : [["pass", "\u{1F39F}\uFE0F Season Pass" + (passReady(s, cls) ? ' <span class="tbadge">' + passReady(s, cls) + "</span>" : "")]])
       .concat([["hof", "\u{1F3DB}\uFE0F Hall of Fame"], ["room", "\u{1F6CF}\uFE0F My Room"]])
+      .concat(axoOn(cls) ? [["axo", "\u{1FAE7} Bubble\u2019s Baby"]] : [])
       .concat([["quest", "\u{1F5FA}\uFE0F Quest" + (readyTests(s).length ? ' <span class="tbadge">' + readyTests(s).length + "</span>" : "")]])
       .map(([k, t]) => '<button role="tab" class="tab' + (tab === k ? " on" : "") + '" data-tab="' + k + '" aria-selected="' + (tab === k) + '">' + t + "</button>").join("") + "</div>";
   if (tab === "check") return h + checklistTab(s, cls, students, battles);
@@ -392,6 +396,7 @@ function viewMine(s) {
   if (tab === "hof") return h + hofTab(s, students, cls);
   if (tab === "quest") return h + questTab(s, petHTML(c, worn, heldWeapon(s)));
   if (tab === "room") return h + roomTab(s, c, worn);
+  if (tab === "axo") return h;   // the axolotl draws in its own frame right under the tabs (axolotl.js)
   h += todayCard(s, c);
   h += revengeCard(s, cls) + heistCard(s, cls);
   h += miniCard(s, cls);
