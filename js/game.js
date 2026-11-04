@@ -1,10 +1,11 @@
-import { CREATURE_LAYOUT, CREATURE_FIT_ID, CREATURE_NECK_ID } from "./creature-fit.js?v=20261104h";
-import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261104h";
-import { heldWeapon } from "./quest.js?v=20261104h";
+import { PARTY_SPOT } from "./party-spot.js?v=20261104m";
+import { CREATURE_LAYOUT, CREATURE_FIT_ID, CREATURE_NECK_ID } from "./creature-fit.js?v=20261104m";
+import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261104m";
+import { heldWeapon } from "./quest.js?v=20261104m";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261104h";
+export const APP_V = "20261104m";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -535,7 +536,7 @@ export function creatureCompanion(st, fam) {
   const e = ((st && st.coll) || {})[fam];
   if (!e) return null;
   const c = formOf(fam, e.lvl || 1); if (!c) return null;
-  if ((Number(e.lvl) || 1) < PET_LEVEL && !c.event && c.rarity !== "Legendary" && fam !== starterFam(st)) return null;   // every Legendary (and the starter) can be a companion right away
+  if ((Number(e.lvl) || 1) < PET_LEVEL && !c.event && c.rarity !== "Legendary" && c.rarity !== "Ultra" && fam !== starterFam(st)) return null;   // every Legendary and Ultra (and the starter) can be a companion right away
   const img = e.sparkle ? sparkleImg(c) : c.img, L = CREATURE_LAYOUT[c.id];
   // The picture is sized from its outline so the creature fills the box (wide ones spill out to the sides) and stands on the ground
   const glyph = L ? '<span class="crbox"><img class="crpet crfit" src="' + img + '" alt="" style="left:' + L[0] + "em;top:" + L[1] + "em;width:" + L[2] + "em;height:" + L[2] + 'em"></span>'
@@ -622,16 +623,21 @@ const PARTY_FIT = { 9: [0.18, 0, 1.25, 0], 402: [0.2, 0, 0.75, 0], 412: [0, 0.1,
   400: [0.29, 0.05, 1, 0], 401: [0.17, 0.04, 1, 0], 403: [0.22, 0.04, 1, 0], 404: [0.17, 0.05, 1, 0], 405: [0.12, 0.1, 1, 0], 406: [0.2, 0.02, 1, 0],
   407: [0.1, 0.11, 1, 0], 408: [0.17, 0, 1, 0], 409: [0.24, 0.06, 1, 0], 410: [0.25, 0.1, 1, 0], 421: [0.13, 0.1, 1, 0], 422: [0.05, 0.07, 1, 0], 423: [0.29, 0, 1, 0] };
 function partyStyle(c, kind) {
+  // Nov 4: creature pictures use a spot worked out from their eyes and the top of their head (js/party-spot.js), so the hat
+  // sits ON the head (it was floating above or sitting on the back for a lot of creatures)
+  const sp = c && c.creature && PARTY_SPOT[c.formId];
+  if (sp) { const fs = kind === "hat" ? sp[2] / 0.72 : sp[2] / 1.0;
+    return pos(sp[0], sp[1]) + "font-size:" + fs.toFixed(3) + "em;transform:translate(-50%,-" + (kind === "hat" ? 88 : 90) + "%) rotate(" + (kind === "hat" ? -6 : -4) + "deg);transform-origin:50% 90%;"; }
   const f = (c && c.fit) || {}, [x0, y0, sz0, r0] = f.hat || [0.6, 0.2, 0.45, 0];
   const id = c && c.creature ? (c.formId || "") : "r:" + (c && c.id), adj = PARTY_FIT[id] || [0, 0, 1, 0];
   const size = Math.max(0.34, Math.min(0.62, sz0 * 1.1)) * (kind === "hat" ? 1 : 0.85) * adj[2];   // tiny shop-hat spots get a hat you can see; huge ones don't swallow the face
-  return pos(x0 + adj[0], y0 + adj[1]) + "font-size:" + size.toFixed(3) + "em;transform:translate(-50%,-" + (kind === "hat" ? 80 : 78) + "%) rotate(" + (r0 + adj[3] + (kind === "hat" ? -6 : 0)) + "deg);transform-origin:50% 80%;";
+  return pos(x0 + adj[0], y0 + adj[1]) + "font-size:" + size.toFixed(3) + "em;transform:translate(-50%,-" + (kind === "hat" ? 80 : 96) + "%) rotate(" + (r0 + adj[3] + (kind === "hat" ? -6 : 0)) + "deg);transform-origin:50% 80%;";
 }
 /* 🎭 Event outfits (mini events): head pieces bought in a mini event's shop are kept forever (outfits = { id: true }, outfitOn = id).
    During a mini event every companion also wears that event's random costume (js/mini.js adds it through HEAD_FNS). */
 const OF = (ev, dir, list) => list.map(([k, name]) => ({ id: ev + "-" + k, ev, name, img: "assets/" + dir + "/" + (ev === "tot" ? "costume-" : "outfit-") + k + ".webp", neck: NECK.includes(ev + "-" + k) }));
 // 🧣 Neck pieces (Nov 3): these sit at the companion's neck (under the chin) instead of on the head, so a shop hat can stay on too.
-const NECK = ["leaf-scarf", "orn-lights", "orn-bell", "aur-scarf", "aur-compass", "val-locket", "val-bowtie"];
+const NECK = ["leaf-scarf", "orn-lights", "orn-bell", "aur-scarf", "aur-compass", "val-locket", "val-bowtie", "kite-scarf", "kite-whistle"];
 const outfitByImg = img => OUTFITS.find(o => o.img === img) || null;
 // The neck spot: worked out from the head spot and the eyes (the chin is about as far below the eyes as the eyes are below the top of the head).
 // NECK_FIT nudges one form (by picture id, or "r:" + id for the basic companions): [move right, move down, size ×]
@@ -656,6 +662,7 @@ export const OUTFITS = [].concat(
   OF("orn", "orn", [["antlers", "Reindeer Antlers"], ["santa", "Santa Hat"], ["tiara", "Snowflake Tiara"], ["earmuffs", "Fluffy Earmuffs"], ["lights", "Twinkle Light Necklace"], ["bell", "Golden Jingle Bell Collar"], ["penguin", "Penguin Hood"], ["snowman", "Snowman Top Hat"]]),   // 🎄 Ornament Hunt (Nov 3)
   OF("aur", "aur", [["aurora", "Aurora Headband"], ["beanie", "Snowflake Beanie"], ["headlamp", "Explorer Headlamp"], ["nightcap", "Starry Nightcap"], ["trapper", "Plaid Trapper Hat"], ["moon", "Moon Crown"], ["scarf", "Aurora Scarf"], ["compass", "Explorer Compass"]]),   // 🌌 Northern Lights Camp (Nov 3)
   OF("val", "val", [["mailcap", "Mail Carrier Cap"], ["heartband", "Bouncy Heart Headband"], ["cupid", "Cupid Halo & Wings"], ["rosecrown", "Rose Crown"], ["bow", "Polka-Dot Bow"], ["beret", "Cherry Heart Beret"], ["locket", "Heart Locket"], ["bowtie", "Heart Bow Tie"]]),   // 💌 Valentine Mailroom (Nov 3)
+  OF("kite", "kite", [["propeller", "Propeller Beanie"], ["aviator", "Aviator Cap"], ["pinwheel", "Pinwheel Headband"], ["daisy", "Daisy Crown"], ["sunhat", "Breezy Sun Hat"], ["cloud", "Rainbow Cloud Hat"], ["scarf", "Spring Stripe Scarf"], ["whistle", "Kite Captain Whistle"]]),
   OF("lib", "lib", [["candles", "Candle Crown"], ["nightcap", "Starry Nightcap"], ["wizard", "Wizard Reading Cap"], ["bookhat", "Book Hat"], ["bun", "Ghost Librarian Bun"], ["scholar", "Moonlight Scholar Cap"], ["owl", "Owl Ear Headband"], ["bookworm", "Bookworm Antennae"]]));
 export const outfitOf = id => OUTFITS.find(o => o.id === id) || null;
 export const headImg = (c, img) => { const o = outfitByImg(img);

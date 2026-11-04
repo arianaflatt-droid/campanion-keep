@@ -1,5 +1,5 @@
 // Creature Collector: pulls, XP bank, levels, evolutions, lorebook and arena battles.
-import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261104h";
+import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261104m";
 
 export const PULL_XP = 120;          // every 120 XP (all-time since the collector started) = 1 pull
 export const LEVEL_XP = 120;         // 120 banked XP = 1 level
@@ -93,9 +93,10 @@ export const HEIST_FAM = "L-43";
    17 dual-type Ultras (L-46 to L-62, rarity "Ultra"). They only come from Ultra eggs, earned from the Ultra goals (ultra.js):
    ultraEggs = earned (the page adds 1 per goal reached), ultraUsed = hatched (the server). A new one joins at level 1;
    one the student already has goes up ULTRA_DUPE levels instead. Never Sparkle, can't be traded or released. */
-export const ULTRA_FAMS = FAMILIES.filter(f => f.ultra).map(f => f.id);
+export const ULTRA_FAMS = FAMILIES.filter(f => f.ultra && !f.club).map(f => f.id);   // the goal-egg pool (club Ultras only come from finishing a club)
+export const CLUB_ULTRA_FAMS = FAMILIES.filter(f => f.ultra && f.club).map(f => f.id);
 export const ULTRA_DUPE = 5;
-export const isUltra = fam => ULTRA_FAMS.includes(fam);
+export const isUltra = fam => ULTRA_FAMS.includes(fam) || CLUB_ULTRA_FAMS.includes(fam);
 export function ultraLeft(st) { return Math.max(0, (Number(st && st.ultraEggs) || 0) - (Number(st && st.ultraUsed) || 0)); }
 export function ultraPull(st) {
   const fam = ULTRA_FAMS[Math.floor(Math.random() * ULTRA_FAMS.length)];
@@ -490,13 +491,14 @@ export function moveOk(bt, side, mv) {
   return true;
 }
 /* ---------- 🌈 Ultra Legendary battle effects ----------
-   ux = { main: fx, alt: fx, pass: { name, fx: "first" | "halfHeal" | "halfDef", pct }, sp: { name, heal, def, atk, boost, bt: [types], shield } }
+   ux = { main: fx, alt: fx, pass: { name, fx: "first" | "halfHeal" | "halfDef" | "halfRandom", pct }, sp: { name, heal, def, atk, boost, bt: [types], shield } }
    fx = { fx: "defdown" | "daze" | "burn" | "poison" | "shield" | "boost" | "bonus" | "heal", ch: chance, pct }
    Log lines are { k: "ux", s, t: text } (plus i/left/max when HP changes). */
 function uxAfterHit(bt, s, o, att, def, f, alt) {
   if (f.fx === "bonus" || Math.random() >= (f.ch || 0)) return;
   const pc = Math.round((f.pct || 0) * 100), mv = alt ? att.alt.name : att.attack;
   if (f.fx === "defdown" && def.cur > 0 && !def.uxDd) { def.uxDd = true; def.df = Math.max(1, Math.round(def.df * (1 - f.pct))); if (def.dfOrig) def.dfOrig = Math.max(1, Math.round(def.dfOrig * (1 - f.pct))); bt.log.push({ k: "ux", s: o, t: mv + " cracks " + def.name + "'s Defense: -" + pc + "% for the rest of the battle!" }); }
+  else if (f.fx === "atkdown" && def.cur > 0 && !def.uxAd) { def.uxAd = true; def.dmg = Math.max(1, Math.round(def.dmg * (1 - f.pct))); bt.log.push({ k: "ux", s, t: "\u{1F4E2} " + mv + " shakes " + def.name + "! Its Attack drops " + pc + "% for the rest of the battle." }); }
   else if (f.fx === "daze" && def.cur > 0) { def.dazed = f.pct; bt.log.push({ k: "daze", s, d: def.name, pct: pc }); }
   else if ((f.fx === "burn" || f.fx === "poison") && def.cur > 0 && !def.psn) { def.psn = 3; def.burn = f.fx === "burn"; bt.log.push(f.fx === "burn" ? { k: "ux", s: o, t: "\u{1F525} " + def.name + " is burning! It loses a little HP for 3 rounds." } : { k: "poison", s, d: def.name }); }
   else if (f.fx === "shield" && att.cur > 0) { att.shielded = f.pct; bt.log.push({ k: "ux", s, t: "\u{1F6E1}\uFE0F " + mv + ": the next hit on " + att.name + " does " + pc + "% less damage." }); }
@@ -507,6 +509,13 @@ function uxAfterHit(bt, s, o, att, def, f, alt) {
 function uxHurt(bt, s, i, f) {
   if (!f || !f.ux || f.cur <= 0) return;
   const p = f.ux.pass, heal = pct => { const amt = Math.min(f.hp - f.cur, Math.round(f.hp * pct)); f.cur += amt; return amt; };
+  if (p && p.fx === "halfBoost" && !f.uxHalf && f.cur < f.hp * 0.5) { f.uxHalf = true; f.uxB = { p: p.pct }; bt.log.push({ k: "ux", s, t: "\u{1F4E3} " + p.name + "! " + f.name + "'s next attack does +" + Math.round(p.pct * 100) + "%." }); }
+  if (p && p.fx === "halfRandom" && !f.uxHalf && f.cur < f.hp * 0.5) {   // Beakerion: one of 3 reactions at random
+    f.uxHalf = true; const r = Math.floor(Math.random() * 3);
+    if (r === 0) { const amt = heal(p.heal || 0.15); bt.log.push({ k: "ux", s, i, left: f.cur, max: f.hp, t: "\u{1F9EA} " + p.name + ": Restorative Formula! " + f.name + " heals " + amt + " HP." }); }
+    else if (r === 1) { f.df = Math.round(f.df * (1 + (p.def || 0.2))); if (f.dfOrig) f.dfOrig = Math.round(f.dfOrig * (1 + (p.def || 0.2))); bt.log.push({ k: "ux", s, t: "\u{1F9EA} " + p.name + ": Reinforced Glass! " + f.name + "'s Defense goes up " + Math.round((p.def || 0.2) * 100) + "%." }); }
+    else { f.uxB = { p: p.boost || 0.25 }; bt.log.push({ k: "ux", s, t: "\u{1F9EA} " + p.name + ": Overcharged Solution! " + f.name + "'s next attack does +" + Math.round((p.boost || 0.25) * 100) + "%." }); }
+  }
   if (p && (p.fx === "halfHeal" || p.fx === "halfDef") && !f.uxHalf && f.cur < f.hp * 0.5) {
     f.uxHalf = true;
     if (p.fx === "halfHeal") { const amt = heal(p.pct); bt.log.push({ k: "ux", s, i, left: f.cur, max: f.hp, t: "\u{1F49A} " + p.name + "! " + f.name + " heals " + amt + " HP." }); }
@@ -521,6 +530,7 @@ function uxHurt(bt, s, i, f) {
     if (sp.atk) { f.dmg = Math.round(f.dmg * (1 + sp.atk)); bits.push("+" + Math.round(sp.atk * 100) + "% Attack"); }
     if (sp.boost) { f.uxB = { p: sp.boost, t: sp.bt || null }; bits.push("next " + (sp.bt ? sp.bt.join(" or ") + " " : "") + "attack +" + Math.round(sp.boost * 100) + "%"); }
     if (sp.shield) { f.shielded = sp.shield; bits.push("next hit on it -" + Math.round(sp.shield * 100) + "%"); }
+    if (sp.crit) { f.uxCrit = sp.crit; bits.push("+" + Math.round(sp.crit * 100) + "% critical-hit chance on that attack"); }
     bt.log.push({ k: "ux", s, i, left: f.cur, max: f.hp, sp: true, t: "\u{1F308} ULTRA SPECIAL: " + sp.name + "! " + f.name + " " + bits.join(", ") + "!" });
   }
 }
@@ -551,7 +561,7 @@ export function resolveRound(bt) {
     if (portal) def.evade = 0;
     const dodged = !sure && !pmiss && (portal || (!!def.dodge && Math.random() < def.dodge));   // speedy creatures (Jett) dodge some hits
     const alt = m.m === "alt" && att.alt;
-    const power = m.m === "power", miss = pmiss || dodged, crit = !miss && Math.random() < Math.max(CRIT_CHANCE, alt && att.alt.crit || 0);   // Confetti Comet: 20% crit
+    const power = m.m === "power", miss = pmiss || dodged, crit = !miss && Math.random() < Math.max(CRIT_CHANCE, alt && att.alt.crit || 0) + (att.uxCrit || 0);   // Confetti Comet: 20% crit; Record Breaker: +crit chance once
     // Boo-nanza (Ghost-olotl): 20% of its normal hits go right through the opponent's Defense
     const pierced = !miss && ((m.m === "attack" && att.pierce && Math.random() < att.pierce) || (spook && SP.pierce));
     let { dmg, weak } = hitDamage(spook ? Object.assign({}, att, { type: SP.type }) : alt && att.alt.type ? Object.assign({}, att, { type: att.alt.type }) : att, pierced ? Object.assign({}, def, { df: 0 }) : def, crit);   // a second attack can have its own type
@@ -579,6 +589,9 @@ export function resolveRound(bt) {
     def.cur = Math.max(0, def.cur - dmg);
     bt.log.push({ k: "hit", s, ai: bt.active[s], di: bt.active[o], a: att.name, atk: spook ? SP.name : power ? att.attack + " (Power)" : alt ? att.alt.name : att.attack, pierced: !!pierced, d: def.name, dmg, crit, weak: weak && !miss, miss, dodged, portal, power, dazedHit: wasDazed, guarded: !!guard[o], left: def.cur, max: def.hp });
     if (uxFx && !miss) uxAfterHit(bt, s, o, att, def, uxFx, alt);
+    if (att.uxCrit && !miss) att.uxCrit = 0;   // Record Breaker's crit chance is for one attack
+    // 🌈 Sprintaur's Unstoppable Momentum: the first critical hit charges its next attack
+    if (crit && !miss && att.ux && att.ux.pass && att.ux.pass.fx === "critBoost" && !att.uxCritDone) { att.uxCritDone = true; att.uxB = { p: att.ux.pass.pct }; bt.log.push({ k: "ux", s, t: "\u26A1 " + att.ux.pass.name + "! " + att.name + "'s next attack does +" + Math.round(att.ux.pass.pct * 100) + "%!" }); }
     // Cinnamon Swirl: a chance to dazzle the target so its next attack is weaker
     if (!miss && m.m === "attack" && att.daze && def.cur > 0 && Math.random() < att.daze) { def.dazed = att.dazePct || 0.15; bt.log.push({ k: "daze", s, d: def.name, pct: Math.round((att.dazePct || 0.15) * 100) }); }
     // Pickle Peckle: a chance to poison (loses a little HP at the end of each of the next 3 rounds; poison never knocks out)

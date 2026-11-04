@@ -3,20 +3,21 @@
    their own secret mission:
      🎯 rings    = close all 3 rings: 25 Math + 25 Reading + 25 Language that day (swapped subjects count; swaps that land on the
                    same subject add up, like the core subjects rule). Checked from the pasted subject XP.
-     📓 notebook = showed their notebook (Ms. Ariana taps ✅)
+     📓 notebook = showed their notebook: their "notebook" Daily Door checked off that day counts (Nov 4), or Ms. Ariana taps ✅
      📷 camera   = camera on most of the day (Ms. Ariana taps ✅)
    Nobody sees who it is. When Ms. Ariana presses Reveal (that evening or later), each winner gets a mystery prize and a sealed-
    envelope pop-up; The Keep shouts out the winners. Students who didn't win are never revealed. An unrevealed day waits.
    Picks: teacher-only doc private/secret = { days: { date: { picks: [{ sid, m, ok }], note, revealed, winners } }, last: { sid: date } }.
    Class doc (no names): cls.secretOn, cls.secretDay = { date, n }, cls.secretShout = { date, names }.
    Winner's save (teacher writes): secretWin = { date, m, prize, note }, secretWins (count). Student writes secretSeen = date. */
-import { esc } from "./game.js?v=20261104h";
-import { azToday } from "./collect.js?v=20261104h";
-import { subFor, SUB_NAMES } from "./teams.js?v=20261104h";
+import { esc } from "./game.js?v=20261104m";
+import { azToday } from "./collect.js?v=20261104m";
+import { subFor, SUB_NAMES } from "./teams.js?v=20261104m";
+import { doorsFor, doorState, approved } from "./doors.js?v=20261104m";
 
 export const MISSIONS = {
   rings: { icon: "\u{1F3AF}", name: "Close all 3 rings", short: "Rings", how: "25 Math, 25 Reading and 25 Language (or their own subjects)" },
-  notebook: { icon: "\u{1F4D3}", name: "Show your notebook", short: "Notebook", how: "you tap ✅ when they show it" },
+  notebook: { icon: "\u{1F4D3}", name: "Show your notebook", short: "Notebook", how: "their notebook door is checked off (or you tap ✅)" },
   camera: { icon: "\u{1F4F7}", name: "Camera on most of the day", short: "Camera", how: "you tap ✅ if their camera was on" }
 };
 const ORDER = ["rings", "notebook", "camera"];
@@ -39,7 +40,9 @@ export function rings(st, cls, date) {
   return Object.keys(need).map(s => ({ s, name: SUB_NAMES[s] || s, have: Math.round(Number(sub[s]) || 0), need: need[s] }));
 }
 const ringsDone = r => r.every(x => x.have >= x.need);
-export function missionMet(p, st, cls, date) { return p.m === "rings" ? ringsDone(rings(st, cls, date)) : !!p.ok; }
+// 📓 the day's notebook door (any door that mentions a notebook) approved for this student
+export function notebookDoor(st, cls, date) { return doorsFor(cls, date).some((t, i) => /notebook/i.test(String(t)) && approved(doorState(st, date, i))); }
+export function missionMet(p, st, cls, date) { return p.m === "rings" ? ringsDone(rings(st, cls, date)) : p.m === "notebook" ? !!p.ok || notebookDoor(st, cls, date) : !!p.ok; }
 
 /* ---------- picking (teacher console) ---------- */
 function pickFor(students, sec, date, n, avoid) {
@@ -78,6 +81,7 @@ export function secretAdmin(students, cls, sec) {
   day.picks.forEach((p, i) => { const s = byId(p.sid), M = MISSIONS[p.m], met = missionMet(p, s, cls, d);
     let status = "";
     if (p.m === "rings") status = rings(s, cls, d).map(r => '<span class="' + (r.have >= r.need ? "good" : "bad") + '">' + esc(r.name) + " " + r.have + "/" + r.need + "</span>").join(" · ");
+    else if (p.m === "notebook" && notebookDoor(s, cls, d)) status = "✅ notebook door checked off";
     else status = rev ? (p.ok ? "✅" : "—") : '<button class="btn small' + (p.ok ? "" : " ghost") + '" data-sec="ok" data-i="' + i + '">' + (p.ok ? "✅ Yes!" : "Tap if they did it") + "</button>";
     h += '<div class="secrow' + (met ? " met" : "") + '"><span class="secm">' + M.icon + " <b>" + M.short + "</b></span><b class=\"secname\">" + esc(s.name) + "</b><span class=\"secst\">" + status + (p.m === "rings" ? (met ? " ✅" : "") : "") + "</span>" +
       (rev ? (day.winners || []).includes(p.sid) ? '<span class="secwon">\u{1F389} won ' + esc(((day.prizes || {})[p.sid]) || "") + "</span>" : "" :

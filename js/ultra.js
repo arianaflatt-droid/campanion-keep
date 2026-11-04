@@ -8,10 +8,11 @@
      🗺️ finishing all 3 Grade Level Quest tests at their own grade (st.grade = 4 or 5, set by Ms. Ariana; once)
    Saved on the student: ultraEggs, ultraUsed (server), ultraGoals = { st: { s: run start, n: given }, wk: { s, n }, vault: vaults rolled,
      q: true }, ultraLog = [{ why, at }] (newest last). */
-import { esc, weekKey, weekGoal } from "./game.js?v=20261104h";
-import { ULTRA_FAMS, ULTRA_DUPE, ultraLeft, owned, formOf, family, creature, statsOf, bankXP, LEVEL_XP, MAX_LEVEL } from "./collect.js?v=20261104h";
-import { doneCount, GRADES } from "./quest.js?v=20261104h";
-import { addDays, mondayOf, histWeekTotal } from "./doors.js?v=20261104h";
+import { esc, weekKey, weekGoal } from "./game.js?v=20261104m";
+import { CLUB_ULTRA_FAMS } from "./collect.js?v=20261104m";
+import { ULTRA_FAMS, ULTRA_DUPE, ultraLeft, owned, formOf, family, creature, statsOf, bankXP, LEVEL_XP, MAX_LEVEL } from "./collect.js?v=20261104m";
+import { doneCount, GRADES } from "./quest.js?v=20261104m";
+import { addDays, mondayOf, histWeekTotal } from "./doors.js?v=20261104m";
 
 export const STREAK_DAYS = 30, WEEKS_IN_ROW = 4, WEEK_XP = 600, VAULT_ULTRA = 0.25;
 export const ULTRA_GRADES = [4, 5];
@@ -135,9 +136,19 @@ export function ultraSection(st, cls) {
     return '<div class="ucell"><button class="mypic" data-cc="detail" data-id="' + c.id + '">' + UI(c, "uimg") + "</button><b>" + esc(e.nick || c.name) + '</b><span class="lv">Lv ' + lvl + "</span>" +
       '<small class="muted">❤ ' + s2.hp + " · \u{1F6E1} " + s2.df + " · ⚔ " + s2.dmg + "</small>" +
       '<button class="btn small" data-cc="lvl" data-fam="' + f + '"' + (bank >= LEVEL_XP && !maxed ? "" : " disabled") + ">" + (maxed ? "Max level" : "⬆ Level up · " + LEVEL_XP + " XP") + "</button></div>";
-  }).join("") + "</div></div>";
-  return h;
+  }).join("") + "</div>";
+  // 🎨 Club Ultras: only from finishing a club (js/clubs.js); unknown ones show as ??? with the club to finish
+  if (CLUB_ULTRA_FAMS.length) h += '<h3 style="margin:16px 0 6px;">\u{1F3A8} Club Ultras <span class="fact">' + CLUB_ULTRA_FAMS.filter(f => o[f]).length + " / " + CLUB_ULTRA_FAMS.length + '</span></h3><p class="muted small" style="margin:0 0 8px;">Finish every step of a club to get its own Ultra. Only club members can get them!</p><div class="ugrid">' +
+    CLUB_ULTRA_FAMS.map(f => { const fm = family(f), e = o[f], c0 = creature(fm.forms[0]);
+      if (!e) return '<div class="ucell unk">' + UI(c0, "uimg", true) + "<b>???</b><small>" + esc(CLUB_NAMES[fm.club] || "a club") + "</small></div>";
+      const lvl = e.lvl || 1, c = formOf(f, lvl), s2 = statsOf(c, lvl), maxed = lvl >= MAX_LEVEL;
+      return '<div class="ucell"><button class="mypic" data-cc="detail" data-id="' + c.id + '">' + UI(c, "uimg") + "</button><b>" + esc(e.nick || c.name) + '</b><span class="lv">Lv ' + lvl + "</span>" +
+        '<small class="muted">❤ ' + s2.hp + " · \u{1F6E1} " + s2.df + " · ⚔ " + s2.dmg + "</small>" +
+        '<button class="btn small" data-cc="lvl" data-fam="' + f + '"' + (bank >= LEVEL_XP && !maxed ? "" : " disabled") + ">" + (maxed ? "Max level" : "⬆ Level up · " + LEVEL_XP + " XP") + "</button></div>"; }).join("") + "</div>";
+  return h + "</div>";
 }
+const CLUB_NAMES = { imagineers: "Finish Imagineers Club", teamtrials: "Finish Team Trials", popupshop: "Finish Pop-Up Shop", impactmakers: "Finish Impact Makers", masterpiece: "Finish Masterpiece Club",
+  eureka: "Finish Eureka Club", trainingcamp: "Finish Training Camp", pixelstudio: "Finish Pixel Studio", english: "Finish English Immersion Club" };
 
 /* ---------- the lorebook page: what each Ultra does in battle ---------- */
 const P = x => Math.round((x || 0) * 100) + "%";
@@ -147,6 +158,7 @@ function fxText(f, who) {
   return {
     defdown: ch + "to lower the opponent’s Defense by " + P(f.pct) + " for the rest of the battle",
     daze: ch + "to make the opponent’s next attack " + P(f.pct) + " weaker",
+    atkdown: ch + "to lower the opponent’s Attack by " + P(f.pct) + " for the rest of the battle",
     burn: ch + "to burn the opponent (it loses a little HP for 3 rounds)",
     poison: ch + "to poison the opponent (it loses a little HP for 3 rounds)",
     shield: (f.ch >= 1 ? "Every time, " : P(f.ch) + " chance ") + "the next hit on " + who + " does " + P(f.pct) + " less damage",
@@ -159,8 +171,11 @@ export function ultraInfoHTML(c) {
   const u = c && c.ux; if (!u) return "";
   const p = u.pass, sp = u.sp || {}, bits = [];
   if (sp.heal) bits.push("heals " + P(sp.heal) + " of its HP"); if (sp.def) bits.push("+" + P(sp.def) + " Defense"); if (sp.atk) bits.push("+" + P(sp.atk) + " Attack");
-  if (sp.boost) bits.push("its next " + (sp.bt ? sp.bt.join(" or ") + " " : "") + "attack does +" + P(sp.boost)); if (sp.shield) bits.push("the next hit on it does " + P(sp.shield) + " less");
+  if (sp.boost) bits.push("its next " + (sp.bt ? sp.bt.join(" or ") + " " : "") + "attack does +" + P(sp.boost)); if (sp.shield) bits.push("the next hit on it does " + P(sp.shield) + " less"); if (sp.crit) bits.push("that attack has +" + P(sp.crit) + " critical-hit chance");
   const pass = !p ? "" : p.fx === "first" ? "the first hit it takes in a battle does " + P(p.pct) + " less damage"
+    : p.fx === "halfBoost" ? "the first time it drops below 50% HP, its next attack does +" + P(p.pct)
+    : p.fx === "critBoost" ? "the first time it lands a critical hit, its next attack does +" + P(p.pct)
+    : p.fx === "halfRandom" ? "the first time it drops below 50% HP, a random reaction happens: heal " + P(p.heal || 0.15) + ", +" + P(p.def || 0.2) + " Defense, or its next attack +" + P(p.boost || 0.25)
     : p.fx === "halfHeal" ? "the first time it drops below 50% HP, it heals " + P(p.pct) + " of its HP" : "the first time it drops below 50% HP, its Defense goes up " + P(p.pct);
   return '<div class="uinfo"><p class="dline"><b>⚔️ ' + esc(c.attack) + "</b> (" + esc(c.atkType || c.types[0]) + ", main attack): " + esc(fxText(u.main, c.name)) + "</p>" +
     '<p class="dline"><b>✨ ' + esc(c.alt.name) + "</b> (" + esc(c.alt.type) + ", second attack): " + esc(u.alt ? fxText(u.alt, c.name) : c.alt.evade ? P(c.alt.evade) + " chance it dodges the opponent\u2019s next attack" : c.alt.heal ? "heals " + P(c.alt.heal) + " of its HP" : "a bit less damage") + "</p>" +
