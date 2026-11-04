@@ -1921,6 +1921,10 @@ function paintCK(isMaxStage){
     '<div class="ck-chips"><b style="margin-right:4px;">Today:</b>' + chip(Math.round(t.xp || 0) + ' / ' + t.goal + ' XP', (t.xp || 0) >= t.goal) +
     (t.rows || []).map(r => chip(escH(r.name) + ' ' + Math.round(r.have) + ' / ' + r.need, r.have >= r.need)).join('') + '</div>' +
     (t.good ? '<div class="ck-fed">\u2728 ' + escH(state.name) + ' got fed today!</div>' : '') +
+    (t.week ? '<p class="ck-rule" style="margin:12px 0 6px;">\u{1F504} Missed a day? Reach <b>' + t.week.need + ' XP</b> this week and your <b>weekly ' + ((t.week.rows[0] || {}).need || 125) + 's</b> to make up every missed day!</p>' +
+      '<div class="ck-chips"><b style="margin-right:4px;">This week:</b>' + chip(t.week.xp + ' / ' + t.week.need + ' XP', t.week.xp >= t.week.need) +
+      t.week.rows.map(r => chip(escH(r.name) + ' ' + Math.round(r.have) + ' / ' + r.need, r.have >= r.need)).join('') + '</div>' +
+      (t.week.met ? '<div class="ck-fed">\u{1F389} Week made up! Every school day this week counts as a feed.</div>' : '') : '') +
     (waiting > 0 && busy ? '<div class="ck-fed">' + waiting + ' more feed' + (waiting === 1 ? '' : 's') + ' coming\u2026</div>' : '');
   const grown = document.getElementById('ck-grown-box');
   if(isMaxStage && !state.keep){

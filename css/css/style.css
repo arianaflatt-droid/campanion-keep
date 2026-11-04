@@ -2256,3 +2256,33 @@ body.mini-val .wrap{ position:relative; z-index:1; } body.mini-val .tile{ box-sh
 .calruns{margin-top:12px;display:flex;flex-direction:column;gap:6px;}
 .calrun{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#FFF6E6;border-radius:10px;padding:6px 10px;font-size:14px;}
 #axoHost{margin-top:4px;}
+
+/* ---------- 🪁 Kite Festival (March Reading XP mini event, Nov 4) ---------- */
+.mo-kite{ background:#0E4E7A; }
+.mstage.kitestage{ background-color:#5CC3F5; }
+.kitefly{ position:absolute; width:7.5%; aspect-ratio:360/480; transform:translate(-50%,-50%) rotate(-6deg); transform-origin:50% 20%; background:none; border:0; padding:0; cursor:pointer;
+  filter:drop-shadow(0 6px 6px rgba(10,60,100,.3)); animation:kitesway 3.2s ease-in-out infinite alternate; animation-delay:calc(var(--d) * -1); }
+.kitefly img{ width:100%; height:100%; object-fit:contain; display:block; }
+.kitefly:hover:not(:disabled){ filter:drop-shadow(0 0 14px rgba(255,255,255,.95)) drop-shadow(0 6px 6px rgba(10,60,100,.3)); }
+.kitefly:disabled{ cursor:default; } .kitefly.notix{ filter:grayscale(.5) brightness(.85); animation:none; }
+.kitefly.pull{ animation:kitepull .9s ease-in forwards; }
+.kitefly .burst{ position:absolute; left:50%; top:30%; pointer-events:none; }
+.kitefly .burst em{ position:absolute; font-style:normal; font-size:clamp(16px,2.6vw,34px); animation:leafburst .9s ease-out forwards; --a:calc(var(--k) * 60deg); }
+@keyframes kitesway{ from{ transform:translate(-50%,-50%) rotate(-9deg); } to{ transform:translate(-48%,-55%) rotate(7deg); } }
+@keyframes kitepull{ 0%{ transform:translate(-50%,-50%) rotate(0) scale(1); } 30%{ transform:translate(-50%,-62%) rotate(-18deg) scale(1.1); } 60%{ transform:translate(-50%,-40%) rotate(16deg) scale(1.15); } 100%{ transform:translate(-50%,10%) rotate(-4deg) scale(1.2); } }
+.kitecard{ top:2.5%; background:rgba(14,78,122,.86); color:#F2FBFF; display:flex; align-items:center; gap:8px; }
+.kitecard .kitetailwrap{ position:relative; display:inline-block; width:clamp(150px,24vw,280px); }
+.kitetail{ width:100%; height:auto; display:block; }
+.kitebow{ position:absolute; width:7%; height:auto; transform:translate(-50%,-50%); animation:kitebowpop .4s ease-out; }
+@keyframes kitebowpop{ from{ transform:translate(-50%,-50%) scale(.2); } to{ transform:translate(-50%,-50%) scale(1); } }
+.kitepop{ background:rgba(246,252,255,.97); color:#123A55; } .kitepop h2{ color:#1C7FC2; } .kitepop .mgot{ color:#1C7FC2; text-shadow:none; }
+.kitegold{ filter:drop-shadow(0 0 18px rgba(255,214,90,.95)) drop-shadow(0 0 28px rgba(255,255,255,.7)); }
+.minibanner.mb-kite{ background:linear-gradient(90deg,#1C8AD6,#5CC3F5 50%,#8BD45A); color:#fff; }
+.mc-kite{ background:linear-gradient(135deg,#1C7FC2,#4FB7EE 55%,#86D35B); color:#fff; } .mc-kite h3, .mc-kite p{ color:#fff; }
+.mc-kite .btn.ghost{ color:#fff; border-color:rgba(255,255,255,.8); }
+body.mini-kite{ --casing:#E3F4FD; --accent:#1C7FC2; --accent-soft:#DDF1FC; background:linear-gradient(180deg,#EAF7FF,#DFF3D3); }
+body.mini-kite::before{ content:""; position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.75; animation:msnow 20s linear infinite;
+  background-image:radial-gradient(5px 3px at 40px 30px,#FF9EBB,transparent),radial-gradient(4px 3px at 200px 120px,#ffffff,transparent),radial-gradient(5px 3px at 120px 200px,#FFD95A,transparent),radial-gradient(4px 3px at 280px 60px,#9EE07A,transparent); background-size:320px 240px; }
+body.mini-kite .wrap{ position:relative; z-index:1; } body.mini-kite .tile{ box-shadow:0 0 0 2px #4FB7EE; }
+@media (prefers-reduced-motion: reduce){ .kitefly, .kitefly .burst em, body.mini-kite::before{ animation:none; } }
+@media (max-width: 640px){ .kitefly{ width:9.5%; } }

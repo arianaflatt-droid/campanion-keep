@@ -6,14 +6,17 @@
    (Ms. Ariana's subject swaps count; swaps that land on the same subject add up). Counted from the XP history,
    so pastes, the live feed, weekend work and late pastes all count, and a day can never feed twice (the save
    keeps how many feeds were used: axo.fed). 1 feed = 1 level; new stage every 10; fully grown at 30.
+   Weekly make-up (Nov 4): a week (Mon–Sun) with 600 XP and the week's core subjects (125 each, less on breaks) counts
+   EVERY school day of that week as a feed day, so missed days earlier in the week are made up (and don't make it sick).
    Sick: 1 missed school day = slow, 2 = sick. Weekends, school breaks (cls.offDays) and excused days don't count.
    The save is s.axo (private: not on the public card, so classmates' pages don't re-read anything). */
-import { azToday } from "./collect.js?v=20261104g";
-import { goalXP, arr5, dateOfDay } from "./game.js?v=20261104g";
-import { subFor, SUB_NAMES } from "./teams.js?v=20261104g";
-import { addDays } from "./doors.js?v=20261104g";
-import { subRuleOn, SUB_DAY, SUB_REQ } from "./doors.js?v=20261104g";
-import { APP_V } from "./game.js?v=20261104g";
+import { azToday } from "./collect.js?v=20261104j";
+import { goalXP, arr5, dateOfDay } from "./game.js?v=20261104j";
+import { subFor, SUB_NAMES } from "./teams.js?v=20261104j";
+import { addDays } from "./doors.js?v=20261104j";
+import { subRuleOn, SUB_DAY, SUB_REQ, subReq, weekTotal, histWeekTotal, mondayOf, VAULT_MIN } from "./doors.js?v=20261104j";
+import { weekKey } from "./game.js?v=20261104j";
+import { APP_V } from "./game.js?v=20261104j";
 
 export const axoOn = cls => !!(cls && cls.axoOn);
 export const axoFrom = cls => (cls && cls.axoFrom) || azToday();
@@ -33,21 +36,32 @@ export function axoDay(st, cls, iso) {
   const xpOk = xp >= goal || !!h.h || !!h.lh;   // h / lh = marked as a hit by hand
   return { date: iso, xp: Math.round(xp), goal, rows, good: xpOk && rows.every(r => r.have >= r.need), excused: !!h.e };
 }
-// How many feed days since `from` (any day: weekend work counts too)
+// The week's make-up: 600 XP (Mon–Sun, weekend included) + the week's core subjects
+export function axoWeek(st, cls, mon) {
+  const xp = Math.max(histWeekTotal(st, mon), mon === weekKey(cls) ? weekTotal(st, cls) : 0), q = subReq(st, cls, mon);
+  return { mon, xp: Math.round(xp), need: VAULT_MIN, rows: q.on ? q.rows.map(r => ({ name: r.name, have: r.have, need: r.need })) : [], met: xp >= VAULT_MIN && q.ok };
+}
+function goodFn(st, cls) {
+  const wk = {}, met = mon => (wk[mon] != null ? wk[mon] : (wk[mon] = axoWeek(st, cls, mon).met));
+  return iso => axoDay(st, cls, iso).good || (schoolDayFor(cls, iso) && met(mondayOf(iso)));
+}
+// How many feed days since `from` (any day: weekend work counts too; a made-up week counts all its school days)
 export function axoGood(st, cls, from) {
-  const h = (st && st.xpHist) || {}, today = azToday(), days = new Set(Object.keys(h));
+  const h = (st && st.xpHist) || {}, today = azToday(), days = new Set(Object.keys(h)), good = goodFn(st, cls);
   for (let d = 0; d < 5; d++) days.add(dateOfDay(d));
-  let n = 0; days.forEach(iso => { if (iso >= from && iso <= today && axoDay(st, cls, iso).good) n++; });
+  // school days of weeks that might be made up (a week only gets made up if it has some history)
+  Object.keys(h).forEach(iso => { const mon = mondayOf(iso); for (let i = 0; i < 5; i++) days.add(addDays(mon, i)); });
+  let n = 0; days.forEach(iso => { if (iso >= from && iso <= today && good(iso)) n++; });
   return n;
 }
 // Missed school days in a row before today (since the last feed day); today only counts once it's a feed day
 export function axoHealth(st, cls, from) {
-  const today = azToday(); if (axoDay(st, cls, today).good) return "ok";
+  const today = azToday(), good = goodFn(st, cls); if (good(today)) return "ok";
   let missed = 0, iso = addDays(today, -1);
   for (let i = 0; i < 40 && iso >= from; i++, iso = addDays(iso, -1)) {
     if (!schoolDayFor(cls, iso)) continue;
     const x = axoDay(st, cls, iso);
-    if (x.good) break;
+    if (good(iso)) break;
     if (x.excused) continue;
     missed++; if (missed >= 2) break;
   }
@@ -56,7 +70,7 @@ export function axoHealth(st, cls, from) {
 export function axoInfo(st, cls) {
   const a = (st && st.axo) || null, from = (a && a.since) || axoFrom(cls), healthFrom = from > axoFrom(cls) ? from : axoFrom(cls);
   return { state: a, from: axoFrom(cls), good: axoGood(st, cls, from), health: a && a.name ? axoHealth(st, cls, healthFrom) : "ok",
-    today: axoDay(st, cls, azToday()), resetAt: Number(st && st.axoReset) || 0 };
+    today: Object.assign(axoDay(st, cls, azToday()), { week: axoWeek(st, cls, mondayOf(azToday())) }), resetAt: Number(st && st.axoReset) || 0 };
 }
 export const AXO_STAGES = ["Newborn", "Hatchling", "Growing", "Radiant"];
 export const axoLevel = a => Math.floor(((a && a.totalXP) || 0) / 3500);
@@ -109,7 +123,7 @@ export function axoAdmin(students, cls, busy, esc) {
   const on = axoOn(cls), kids = students.filter(s => s.companionId);
   let h = '<div class="card" id="axoCard"><div class="card-head"><h2>\u{1FAE7} Bubble’s Baby</h2><span class="fact">' + (on ? "<b>ON</b> since " + esc(axoFrom(cls)) : "off") + "</span></div>" +
     '<p class="lede" style="font-size:13.5px;">Each student raises their own baby axolotl in a <b>\u{1FAE7} Bubble’s Baby</b> tab. It eats once a day when they hit ' + goalXP(cls) + " XP <b>and</b> 25 Math, Reading and Language (your subject swaps count). " +
-    "1 feed = 1 level, a new growth stage every 10 feeds, fully grown at 30. Then they pick: keep it (a new decoration every 4 feeds) or start a new baby. " +
+    "Missed days are made up if they reach " + VAULT_MIN + " XP and their 125s by the end of the week. 1 feed = 1 level, a new growth stage every 10 feeds, fully grown at 30. Then they pick: keep it (a new decoration every 4 feeds) or start a new baby. " +
     "It gets slow after 1 missed school day and sick after 2 (weekends, breaks on the school calendar and excused days don’t count).</p>" +
     '<div class="row" style="margin:10px 0;"><button class="btn' + (on ? " ghost" : "") + '" data-act="axoToggle">' + (on ? "Turn Bubble’s Baby off" : "\u{1FAE7} Turn Bubble’s Baby on") + "</button>" +
     (on ? "" : '<span class="muted small">Feeds count from the day you turn it on.</span>') + "</div>";

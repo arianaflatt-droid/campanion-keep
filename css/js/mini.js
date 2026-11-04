@@ -18,17 +18,20 @@
    💌 val  = Valentine Mailroom (February, Nov 3): letters come from READING XP only (1 per 10 Reading XP). Open a valentine in the post
              office mail slots: Light/Nature/Fire creatures pop out with a sweet riddle (right answer = double), or treasure, or the
              golden envelope (egg). 10 stamps in the Stamp Book = an egg. Art: assets/val/. Room set: Sweetheart Post Office (kind_valpost).
+   🪁 kite = Kite Festival (March, Nov 4): pulls come from READING XP only (1 per 10 Reading XP). 9 kites fly over a spring hill
+             (KITE_SPOTS); pull one down and an Air / Electric / Normal creature with a riddle, coins, a silly find or the golden
+             kite (egg). Every pull ties a bow on the Kite Tail; 10 bows = an egg. Art: assets/kite/.
    Tickets: 1 for every 10 XP today (best of morning / lunch / end-of-day numbers). Rewards are the season currency
    (candyBonus) and sometimes an egg (doorEggs). Each event has a "this time only" outfit shop (60 each, kept forever).
    While an event is on, every companion wears a random costume from it, and The Keep gets the event's colors.
    Saved on the student: mini = { id, used: { date: n }, cos, maze, stop, stamps, elf: { d, found, peek: [] }, got }
    plus outfits / outfitOn (game.js). */
-import { esc, HEAD_FNS, OUTFITS, candyLeft, companionOf } from "./game.js?v=20261104g";
-import { azToday, creature, FAMILIES } from "./collect.js?v=20261104g";
-import { CREATURES } from "./creatures.js?v=20261104g";
-import { xpOn } from "./surprise.js?v=20261104g";
-import { SEASON, boostExtra } from "./game.js?v=20261104g";
-import { readingOn, readingOnBoosted } from "./readmap.js?v=20261104g";
+import { esc, HEAD_FNS, OUTFITS, candyLeft, companionOf } from "./game.js?v=20261104j";
+import { azToday, creature, FAMILIES } from "./collect.js?v=20261104j";
+import { CREATURES } from "./creatures.js?v=20261104j";
+import { xpOn } from "./surprise.js?v=20261104j";
+import { SEASON, boostExtra } from "./game.js?v=20261104j";
+import { readingOn, readingOnBoosted } from "./readmap.js?v=20261104j";
 
 export const PER_TICKET = 10, OUTFIT_COST = 60;
 const typesOf = fam => { const f = FAMILIES.find(x => x.id === fam); const c = f && CREATURES.find(x => x.id === f.forms[0]); return (c && c.types) || []; };
@@ -55,7 +58,10 @@ export const MINI = {
     fams: () => pool(["Ice", "Light", "Dark"], [], []).filter(f => !f.startsWith("L-")) },
   val: { key: "val", name: "Valentine Mailroom", icon: "\u{1F48C}", bg: "assets/val/val-mailroom.webp", theme: "February · Reading XP", reading: true, tix: "letter", tixs: "letters", tixImg: "assets/val/val-icon.webp",
     get cur() { return SEASON.cur || "candy"; }, get coin() { return SEASON.coin || "\u{1F36C}"; },
-    fams: () => pool(["Light", "Nature", "Fire"], [], []).filter(f => !f.startsWith("L-")) }
+    fams: () => pool(["Light", "Nature", "Fire"], [], []).filter(f => !f.startsWith("L-")) },
+  kite: { key: "kite", name: "Kite Festival", icon: "\u{1FA81}", bg: "assets/kite/kite-hill.webp", theme: "March · Reading XP", reading: true, tix: "kite pull", tixs: "kite pulls", tixImg: "assets/kite/kite-icon.webp",
+    get cur() { return SEASON.cur || "candy"; }, get coin() { return SEASON.coin || "\u{1F36C}"; },
+    fams: () => pool(["Air", "Electric", "Normal"], [], []).filter(f => !f.startsWith("L-")) }
 };
 let FAMS = {};
 const famsOf = k => (FAMS[k] = FAMS[k] || MINI[k].fams());
@@ -107,7 +113,7 @@ HEAD_FNS.push(st => {
 // Call on every render (both pages): remembers the class for the costume and sets The Keep's event colors.
 export function miniSync(cls) {
   CLS = cls; const E = miniOn(cls);
-  ["tot", "fest", "xmas", "lib", "leaf", "orn", "aur", "val"].forEach(k => document.body.classList.toggle("mini-" + k, !!E && E.key === k));
+  ["tot", "fest", "xmas", "lib", "leaf", "orn", "aur", "val", "kite"].forEach(k => document.body.classList.toggle("mini-" + k, !!E && E.key === k));
 }
 
 /* ---------- lines ---------- */
@@ -174,7 +180,7 @@ export function miniCard(st, cls) {
   const t = ticketsLeft(st, cls);
   return '<div class="card minicard mc-' + E.key + '"><div class="mctxt"><h3>' + E.icon + " " + E.name + '!</h3><p><b>' + t + "</b> " + tixWord(E, t) +
     " · 1 " + tixWord(E, 1) + " for every " + PER_TICKET + (E.reading ? " <b>Reading</b>" : "") + " XP" + (ticketDays(st, cls).some(x => x.date !== azToday()) ? " (some are from earlier days)." : " today.") + (readX2(cls) ? " \u{1F4DA} <b>Reading XP counts double!</b>" : "") + " You have <b>" + candyLeft(st).toLocaleString() + " " + E.coin + "</b>.</p>" +
-    '<button class="btn gold" data-mini="open">' + (E.key === "tot" ? "\u{1F6AA} Go trick-or-treating!" : E.key === "fest" ? "\u{1F3A1} Go to the festival!" : E.key === "lib" ? "\u{1F56F}️ Sneak into the library!" : E.key === "leaf" ? "\u{1F342} Jump in the leaves!" : E.key === "orn" ? "\u{1F384} Hunt for ornaments!" : E.key === "aur" ? "\u{1F3D5}\uFE0F Visit the camp!" : E.key === "val" ? "\u{1F48C} Open your mail!" : "\u{1F682} Go to the station!") + "</button> " +
+    '<button class="btn gold" data-mini="open">' + (E.key === "tot" ? "\u{1F6AA} Go trick-or-treating!" : E.key === "fest" ? "\u{1F3A1} Go to the festival!" : E.key === "lib" ? "\u{1F56F}️ Sneak into the library!" : E.key === "leaf" ? "\u{1F342} Jump in the leaves!" : E.key === "orn" ? "\u{1F384} Hunt for ornaments!" : E.key === "aur" ? "\u{1F3D5}\uFE0F Visit the camp!" : E.key === "val" ? "\u{1F48C} Open your mail!" : E.key === "kite" ? "\u{1FA81} Fly some kites!" : "\u{1F682} Go to the station!") + "</button> " +
     (hasShop(E) ? '<button class="btn ghost" data-mini="shop">\u{1F6CD}️ ' + (FURN[E.key] ? "Outfit & room shop" : "Outfit shop") + "</button>" : "") + "</div></div>";
 }
 
@@ -285,6 +291,25 @@ export function miniOverlay(st, cls) {
     }
     return h + "</div></div>";
   }
+  if (E.key === "kite") {
+    const got = Number(m.kites) || 0, n = got % 10;
+    h += top(E, st, cls) + '<div class="mstage kitestage" ' + bgs + '>';
+    if (G.res) {
+      const r = G.res;
+      h += '<div class="mpop kitepop">' + (r.gold ? '<img class="mbigimg pop kitegold" src="assets/kite/kite-golden.webp" alt=""><h2>The golden kite!</h2>' : "") + (r.v ? visHTML(r.v, r.line) : '<p class="mfound">' + esc(r.line) + "</p>") +
+        (r.q && r.ans == null ? '<p class="libq">\u{1F914} ' + esc(r.q.q) + '</p><div class="libans">' + r.q.opts.map((o, i) => '<button class="btn" data-mini="answer" data-i="' + i + '">' + esc(o) + "</button>").join("") + "</div>"
+          : (r.q ? '<p class="libq ' + (r.right ? "ok" : "no") + '">' + (r.right ? "\u{1F389} You got it! Double " + E.cur + "!" : "\u{1F605} Nice try! The answer was <b>" + esc(r.q.opts[r.q.a]) + "</b>.") + "</p>" : "") +
+            gotHTML(E, r.n, r.egg) + (r.tailEgg ? "<p>\u{1F380} Your Kite Tail is full of bows: a bonus egg! A new tail starts.</p>" : "") + '<button class="btn big" data-mini="ok">Fly another kite</button>') + "</div>";
+    } else {
+      h += KITE_SPOTS.map(([x, y], i) => '<button class="kitefly' + (G.jump === i ? " pull" : "") + (t ? "" : " notix") + '" data-mini="pull" data-i="' + i + '"' + (t && G.jump == null ? "" : " disabled") + ' aria-label="Pull down a kite" style="left:' + x + "%;top:" + y + "%;--d:" + (i * 0.53) + 's">' +
+          '<img src="assets/kite/kite-' + ((i % 3) + 1) + '.webp" alt="">' +
+          (G.jump === i ? '<span class="burst">' + ["\u{1F4A8}", "\u2728", "\u{1F338}", "\u{1F380}", "\u{1F4A8}", "\u2601\uFE0F"].map((l, k) => '<em style="--k:' + k + '">' + l + "</em>").join("") + "</span>" : "") + "</button>").join("") +
+        '<div class="libcard kitecard"><span class="kitetailwrap"><img class="kitetail" src="assets/kite/kite-tail.webp" alt="">' +
+          KITE_KNOTS.map(([x, y], i) => i < n ? '<img class="kitebow" src="assets/kite/kite-bow.webp" alt="" style="left:' + x + "%;top:" + y + '%">' : "").join("") + "</span> <b>" + n + " / 10</b> bows</div>" +
+        '<div class="mhint">' + (G.jump != null ? "Reeling it in\u2026 \u{1F4A8}" : t ? "Tap a kite to pull it down! Who is riding it?" : noTix) + "</div>";
+    }
+    return h + "</div></div>";
+  }
   if (E.key === "val") {
     const got = Number(m.vals) || 0;
     h += top(E, st, cls) + '<div class="mstage valstage" ' + bgs + '>';
@@ -373,7 +398,7 @@ export async function miniClick(el, c) {
   }
   if (a === "go") { const v = el.dataset.v; G = { view: v, bg: { maze: "assets/fest/fest-maze.webp", patch: "assets/fest/fest-patch.webp", ferris: "assets/fest/fest-ferris-top.webp", train: "assets/xmas/xmas-station.webp", elf: "assets/xmas/xmas-livingroom.webp" }[v] }; return c.render(true); }
   if (a === "ok" || a === "next") { G.res = null; if (E.key === "fest" && G.view === "maze") G.bg = "assets/fest/fest-maze.webp"; return c.render(true); }
-  if (a === "answer" && (E.key === "lib" || E.key === "leaf" || E.key === "orn" || E.key === "aur" || E.key === "val") && G && G.res && G.res.q && G.res.ans == null) {
+  if (a === "answer" && (E.key === "lib" || E.key === "leaf" || E.key === "orn" || E.key === "aur" || E.key === "val" || E.key === "kite") && G && G.res && G.res.q && G.res.ans == null) {
     const r = G.res, i = Number(el.dataset.i); r.ans = i; r.right = i === r.q.a;
     if (r.right) { r.n *= 2; chime(3); } else chime(1);
     G.busy = true; try { const mm = Object.assign({}, mine(s, cls)); mm.got = (Number(mm.got) || 0) + r.n; const data = { mini: mm, candyBonus: (Number(s.candyBonus) || 0) + r.n }; if (r.egg) data.doorEggs = (Number(s.doorEggs) || 0) + 1; await c.patch(data, true); } finally { G.busy = false; }
@@ -466,6 +491,19 @@ export async function miniClick(el, c) {
     await new Promise(ok => setTimeout(ok, 900));
     if (!G) return; G.jump = null; G.res = res; chime(res.gold ? 3 : 1); return c.render(true);
   }
+  if (a === "pull" && E.key === "kite") {
+    const i = Number(el.dataset.i); if (G.jump != null) return;
+    use(); m.kites = (Number(m.kites) || 0) + 1; const tailEgg = m.kites % 10 === 0, r = Math.random(); let res;
+    if (r < 0.05) res = { gold: true, n: 15, egg: true, line: "The golden kite! It glows in the sunshine… and an egg is tied to its tail!" };
+    else if (r < 0.55) { const v = visitor("kite"), q = mixQ(KITE_RIDDLES[rnd(0, KITE_RIDDLES.length - 1)]); res = { v, n: v.n, line: KITE_LINES[rnd(0, KITE_LINES.length - 1)], q }; }
+    else if (r < 0.85) res = { n: rnd(3, 6), line: ["The wind blew " + E.cur + " right into your hands!", "A pouch of " + E.cur + " was tied to the kite string!", "The kite rained " + E.cur + " on you. Lucky!"][rnd(0, 2)] };
+    else res = { n: rnd(2, 4), line: KITE_FINDS[rnd(0, KITE_FINDS.length - 1)] };
+    res.tailEgg = tailEgg; if (tailEgg) res.egg = true;
+    G.jump = i; G.busy = true; windSound(); c.render(true);
+    try { if (!res.q) await c.patch(pay(res.n, res.egg), true); else await c.patch({ mini: m }, true); } finally { G.busy = false; }
+    await new Promise(ok => setTimeout(ok, 900));
+    if (!G) return; G.jump = null; G.res = res; chime(res.gold ? 3 : 1); return c.render(true);
+  }
   if (a === "mail" && E.key === "val") {
     const i = Number(el.dataset.i); if (G.jump != null) return;
     use(); m.vals = (Number(m.vals) || 0) + 1; const stampEgg = m.vals % 10 === 0, r = Math.random(); let res;
@@ -518,8 +556,12 @@ const AURORA_FURN = [["bed", "Camp Cot Bed", 120], ["chair", "Camp Chair & Blank
 // 💌 Valentine Mailroom: the Sweetheart Post Office room set (item ids kind_valpost)
 const VALPOST_FURN = [["bed", "Sweetheart Quilt Bed", 120], ["chair", "Heart Velvet Armchair", 80], ["wallpaper", "Love Letter Wallpaper", 80], ["flooring", "Heart Confetti Floor", 80],
   ["ceiling", "Pink Heart Lamp", 80], ["rug", "Fluffy Heart Rug", 60], ["wall_art", "Mail Dove Stamp Painting", 60], ["plant", "Rose Bouquet", 60], ["shelf", "Mailbox & Candy Hearts", 60]];
+// 🪁 Kite Festival: the Kite Shop Loft room set (item ids kind_kite)
+const KITE_FURN = [["bed", "Kite Frame Bed", 120], ["chair", "Sunny Rainbow Armchair", 80], ["wallpaper", "Kites & Clouds Wallpaper", 80], ["flooring", "Ribbon Plank Floor", 80],
+  ["ceiling", "Kite Cloud Mobile", 80], ["rug", "Rainbow Ring Rug", 60], ["wall_art", "Kite Hill Painting", 60], ["plant", "Spring Tulips", 60], ["shelf", "String Spools & Wind Chime", 60]];
 const FURN = { lib: { list: () => LIB_FURN, th: "library", title: "Midnight Library" }, leaf: { list: () => LEAF_FURN, th: "leafy", title: "Leafy Hideaway" }, orn: { list: () => CABIN_FURN, th: "cabin", title: "Cozy Cabin" },
-  aur: { list: () => AURORA_FURN, th: "aurora", title: "Aurora Camp" }, val: { list: () => VALPOST_FURN, th: "valpost", title: "Sweetheart Post Office" } };
+  aur: { list: () => AURORA_FURN, th: "aurora", title: "Aurora Camp" }, val: { list: () => VALPOST_FURN, th: "valpost", title: "Sweetheart Post Office" },
+  kite: { list: () => KITE_FURN, th: "kite", title: "Kite Shop Loft" } };
 function furnHTML(st, E) {
   const F = FURN[E.key]; if (!F) return "";
   const have = st.roomOwned || [], left = candyLeft(st);
@@ -669,6 +711,36 @@ const AUR_RIDDLES = [
 
 /* ---------- 💌 Valentine Mailroom: mail slot spots, lines, finds and sweet riddles ---------- */
 // [left %, top %] of the middle of each mail slot that holds a letter (the picture has 6 × 4 empty slots)
+// 🪁 Kite Festival: kites in the sky [left %, top %], the bow knots on the Kite Tail [left %, top %], lines, finds and riddles
+const KITE_SPOTS = [[10, 36], [25, 22], [39, 42], [53, 25], [67, 41], [81, 22], [92, 44], [24, 60], [60, 61]];
+const KITE_KNOTS = [[10, 67.6], [18.9, 25.3], [27.8, 63.7], [36.7, 61], [45.6, 20.3], [54.4, 49.5], [63.3, 77.5], [72.2, 36.3], [81.1, 21.4], [90, 69.2]];
+const KITE_LINES = ["Wheee! I rode the wind all the way up here! Riddle time!", "Hold on tight, it's breezy! Can you solve my riddle?", "I'm the captain of this kite! Answer my riddle to land it!",
+  "The clouds told me a riddle. Want to hear it?", "Whoosh! That was the best ride ever! Here's a riddle!", "I flew higher than a bird today! Try my riddle!",
+  "My ears are flapping in the wind! Quick, a riddle!", "Happy spring! I brought a riddle down from the sky!"];
+const KITE_FINDS = ["A lost sock was tangled in the string… with treats inside it!", "A leaf hitched a ride! It left you a few treats.", "A very confused pigeon. It dropped some treats and flew away!",
+  "A paper airplane with a note: \u201cKeep reading!\u201d Treats were folded inside!", "A giant soap bubble popped and treats fell out!"];
+const KITE_RIDDLES = [
+  { q: "What can you catch but never throw?", opts: ["A cold", "A ball", "A kite"], a: 0 },
+  { q: "What goes up but never comes down?", opts: ["Your age", "A kite", "A ball"], a: 0 },
+  { q: "What do you call a kite with no string?", opts: ["Gone with the wind!", "A bird", "A cloud"], a: 0 },
+  { q: "What month comes right after February?", opts: ["March", "April", "June"], a: 0 },
+  { q: "What season starts in March?", opts: ["Spring", "Winter", "Fall"], a: 0 },
+  { q: "What did the cloud say to the kite?", opts: ["You blow me away!", "Rain!", "Go home"], a: 0 },
+  { q: "What has no hands but can still push you over?", opts: ["The wind", "A chair", "A shoe"], a: 0 },
+  { q: "What kind of bow can't be tied?", opts: ["A rainbow", "A ribbon", "A shoelace"], a: 0 },
+  { q: "Why did the kite go to school?", opts: ["To get a little higher learning", "To eat lunch", "To nap"], a: 0 },
+  { q: "What do you call a bear with no ears?", opts: ["A B", "A cub", "Fuzzy"], a: 0 },
+  { q: "What falls in spring but never gets hurt?", opts: ["Rain", "A rock", "A kite"], a: 0 },
+  { q: "What has a tail and flies but isn't a bird?", opts: ["A kite", "A cat", "A fish"], a: 0 },
+  { q: "What did the tree say when spring came?", opts: ["What a re-leaf!", "Brrr", "Timber!"], a: 0 },
+  { q: "What runs but never walks, and blows but has no mouth?", opts: ["The wind", "A dog", "A river"], a: 0 },
+  { q: "What do you call a flower that runs on electricity?", opts: ["A power plant", "A rose", "A daisy"], a: 0 },
+  { q: "Which way does the wind blow a kite when it comes from the north?", opts: ["South", "Up", "North"], a: 0 },
+  { q: "What did the bee say to the flower?", opts: ["Hey, bud!", "Buzz off!", "Bye!"], a: 0 },
+  { q: "What do you get when you plant a kite?", opts: ["Nothing, kites don't grow!", "A kite tree", "Flowers"], a: 0 },
+  { q: "What is full of holes but still holds water?", opts: ["A sponge", "A kite", "A cup"], a: 0 },
+  { q: "Why do birds fly south?", opts: ["It's too far to walk!", "They're cold", "To shop"], a: 0 }
+];
 const VAL_SPOTS = [[36.5, 26], [64, 26], [27.5, 40], [45.5, 40], [73, 40], [36.5, 54], [54.5, 54], [45.5, 69], [64, 69]];
 const VAL_STAMPS = ["\u2764\uFE0F", "\u{1F380}", "\u{1F496}", "\u{1F43E}", "\u{1F498}", "\u{1F451}", "\u{1F49D}", "\u{1F36B}", "\u{1F308}", "\u{1F48E}"];
 const VAL_LINES = ["Happy Valentine's Day! I wrote you a riddle!", "I mailed myself to you! Surprise! Want a riddle?", "Roses are red, violets are blue, here is a riddle just for you!",
@@ -744,6 +816,11 @@ function letterSound() { if (!ac()) return; const t = AC.currentTime, n = Math.f
   for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 1.5) * 0.6;
   const s = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain(); f.type = "highpass"; f.frequency.value = 1800; g.gain.value = 0.35; s.buffer = b; s.connect(f); f.connect(g); g.connect(AC.destination); s.start(t);
   [1047, 1319].forEach((fr, k) => { const o = AC.createOscillator(), gg = AC.createGain(), at = t + 0.3 + k * 0.1; o.type = "sine"; o.frequency.value = fr; gg.gain.setValueAtTime(0.06, at); gg.gain.exponentialRampToValueAtTime(0.0005, at + 0.5); o.connect(gg); gg.connect(AC.destination); o.start(at); o.stop(at + 0.55); }); }
+function windSound() { if (!ac()) return; const t = AC.currentTime, n = Math.floor(AC.sampleRate * 0.8), b = AC.createBuffer(1, n, AC.sampleRate), d = b.getChannelData(0);   // a whoosh of wind + a little chime
+  for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.sin(Math.PI * i / n) * 0.7;
+  const s = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain(); f.type = "bandpass"; f.Q.value = 1.2; f.frequency.setValueAtTime(400, t); f.frequency.exponentialRampToValueAtTime(1800, t + 0.6); g.gain.value = 0.5;
+  s.buffer = b; s.connect(f); f.connect(g); g.connect(AC.destination); s.start(t);
+  [880, 1175].forEach((fr, k) => { const o = AC.createOscillator(), gg = AC.createGain(), at = t + 0.55 + k * 0.1; o.type = "sine"; o.frequency.value = fr; gg.gain.setValueAtTime(0.05, at); gg.gain.exponentialRampToValueAtTime(0.0005, at + 0.5); o.connect(gg); gg.connect(AC.destination); o.start(at); o.stop(at + 0.55); }); }
 function knockSound() { if (!ac()) return; const t = AC.currentTime; thud(t); thud(t + 0.22); thud(t + 0.44); }
 function chime(n) { if (!ac()) return; const t = AC.currentTime; [784, 988, 1175, 1568].slice(0, (n || 1) + 1).forEach((f, i) => { const o = AC.createOscillator(), g = AC.createGain(); o.type = "triangle"; o.frequency.value = f; g.gain.setValueAtTime(0.15, t + i * 0.09); g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.09 + 0.35); o.connect(g); g.connect(AC.destination); o.start(t + i * 0.09); o.stop(t + i * 0.09 + 0.4); }); }
 function trainSound() { if (!ac()) return; const t = AC.currentTime; [0, 0.25].forEach(d => { const o = AC.createOscillator(), g = AC.createGain(); o.type = "square"; o.frequency.value = 520; g.gain.setValueAtTime(0.08, t + d); g.gain.exponentialRampToValueAtTime(0.001, t + d + 0.22); o.connect(g); g.connect(AC.destination); o.start(t + d); o.stop(t + d + 0.25); }); }
