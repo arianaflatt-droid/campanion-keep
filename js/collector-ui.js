@@ -4,15 +4,15 @@ import {
   formIndex, formOf, statsOf, seenSet, rollRarity, doPull, arenaOpen, arenaOpenFor, lunchHour, hitGoalToday, LUNCH_ARENA, ARENA_HOURS, fighterFrom, teamSize, alive, resolve, resolveRound, moveOk, MOVES, hitDamage,
   birthdayLeft, pickleLeft, PICKLE_FAM, brewLegLeft, BREW_FAM, feastLegLeft, HARVEST_FAM, gingerLegLeft, GINGER_FAM, snowLegLeft, SNOW_FAM, candyLegLeft, CANDY_FAM, ghostEggLeft, GHOST_FAM, BOSS2_LIST, boss2EggLeft, vaultLegLeft, revengeLegLeft, heistLegLeft, goalLeft, nextGoal, rollRareUp, themeLeft, nextTheme, THEME_TYPES, THEME_EGG, WISH_FAM, spares, spareId, releaseXP, releaseProblem, isStarterFam, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
   EVENTS, eventOpen, eventWindow, eventStreak, hasEvent, eventUnlocked, azToday, rollTeacherRarity, TEACHER_ODDS, LIVE, staleBattle
-} from "./collect.js?v=20261103j";
-import { newBattleRef, battleRef, updateDoc, changeBattle as changeBattleRaw, setDoc, liveBattlesNow, ck, ckMessage } from "./db.js?v=20261103j";
+} from "./collect.js?v=20261104a";
+import { newBattleRef, battleRef, updateDoc, changeBattle as changeBattleRaw, setDoc, liveBattlesNow, ck, ckMessage } from "./db.js?v=20261104a";
 // every change to a battle is stamped with the time (upd), so a battle nobody has touched in a while can be ended
 let locking = null, leaving = null;   // battle id while "Lock in team" is saving
 const changeBattle = (id, fn) => changeBattleRaw(id, bt => { const n = fn(bt); if (n) n.upd = new Date().toISOString(); return n; });
 
-import { tradeCard } from "./trade-ui.js?v=20261103j";
-import { ultraLeft, isUltra } from "./collect.js?v=20261103j";
-import { ultraSection, ultraInfoHTML } from "./ultra.js?v=20261103j";
+import { tradeCard } from "./trade-ui.js?v=20261104a";
+import { ultraLeft, isUltra, trapLegLeft, PRISM_FAM } from "./collect.js?v=20261104a";
+import { ultraSection, ultraInfoHTML } from "./ultra.js?v=20261104a";
 
 const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const PER_PAGE = 20;
@@ -73,6 +73,7 @@ export function collectorTab(c) {
     (ultraLeft(s) ? stat("\u{1F308}", ultraLeft(s), "Ultra egg" + (ultraLeft(s) === 1 ? "" : "s")) : "") +
     (vaultLegLeft(s) ? stat("\u{1F48E}", vaultLegLeft(s), "Sparkle Legendary egg" + (vaultLegLeft(s) === 1 ? "" : "s")) : "") +
     BOSS2_LIST.map(B => boss2EggLeft(s, B) ? stat(B.icon, boss2EggLeft(s, B), B.boss + " egg" + (boss2EggLeft(s, B) === 1 ? "" : "s")) : "").join("") +
+    (trapLegLeft(s) ? stat("\u{1F308}", trapLegLeft(s), "Prismalotl egg" + (trapLegLeft(s) === 1 ? "" : "s")) : "") +
     (candyLegLeft(s) ? stat("\u{1F36B}", candyLegLeft(s), "Candivora egg" + (candyLegLeft(s) === 1 ? "" : "s")) : "") +
     (snowLegLeft(s) ? stat("\u2603\uFE0F", snowLegLeft(s), "Snowmorrow egg" + (snowLegLeft(s) === 1 ? "" : "s")) : "") +
     (gingerLegLeft(s) ? stat("\u{1F36A}", gingerLegLeft(s), "Gingermischief egg" + (gingerLegLeft(s) === 1 ? "" : "s")) : "") +
@@ -95,6 +96,7 @@ export function collectorTab(c) {
     (ultraLeft(s) && !s.isTeacher ? '<button class="btn big ultrabtn" data-cc="hatchUltra">\u{1F308} Hatch your Ultra egg!</button>' : "") +
     (vaultLegLeft(s) ? '<button class="btn big gold" data-cc="hatchVault">\u{1F48E} Hatch your Treasure Vault Sparkle Legendary egg!</button>' : "") +
     BOSS2_LIST.map(B => boss2EggLeft(s, B) ? '<button class="btn big gold" data-cc="hatchBoss2" data-k="' + B.key + '">' + B.icon + " Hatch your " + B.boss + " egg!</button>" : "").join("") +
+    (trapLegLeft(s) && !s.isTeacher ? '<button class="btn big gold" data-cc="hatchTrap">\u{1FAA4} Hatch your Top Trappers egg!</button>' : "") +
     (candyLegLeft(s) ? '<button class="btn big gold" data-cc="hatchCandy">\u{1F36B} Hatch your Top Candy Box egg!</button>' : "") +
     (snowLegLeft(s) ? '<button class="btn big gold" data-cc="hatchSnow">\u2603\uFE0F Hatch your Top Snowman egg!</button>' : "") +
     (gingerLegLeft(s) ? '<button class="btn big gold" data-cc="hatchGinger">\u{1F36A} Hatch your Top Bakers egg!</button>' : "") +
@@ -120,6 +122,7 @@ function eventCard(ev, s, cls) {
   if (ev.haunt) when = "Haunt-O-Ween only";
   else if (ev.frost) when = "Frostbite Festival only";
   else if (ev.heart) when = "Sweetheart Showdown only";
+  else if (ev.lucky) when = "Lucky Leprechaun Hunt only";
   else { const left = w.days.filter(d => d >= azToday()).length; when = nice(w.start) + " \u2013 " + nice(w.end) + " \u00b7 " + left + " school day" + (left === 1 ? "" : "s") + " left"; }
   const msg = got ? "You caught " + esc(dc.name) + "! Each egg still has a 1% chance to be another one (a free level up)."
     : on ? "<b>Unlocked!</b> Every egg you hatch has a <b>95% chance</b> to be " + esc(dc.name) + " until you catch it."
@@ -348,21 +351,23 @@ function hatchOverlay() {
     const ek = c ? { "Common": "common", "Uncommon": "uncommon", "Rare": "rare", "Super Rare": "superrare", "Legendary": "legendary" }[c.rarity] : null;
     // during Haunt-O-Ween, Ghost-type creatures (and Hexaduck, the Haunt-O-Ween event Legendary) hatch from the spooky egg
     const th = hatch.theme;   // an event egg from a Golden Present always shows that event's egg
-    const hr = ctx.cls && ctx.cls.heart, fr = ctx.cls && ctx.cls.frost && !hr;
-    const spooky = th ? th === "haunt" : c && ctx.cls && ctx.cls.haunt && !ctx.cls.gobble && !ctx.cls.jingle && !fr && !hr && (c.types.includes("Ghost") || c.event === "hex");
+    const lk = ctx.cls && ctx.cls.lucky, hr = ctx.cls && ctx.cls.heart && !lk, fr = ctx.cls && ctx.cls.frost && !hr && !lk;
+    const spooky = th ? th === "haunt" : c && ctx.cls && ctx.cls.haunt && !ctx.cls.gobble && !ctx.cls.jingle && !fr && !hr && !lk && (c.types.includes("Ghost") || c.event === "hex");
     // during Gobble-Palooza, Nature-type creatures (and Thanksolotl) hatch from the harvest egg
-    const harvest = th ? th === "gobble" : !spooky && c && ctx.cls && ctx.cls.gobble && !ctx.cls.jingle && !fr && !hr && (c.types.includes("Nature") || c.event === "thanks");
+    const harvest = th ? th === "gobble" : !spooky && c && ctx.cls && ctx.cls.gobble && !ctx.cls.jingle && !fr && !hr && !lk && (c.types.includes("Nature") || c.event === "thanks");
     // during Jingle Jam, Ice- and Light-type creatures (and Jinglotl) hatch from the Jingle egg
-    const jingly = th ? th === "jingle" : !spooky && !harvest && c && ctx.cls && ctx.cls.jingle && !fr && !hr && (c.types.includes("Ice") || c.types.includes("Light") || c.event === "jingle");
+    const jingly = th ? th === "jingle" : !spooky && !harvest && c && ctx.cls && ctx.cls.jingle && !fr && !hr && !lk && (c.types.includes("Ice") || c.types.includes("Light") || c.event === "jingle");
     // during Frostbite Festival, Ice-type creatures (and Midniduck) hatch from the Frostbite egg
     const frosty = th ? th === "frost" : !spooky && !harvest && !jingly && c && fr && (c.types.includes("Ice") || c.event === "frost");
     // during Sweetheart Showdown, Light- and Nature-type creatures (and Amorduck) hatch from the Sweetheart egg
     const hearty = th ? th === "heart" : !spooky && !harvest && !jingly && !frosty && c && hr && (c.types.includes("Light") || c.types.includes("Nature") || c.event === "heart");
-    const egg = spooky ? "assets/egg-haunt.webp" : harvest ? "assets/egg-gobble.webp" : jingly ? "assets/egg-jingle.webp" : frosty ? "assets/egg-frost.webp" : hearty ? "assets/egg-heart.webp" : ek ? "assets/egg-" + ek + ".webp" : "assets/egg.png";
+    // during the Lucky Leprechaun Hunt, Nature- and Earth-type creatures (and Cloverduck) hatch from the Lucky egg
+    const lucky = th ? th === "lucky" : !spooky && !harvest && !jingly && !frosty && !hearty && c && lk && (c.types.includes("Nature") || c.types.includes("Earth") || c.event === "lucky");
+    const egg = lucky ? "assets/egg-lucky.webp" : spooky ? "assets/egg-haunt.webp" : harvest ? "assets/egg-gobble.webp" : jingly ? "assets/egg-jingle.webp" : frosty ? "assets/egg-frost.webp" : hearty ? "assets/egg-heart.webp" : ek ? "assets/egg-" + ek + ".webp" : "assets/egg.png";
     const ultra = hatch.ultra || (c && c.rarity === "Ultra");
     if (ultra) h += '<div class="eggwrap ' + hatch.phase + ' leg ultra" style="--rc:#D13BE8"><img class="egg whole" src="assets/egg-legendary.webp" alt=""><img class="egg top" src="assets/egg-legendary.webp" alt=""><img class="egg bot" src="assets/egg-legendary.webp" alt=""><span class="flash"></span></div>' +
       '<p class="hatchtxt">' + (hatch.phase === "shake" ? "\u{1F308} An ULTRA egg is waking up\u2026" : "") + "</p>";
-    else h += '<div class="eggwrap ' + hatch.phase + (hatch.legendary || (c && c.rarity === "Legendary") ? " leg" : "") + (spooky ? " haunt" : harvest ? " harvest" : jingly ? " jingly" : frosty ? " frosty" : hearty ? " hearty" : "") + '" style="--rc:' + (spooky ? "#B45CFF" : harvest ? "#F2A541" : jingly ? "#9EE3FF" : frosty ? "#BDE6FF" : hearty ? "#FF9EC4" : c ? RARITY_COLOR[c.rarity] : "#FFE6AA") + '"><img class="egg whole" src="' + egg + '" alt="">' +
+    else h += '<div class="eggwrap ' + hatch.phase + (hatch.legendary || (c && c.rarity === "Legendary") ? " leg" : "") + (spooky ? " haunt" : harvest ? " harvest" : jingly ? " jingly" : frosty ? " frosty" : hearty ? " hearty" : lucky ? " luckyegg" : "") + '" style="--rc:' + (lucky ? "#5FD36E" : spooky ? "#B45CFF" : harvest ? "#F2A541" : jingly ? "#9EE3FF" : frosty ? "#BDE6FF" : hearty ? "#FF9EC4" : c ? RARITY_COLOR[c.rarity] : "#FFE6AA") + '"><img class="egg whole" src="' + egg + '" alt="">' +
       '<img class="egg top" src="' + egg + '" alt=""><img class="egg bot" src="' + egg + '" alt=""><span class="flash"></span></div>' +
       '<p class="hatchtxt">' + (hatch.phase === "shake" ? "Something is moving…" : "") + "</p>";
   } else {
@@ -370,7 +375,7 @@ function hatchOverlay() {
       '<div class="revtxt">' + rarityPill(c.rarity) + (r.sparkle ? ' <span class="rpill" style="background:linear-gradient(90deg,#ff7ad9,#ffd84d,#7ae7ff)">\u2728 SPARKLE</span>' : "") + "<h2>" + (r.sparkle ? "\u2728 " : "") + esc(c.name) + "</h2>" +
       (r.event === "bday" ? '<p class="eventmsg ev-bday">\u{1F382} HAPPY BIRTHDAY! ' + (r.dupe ? "Another Wisholotl came to celebrate!" : "<b>Wisholotl, " + esc(c.title || "") + "</b>, came to make your wish come true!") + "</p>" : "") +
       (r.ultra ? '<p class="eventmsg ev-ultra">\u{1F308} ULTRA LEGENDARY! <b>' + esc(c.name) + ", " + esc(c.title || "") + "</b>" + (r.dupe ? " came back to train with you!" : " joined your collection!") + "</p>" : "") +
-      (r.event && r.event !== "bday" && !r.ultra ? '<p class="eventmsg ev-' + r.event + '">' + (r.event === "hex" ? "\u{1F383}" : r.event === "thanks" ? "\u{1F983}" : r.event === "jingle" ? "\u{1F384}" : r.event === "pickle" ? "\u{1F952}" : r.event === "brew" ? "\u{1F9EA}" : r.event === "harvest" ? "\u{1F983}" : r.event === "gingerbread" ? "\u{1F36A}" : r.event === "snowman" ? "\u2603\uFE0F" : r.event === "frost" ? "\u{1F386}" : r.event === "heart" ? "\u{1F498}" : r.event === "candybox" ? "\u{1F36B}" : /2$/.test(r.event) ? ((BOSS2_LIST.find(B => B.fam === r.fam) || {}).icon || "\u{1F47B}") : "\u{1F986}") + (r.event === "pickle" || r.event === "brew" || r.event === "harvest" || r.event === "gingerbread" || r.event === "snowman" || r.event === "candybox" || /2$/.test(r.event) ? " EXCLUSIVE EVENT LEGENDARY! " : " LIMITED EVENT LEGENDARY! ") + (r.dupe ? "Another " + esc(c.name) + "!" : "You caught <b>" + esc(c.name) + ", " + esc(c.title || "") + "</b>! It\u2019s yours forever.") + "</p>" : "") +
+      (r.event && r.event !== "bday" && !r.ultra ? '<p class="eventmsg ev-' + r.event + '">' + (r.event === "hex" ? "\u{1F383}" : r.event === "thanks" ? "\u{1F983}" : r.event === "jingle" ? "\u{1F384}" : r.event === "pickle" ? "\u{1F952}" : r.event === "brew" ? "\u{1F9EA}" : r.event === "harvest" ? "\u{1F983}" : r.event === "gingerbread" ? "\u{1F36A}" : r.event === "snowman" ? "\u2603\uFE0F" : r.event === "frost" ? "\u{1F386}" : r.event === "heart" ? "\u{1F498}" : r.event === "candybox" ? "\u{1F36B}" : r.event === "lucky" ? "\u{1F340}" : r.event === "trap" ? "\u{1F308}" : /2$/.test(r.event) ? ((BOSS2_LIST.find(B => B.fam === r.fam) || {}).icon || "\u{1F47B}") : "\u{1F986}") + (r.event === "pickle" || r.event === "brew" || r.event === "harvest" || r.event === "gingerbread" || r.event === "snowman" || r.event === "candybox" || r.event === "trap" || /2$/.test(r.event) ? " EXCLUSIVE EVENT LEGENDARY! " : " LIMITED EVENT LEGENDARY! ") + (r.dupe ? "Another " + esc(c.name) + "!" : "You caught <b>" + esc(c.name) + ", " + esc(c.title || "") + "</b>! It\u2019s yours forever.") + "</p>" : "") +
       (r.newSparkle ? '<p class="sparkmsg">WOW! A 1-in-2,000 Sparkle! Your ' + esc(c.name) + " family is now Sparkle forever.</p>" : "") +
       (r.ultra ? (r.dupe ? "<p>You already had " + esc(c.name) + " \u2014 <b>+" + (r.gained || 5) + " levels! Now Lv " + r.lvl + "</b></p>" : "<p><b>NEW!</b> Find it in your \u{1F308} Ultra Legendaries section.</p>")
         : r.dupe && r.kept ? "<p>\u{1F504} Kept as a <b>spare for trading</b>. Find it under My creatures.</p>"
@@ -414,8 +419,8 @@ function detailPage(c, seen) {
     '<div class="dhead">' + img(c, "dimg") + "<div><h2>" + esc(c.name) + "</h2>" + (e && e.nick && cur ? '<p class="dline">Your <b>' + esc(e.nick) + "</b></p>" : "") + rarityPill(c.rarity) + " " + typePills(c) +
     '<p class="dline"><b>Weak to:</b> ' + esc(c.weak.join(", ")) + " (takes double damage)</p>" +
     (c.title ? '<p class="dline"><i>' + esc(c.title) + "</i>" + (c.ultra ? ' <span class="rpill upill">\u{1F308} Ultra Legendary</span>' : c.event ? ' <span class="rpill" style="background:#2B6FD6">\u{1F986} Limited event</span>' : "") + "</p>" : "") +
-    (c.ultra ? ultraInfoHTML(c) : "") +
-    '<p class="dline"' + (c.ultra ? ' hidden' : "") + '><b>' + (c.move ? "Signature move" : "Attack") + ":</b> " + esc(c.attack) + "</p>" + (c.move ? '<p class="dline muted">' + esc(c.move) + "</p>" : "") +
+    (c.ux ? ultraInfoHTML(c) : "") +
+    '<p class="dline"' + (c.ux ? ' hidden' : "") + '><b>' + (c.move ? "Signature move" : "Attack") + ":</b> " + esc(c.attack) + "</p>" + (c.move ? '<p class="dline muted">' + esc(c.move) + "</p>" : "") +
     (c.dodge ? '<p class="dline"><b>\u{1F4A8} Speedy:</b> dodges ' + Math.round(c.dodge * 100) + "% of attacks in battle</p>" : "") +
     (c.daze ? '<p class="dline"><b>\u2728 Dazzle:</b> ' + Math.round(c.daze * 100) + "% chance to make the opponent\u2019s next attack " + Math.round((c.dazePct || 0) * 100) + "% weaker</p>" : "") +
     (c.atkHeal ? '<p class="dline"><b>\u{1F49A} Recovery:</b> heals ' + Math.round(c.atkHeal * 100) + "% of its HP after every " + esc(c.attack) + "</p>" : "") +
@@ -425,10 +430,10 @@ function detailPage(c, seen) {
     (c.teamHeal ? '<p class="dline"><b>\u{1F357} Sharing:</b> its ' + esc(c.attack) + " also heals each teammate still standing by " + Math.round(c.teamHeal * 100) + "%</p>" : "") +
     (c.alt && c.alt.daze ? '<p class="dline"><b>\u{1F967} Splat:</b> ' + Math.round(c.alt.daze * 100) + "% chance " + esc(c.alt.name) + " makes the opponent\u2019s next attack " + Math.round((c.alt.dazePct || 0.2) * 100) + "% weaker</p>" : "") +
     (c.atkDefDown ? '<p class="dline"><b>\u{1F311} Gravity:</b> ' + Math.round(c.atkDefDown * 100) + "% chance its " + esc(c.attack) + " lowers the opponent\u2019s Defense by " + Math.round((c.atkDefPct || 0.15) * 100) + "% for a turn</p>" : "") +
-    (c.alt && c.alt.evade ? '<p class="dline"><b>\u{1F300} Portal:</b> ' + Math.round(c.alt.evade * 100) + "% chance " + esc(c.alt.name) + " lets it dodge the opponent\u2019s next attack</p>" : "") +
+    (c.alt && c.alt.evade && !c.ux ? '<p class="dline"><b>\u{1F300} Portal:</b> ' + Math.round(c.alt.evade * 100) + "% chance " + esc(c.alt.name) + " lets it dodge the opponent\u2019s next attack</p>" : "") +
     (c.brewFx ? '<p class="dline"><b>\u{1F9EA} Witch\u2019s Brew:</b> every hit does one surprise thing \u2014 poisons the opponent, lowers its Defense for a round, or heals Brewraith a little</p>' : "") +
     (c.poison ? '<p class="dline"><b>\u{1F922} Poison:</b> ' + Math.round(c.poison * 100) + "% chance its attack poisons the opponent (loses a little HP for 3 rounds)</p>" : "") +
-    (c.alt && !c.ultra ? '<p class="dline"><b>Second attack:</b> ' + esc(c.alt.name) + (c.alt.type ? " (" + esc(c.alt.type) + ")" : "") + " \u2014 a bit less damage" + (c.alt.heal ? ", and heals " + Math.round(c.alt.heal * 100) + "% of its HP" : "") + (c.alt.defDown ? ", " + Math.round(c.alt.defDown * 100) + "% chance to lower the opponent\u2019s defense" + (c.alt.defTemp ? " for its next turn" : "") : "") + "</p>" + (c.alt.desc ? '<p class="dline muted">' + esc(c.alt.desc) + "</p>" : "") : "") + "</div></div>" +
+    (c.alt && !c.ux ? '<p class="dline"><b>Second attack:</b> ' + esc(c.alt.name) + (c.alt.type ? " (" + esc(c.alt.type) + ")" : "") + " \u2014 a bit less damage" + (c.alt.heal ? ", and heals " + Math.round(c.alt.heal * 100) + "% of its HP" : "") + (c.alt.teamHeal ? ", and heals each teammate " + Math.round(c.alt.teamHeal * 100) + "%" : "") + (c.alt.defDown ? ", " + Math.round(c.alt.defDown * 100) + "% chance to lower the opponent\u2019s defense" + (c.alt.defTemp ? " for its next turn" : "") : "") + "</p>" + (c.alt.desc ? '<p class="dline muted">' + esc(c.alt.desc) + "</p>" : "") : "") + "</div></div>" +
     '<div class="dstats"><span>❤ HP <b>' + st.hp + "</b></span><span>\u{1F6E1} Defense <b>" + st.df + "</b></span><span>⚔ Damage <b>" + st.dmg + "</b></span><span>Lv <b>" + (cur ? lvl : 1) + "</b></span></div>" +
     '<p class="muted" style="text-align:center;margin:2px 0 8px;">' + (cur ? "Your creature’s stats at level " + lvl : "Stats at level 1") + " · grows +" + c.ghp + " HP, +" + c.gdf + " DEF, +" + c.gdmg + " DMG per level</p>";
   if (fam.forms.length > 1) h += '<div class="dchain">' + fam.forms.map((id, i) => { const f = creature(id), got = seen.has(id);
@@ -660,6 +665,7 @@ export async function onClick(el, c) {
     later(2800, () => { hatch.phase = "reveal"; busyUntil = 0; });
     return;
   }
+  if (a === "hatchTrap") { if (!trapLegLeft(s) || s.isTeacher) return; return serverHatch(c, "trap", null, { legendary: true }); }
   if (a === "hatchCandy") {
     if (!candyLegLeft(s)) return;
     if (!s.isTeacher) return serverHatch(c, "candy", null, { legendary: true });

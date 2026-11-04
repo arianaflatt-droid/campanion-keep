@@ -3,21 +3,21 @@
    Each step checks itself off from the student's save; tapping a step opens the tab where it's done.
    The Treasure Vault step is "check your progress", so it counts as done once the student opens it today
    (remembered on this computer only). */
-import { rvStarted, rvStock, rvBeatCount } from "./revenge.js?v=20261103j";
-import { heistTodo } from "./heist.js?v=20261103j";
-import { mapOn, mapState, todayReading, PER_ISLAND } from "./readmap.js?v=20261103j";
-import { tbLeft, tbLive } from "./teachbattle.js?v=20261103j";
-import { esc, simulate, companionOf, goalXP } from "./game.js?v=20261103j";
+import { rvStarted, rvStock, rvBeatCount } from "./revenge.js?v=20261104a";
+import { heistTodo } from "./heist.js?v=20261104a";
+import { mapOn, mapState, todayReading, PER_ISLAND } from "./readmap.js?v=20261104a";
+import { tbLeft, tbLive } from "./teachbattle.js?v=20261104a";
+import { esc, simulate, companionOf, goalXP } from "./game.js?v=20261104a";
 import { azToday, azNow, todayXP, pullsLeft, legendaryLeft, birthdayLeft, pickleLeft, vaultLegLeft, BOSS2_LIST, boss2EggLeft, candyLegLeft, snowLegLeft,
-  gingerLegLeft, feastLegLeft, brewLegLeft, goalLeft, themeLeft, hasStarter, bankXP, LEVEL_XP } from "./collect.js?v=20261103j";
-import { mqReady } from "./morning.js?v=20261103j";
-import { doorsLive, doorName, goldenReady, weekDoorState, vaultState, vaultGoal, subReq, todayPlan } from "./doors.js?v=20261103j";
-import { soloOn, soloReady, soloCfg } from "./solobrew.js?v=20261103j";
-import { passReady } from "./pass.js?v=20261103j";
-import { pettedToday } from "./bond.js?v=20261103j";
-import { mealsReady } from "./meals.js?v=20261103j";
-import { readyTests } from "./quest.js?v=20261103j";
-import { unthanked } from "./kindness.js?v=20261103j";
+  gingerLegLeft, feastLegLeft, brewLegLeft, goalLeft, themeLeft, hasStarter, bankXP, LEVEL_XP } from "./collect.js?v=20261104a";
+import { mqReady } from "./morning.js?v=20261104a";
+import { doorsLive, doorName, goldenReady, weekDoorState, vaultState, vaultGoal, subReq, todayPlan } from "./doors.js?v=20261104a";
+import { soloOn, soloReady, soloCfg } from "./solobrew.js?v=20261104a";
+import { passReady } from "./pass.js?v=20261104a";
+import { pettedToday } from "./bond.js?v=20261104a";
+import { mealsReady } from "./meals.js?v=20261104a";
+import { readyTests } from "./quest.js?v=20261104a";
+import { unthanked } from "./kindness.js?v=20261104a";
 
 const seenKey = (id, what) => "ck-seen-" + azToday() + "-" + id + "-" + what;
 export function markSeen(id, what) { try { localStorage.setItem(seenKey(id, what), "1"); } catch (e) {} }
@@ -26,7 +26,7 @@ const plural = (n, w) => n + " " + w + (n === 1 ? "" : "s");
 
 export function eggsLeft(s, cls) {
   if (!hasStarter(s)) return 0;
-  return pullsLeft(s, cls) + legendaryLeft(s) + birthdayLeft(s) + pickleLeft(s) + vaultLegLeft(s) + Math.max(0, (Number(s.ultraEggs) || 0) - (Number(s.ultraUsed) || 0)) + candyLegLeft(s) + snowLegLeft(s) + gingerLegLeft(s)
+  return pullsLeft(s, cls) + legendaryLeft(s) + birthdayLeft(s) + pickleLeft(s) + vaultLegLeft(s) + Math.max(0, (Number(s.trapLegEggs) || 0) + (Number(s.soloTrapLeg) || 0) - (Number(s.trapLegUsed) || 0)) + Math.max(0, (Number(s.ultraEggs) || 0) - (Number(s.ultraUsed) || 0)) + candyLegLeft(s) + snowLegLeft(s) + gingerLegLeft(s)
     + feastLegLeft(s) + brewLegLeft(s) + goalLeft(s) + themeLeft(s) + BOSS2_LIST.reduce((n, B) => n + boss2EggLeft(s, B), 0);
 }
 function presentsReady(s, cls) {

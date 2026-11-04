@@ -1,42 +1,42 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261103j";
-import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261103j";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261103j";
-import { cpEarnedCalc } from "./room.js?v=20261103j";
-import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261103j";
-import { rewardFor } from "./doors.js?v=20261103j";
-import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet, subReq, subRuleOn, SUB_DAY, addDays } from "./doors.js?v=20261103j";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing } from "./collector-ui.js?v=20261103j";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261104a";
+import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261104a";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261104a";
+import { cpEarnedCalc } from "./room.js?v=20261104a";
+import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261104a";
+import { rewardFor } from "./doors.js?v=20261104a";
+import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet, subReq, subRuleOn, SUB_DAY, addDays } from "./doors.js?v=20261104a";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing } from "./collector-ui.js?v=20261104a";
 import {
   newsHTML, boostOn, boostHTML, countdownHTML, applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   boss2Of, boss2Prize, simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, weekCandyBefore, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
-  checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, isFrost, isHeart, heartUnlocked, saveProblems, yetiUnlocked, wallMarks, WALL_BLOCK, BOSS_START_HP, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261103j";
-import { MQ_CUTOFF } from "./morning.js?v=20261103j";
-import { kindAdmin } from "./kindness.js?v=20261103j";
-import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261103j";
-import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261103j";
-import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261103j";
-import { passAdmin } from "./pass.js?v=20261103j";
-import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261103j";
-import { watchSecret, secretRef } from "./db.js?v=20261103j";
-import { secretAdmin, secretClick, autoPick, secretBanner } from "./secret.js?v=20261103j";
-import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef, newBattleRef, newsPicRef, watchNewsPic } from "./db.js?v=20261103j";
-import { mapAdmin } from "./readmap.js?v=20261103j";
-import { wheelTab, wheelClick } from "./subwheel.js?v=20261103j";
-import { tbRequestsCard, tbInvite, tbToSettle } from "./teachbattle.js?v=20261103j";
-import { rewardAdmin, rgWaiting, rgOf, shrinkImage } from "./weekgoal.js?v=20261103j";
-import { soloAdmin, soloCfg, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261103j";
-import { feederLink } from "./feeder.js?v=20261103j";
-import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261103j";
+  checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, isFrost, isHeart, heartUnlocked, isLucky, luckyUnlocked, saveProblems, yetiUnlocked, wallMarks, WALL_BLOCK, BOSS_START_HP, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
+} from "./game.js?v=20261104a";
+import { MQ_CUTOFF } from "./morning.js?v=20261104a";
+import { kindAdmin } from "./kindness.js?v=20261104a";
+import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261104a";
+import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261104a";
+import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261104a";
+import { passAdmin } from "./pass.js?v=20261104a";
+import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261104a";
+import { watchSecret, secretRef } from "./db.js?v=20261104a";
+import { secretAdmin, secretClick, autoPick, secretBanner } from "./secret.js?v=20261104a";
+import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef, newBattleRef, newsPicRef, watchNewsPic } from "./db.js?v=20261104a";
+import { mapAdmin } from "./readmap.js?v=20261104a";
+import { wheelTab, wheelClick } from "./subwheel.js?v=20261104a";
+import { tbRequestsCard, tbInvite, tbToSettle } from "./teachbattle.js?v=20261104a";
+import { rewardAdmin, rgWaiting, rgOf, shrinkImage } from "./weekgoal.js?v=20261104a";
+import { soloAdmin, soloCfg, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261104a";
+import { feederLink } from "./feeder.js?v=20261104a";
+import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261104a";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef, watchSeats, watchCards
-} from "./db.js?v=20261103j";
-import { G, guardCard, guardClick, guardInput, autoSnap, personalLink, syncCards } from "./guard.js?v=20261103j";
-import { lockCard, lockClick } from "./lock.js?v=20261103j";
-import { revengeAdmin, revengeAction } from "./revenge.js?v=20261103j";
-import { heistAdmin, heistAction } from "./heist.js?v=20261103j";
+} from "./db.js?v=20261104a";
+import { G, guardCard, guardClick, guardInput, autoSnap, personalLink, syncCards } from "./guard.js?v=20261104a";
+import { lockCard, lockClick } from "./lock.js?v=20261104a";
+import { revengeAdmin, revengeAction } from "./revenge.js?v=20261104a";
+import { heistAdmin, heistAction } from "./heist.js?v=20261104a";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -71,7 +71,7 @@ async function patch(id, data) {
    November and off once November is over. The teacher can still flip it by hand. */
 let autoBusy = false;
 function autoGobble() {
-  if (!cls || autoBusy || !studentsLoaded || cls.frost || cls.heart) return;   // Frostbite Festival and Sweetheart Showdown are switched by hand and wins over the others
+  if (!cls || autoBusy || !studentsLoaded || cls.frost || cls.heart || cls.lucky) return;   // Frostbite Festival and Sweetheart Showdown are switched by hand and wins over the others
   const t = azToday(), yr = GOBBLE_FROM.slice(0, 4), jy = JINGLE_FROM.slice(0, 4);
   // Jingle Jam: all of December, the same way.
   if (t >= JINGLE_FROM && t <= JINGLE_TO && !cls.jingle && cls.jingleAuto !== jy) { autoBusy = true; jingleOn().finally(() => { autoBusy = false; }); return; }
@@ -85,7 +85,7 @@ const hauntCandy = () => isHaunt(cls) || !(cls.gobbleSince || cls.jingleSince ||
 // Spins, extra attacks and pies/brews they already own carry over. Haunt-O-Ween badge totals are saved first.
 async function gobbleOn() {
   const b = bossState(cls, students), batch = writeBatch(db);
-  batch.update(classRef, { gobble: true, haunt: false, jingle: false, frost: false, heart: false, doorsOn: false, gobbleSince: azToday(), gobbleAuto: GOBBLE_FROM.slice(0, 4),
+  batch.update(classRef, { gobble: true, haunt: false, jingle: false, frost: false, heart: false, lucky: false, doorsOn: false, gobbleSince: azToday(), gobbleAuto: GOBBLE_FROM.slice(0, 4),
     bucketEarned: 0, bucketSpent: 0, bossHP: BOSS_START_HP, bossBase: b.total, bossBaseHits: b.totalHits, bossHealed: 0 });
   students.forEach(s => batch.update(studentRef(s.id), { candyBank: -weekCandy(s), candySpent: 0, candyBonus: 0, stolen: 0,
     candyBest: Math.max(Number(s.candyBest) || 0, hauntCandy() ? candyOf(s) : 0),
@@ -96,7 +96,7 @@ async function gobbleOn() {
 // Turning Jingle Jam on: the other modes go off, everyone's presents start at 0, a fresh Grinch-a-Duck and an empty Grinch's Sack.
 async function jingleOn() {
   const b = bossState(cls, students), batch = writeBatch(db);
-  batch.update(classRef, { jingle: true, gobble: false, haunt: false, frost: false, heart: false, doorsOn: true, jingleSince: azToday(), jingleAuto: JINGLE_FROM.slice(0, 4),
+  batch.update(classRef, { jingle: true, gobble: false, haunt: false, frost: false, heart: false, lucky: false, doorsOn: true, jingleSince: azToday(), jingleAuto: JINGLE_FROM.slice(0, 4),
     bucketEarned: 0, bucketSpent: 0, bossHP: BOSS_START_HP, bossBase: b.total, bossBaseHits: b.totalHits, bossHealed: 0 });
   students.forEach(s => batch.update(studentRef(s.id), { candyBank: -weekCandy(s), candySpent: 0, candyBonus: 0, stolen: 0,
     candyBest: Math.max(Number(s.candyBest) || 0, hauntCandy() ? candyOf(s) : 0),
@@ -108,7 +108,7 @@ async function jingleOn() {
 // (12,000 health, 25 per snowball) and no snow wall yet. Frozen Doors come on too.
 async function frostOn() {
   const fresh = Object.assign({}, cls, { bossDmg: 25 }), b = bossState(fresh, students), batch = writeBatch(db);
-  batch.update(classRef, { frost: true, jingle: false, gobble: false, haunt: false, heart: false, doorsOn: true, frostSince: azToday(),
+  batch.update(classRef, { frost: true, jingle: false, gobble: false, haunt: false, heart: false, lucky: false, doorsOn: true, frostSince: azToday(),
     bossHP: BOSS_START_HP, bossDmg: 25, bucketEarned: 0, bucketSpent: 0, bossBase: b.total, bossBaseHits: b.totalHits, bossHealed: 0, wallMark: 0, wallAt: 0, wallAbs: 0 });
   students.forEach(s => batch.update(studentRef(s.id), { candyBank: -weekCandy(s), candySpent: 0, candyBonus: 0, stolen: 0,
     candyBest: Math.max(Number(s.candyBest) || 0, hauntCandy() ? candyOf(s) : 0),
@@ -120,7 +120,7 @@ async function frostOn() {
 // (12,000 health) and an empty candy jar. Mailbox Doors come on too.
 async function heartOn() {
   const b = bossState(cls, students), batch = writeBatch(db);
-  batch.update(classRef, { heart: true, frost: false, jingle: false, gobble: false, haunt: false, doorsOn: true, heartSince: azToday(),
+  batch.update(classRef, { heart: true, lucky: false, frost: false, jingle: false, gobble: false, haunt: false, doorsOn: true, heartSince: azToday(),
     bossHP: BOSS_START_HP, bucketEarned: 0, bucketSpent: 0, bossBase: b.total, bossBaseHits: b.totalHits, bossHealed: 0 });
   students.forEach(s => batch.update(studentRef(s.id), { candyBank: -weekCandy(s), candySpent: 0, candyBonus: 0, stolen: 0,
     candyBest: Math.max(Number(s.candyBest) || 0, hauntCandy() ? candyOf(s) : 0),
@@ -131,6 +131,22 @@ async function heartOn() {
 async function toggleHeart() {
   if (!isHeart(cls)) { await heartOn(); return; }
   try { await updateDoc(classRef, { heart: false }); if (mode === "battle") mode = "guide"; flash("Saved \u2014 Sweetheart Showdown is off."); } catch (e) { flash("Couldn\u2019t change that \u2014 " + e.code); }
+}
+// 🍀 Turning the Lucky Leprechaun Hunt on: the other modes go off, everyone's coins start at 0, a fresh Lepre-quack
+// (12,000 health) and an empty Pot of Gold. Rainbow Doors come on too.
+async function luckyOn() {
+  const b = bossState(cls, students), batch = writeBatch(db);
+  batch.update(classRef, { lucky: true, heart: false, frost: false, jingle: false, gobble: false, haunt: false, doorsOn: true, luckySince: azToday(),
+    bossHP: BOSS_START_HP, bucketEarned: 0, bucketSpent: 0, bossBase: b.total, bossBaseHits: b.totalHits, bossHealed: 0 });
+  students.forEach(s => batch.update(studentRef(s.id), { candyBank: -weekCandy(s), candySpent: 0, candyBonus: 0, stolen: 0,
+    candyBest: Math.max(Number(s.candyBest) || 0, hauntCandy() ? candyOf(s) : 0),
+    spentBest: Math.max(Number(s.spentBest) || 0, hauntCandy() ? Number(s.candySpent) || 0 : 0),
+    stolenBest: Math.max(Number(s.stolenBest) || 0, hauntCandy() ? Number(s.stolen) || 0 : 0) }));
+  try { await batch.commit(); if (mode === "battle") mode = "guide"; flash("\u{1F340} The Lucky Leprechaun Hunt is on!"); } catch (e) { flash("Couldn\u2019t turn on the Lucky Leprechaun Hunt \u2014 " + e.code); }
+}
+async function toggleLucky() {
+  if (!isLucky(cls)) { await luckyOn(); return; }
+  try { await updateDoc(classRef, { lucky: false }); if (mode === "battle") mode = "guide"; flash("Saved \u2014 the Lucky Leprechaun Hunt is off."); } catch (e) { flash("Couldn\u2019t change that \u2014 " + e.code); }
 }
 async function toggleFrost() {
   if (!isFrost(cls)) { await frostOn(); return; }
@@ -179,7 +195,7 @@ async function toggleHaunt() {
 async function hauntOn(fresh) {
   const batch = writeBatch(db);
   const since = azToday();   // Hexaduck's streak counts from the day Haunt-O-Ween Mode is turned on
-  batch.update(classRef, fresh ? { haunt: true, gobble: false, jingle: false, frost: false, heart: false, doorsOn: false, hauntSince: since, bucketEarned: 0, bucketSpent: 0 } : { haunt: true, gobble: false, jingle: false, frost: false, heart: false, doorsOn: false, hauntSince: since });
+  batch.update(classRef, fresh ? { haunt: true, gobble: false, jingle: false, frost: false, heart: false, lucky: false, doorsOn: false, hauntSince: since, bucketEarned: 0, bucketSpent: 0 } : { haunt: true, gobble: false, jingle: false, frost: false, heart: false, lucky: false, doorsOn: false, hauntSince: since });
   if (fresh) students.forEach(s => batch.update(studentRef(s.id), { candyBank: -weekCandy(s), candySpent: 0, candyBonus: 0, stolen: 0,
     // keep each student's best totals so Haunt-O-Ween badges they earned stay earned
     candyBest: Math.max(Number(s.candyBest) || 0, candyOf(s)), spentBest: Math.max(Number(s.spentBest) || 0, Number(s.candySpent) || 0), stolenBest: Math.max(Number(s.stolenBest) || 0, Number(s.stolen) || 0) }));
@@ -360,7 +376,9 @@ function detectEvents() {
     // First defeat ever: unlock the hat, the snack and the boss sidekick for good.
     if (b.defeated && !cls[S.defeatFlag] && !unlockWriting) {
       unlockWriting = true;
-      const unl = S.key === "heart"
+      const unl = S.key === "lucky"
+        ? { text: "New unlocks: Leprechaun Hat, Lucky Charms & Lepre-quack pet!", sub: "Leprechaun Hat at a 5-day streak \u00b7 Lucky Charms snack at 3 \u00b7 Lepre-quack lunch sidekick", glyph: "\u{1F3A9}", pet: "\u{1F340}" }
+        : S.key === "heart"
         ? { text: "New unlocks: Cupid Crown, Chocolate Strawberry & Heartbreaker-otl pet!", sub: "Cupid Crown at a 5-day streak \u00b7 Chocolate Strawberry snack at 3 \u00b7 Heartbreaker-otl lunch sidekick", glyph: "\u{1F451}", pet: "\u{1F498}" }
         : S.key === "frost"
         ? { text: "New unlocks: Cozy Earmuffs, Snow Cone & Snowlotl pet!", sub: "Cozy Earmuffs at a 5-day streak \u00b7 Snow Cone snack at 3 \u00b7 Snowlotl lunch sidekick", glyph: "\u{1F3A7}", pet: "\u26C4" }
@@ -550,7 +568,7 @@ function render(force) {
     else if (ctab === "rewards") h += subSwapCard() + rewardAdmin(students, cls, rpics, busy);
     else if (ctab === "quest") h += questTracker(students);
     else if (ctab === "wheel") h += wheelTab(students, cls);
-    else if (ctab === "events") h += heistAdmin(students, cls) + revengeAdmin(students, cls) + (isHaunt(cls) || isGobble(cls) || isJingle(cls) || isFrost(cls) || isHeart(cls) ? soloAdmin(students, cls, azToday()) : "") + ghost2Card() + prize2Card() + viewModes() + viewSaveCheck() + viewBossHits() + (eventMode(cls) || waitingDoors(students, cls).length ? viewDoors() : "") + duckAdmin() + (eventMode(cls) ? viewBucket() + viewPrizes() + viewShop() : prizeRows().length ? viewPrizes() : "");
+    else if (ctab === "events") h += heistAdmin(students, cls) + revengeAdmin(students, cls) + (isHaunt(cls) || isGobble(cls) || isJingle(cls) || isFrost(cls) || isHeart(cls) || isLucky(cls) ? soloAdmin(students, cls, azToday()) : "") + ghost2Card() + prize2Card() + viewModes() + viewSaveCheck() + viewBossHits() + (eventMode(cls) || waitingDoors(students, cls).length ? viewDoors() : "") + duckAdmin() + (eventMode(cls) ? viewBucket() + viewPrizes() + viewShop() : prizeRows().length ? viewPrizes() : "");
     else h += viewClassSettings();
   }
 
@@ -755,11 +773,11 @@ function viewStandings() {
 function healControls() {
   const k = bucketState(cls, students), b = bossState(cls, students);
   const S = SEASON;
-  return '<div class="card" style="margin-top:14px;"><div class="card-head"><h2>' + S.coin + " Heal the " + S.boss + '</h2><span class="fact">' + (S.key === "gobble" ? "Cornucopia" : S.key === "jingle" ? "Sack" : S.key === "heart" ? "Candy jar" : "Bucket") + ": <b>" + k.left.toLocaleString() + "</b> " + S.cur + "</span></div>" +
-    '<p class="lede" style="font-size:13.5px;">Each ' + (S.key === "gobble" ? "piece of corn" : S.key === "jingle" ? "present" : S.key === "heart" ? "candy heart" : "candy") + " heals <b>" + k.rate + "</b> health. The " + S.boss + " can\u2019t heal past " + b.max.toLocaleString() + ".</p>" +
+  return '<div class="card" style="margin-top:14px;"><div class="card-head"><h2>' + S.coin + " Heal the " + S.boss + '</h2><span class="fact">' + (S.key === "gobble" ? "Cornucopia" : S.key === "jingle" ? "Sack" : S.key === "heart" ? "Candy jar" : S.key === "lucky" ? "Pot of Gold" : "Bucket") + ": <b>" + k.left.toLocaleString() + "</b> " + S.cur + "</span></div>" +
+    '<p class="lede" style="font-size:13.5px;">Each ' + (S.key === "gobble" ? "piece of corn" : S.key === "jingle" ? "present" : S.key === "heart" ? "candy heart" : S.key === "lucky" ? "gold coin" : "candy") + " heals <b>" + k.rate + "</b> health. The " + S.boss + " can\u2019t heal past " + b.max.toLocaleString() + ".</p>" +
     '<div class="healrow" style="justify-content:flex-start;"><div class="field"><label for="healCandy">' + S.Cur + ' to spend</label><input id="healCandy" type="number" min="1" step="1" placeholder="50"></div>' +
     '<button class="btn" data-act="heal" style="background:#2E9E5B;"' + (k.left && !b.defeated ? "" : " disabled") + ">\u{1F49A} Heal</button>" +
-    '<div class="field"><label for="healRate">Health per ' + (SEASON.key === "gobble" ? "corn" : SEASON.key === "jingle" ? "present" : SEASON.key === "heart" ? "heart" : "candy") + '</label><input id="healRate" type="number" min="1" step="1" value="' + k.rate + '"></div>' +
+    '<div class="field"><label for="healRate">Health per ' + (SEASON.key === "gobble" ? "corn" : SEASON.key === "jingle" ? "present" : SEASON.key === "heart" ? "heart" : SEASON.key === "lucky" ? "coin" : "candy") + '</label><input id="healRate" type="number" min="1" step="1" value="' + k.rate + '"></div>' +
     '<button class="btn ghost" data-act="saveRate">Save rate</button></div></div>';
 }
 function viewBucket() {
@@ -797,7 +815,7 @@ function prizeInfo(e) {
 /* ---------- Boss hits per student, for each event ----------
    Every attack counts once (a 120 XP day, a bought attack or a Free Attack from the wheel).
    Turducken hits are saved as turkeyAtk, Grinch-a-Duck hits as grinchAtk; the rest of attackTotal are Ghost-olotl hits. */
-function rawHits(st) { const all = Number(st.attackTotal) || 0, t = Number(st.turkeyAtk) || 0, g = Number(st.grinchAtk) || 0, y = Number(st.yetiAtk) || 0, hb = Number(st.heartAtk) || 0; return { haunt: Math.max(0, all - t - g - y - hb), gobble: t, jingle: g, frost: y, heart: hb }; }
+function rawHits(st) { const all = Number(st.attackTotal) || 0, t = Number(st.turkeyAtk) || 0, g = Number(st.grinchAtk) || 0, y = Number(st.yetiAtk) || 0, hb = Number(st.heartAtk) || 0, lk = Number(st.luckyAtk) || 0; return { haunt: Math.max(0, all - t - g - y - hb - lk), gobble: t, jingle: g, frost: y, heart: hb, lucky: lk }; }
 // cls.hitBase = { haunt: { studentId: hits when the count was restarted }, gobble: {...}, jingle: {...} }, cls.hitReset = { haunt: ISO date, ... }
 // Students whose saved data is in a shape Firebase's save rules can't read (their saves get "permission-denied").
 /* 2nd boss wins (BOSS2 in collect.js): once this event's boss has been beaten before and a newer one is beaten too,
@@ -849,9 +867,9 @@ function viewSaveCheck() {
 function viewBossHits() {
   const team = students.filter(x => x.companionId), base = cls.hitBase || {}, when = cls.hitReset || {};
   const rows = team.map(st => { const r = rawHits(st), o = { st };
-    ["haunt", "gobble", "jingle", "frost", "heart"].forEach(k => { o[k] = Math.max(0, r[k] - (Number((base[k] || {})[st.id]) || 0)); }); o.all = o.haunt + o.gobble + o.jingle + o.frost + o.heart; return o; });
+    ["haunt", "gobble", "jingle", "frost", "heart", "lucky"].forEach(k => { o[k] = Math.max(0, r[k] - (Number((base[k] || {})[st.id]) || 0)); }); o.all = o.haunt + o.gobble + o.jingle + o.frost + o.heart + o.lucky; return o; });
   if (!team.some(st => Number(st.attackTotal) > 0)) return "";
-  const cur = SEASON.key, cols = [["haunt", "\u{1F383} Haunt-O-Ween", "Ghost-olotl"], ["gobble", "\u{1F983} Gobble-Palooza", "Turducken"], ["jingle", "\u{1F384} Jingle Jam", "Grinch-a-Duck"], ["frost", "\u2744\uFE0F Frostbite", "Snowlotl"], ["heart", "\u{1F498} Sweetheart", "Heartbreaker-otl"]];
+  const cur = SEASON.key, cols = [["haunt", "\u{1F383} Haunt-O-Ween", "Ghost-olotl"], ["gobble", "\u{1F983} Gobble-Palooza", "Turducken"], ["jingle", "\u{1F384} Jingle Jam", "Grinch-a-Duck"], ["frost", "\u2744\uFE0F Frostbite", "Snowlotl"], ["heart", "\u{1F498} Sweetheart", "Heartbreaker-otl"], ["lucky", "\u{1F340} Lucky Hunt", "Lepre-quack"]];
   const key = busy.hitSort || (eventMode(cls) ? cur : "all");
   rows.sort((a, b) => b[key] - a[key] || String(a.st.name).localeCompare(String(b.st.name)));
   const tot = k => rows.reduce((n, r) => n + r[k], 0);
@@ -998,6 +1016,7 @@ const TEV_BLURB = {
   feast: "Teams cook one dish a day (cranberry sauce first, the turkey last), using that dish\u2019s real ingredients. When you paste the day\u2019s XP, every team with all of them adds the dish to its Thanksgiving table",
   ginger: "Teams build one step of a gingerbread house a day (10 steps, from an empty iced base to a finished house), using that step\u2019s ingredients. When you paste the day\u2019s XP, every team with all of them adds the step to its house",
   candybox: "Teams make one chocolate a day (10 chocolates, strawberry heart first, the golden bonbon last), using that chocolate\u2019s ingredients. When you paste the day\u2019s XP, every team with all of them puts the chocolate in its slot in the candy box",
+  trap: "Teams build one piece of a leprechaun trap a day (10 pieces, from the wooden box to the golden bell alarm), using that piece\u2019s ingredients. When you paste the day\u2019s XP, every team with all of them adds the piece to its trap and every teammate gets +30 coins, +50 XP and an egg. The team with the most pieces at the end gets the Prismalotl egg.",
   snowman: "Teams build one step of a snowman a day (10 steps, from a snow pile to a finished snowman), using that step\u2019s ingredients. When you paste the day\u2019s XP, every team with all of them adds the step to its snowman"
 };
 function viewTeamEvent(E) {
@@ -1185,7 +1204,7 @@ function viewShop() {
   const rows = [];
   students.forEach(s => (s.purchases || []).forEach((p, idx) => rows.push({ s, p, idx })));
   rows.sort((a, b) => String(b.p.at).localeCompare(String(a.p.at)));
-  const S = SEASON, anyItem = id => byId(S.store, id) || byId(SEASONS.haunt.store, id) || byId(SEASONS.gobble.store, id) || byId(SEASONS.jingle.store, id) || byId(SEASONS.frost.store, id) || byId(SEASONS.heart.store, id);
+  const S = SEASON, anyItem = id => byId(S.store, id) || byId(SEASONS.haunt.store, id) || byId(SEASONS.gobble.store, id) || byId(SEASONS.jingle.store, id) || byId(SEASONS.frost.store, id) || byId(SEASONS.heart.store, id) || byId(SEASONS.lucky.store, id);
   let h = '<div class="card"><div class="card-head"><h2>' + S.coin + " " + S.shop + ' purchases</h2><span class="fact">' + rows.length + " total</span></div>" +
     '<p class="lede" style="font-size:13px;margin-bottom:10px;">In the shop now: ' + S.store.map(it => storeArt(it, "gimg") + " " + esc(it.name) + " (" + it.cost + ")").join(" \u00b7 ") + "</p>";
   if (!rows.length) return h + '<p class="lede">No purchases yet.</p></div>';
@@ -1231,7 +1250,11 @@ function ghostSettings() {
     '<button class="btn ghost" data-act="saveBoss">Save</button>' +
     '<button class="btn ghost" data-act="newBoss">' + (busy.confirmBoss ? "Yes \u2014 summon a new one" : "Summon a new " + S.boss) + "</button></div>" +
     '<p class="lede" style="font-size:12.5px;margin-top:8px;">A new ' + S.boss + " starts at full health. Past attacks don\u2019t count against it.</p>" +
-    '<p class="lede" style="font-size:13px;margin-top:8px;">' + (S.key === "heart"
+    '<p class="lede" style="font-size:13px;margin-top:8px;">' + (S.key === "lucky"
+      ? (luckyUnlocked(cls)
+        ? "\u2705 <b>Unlocked for good:</b> the Leprechaun Hat (5-day streak), the Lucky Charms snack (3-day streak) and the Lepre-quack lunch sidekick."
+        : "\u{1F512} Defeat the first Lepre-quack to unlock the <b>Leprechaun Hat</b> (5-day streak), the <b>Lucky Charms</b> snack (3-day streak) and the <b>Lepre-quack</b> lunch sidekick. They stay unlocked after the Lucky Leprechaun Hunt.")
+      : S.key === "heart"
       ? (heartUnlocked(cls)
         ? "\u2705 <b>Unlocked for good:</b> the Cupid Crown (5-day streak), the Chocolate Strawberry snack (3-day streak) and the Heartbreaker-otl lunch sidekick."
         : "\u{1F512} Defeat the first Heartbreaker-otl to unlock the <b>Cupid Crown</b> (5-day streak), the <b>Chocolate Strawberry</b> snack (3-day streak) and the <b>Heartbreaker-otl</b> lunch sidekick. They stay unlocked after Sweetheart Showdown.")
@@ -1253,9 +1276,9 @@ function ghostSettings() {
 }
 
 function viewModes() {
-  const on = isHaunt(cls), gob = isGobble(cls), jin = isJingle(cls), fro = isFrost(cls), hrt = isHeart(cls);
+  const on = isHaunt(cls), gob = isGobble(cls), jin = isJingle(cls), fro = isFrost(cls), hrt = isHeart(cls), lky = isLucky(cls);
   const md = d => new Date(d + "T12:00:00").toLocaleDateString(undefined, { month: "long", day: "numeric" });
-  return '<div class="card"><div class="card-head"><h2>\u2728 Special modes</h2><span class="fact">' + (on ? "<b>Haunt-O-Ween is on</b>" : gob ? "<b>Gobble-Palooza is on</b>" : jin ? "<b>Jingle Jam is on</b>" : fro ? "<b>Frostbite Festival is on</b>" : hrt ? "<b>Sweetheart Showdown is on</b>" : "none on") + "</span></div>" +
+  return '<div class="card"><div class="card-head"><h2>\u2728 Special modes</h2><span class="fact">' + (on ? "<b>Haunt-O-Ween is on</b>" : gob ? "<b>Gobble-Palooza is on</b>" : jin ? "<b>Jingle Jam is on</b>" : fro ? "<b>Frostbite Festival is on</b>" : hrt ? "<b>Sweetheart Showdown is on</b>" : lky ? "<b>Lucky Leprechaun Hunt is on</b>" : "none on") + "</span></div>" +
     '<label class="modebox"><input type="checkbox" id="hauntBox"' + (on ? " checked" : "") + (busy.hauntAsk ? " disabled" : "") + '><span><b>\u{1F383} Haunt-O-Ween Mode</b>' +
     '<small>Adds candy baskets, the Candy Shop, the Trick or Treat Wheel, Ms. Ariana\u2019s bucket and the \u2694\uFE0F Battle Area with the Ghost-olotl. All the normal rules keep working. ' +
     "Turn it off and all of that is hidden from you and your students.</small></span></label>" +
@@ -1283,7 +1306,12 @@ function viewModes() {
     "<small>Candy hearts in a candy jar, the Sweet Shop, the Sweetheart Spinner, Mailbox Doors, Ms. Ariana\u2019s Candy Jar and the \u2694\uFE0F Battle Area with the Heartbreaker-otl. " +
     "Every XP over 120 is a candy heart; every student who misses adds 50 hearts to your jar, which you can spend to heal the Heartbreaker-otl. You turn it on and off yourself (it isn\u2019t automatic). " +
     "Turning it on turns the other modes off and starts everyone\u2019s hearts at 0.</small></span></label>" +
-    (hrt ? ghostSettings() : "") + "</div>";
+    (hrt ? ghostSettings() : "") +
+    '<label class="modebox" style="margin-top:12px;"><input type="checkbox" id="luckyBox"' + (lky ? " checked" : "") + '><span><b>\u{1F340} Lucky Leprechaun Hunt</b>' +
+    "<small>Gold coins in a pot of gold, the Lucky Shop, the Rainbow Wheel, Rainbow Doors, Ms. Ariana\u2019s Pot of Gold and the \u2694\uFE0F Battle Area with Lepre-quack. " +
+    "Every XP over 120 is a gold coin; every student who misses adds 50 coins to your Pot of Gold, which you can spend to heal Lepre-quack. You turn it on and off yourself (it isn\u2019t automatic). " +
+    "Turning it on turns the other modes off and starts everyone\u2019s coins at 0. Set up Leprechaun Trap teams in the Events tab.</small></span></label>" +
+    (lky ? ghostSettings() : "") + "</div>";
 }
 function viewClassSettings() {
   return '<div class="card"><div class="card-head"><h2>Class settings</h2></div><div class="row">' +
@@ -1723,6 +1751,7 @@ document.addEventListener("change", async ev => {
   if (id === "jingleBox") { await toggleJingle(); return; }
   if (id === "frostBox") { await toggleFrost(); return; }
   if (id === "heartBox") { await toggleHeart(); return; }
+  if (id === "luckyBox") { await toggleLucky(); return; }
   if (ev.target.dataset && ev.target.dataset.trready) { if (cls) onTradeReady(ev.target, tctx()); return; }
   if (ev.target.dataset && ev.target.dataset.trsel) { if (cls) onTradeChange(ev.target, tctx()); return; }
   if (id === "lunchBonusBox") { const on = ev.target.checked; try { await updateDoc(classRef, { lunchBonus: on }); flash("Saved \u2014 Lunch Hero bonus egg " + (on ? "on" : "off") + "."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
@@ -1918,7 +1947,7 @@ document.addEventListener("click", async ev => {
     if (!k || el.dataset.ask) { busy.hitReset = k || null; render(); return; }
     busy.hitReset = null;
     const snap = {}; students.forEach(st => { snap[st.id] = rawHits(st)[k]; });
-    try { await updateDoc(classRef, { ["hitBase." + k]: snap, ["hitReset." + k]: new Date().toISOString() }); flash("Saved \u2014 the " + ({ haunt: "Haunt-O-Ween", gobble: "Gobble-Palooza", jingle: "Jingle Jam", frost: "Frostbite Festival", heart: "Sweetheart Showdown" }[k]) + " hit count starts over from 0."); }
+    try { await updateDoc(classRef, { ["hitBase." + k]: snap, ["hitReset." + k]: new Date().toISOString() }); flash("Saved \u2014 the " + ({ haunt: "Haunt-O-Ween", gobble: "Gobble-Palooza", jingle: "Jingle Jam", frost: "Frostbite Festival", heart: "Sweetheart Showdown", lucky: "Lucky Leprechaun Hunt" }[k]) + " hit count starts over from 0."); }
     catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); }
     return;
   }
@@ -1984,7 +2013,8 @@ document.addEventListener("click", async ev => {
     if (p.id === "antlers") { data.antlersHat = false; if (s.equipped === "antlers") data.equipped = null; }
     if (p.id === "earmuffs") { data.earmuffsHat = false; if (s.equipped === "earmuffs") data.equipped = null; }
     if (p.id === "cupidcrown") { data.crownHat = false; if (s.equipped === "cupidcrown") data.equipped = null; }
-    if (p.id === "brew" || p.id === "pie" || p.id === "cocoa" || p.id === "strawberry") data.brews = dec("brews");
+    if (p.id === "luckyhat") { data.luckyHat = false; if (s.equipped === "luckyhat") data.equipped = null; }
+    if (p.id === "brew" || p.id === "pie" || p.id === "cocoa" || p.id === "strawberry" || p.id === "charms") data.brews = dec("brews");
     if (p.id === "attack" || p.id === "snowball") data.extraAttacks = dec("extraAttacks");
     if (p.id === "spin") data.spins = dec("spins");
     return patch(sid, data);
@@ -2278,7 +2308,7 @@ document.addEventListener("click", async ev => {
       ...(isFrost(cls) ? wallMarks(cls, students, (Number(cls.bucketEarned) || 0) + f.candy) : {}),   // the new snow blocks go on top of what's standing
       "teacher.eggsEarned": tEggs, "teacher.xpEarned": tXp, ["teacherLog." + date]: { eggs: tr.eggs, xp: tr.xp } });
     f.died.forEach(x => batch.update(studentRef(x.id), { deaths: (x.deaths || []).concat([{ date, day: d, week: cls.weekLabel || "" }]) }));
-    try { await batch.commit(); flash("Saved \u2014 " + DAYS[d] + " is finalized." + (f.candy ? (isFrost(cls) ? " The Snowlotl built +" + f.candy + " HP of snow wall!" : " +" + f.candy + " " + (isHeart(cls) ? "candy hearts" : SEASON.cur) + " for Ms. Ariana!") : "") + " You earned " + tr.eggs + " egg" + (tr.eggs === 1 ? "" : "s") + " and " + tr.xp + " XP for your creatures."); } catch (e) { flash("Couldn\u2019t finalize \u2014 " + e.code); }
+    try { await batch.commit(); flash("Saved \u2014 " + DAYS[d] + " is finalized." + (f.candy ? (isFrost(cls) ? " The Snowlotl built +" + f.candy + " HP of snow wall!" : " +" + f.candy + " " + (isHeart(cls) ? "candy hearts" : isLucky(cls) ? "gold coins" : SEASON.cur) + " for Ms. Ariana!") : "") + " You earned " + tr.eggs + " egg" + (tr.eggs === 1 ? "" : "s") + " and " + tr.xp + " XP for your creatures."); } catch (e) { flash("Couldn\u2019t finalize \u2014 " + e.code); }
     return;
   }
   if (act === "unfinalize") {
