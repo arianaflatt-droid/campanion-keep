@@ -4,9 +4,9 @@
    Each student's picture is its own small doc, classes/{class}/rewards/{studentId} = { img: "data:image/webp;base64,..." },
    so a student's page reads only its own picture (and the class roster stays small).
    Progress = that subject's XP this week (Mon-Sun, from xpHist[date].sub). The reward only counts in its own week. */
-import { esc, weekKey } from "./game.js?v=20261104d";
-import { SUB_NAMES } from "./teams.js?v=20261104d";
-import { addDays, weekTotal, histWeekTotal, rewardFor } from "./doors.js?v=20261104d";
+import { esc, weekKey } from "./game.js?v=20261104f";
+import { SUB_NAMES } from "./teams.js?v=20261104f";
+import { addDays, weekTotal, histWeekTotal, rewardFor } from "./doors.js?v=20261104f";
 
 // "all" = every subject added up (the week's total XP), for students whose goal is total XP (like 600)
 const NAMES = Object.assign({ all: "Total" }, SUB_NAMES);
@@ -43,15 +43,16 @@ export function rewardAdmin(students, cls, pics, busy) {
   const subOpts = sel => '<option value="">Subject…</option><option value="all"' + (sel === "all" ? " selected" : "") + ">All subjects (total XP)</option>" + Object.entries(SUB_NAMES).map(([k, n]) => '<option value="' + k + '"' + (sel === k ? " selected" : "") + ">" + n + "</option>").join("");
   let h = "";
   h += '<div class="card"><div class="card-head"><h2>\u{1F48E} Treasure Vault rewards</h2><span class="fact">week of ' + esc(wk) + "</span></div>" +
-    '<p class="lede" style="margin-bottom:10px;">Give each student their own reward: a name, a subject, an XP amount and a picture. Their subject XP from Monday to Sunday fills the bar. You’ll see a banner when someone earns it.</p>' +
+    '<p class="lede" style="margin-bottom:10px;">Give each student their own reward: a name, a subject, an XP amount and a picture. Their subject XP from Monday to Sunday fills the bar. You’ll see a banner when someone earns it. Subject swaps (Students tab) count for the vault\u2019s core subjects too.</p>' +
     '<div class="row rgfill" style="gap:8px;align-items:center;margin-bottom:12px;"><b class="small">Fill everyone:</b><input id="rgFillName" type="text" maxlength="40" placeholder="Reward name" style="width:170px"><select id="rgFillSub">' + subOpts("") + '</select><input id="rgFillXp" type="number" min="1" step="10" placeholder="XP" style="width:90px"><button class="btn ghost small" data-act="rgFill">Fill all rows</button></div>' +
     ('<div id="rgUnsaved" class="banner warn" style="margin-bottom:10px;' + (Object.keys(busy.rgDraft || {}).length ? "" : "display:none;") + '">\u26A0\uFE0F <b>You have changes that aren\u2019t saved yet.</b> Students won\u2019t see them until you click <b>Save this week\u2019s rewards</b>.</div>') +
     '<div class="rgtable">' + kids.map(s => {
-      const g = rewardFor(s, cls), d = Object.assign({ name: g ? g.name : "", sub: g ? g.sub : "", xp: g ? g.xp : "" }, (busy.rgDraft || {})[s.id] || {});
+      const g = rewardFor(s, cls), d = Object.assign({ name: g ? g.name : "", sub: g ? g.sub : "", xp: g ? g.xp : "", link: g ? g.link || "" : "" }, (busy.rgDraft || {})[s.id] || {});
       const goal = Number(d.xp) || 0, n = d.sub ? subWeek(s, wk, d.sub, cls) : 0;
       return '<div class="rgtr"><label class="rgpicbtn" title="Pick a picture">' + pic(pics[s.id], g, "rgthumb") + '<input type="file" accept="image/*" hidden data-rgpic="' + s.id + '"></label>' +
         '<div class="rgcol"><div class="row" style="gap:8px;align-items:center;"><span class="rgn">' + esc(s.name) + '</span><input id="rgName-' + s.id + '" data-rgf="name" type="text" maxlength="40" placeholder="Reward name" value="' + esc(String(d.name || "")) + '" style="flex:1;min-width:150px">' +
         '<select id="rgSub-' + s.id + '" data-rgf="sub">' + subOpts(d.sub) + '</select><input id="rgXp-' + s.id + '" data-rgf="xp" type="number" min="1" step="10" placeholder="XP" value="' + esc(String(d.xp)) + '" style="width:90px"></div>' +
+        '<input id="rgLink-' + s.id + '" data-rgf="link" type="url" maxlength="500" placeholder="\u{1F517} Link to order it (optional, only you see it on Prize winners)" value="' + esc(String(d.link || "")) + '" style="width:100%;margin-top:4px;">' +
         (d.sub && goal ? '<div class="row" style="gap:10px;align-items:center;margin-top:4px;">' + bar(n, goal, true) + '<span class="small muted rgnn">' + n + " / " + goal + " " + NAMES[d.sub] + " XP" + (g && n >= goal ? (((s.vault || {})[wk]) === "open" ? " \u00b7 \u{1F48E} vault opened" : " \u00b7 \u{1F389} goal reached!") : "") + "</span></div>" : "") + "</div></div>";
     }).join("") + "</div>" +
     '<div class="row" style="margin-top:12px;"><button class="btn" data-act="rgSave">\u{1F4BE} Save this week’s rewards</button><span class="muted small">Tap the \u{1F381} square to add a picture. Leave XP empty to give a student the plain 600 XP vault this week. The reward name is optional.</span></div></div>';
