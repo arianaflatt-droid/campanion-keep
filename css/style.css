@@ -2239,3 +2239,20 @@ body.mini-val .wrap{ position:relative; z-index:1; } body.mini-val .tile{ box-sh
 .candybox.cbx-trap .cb-box{ border-radius:0; }
 .candybox.cbx-trap .cb-step{ background:#E9FFE9; border-color:#1F8A3C; }
 .candybox.cbx-trap.done .cb-step{ background:#FFE08A; }
+
+/* 📅 School calendar (Nov 4) */
+.calnav{display:flex;align-items:center;gap:10px;margin:10px 0 8px;}
+.calnav b{font-family:var(--display, inherit);font-size:17px;min-width:150px;text-align:center;}
+.calgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;}
+.calh{font-size:11px;text-transform:uppercase;letter-spacing:.06em;opacity:.6;text-align:center;padding:2px 0;}
+.calc{min-height:52px;border-radius:10px;border:1px solid var(--line, #ddd);background:#fff;padding:4px 5px;text-align:left;display:flex;flex-direction:column;gap:2px;font:inherit;cursor:pointer;}
+.calc b{font-size:13px;}
+.calc small{font-size:10.5px;line-height:1.15;color:#8a4b00;overflow:hidden;}
+.calc.we{background:#f3f1ea;opacity:.55;cursor:default;}
+.calc.blank{border:0;background:none;cursor:default;}
+.calc.off{background:#FFE7C2;border-color:#F1B866;}
+.calc.today{outline:2px solid #1F6E78;outline-offset:-2px;}
+.calc:not(.we):not(.blank):hover{border-color:#1F6E78;}
+.calruns{margin-top:12px;display:flex;flex-direction:column;gap:6px;}
+.calrun{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#FFF6E6;border-radius:10px;padding:6px 10px;font-size:14px;}
+#axoHost{margin-top:4px;}
