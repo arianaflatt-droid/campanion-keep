@@ -1,5 +1,5 @@
 // Creature Collector: pulls, XP bank, levels, evolutions, lorebook and arena battles.
-import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261104b";
+import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261104c";
 
 export const PULL_XP = 120;          // every 120 XP (all-time since the collector started) = 1 pull
 export const LEVEL_XP = 120;         // 120 banked XP = 1 level
@@ -310,10 +310,17 @@ export const TEACHER_ID = "teacher";
 export const TEACHER_XP_PER_MISS = 120;   // one level per student who missed 120
 // The teacher's eggs: a 25% chance at a Legendary (the rest keeps the normal 70:20:8:2 split).
 export const TEACHER_ODDS = [["Common", 0.525], ["Uncommon", 0.15], ["Rare", 0.06], ["Super Rare", 0.015], ["Legendary", 0.25]];
+export const teacherLegFam = f => { const fm = family(f); return !!fm && (fm.rarity === "Legendary" || fm.rarity === "Ultra"); };
+// Nov 4: the teacher doesn't earn or spend XP. Her Legendaries (and Ultras) can be set to Lv 100; every other creature stays Lv 1.
+export function teacherColl(coll) {
+  const out = {};
+  Object.keys(coll || {}).forEach(f => { const e = coll[f] || {}; out[f] = Object.assign({}, e, { lvl: teacherLegFam(f) ? Math.min(MAX_LEVEL, e.lvl || 1) : 1 }); });
+  return out;
+}
 export function teacherPlayer(cls, name) {
   const t = (cls && cls.teacher) || {};
-  return { id: TEACHER_ID, isTeacher: true, name: name || t.name || "Ms. Ariana", companionId: "teacher", coll: t.coll || {},
-    pullsUsed: Number(t.pullsUsed) || 0, xpSpent: Number(t.xpSpent) || 0, bonusPulls: Number(t.eggsEarned) || 0, bonusXP: Number(t.xpEarned) || 0, xpReleased: Number(t.xpReleased) || 0,
+  return { id: TEACHER_ID, isTeacher: true, name: name || t.name || "Ms. Ariana", companionId: "teacher", coll: teacherColl(t.coll),
+    pullsUsed: Number(t.pullsUsed) || 0, xpSpent: Number(t.xpSpent) || 0, bonusPulls: Number(t.eggsEarned) || 0, bonusXP: 0, xpReleased: Number(t.xpReleased) || 0,
     legendaryPulls: 0, legendaryUsed: 0, arenaReady: !!t.arenaReady, tradeReady: t.tradeReady !== false, xpHist: {}, spares: t.spares || [], dex: t.dex || [] };
 }
 export function rollTeacherRarity() {
@@ -327,7 +334,7 @@ export function teacherReward(students, d) {
   const team = students.filter(s => s.companionId), hit = team.filter(s => arr(s.status, d) === "c" || (arr(s.status, d) === "e" && ((Number(arr(s.xp, d)) || 0) >= 120 || (Number(arr(s.lunchXp, d)) || 0) >= 120))).length;
   const missed = team.filter(s => { const v = arr(s.status, d); return v !== "c" && v !== "e"; }).length;
   // a day when everyone hit 120 still gives the teacher one level's worth of XP
-  return { eggs: hit, xp: missed > 0 ? missed * TEACHER_XP_PER_MISS : TEACHER_XP_PER_MISS, hit, missed };
+  return { eggs: hit, xp: 0, hit, missed };   // the teacher no longer earns XP (Nov 4)
 }
 
 /* ---------- gacha ---------- */

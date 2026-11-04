@@ -1,42 +1,42 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261104b";
-import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261104b";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261104b";
-import { cpEarnedCalc } from "./room.js?v=20261104b";
-import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261104b";
-import { rewardFor } from "./doors.js?v=20261104b";
-import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet, subReq, subRuleOn, SUB_DAY, addDays } from "./doors.js?v=20261104b";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing } from "./collector-ui.js?v=20261104b";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261104c";
+import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261104c";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261104c";
+import { cpEarnedCalc } from "./room.js?v=20261104c";
+import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261104c";
+import { rewardFor } from "./doors.js?v=20261104c";
+import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet, subReq, subRuleOn, SUB_DAY, addDays } from "./doors.js?v=20261104c";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing } from "./collector-ui.js?v=20261104c";
 import {
   newsHTML, boostOn, boostHTML, countdownHTML, applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   boss2Of, boss2Prize, simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, weekCandyBefore, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, isFrost, isHeart, heartUnlocked, isLucky, luckyUnlocked, saveProblems, yetiUnlocked, wallMarks, WALL_BLOCK, BOSS_START_HP, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261104b";
-import { MQ_CUTOFF } from "./morning.js?v=20261104b";
-import { kindAdmin } from "./kindness.js?v=20261104b";
-import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261104b";
-import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261104b";
-import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261104b";
-import { passAdmin } from "./pass.js?v=20261104b";
-import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261104b";
-import { watchSecret, secretRef } from "./db.js?v=20261104b";
-import { secretAdmin, secretClick, autoPick, secretBanner } from "./secret.js?v=20261104b";
-import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef, newBattleRef, newsPicRef, watchNewsPic } from "./db.js?v=20261104b";
-import { mapAdmin } from "./readmap.js?v=20261104b";
-import { wheelTab, wheelClick } from "./subwheel.js?v=20261104b";
-import { tbRequestsCard, tbInvite, tbToSettle } from "./teachbattle.js?v=20261104b";
-import { rewardAdmin, rgWaiting, rgOf, shrinkImage } from "./weekgoal.js?v=20261104b";
-import { soloAdmin, soloCfg, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261104b";
-import { feederLink } from "./feeder.js?v=20261104b";
-import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261104b";
+} from "./game.js?v=20261104c";
+import { MQ_CUTOFF } from "./morning.js?v=20261104c";
+import { kindAdmin } from "./kindness.js?v=20261104c";
+import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261104c";
+import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261104c";
+import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261104c";
+import { passAdmin } from "./pass.js?v=20261104c";
+import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261104c";
+import { watchSecret, secretRef } from "./db.js?v=20261104c";
+import { secretAdmin, secretClick, autoPick, secretBanner } from "./secret.js?v=20261104c";
+import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef, newBattleRef, newsPicRef, watchNewsPic } from "./db.js?v=20261104c";
+import { mapAdmin } from "./readmap.js?v=20261104c";
+import { wheelTab, wheelClick } from "./subwheel.js?v=20261104c";
+import { tbRequestsCard, tbInvite, tbToSettle } from "./teachbattle.js?v=20261104c";
+import { rewardAdmin, rgWaiting, rgOf, shrinkImage } from "./weekgoal.js?v=20261104c";
+import { soloAdmin, soloCfg, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261104c";
+import { feederLink } from "./feeder.js?v=20261104c";
+import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261104c";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef, watchSeats, watchCards
-} from "./db.js?v=20261104b";
-import { G, guardCard, guardClick, guardInput, autoSnap, personalLink, syncCards } from "./guard.js?v=20261104b";
-import { lockCard, lockClick } from "./lock.js?v=20261104b";
-import { revengeAdmin, revengeAction } from "./revenge.js?v=20261104b";
-import { heistAdmin, heistAction } from "./heist.js?v=20261104b";
+} from "./db.js?v=20261104c";
+import { G, guardCard, guardClick, guardInput, autoSnap, personalLink, syncCards } from "./guard.js?v=20261104c";
+import { lockCard, lockClick } from "./lock.js?v=20261104c";
+import { revengeAdmin, revengeAction } from "./revenge.js?v=20261104c";
+import { heistAdmin, heistAction } from "./heist.js?v=20261104c";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -557,14 +557,14 @@ function render(force) {
   else if (mode === "battle") h += shoutTicker(students, cls) + battleHTML(cls, students, battleFx) + ghost2Card() + (isFrost(cls) ? "" : healControls());
   else {
     const np = prizesOpen(), nd = waitingDoors(students, cls).length;
-    const tabs = [["daily", "\u{1F4C5} Daily"], ["students", "\u{1F43E} Students"], ["collector", "\u{1F95A} Collector" + (newIdeas() ? ' <span class="tbadge" aria-label="new creature ideas">' + newIdeas() + "</span>" : "")], ["events", "\u2728 Events" + (eventMode(cls) ? " " + SEASON.icon : "") + (np + nd ? ' <span class="tbadge" aria-label="' + (np + nd) + ' to check">' + (np + nd) + "</span>" : "")], ["rewards", "\u{1F48E} Vault Rewards"], ["wheel", "\u{1F3A1} Wheel"], ["quest", "\u{1F5FA}\uFE0F Quest"], ["settings", "\u2699\uFE0F Settings"]];
+    const tabs = [["daily", "\u{1F4C5} Daily"], ["students", "\u{1F43E} Students"], ["collector", "\u{1F95A} Collector"], ["events", "\u2728 Events" + (eventMode(cls) ? " " + SEASON.icon : "") + (np + nd ? ' <span class="tbadge" aria-label="' + (np + nd) + ' to check">' + (np + nd) + "</span>" : "")], ["rewards", "\u{1F48E} Vault Rewards"], ["wheel", "\u{1F3A1} Wheel"], ["quest", "\u{1F5FA}\uFE0F Quest"], ["settings", "\u2699\uFE0F Settings"]];
     if (!tabs.some(x => x[0] === ctab)) ctab = "daily";
     if (nd && nd > doorHidden) h += '<div class="banner prizealert"><span>\u{1F6AA} <b>' + nd + " door" + (nd === 1 ? "" : "s") + "</b> to check" + doorNames() + '</span><span class="row" style="gap:8px;"><button class="btn small" data-act="goDoors">Check doors</button><button class="btn ghost small" data-act="hideDoors">Hide</button></span></div>';
     if (np && np > prizeHidden) h += '<div class="banner prizealert"><span>\u{1F381} <b>' + np + " prize" + (np === 1 ? "" : "s") + "</b> to order or give" + prizeNames() + '</span><span class="row" style="gap:8px;"><button class="btn small" data-act="goPrizes">View prizes</button><button class="btn ghost small" data-act="hidePrizes">Hide</button></span></div>';
     h += '<div class="tabs ctabs" role="tablist">' + tabs.map(([k, l]) => '<button role="tab" class="tab' + (ctab === k ? " on" : "") + '" data-ctab="' + k + '" aria-selected="' + (ctab === k) + '">' + l + "</button>").join("") + "</div>";
     if (ctab === "daily") h += secretAdmin(students, cls, secretDoc) + newsAdmin() + countdownAdmin() + boostAdmin() + viewDaily() + miniAdmin(students, cls) + partyAdmin(students, cls) + surpriseAdmin(students, cls) + viewWeekDoor() + viewRewards();
     else if (ctab === "students") h += lockCard(students, cls) + viewStandings() + passAdmin(students, cls) + viewAssign() + viewLosses() + viewLinks() + guardCard(students, cls) + subSwapCard();
-    else if (ctab === "collector") h += viewLiveBattles() + tbRequestsCard(students, cls, battles, teacherBusy()) + viewIdeas() + teacherCollectorCard() + viewCollector();
+    else if (ctab === "collector") h += viewLiveBattles() + tbRequestsCard(students, cls, battles, teacherBusy()) + teacherCollectorCard() + viewCollector();
     else if (ctab === "rewards") h += subSwapCard() + rewardAdmin(students, cls, rpics, busy);
     else if (ctab === "quest") h += questTracker(students);
     else if (ctab === "wheel") h += wheelTab(students, cls);
@@ -619,7 +619,7 @@ function finalizeBox() {
     (eventMode(cls) ? "<br>" + SEASON.coin + " " + SEASON.bucket + " gets <b>+" + f.candy + "</b> " + SEASON.cur + "." : "") +
     "<br>\u2B50 Full health: <b>" + f.full.length + "</b> student" + (f.full.length === 1 ? "" : "s") + " (they go on your reward list)." +
     (f.died.length ? "<br>\u{1F480} Disappears: " + f.died.map(x => esc(x.name)).join(", ") + " (added to the losses log)." : "") +
-    (() => { const tr = teacherReward(students, day); return "<br>\u{1F9D1}\u200D\u{1F3EB} Your creatures: <b>+" + tr.eggs + " egg" + (tr.eggs === 1 ? "" : "s") + "</b> and <b>+" + tr.xp + " XP</b>."; })() +
+    (() => { const tr = teacherReward(students, day); return "<br>\u{1F9D1}\u200D\u{1F3EB} Your creatures: <b>+" + tr.eggs + " egg" + (tr.eggs === 1 ? "" : "s") + "</b>."; })() +
     '<div class="row" style="margin-top:8px;"><button class="btn small" data-act="finalizeOk">Yes, finalize</button><button class="btn ghost small" data-act="finalizeCancel">Cancel</button></div></div>';
 }
 
@@ -1278,40 +1278,46 @@ function ghostSettings() {
 function viewModes() {
   const on = isHaunt(cls), gob = isGobble(cls), jin = isJingle(cls), fro = isFrost(cls), hrt = isHeart(cls), lky = isLucky(cls);
   const md = d => new Date(d + "T12:00:00").toLocaleDateString(undefined, { month: "long", day: "numeric" });
-  return '<div class="card"><div class="card-head"><h2>\u2728 Special modes</h2><span class="fact">' + (on ? "<b>Haunt-O-Ween is on</b>" : gob ? "<b>Gobble-Palooza is on</b>" : jin ? "<b>Jingle Jam is on</b>" : fro ? "<b>Frostbite Festival is on</b>" : hrt ? "<b>Sweetheart Showdown is on</b>" : lky ? "<b>Lucky Leprechaun Hunt is on</b>" : "none on") + "</span></div>" +
-    '<label class="modebox"><input type="checkbox" id="hauntBox"' + (on ? " checked" : "") + (busy.hauntAsk ? " disabled" : "") + '><span><b>\u{1F383} Haunt-O-Ween Mode</b>' +
+  const now = azToday().slice(5, 7);   // only this month's mode (and any that is on) shows open; the rest fold away
+  const modes = [
+    { m: "10", on: on, h: () => '<label class="modebox" style="margin-top:12px;"><input type="checkbox" id="hauntBox"' + (on ? " checked" : "") + (busy.hauntAsk ? " disabled" : "") + '><span><b>\u{1F383} Haunt-O-Ween Mode</b>' +
     '<small>Adds candy baskets, the Candy Shop, the Trick or Treat Wheel, Ms. Ariana\u2019s bucket and the \u2694\uFE0F Battle Area with the Ghost-olotl. All the normal rules keep working. ' +
     "Turn it off and all of that is hidden from you and your students.</small></span></label>" +
     (busy.hauntAsk ? '<div class="banner warn" style="margin-top:12px;">Students still have candy from last time. Keep adding to it, or start everyone at 0?' +
       '<div class="row" style="margin-top:8px;"><button class="btn small" data-act="hauntKeep">Keep their candy</button><button class="btn small danger" data-act="hauntFresh">Start fresh at 0</button>' +
       '<button class="btn ghost small" data-act="hauntCancel">Cancel</button></div></div>' : "") +
-    (on ? ghostSettings() : "") +
-    '<label class="modebox" style="margin-top:12px;"><input type="checkbox" id="gobbleBox"' + (gob ? " checked" : "") + '><span><b>\u{1F983} Gobble-Palooza</b>' +
+    (on ? ghostSettings() : "") },
+    { m: "11", on: gob, h: () => '<label class="modebox" style="margin-top:12px;"><input type="checkbox" id="gobbleBox"' + (gob ? " checked" : "") + '><span><b>\u{1F983} Gobble-Palooza</b>' +
     "<small>Corn cornucopias, the Gobble Shop, the Pie Wheel, Ms. Ariana\u2019s Cornucopia and the \u2694\uFE0F Battle Area with the Turducken. " +
     "It turns itself on the first time you open this console on or after " + new Date(GOBBLE_FROM + "T12:00:00").toLocaleDateString(undefined, { month: "long", day: "numeric" }) +
     " and off after " + new Date(GOBBLE_TO + "T12:00:00").toLocaleDateString(undefined, { month: "long", day: "numeric" }) + ". Turning it on turns Haunt-O-Ween off and starts everyone\u2019s corn at 0 " +
     "(spins, extra attacks and brews they already have carry over).</small></span></label>" +
-    (gob ? ghostSettings() : "") + (eventMode(cls) ? resetCurHTML() : "") +
-    '<label class="modebox" style="margin-top:12px;"><input type="checkbox" id="jingleBox"' + (jin ? " checked" : "") + '><span><b>\u{1F384} Jingle Jam</b>' +
+    (gob ? ghostSettings() : "") },
+    { m: "12", on: jin, h: () => '<label class="modebox" style="margin-top:12px;"><input type="checkbox" id="jingleBox"' + (jin ? " checked" : "") + '><span><b>\u{1F384} Jingle Jam</b>' +
     "<small>Presents under a mini tree, the Jingle Shop, the Present Wheel, the Grinch\u2019s Sack and the \u2694\uFE0F Battle Area with the Grinch-a-Duck. " +
     "It turns itself on the first time you open this console on or after " + md(JINGLE_FROM) + " and off after " + md(JINGLE_TO) +
     ". Turning it on turns the other modes off and starts everyone\u2019s presents at 0 (spins, extra attacks and cocoas/pies/brews they already have carry over).</small></span></label>" +
-    (jin ? ghostSettings() : "") +
-    '<label class="modebox" style="margin-top:12px;"><input type="checkbox" id="frostBox"' + (fro ? " checked" : "") + '><span><b>\u2744\uFE0F Frostbite Festival</b>' +
+    (jin ? ghostSettings() : "") },
+    { m: "01", on: fro, h: () => '<label class="modebox" style="margin-top:12px;"><input type="checkbox" id="frostBox"' + (fro ? " checked" : "") + '><span><b>\u2744\uFE0F Frostbite Festival</b>' +
     "<small>Snowflakes in a snow globe, the Snow Shop, the Blizzard Wheel, Frozen Doors and the \u2694\uFE0F Battle Area with the Abominable Snowlotl. " +
     "Each 120 XP day packs a snowball; every student who misses adds a snow block to the Snowlotl\u2019s wall. You turn it on and off yourself (it isn\u2019t automatic). " +
     "Turning it on turns the other modes off and starts everyone\u2019s snowflakes at 0.</small></span></label>" +
-    (fro ? ghostSettings() : "") +
-    '<label class="modebox" style="margin-top:12px;"><input type="checkbox" id="heartBox"' + (hrt ? " checked" : "") + '><span><b>\u{1F498} Sweetheart Showdown</b>' +
+    (fro ? ghostSettings() : "") },
+    { m: "02", on: hrt, h: () => '<label class="modebox" style="margin-top:12px;"><input type="checkbox" id="heartBox"' + (hrt ? " checked" : "") + '><span><b>\u{1F498} Sweetheart Showdown</b>' +
     "<small>Candy hearts in a candy jar, the Sweet Shop, the Sweetheart Spinner, Mailbox Doors, Ms. Ariana\u2019s Candy Jar and the \u2694\uFE0F Battle Area with the Heartbreaker-otl. " +
     "Every XP over 120 is a candy heart; every student who misses adds 50 hearts to your jar, which you can spend to heal the Heartbreaker-otl. You turn it on and off yourself (it isn\u2019t automatic). " +
     "Turning it on turns the other modes off and starts everyone\u2019s hearts at 0.</small></span></label>" +
-    (hrt ? ghostSettings() : "") +
-    '<label class="modebox" style="margin-top:12px;"><input type="checkbox" id="luckyBox"' + (lky ? " checked" : "") + '><span><b>\u{1F340} Lucky Leprechaun Hunt</b>' +
+    (hrt ? ghostSettings() : "") },
+    { m: "03", on: lky, h: () => '<label class="modebox" style="margin-top:12px;"><input type="checkbox" id="luckyBox"' + (lky ? " checked" : "") + '><span><b>\u{1F340} Lucky Leprechaun Hunt</b>' +
     "<small>Gold coins in a pot of gold, the Lucky Shop, the Rainbow Wheel, Rainbow Doors, Ms. Ariana\u2019s Pot of Gold and the \u2694\uFE0F Battle Area with Lepre-quack. " +
     "Every XP over 120 is a gold coin; every student who misses adds 50 coins to your Pot of Gold, which you can spend to heal Lepre-quack. You turn it on and off yourself (it isn\u2019t automatic). " +
     "Turning it on turns the other modes off and starts everyone\u2019s coins at 0. Set up Leprechaun Trap teams in the Events tab.</small></span></label>" +
-    (lky ? ghostSettings() : "") + "</div>";
+    (lky ? ghostSettings() : "") }
+  ];
+  const shown = modes.filter(x => x.on || x.m === now), rest = modes.filter(x => !shown.includes(x));
+  return '<div class="card"><div class="card-head"><h2>\u2728 Special modes</h2><span class="fact">' + (on ? "<b>Haunt-O-Ween is on</b>" : gob ? "<b>Gobble-Palooza is on</b>" : jin ? "<b>Jingle Jam is on</b>" : fro ? "<b>Frostbite Festival is on</b>" : hrt ? "<b>Sweetheart Showdown is on</b>" : lky ? "<b>Lucky Leprechaun Hunt is on</b>" : "none on") + "</span></div>" +
+    shown.map(x => x.h()).join("") + (eventMode(cls) ? resetCurHTML() : "") +
+    (rest.length ? '<details class="othermodes" style="margin-top:14px;"><summary class="muted"><b>Other months\u2019 modes</b> (' + rest.length + ")</summary>" + rest.map(x => x.h()).join("") + "</details>" : "") + "</div>";
 }
 function viewClassSettings() {
   return '<div class="card"><div class="card-head"><h2>Class settings</h2></div><div class="row">' +

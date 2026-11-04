@@ -4,15 +4,15 @@ import {
   formIndex, formOf, statsOf, seenSet, rollRarity, doPull, arenaOpen, arenaOpenFor, lunchHour, hitGoalToday, LUNCH_ARENA, ARENA_HOURS, fighterFrom, teamSize, alive, resolve, resolveRound, moveOk, MOVES, hitDamage,
   birthdayLeft, pickleLeft, PICKLE_FAM, brewLegLeft, BREW_FAM, feastLegLeft, HARVEST_FAM, gingerLegLeft, GINGER_FAM, snowLegLeft, SNOW_FAM, candyLegLeft, CANDY_FAM, ghostEggLeft, GHOST_FAM, BOSS2_LIST, boss2EggLeft, vaultLegLeft, revengeLegLeft, heistLegLeft, goalLeft, nextGoal, rollRareUp, themeLeft, nextTheme, THEME_TYPES, THEME_EGG, WISH_FAM, spares, spareId, releaseXP, releaseProblem, isStarterFam, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
   EVENTS, eventOpen, eventWindow, eventStreak, hasEvent, eventUnlocked, azToday, rollTeacherRarity, TEACHER_ODDS, LIVE, staleBattle
-} from "./collect.js?v=20261104b";
-import { newBattleRef, battleRef, updateDoc, changeBattle as changeBattleRaw, setDoc, liveBattlesNow, ck, ckMessage } from "./db.js?v=20261104b";
+} from "./collect.js?v=20261104c";
+import { newBattleRef, battleRef, updateDoc, changeBattle as changeBattleRaw, setDoc, liveBattlesNow, ck, ckMessage } from "./db.js?v=20261104c";
 // every change to a battle is stamped with the time (upd), so a battle nobody has touched in a while can be ended
 let locking = null, leaving = null;   // battle id while "Lock in team" is saving
 const changeBattle = (id, fn) => changeBattleRaw(id, bt => { const n = fn(bt); if (n) n.upd = new Date().toISOString(); return n; });
 
-import { tradeCard } from "./trade-ui.js?v=20261104b";
-import { ultraLeft, isUltra, trapLegLeft, PRISM_FAM } from "./collect.js?v=20261104b";
-import { ultraSection, ultraInfoHTML } from "./ultra.js?v=20261104b";
+import { tradeCard } from "./trade-ui.js?v=20261104c";
+import { ultraLeft, isUltra, trapLegLeft, PRISM_FAM, teacherLegFam } from "./collect.js?v=20261104c";
+import { ultraSection, ultraInfoHTML } from "./ultra.js?v=20261104c";
 
 const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const PER_PAGE = 20;
@@ -83,7 +83,7 @@ export function collectorTab(c) {
     stat("⭐", bank.toLocaleString(), "XP in your bank") +
     stat("\u{1F4D6}", seen.size + " / " + CREATURES.length, "in your lorebook") + "</div>" +
     (s.isTeacher
-      ? '<p class="muted" style="margin:10px 0 12px;">Each day you finalize gives you <b>1 egg for every student who hit 120 XP</b> and <b>' + LEVEL_XP + " banked XP (1 level) for every student who didn\u2019t</b>. If everyone hits 120, you still get " + LEVEL_XP + " XP. Excused days don\u2019t count.</p>"
+      ? '<p class="muted" style="margin:10px 0 12px;">Each day you finalize gives you <b>1 egg for every student who hit 120 XP</b> (excused days don\u2019t count). You don\u2019t earn XP: tap <b>\u2B06 Set to Lv 100</b> on a Legendary to max it out. Your other creatures stay at Lv 1.</p>'
       : '<p class="muted" style="margin:10px 0 12px;">Reach ' + PULL_XP + " XP in a day for an egg, and every " + PULL_XP + " more that day earns another." + (c.cls && c.cls.lunchBonus === false ? "" : " \u2600\uFE0F Hit " + PULL_XP + " <b>before lunch</b> for a bonus egg!") + " Next egg today in <b>" + xpToNextPull(s, c.cls) + " XP</b>. All your XP also goes into your bank to level up creatures (" + LEVEL_XP + " XP = 1 level).</p>") +
     '<div class="row"><button class="btn big" data-cc="hatch"' + (pulls ? "" : " disabled") + ">\u{1F95A} Hatch an egg</button>" +
     (pulls >= 2 ? '<button class="btn big gold" data-cc="hatchAll">\u{1F95A}\u{1F95A} Hatch all ' + pulls + "</button>" : "") +
@@ -105,7 +105,7 @@ export function collectorTab(c) {
     (themeLeft(s) ? '<button class="btn big gold" data-cc="hatchTheme"><img src="assets/egg-' + nextTheme(s) + '.webp" alt="" style="height:1.5em;vertical-align:middle;margin:-4px 4px -4px 0;">Hatch your ' + THEME_EGG[nextTheme(s)] + "!</button>" : "") +
     '<button class="btn ghost big" data-cc="book">\u{1F4D6} Open lorebook</button></div>' +
     '<p class="muted" style="margin-top:8px;">Egg odds: ' + (s.isTeacher ? TEACHER_ODDS : ODDS).map(([r, p]) => r + " " + (p < 0.01 ? (p * 100).toFixed(2) : Number.isInteger(Math.round(p * 1000) / 10) ? Math.round(p * 100) : (p * 100).toFixed(1)) + "%").join(" · ") + "</p></div>";
-  if (!s.isTeacher) h += eventCards(s, c.cls) + ideaCard(s, c.cls);
+  if (!s.isTeacher) h += eventCards(s, c.cls);
   h += ultraSection(s, c.cls);   // 🌈 Ultra Legendaries get their own section
   h += myCreatures(s, bank);
   h += arenaCard(s);
@@ -195,7 +195,8 @@ function myCreatures(s, bank) {
       nameRow(f, e, c) + '<span class="lv">Lv ' + lvl + "</span>" +
       '<small class="muted">❤ ' + st.hp + " · \u{1F6E1} " + st.df + " · ⚔ " + st.dmg + "</small>" +
       (next && evoAt ? '<small class="evo">Evolves at Lv ' + evoAt + "</small>" : "") +
-      '<button class="btn small" data-cc="lvl" data-fam="' + f + '"' + (bank >= LEVEL_XP && !maxed ? "" : " disabled") + ">" + (maxed ? "Max level" : "⬆ Level up · " + LEVEL_XP + " XP") + "</button>" +
+      (s.isTeacher ? (teacherLegFam(f) ? '<button class="btn small" data-cc="lvl100" data-fam="' + f + '"' + (maxed ? " disabled" : "") + ">" + (maxed ? "Lv 100 \u2705" : "\u2B06 Set to Lv 100") + "</button>" : "")
+        : '<button class="btn small" data-cc="lvl" data-fam="' + f + '"' + (bank >= LEVEL_XP && !maxed ? "" : " disabled") + ">" + (maxed ? "Max level" : "⬆ Level up · " + LEVEL_XP + " XP") + "</button>") +
       (fams.length > 1 && !family(f).event ? (e.fav ? '<small class="muted" style="margin-top:4px;">\u2B50 Favorites can\u2019t be traded</small>' : tradeBtn("m:" + f, e.forTrade)) : "") +
       (fams.length > 1 && !family(f).event && s.petCreature !== f ? releaseRow("m:" + f, f, e.nick || c.name) : "") + "</div>";
   });
@@ -441,7 +442,8 @@ function detailPage(c, seen) {
       '<span class="cf">' + (got ? img(f) + "<small>" + esc(f.name) + "</small>" : '<span class="q">?</span><small>???</small>') + "</span>"; }).join("") + "</div>";
   if (e && e.sparkle) h += '<div class="dalt"><span class="dalt-k">\u2728 Your Sparkle form</span>' + img(c, "dalt-img", true) + "</div>";
   h += '<p class="dlore">' + esc(c.lore) + "</p>";
-  if (cur) h += '<div class="row" style="justify-content:center;"><button class="btn" data-cc="lvl" data-fam="' + c.fam + '"' + (bank >= LEVEL_XP && lvl < MAX_LEVEL ? "" : " disabled") + ">⬆ Level up · " + LEVEL_XP + " XP</button><span class=\"muted\">Bank: " + bank + " XP</span></div>";
+  if (cur && s.isTeacher) { if (teacherLegFam(c.fam)) h += '<div class="row" style="justify-content:center;"><button class="btn" data-cc="lvl100" data-fam="' + c.fam + '"' + (lvl >= MAX_LEVEL ? " disabled" : "") + ">" + (lvl >= MAX_LEVEL ? "Lv 100 \u2705" : "\u2B06 Set to Lv 100") + "</button></div>"; }
+  else if (cur) h += '<div class="row" style="justify-content:center;"><button class="btn" data-cc="lvl" data-fam="' + c.fam + '"' + (bank >= LEVEL_XP && lvl < MAX_LEVEL ? "" : " disabled") + ">⬆ Level up · " + LEVEL_XP + " XP</button><span class=\"muted\">Bank: " + bank + " XP</span></div>";
   return h + '<div class="row" style="justify-content:center;margin-top:10px;"><button class="btn ghost small" data-cc="bookClose">Close lorebook</button></div>';
 }
 
@@ -864,8 +866,15 @@ export async function onClick(el, c) {
     book.open = true; book.detail = id; book.flip = "in-next"; return c.render(true);
   }
   if (a === "back") { book.detail = null; book.flip = "in-prev"; return c.render(true); }
+  if (a === "lvl100") {   // teacher only: a Legendary / Ultra jumps straight to Lv 100 (no XP)
+    const f = el.dataset.fam, e = owned(s)[f]; if (!s.isTeacher || !e || !teacherLegFam(f) || (e.lvl || 1) >= MAX_LEVEL) return;
+    const before = formOf(f, e.lvl || 1), after = formOf(f, MAX_LEVEL);
+    if (book && book.detail === before.id) book.detail = after.id;
+    await c.patch({ coll: Object.assign({}, owned(s), { [f]: Object.assign({}, e, { lvl: MAX_LEVEL }) }) });
+    return c.flash("\u2728 " + after.name + " is now Lv 100!", true);
+  }
   if (a === "lvl") {
-    const f = el.dataset.fam, e = owned(s)[f]; if (!e || bankXP(s, c.cls) < LEVEL_XP || (e.lvl || 1) >= MAX_LEVEL) return;
+    const f = el.dataset.fam, e = owned(s)[f]; if (s.isTeacher || !e || bankXP(s, c.cls) < LEVEL_XP || (e.lvl || 1) >= MAX_LEVEL) return;
     if (!s.isTeacher) return serverDo(c, "levelUp", { fam: f }, x => { if (book && book.detail === x.before) book.detail = x.after;
       c.flash(x.after !== x.before ? "\u2728 " + x.beforeName + " evolved into " + x.afterName + "!" : x.beforeName + " is now Lv " + x.lvl + "!", true); });
     const before = formOf(f, e.lvl || 1), coll = Object.assign({}, owned(s), { [f]: Object.assign({}, e, { lvl: (e.lvl || 1) + 1 }) }), after = formOf(f, (e.lvl || 1) + 1);
