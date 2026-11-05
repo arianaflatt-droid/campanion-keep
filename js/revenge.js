@@ -8,9 +8,9 @@
    Class switch: cls.revenge = { on, id, from, to }. Student save: revenge = { id, used, hp{n}, mh[3], beat{n}, pw{pie,shield,cry,rage},
      tw, th, best, fe, got{}, rounds }. Rewards use fields students may write (rules countsOk): candyBonus, doorEggs, eggBoost,
    legendaryPulls, outfits, roomOwned, revengeLeg (✨ Sparkle Turducken egg, hatched by the server kind "revenge"). */
-import { esc, SEASON } from "./game.js?v=20261104s";
-import { azToday } from "./collect.js?v=20261104s";
-import { subFor } from "./teams.js?v=20261104s";
+import { esc, SEASON } from "./game.js?v=20261104t";
+import { azToday } from "./collect.js?v=20261104t";
+import { subFor } from "./teams.js?v=20261104t";
 
 export const PER_ENERGY = 10, ROUND_SEC = 20;
 const A = "assets/revenge/";

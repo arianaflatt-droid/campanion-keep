@@ -1,5 +1,5 @@
 // Creature Collector: pulls, XP bank, levels, evolutions, lorebook and arena battles.
-import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261104s";
+import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261104t";
 
 export const PULL_XP = 120;          // every 120 XP (all-time since the collector started) = 1 pull
 export const LEVEL_XP = 120;         // 120 banked XP = 1 level
@@ -98,8 +98,8 @@ export const CLUB_ULTRA_FAMS = FAMILIES.filter(f => f.ultra && f.club).map(f => 
 export const ULTRA_DUPE = 5;
 export const isUltra = fam => ULTRA_FAMS.includes(fam) || CLUB_ULTRA_FAMS.includes(fam);
 export function ultraLeft(st) { return Math.max(0, (Number(st && st.ultraEggs) || 0) - (Number(st && st.ultraUsed) || 0)); }
-export function ultraPull(st) {
-  const fam = ULTRA_FAMS[Math.floor(Math.random() * ULTRA_FAMS.length)];
+export function ultraPull(st, pool) {
+  pool = pool || ULTRA_FAMS; const fam = pool[Math.floor(Math.random() * pool.length)];
   const coll = Object.assign({}, owned(st)), had = coll[fam];
   coll[fam] = had ? Object.assign({}, had, { lvl: Math.min(MAX_LEVEL, (had.lvl || 1) + ULTRA_DUPE) }) : { lvl: 1, at: new Date().toISOString() };
   const lvl = coll[fam].lvl;
@@ -310,7 +310,10 @@ function rollEvent(st, cls) {
 export const TEACHER_ID = "teacher";
 export const TEACHER_XP_PER_MISS = 120;   // one level per student who missed 120
 // The teacher's eggs: a 25% chance at a Legendary (the rest keeps the normal 70:20:8:2 split).
-export const TEACHER_ODDS = [["Common", 0.525], ["Uncommon", 0.15], ["Rare", 0.06], ["Super Rare", 0.015], ["Legendary", 0.25]];
+// Nov 5: Ms. Ariana's eggs can also hatch an Ultra Legendary (any of them, club Ultras too): 5%, taken from Common
+export const TEACHER_ODDS = [["Common", 0.475], ["Uncommon", 0.15], ["Rare", 0.06], ["Super Rare", 0.015], ["Legendary", 0.25], ["Ultra", 0.05]];
+// The teacher's egg pull: an "Ultra" roll gives a random Ultra (new at Lv 1, or +5 levels on one she has)
+export function teacherPull(st, rarity, cls) { return rarity === "Ultra" ? ultraPull(st, ULTRA_FAMS.concat(CLUB_ULTRA_FAMS)) : doPull(st, rarity, cls, {}); }
 export const teacherLegFam = f => { const fm = family(f); return !!fm && (fm.rarity === "Legendary" || fm.rarity === "Ultra"); };
 // Nov 4: the teacher doesn't earn or spend XP. Her Legendaries (and Ultras) can be set to Lv 100; every other creature stays Lv 1.
 export function teacherColl(coll) {
