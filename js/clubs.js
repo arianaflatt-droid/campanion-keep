@@ -11,8 +11,8 @@
    (clubUltra = { key: "waiting" }) and a later upload gives it.
    The student page shows each club's sticker book and the club egg that grows with every step; new stickers pop up
    once (clubSeen = { key: number of steps already celebrated }, the student's own field). */
-import { esc } from "./game.js?v=20261104m";
-import { family, creature } from "./collect.js?v=20261104m";
+import { esc } from "./game.js?v=20261104n";
+import { family, creature } from "./collect.js?v=20261104n";
 
 export const CLUB_STEPS = 6;   // 5 steps + the Final Challenge (Ms. Ariana, Nov 4); steps per club unless Ms. Ariana sets another number (cls.clubSteps[key])
 export const CLUBS = {
@@ -136,6 +136,19 @@ export function clubsAdmin(students, cls, busy) {
 /* ---------- student tab ---------- */
 const eggStage = (n, tot) => (n >= tot ? 4 : Math.min(3, Math.floor(n / tot * 4)));
 const EGG_LINES = ["Your club egg is waiting…", "It wiggled! \u{1F95A}", "A crack! Something's inside…", "It's about to hatch!!", "HATCHED!"];
+// The stamp book (assets/clubs/stamp-book.webp): 5 round spots + the star (Final Challenge), [left %, top %] of each spot's middle.
+// A stamp picture assets/clubs/stamp-KEY-N.webp is used once it's in STAMP_ART; until then the club's emoji sticker is stamped.
+const BOOK_SPOTS = [[23.2, 31.5], [49.8, 31.8], [76, 31.5], [23.3, 69.1], [49.2, 69.2], [75.6, 69.5]];
+export const STAMP_ART = {};   // e.g. { masterpiece: true } once stamp-masterpiece-1…6.webp are uploaded
+function bookHTML(k, C, c, tot, n, nums, seenN) {
+  const stamp = i => STAMP_ART[k] ? '<img src="assets/clubs/stamp-' + k + "-" + (i + 1) + '.webp" alt="">' : '<b>' + (i === tot - 1 ? "\u{1F3C6}" : C.stickers[i % C.stickers.length]) + "</b>";
+  const title = i => esc((i < n ? c.done[nums[i]] : "") || (i === tot - 1 ? "Final Challenge" : "Step " + (i + 1)));
+  if (tot === BOOK_SPOTS.length) return '<div class="clubstampbook"><img class="sbook" src="assets/clubs/stamp-book.webp" alt="">' +
+    BOOK_SPOTS.map(([x, y], i) => '<span class="sbspot' + (i === tot - 1 ? " star" : "") + (i < n ? " on" + (i >= seenN ? " pop" : "") : "") + '" style="left:' + x + "%;top:" + y + '%" title="' + title(i) + '">' + (i < n ? stamp(i) : "") + "</span>").join("") + "</div>";
+  return '<div class="clubbook">' + Array.from({ length: tot }, (_, i) => '<span class="clubsticker' + (i < n ? " on" + (i >= seenN ? " pop" : "") : "") + '" title="' + title(i) + '">' + (i === tot - 1 ? (i < n ? "\u{1F3C6}" : "\u{1F3C1}") : i < n ? C.stickers[i % C.stickers.length] : i + 1) + "</span>").join("") + "</div>";
+}
+// crack lines drawn over the club egg as it gets closer to hatching
+const CRACK = stg => '<svg class="eggcrack" viewBox="0 0 100 120" aria-hidden="true"><path d="M30 38 L40 46 L34 54 L46 60' + (stg >= 3 ? ' L40 70 L52 78 M60 30 L56 42 L66 48 L60 58 M46 60 L58 64' : "") + '" fill="none" stroke="#3a2a1a" stroke-width="' + (stg >= 3 ? 2.6 : 2) + '" stroke-linecap="round" stroke-linejoin="round" opacity=".75"/></svg>';
 export function clubsTab(st, cls) {
   const ks = Object.keys((st && st.clubs) || {}).filter(k => CLUBS[k]);
   let h = '<div class="card"><div class="card-head"><h2>\u{1F3A8} My Clubs</h2></div><p class="lede">Every step you finish in a club earns that club’s <b>sticker</b> and an <b>egg</b>. Halfway through = a \u{1F48E} Rare+ egg. Finish every step and your club egg hatches the club’s own <b>\u{1F308} Ultra Legendary</b> — only club members can get it!</p></div>';
@@ -146,9 +159,9 @@ export function clubsTab(st, cls) {
     const nums = Object.keys(c.done || {}).sort((a, b) => Number(a) - Number(b) || String(a).localeCompare(String(b)));
     const fresh = n > (Number(seen[k]) || 0);
     h += '<div class="card clubcard' + (fresh ? " fresh" : "") + '" style="--cc:' + C.color + '"><div class="clubhead"><span class="clubic">' + C.icon + '</span><div><h3>' + esc(C.name) + '</h3><small>' + esc(C.goal) + " · " + esc(C.skill) + "</small></div><b class=\"clubn\">" + n + " / " + tot + "</b></div>" +
-      '<div class="clubbody"><div class="clubbook">' + Array.from({ length: tot }, (_, i) => { const has = i < n, step = has ? c.done[nums[i]] : "";
-        return '<span class="clubsticker' + (has ? " on" + (fresh && i >= (Number(seen[k]) || 0) ? " pop" : "") : "") + '" title="' + esc(step || (i === tot - 1 ? "Final Challenge" : "Step " + (i + 1))) + '">' + (i === tot - 1 ? (has ? "\u{1F3C6}" : "\u{1F3C1}") : has ? C.stickers[i % C.stickers.length] : i + 1) + "</span>"; }).join("") + "</div>" +
-      '<div class="clubegg st' + stg + '"><span class="clubeggimg">' + (stg === 4 && fam ? '<img src="' + esc(creature(fam.forms[0]).img) + '" alt="">' : stg === 4 ? "\u{1F308}" : "\u{1F95A}") + "</span><small>" + (stg === 4 ? (f ? "Your " + C.name + " Ultra is in your collection!" : "You finished! Your club Ultra is on its way \u{1F308}") : EGG_LINES[stg]) + "</small></div></div>" +
+      '<div class="clubbody">' + bookHTML(k, C, c, tot, n, nums, fresh ? (Number(seen[k]) || 0) : n) +
+      '<div class="clubegg st' + stg + '"><span class="clubeggimg">' + (stg === 4 && fam ? '<img src="' + esc(creature(fam.forms[0]).img) + '" alt="">' : stg === 4 ? "\u{1F308}" :
+        '<img src="assets/clubs/egg-' + k + '.webp" alt="" onerror="this.replaceWith(\'\u{1F95A}\')">' + (stg >= 2 ? CRACK(stg) : "")) + "</span><small>" + (stg === 4 ? (f ? "Your " + C.name + " Ultra is in your collection!" : "You finished! Your club Ultra is on its way \u{1F308}") : EGG_LINES[stg]) + "</small></div></div>" +
       (c.wip ? '<p class="small muted" style="margin:6px 0 0;">\u{1F6E0}️ Working on: ' + esc(c.wip) + "</p>" : "") +
       (fresh ? '<div class="row" style="margin-top:8px;"><span class="clubnew">\u{1F389} New sticker' + (n - (Number(seen[k]) || 0) === 1 ? "" : "s") + "! +" + (n - (Number(seen[k]) || 0)) + " egg" + (n - (Number(seen[k]) || 0) === 1 ? "" : "s") + ' added to your Collector.</span><button class="btn small" data-clubseen="' + k + '">Yay!</button></div>' : "") + "</div>";
   });
