@@ -1,11 +1,11 @@
-import { PARTY_SPOT } from "./party-spot.js?v=20261104p";
-import { CREATURE_LAYOUT, CREATURE_FIT_ID, CREATURE_NECK_ID } from "./creature-fit.js?v=20261104p";
-import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261104p";
-import { heldWeapon } from "./quest.js?v=20261104p";
+import { PARTY_SPOT } from "./party-spot.js?v=20261104q";
+import { CREATURE_LAYOUT, CREATURE_FIT_ID, CREATURE_NECK_ID } from "./creature-fit.js?v=20261104q";
+import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261104q";
+import { heldWeapon } from "./quest.js?v=20261104q";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261104p";
+export const APP_V = "20261104q";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -1002,15 +1002,15 @@ export const RAINBOW_WHEEL = [
 // Gobble-Palooza Prize Wheel (used once Gobble-Palooza is built). Chances: 4 prizes at 9.5%, 2 rares at 1%, two 100 XP slices at 30%.
 // Nov 5: the gp-*.png prize pictures were never uploaded, so the wheel showed broken pictures. Until they're in
 // assets/prizes/, these slices use their emoji (put the file names back in GP_ART when the pictures arrive).
-const GP_ART = false;
+const GP_ART = true;   // pictures added Nov 5
 export const GOBBLE_PRIZES = [
   { name: "Turkey Stickers", icon: "\u{1F983}", img: GP_ART && "assets/prizes/gp-stickers.png", link: "https://www.amazon.com/dp/B0C941SMGB", kind: "treat" },
   { name: "100 XP", icon: "\u2B50", img: "", link: "", kind: "trick", xp: 100, chance: 0.30 },
   { name: "Thanksgiving Pens", icon: "\u{1F58A}\uFE0F", img: GP_ART && "assets/prizes/gp-pens.png", link: "https://www.amazon.com/dp/B0F1N177CX", kind: "treat" },
-  { name: "Fall Cup", icon: "\u{1F964}", img: GP_ART && "assets/prizes/gp-cup.png", link: "https://www.amazon.com/dp/B0H5HLPTK5", kind: "trick", rare: true, chance: 0.01 },
+  { name: "Fall Cup", icon: "\u{1F964}", img: GP_ART && "assets/prizes/gp-cup.png", link: "https://www.amazon.com/dp/B0H53XGJVJ", kind: "trick", rare: true, chance: 0.01 },
   { name: "Fall Keychain", icon: "\u{1F341}", img: GP_ART && "assets/prizes/gp-keychain.png", link: "https://www.amazon.com/dp/B0FJ7KPDH5", kind: "treat" },
   { name: "100 XP", icon: "\u2B50", img: "", link: "", kind: "trick", xp: 100, chance: 0.30 },
-  { name: "Turkey Straw Toppers", icon: "\u{1F983}", img: GP_ART && "assets/prizes/gp-straw.png", link: "https://www.amazon.com/dp/B0DBLC8659", kind: "treat" },
+  { name: "Turkey Straw Toppers", icon: "\u{1F983}", img: GP_ART && "assets/prizes/gp-straw.png", link: "https://www.amazon.com/dp/B0DH1YQL58", kind: "treat" },
   { name: "Turkey Duck", icon: "\u{1F986}", img: GP_ART && "assets/prizes/gp-duck.png", link: "https://www.amazon.com/dp/B07LC7R5GW", kind: "trick", rare: true, chance: 0.01 }
 ];
 // Jingle Jam Prize Wheel. Chances: 4 prizes at 9.5%, 2 rares at 1%, two 100 XP slices at 30%.

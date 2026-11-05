@@ -10,10 +10,10 @@
    Picks: teacher-only doc private/secret = { days: { date: { picks: [{ sid, m, ok }], note, revealed, winners } }, last: { sid: date } }.
    Class doc (no names): cls.secretOn, cls.secretDay = { date, n }, cls.secretShout = { date, names }.
    Winner's save (teacher writes): secretWin = { date, m, prize, note }, secretWins (count). Student writes secretSeen = date. */
-import { esc } from "./game.js?v=20261104p";
-import { azToday } from "./collect.js?v=20261104p";
-import { subFor, SUB_NAMES } from "./teams.js?v=20261104p";
-import { doorsFor, doorState, approved } from "./doors.js?v=20261104p";
+import { esc } from "./game.js?v=20261104q";
+import { azToday } from "./collect.js?v=20261104q";
+import { subFor, SUB_NAMES } from "./teams.js?v=20261104q";
+import { doorsFor, doorState, approved } from "./doors.js?v=20261104q";
 
 export const MISSIONS = {
   rings: { icon: "\u{1F3AF}", name: "Close all 3 rings", short: "Rings", how: "25 Math, 25 Reading and 25 Language (or their own subjects)" },
