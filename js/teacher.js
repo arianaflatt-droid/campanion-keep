@@ -1,45 +1,45 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261104o";
-import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261104o";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261104o";
-import { cpEarnedCalc } from "./room.js?v=20261104o";
-import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261104o";
-import { rewardFor } from "./doors.js?v=20261104o";
-import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet, subReq, subRuleOn, SUB_DAY, addDays } from "./doors.js?v=20261104o";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing } from "./collector-ui.js?v=20261104o";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261104p";
+import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261104p";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261104p";
+import { cpEarnedCalc } from "./room.js?v=20261104p";
+import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261104p";
+import { rewardFor } from "./doors.js?v=20261104p";
+import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet, subReq, subRuleOn, SUB_DAY, addDays } from "./doors.js?v=20261104p";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing } from "./collector-ui.js?v=20261104p";
 import {
   newsHTML, boostOn, boostHTML, countdownHTML, applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   boss2Of, boss2Prize, simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, weekCandyBefore, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, isFrost, isHeart, heartUnlocked, isLucky, luckyUnlocked, saveProblems, yetiUnlocked, wallMarks, WALL_BLOCK, BOSS_START_HP, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261104o";
-import { MQ_CUTOFF } from "./morning.js?v=20261104o";
-import { kindAdmin } from "./kindness.js?v=20261104o";
-import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261104o";
-import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261104o";
-import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261104o";
-import { passAdmin } from "./pass.js?v=20261104o";
-import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261104o";
-import { watchSecret, secretRef } from "./db.js?v=20261104o";
-import { secretAdmin, secretClick, autoPick, secretBanner } from "./secret.js?v=20261104o";
-import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef, newBattleRef, newsPicRef, watchNewsPic } from "./db.js?v=20261104o";
-import { mapAdmin } from "./readmap.js?v=20261104o";
-import { wheelTab, wheelClick } from "./subwheel.js?v=20261104o";
-import { tbRequestsCard, tbInvite, tbToSettle } from "./teachbattle.js?v=20261104o";
-import { rewardAdmin, rgWaiting, rgOf, shrinkImage } from "./weekgoal.js?v=20261104o";
-import { soloAdmin, soloCfg, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261104o";
-import { feederLink } from "./feeder.js?v=20261104o";
-import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261104o";
+} from "./game.js?v=20261104p";
+import { MQ_CUTOFF } from "./morning.js?v=20261104p";
+import { kindAdmin } from "./kindness.js?v=20261104p";
+import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261104p";
+import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261104p";
+import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261104p";
+import { passAdmin } from "./pass.js?v=20261104p";
+import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261104p";
+import { watchSecret, secretRef } from "./db.js?v=20261104p";
+import { secretAdmin, secretClick, autoPick, secretBanner } from "./secret.js?v=20261104p";
+import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef, newBattleRef, newsPicRef, watchNewsPic } from "./db.js?v=20261104p";
+import { mapAdmin } from "./readmap.js?v=20261104p";
+import { wheelTab, wheelClick } from "./subwheel.js?v=20261104p";
+import { tbRequestsCard, tbInvite, tbToSettle } from "./teachbattle.js?v=20261104p";
+import { rewardAdmin, rgWaiting, rgOf, shrinkImage } from "./weekgoal.js?v=20261104p";
+import { soloAdmin, soloCfg, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261104p";
+import { feederLink } from "./feeder.js?v=20261104p";
+import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261104p";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef, watchSeats, watchCards, deleteField
-} from "./db.js?v=20261104o";
-import { G, guardCard, guardClick, guardInput, autoSnap, personalLink, syncCards } from "./guard.js?v=20261104o";
-import { lockCard, lockClick } from "./lock.js?v=20261104o";
-import { revengeAdmin, revengeAction } from "./revenge.js?v=20261104o";
-import { heistAdmin, heistAction } from "./heist.js?v=20261104o";
-import { calendarCard, calendarEdit, autoExcuse } from "./calendar.js?v=20261104o";
-import { axoAdmin } from "./axolotl.js?v=20261104o";
-import { clubsAdmin, clubUpload } from "./clubs.js?v=20261104o";
+} from "./db.js?v=20261104p";
+import { G, guardCard, guardClick, guardInput, autoSnap, personalLink, syncCards } from "./guard.js?v=20261104p";
+import { lockCard, lockClick } from "./lock.js?v=20261104p";
+import { revengeAdmin, revengeAction } from "./revenge.js?v=20261104p";
+import { heistAdmin, heistAction } from "./heist.js?v=20261104p";
+import { calendarCard, calendarEdit, autoExcuse } from "./calendar.js?v=20261104p";
+import { axoAdmin } from "./axolotl.js?v=20261104p";
+import { clubsAdmin, clubUpload } from "./clubs.js?v=20261104p";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -1658,7 +1658,7 @@ async function applyUpload(up) {
 // A change in the Vault Rewards table: kept as a draft until Save. Matching what's saved = no draft (no "unsaved" warning).
 function rgDraftSet(id, f, v) {
   busy.rgDraft = busy.rgDraft || {};
-  const x = students.find(y => y.id === id), g = x ? rewardFor(x, cls) : null, saved = { name: g ? g.name || "" : "", sub: g ? g.sub : "", xp: g ? String(g.xp) : "" };
+  const x = students.find(y => y.id === id), g = x ? rewardFor(x, cls) : null, saved = { name: g ? g.name || "" : "", sub: g ? g.sub : "", xp: g ? String(g.xp) : "", link: g ? g.link || "" : "" };
   const d = Object.assign({}, busy.rgDraft[id] || {}, { [f]: v });
   if (Object.keys(d).every(k => String(d[k]) === String(saved[k]))) delete busy.rgDraft[id]; else busy.rgDraft[id] = d;
   const w = document.getElementById("rgUnsaved"); if (w) w.style.display = Object.keys(busy.rgDraft).length ? "" : "none";
@@ -1743,6 +1743,19 @@ document.addEventListener("input", ev => {
 });
 document.addEventListener("change", async ev => {
   if (guardInput(ev.target)) return;
+  // 🔗 Vault reward links save by themselves the moment you leave the box (Nov 5: typing several and pressing Save only kept one)
+  if (ev.target.id && ev.target.id.startsWith("rgLink-")) {
+    const sid = ev.target.id.slice(7), x = students.find(y => y.id === sid); if (!x) return;
+    let link = ev.target.value.trim().slice(0, 500);
+    if (link && !/^https?:\/\//i.test(link)) { link = "https://" + link.replace(/^\/+/, ""); ev.target.value = link; }
+    const g = rewardFor(x, cls);
+    if (!g) { flash("Set " + x.name + "\u2019s reward (subject + XP) and press Save first \u2014 then the link can be added."); return; }
+    if ((g.link || "") === link) return;
+    try { await updateDoc(studentRef(sid), { "reward.link": link || deleteField() }); x.reward = Object.assign({}, x.reward, { link: link || undefined }); if (!link) delete x.reward.link;
+      if (busy.rgDraft && busy.rgDraft[sid]) { delete busy.rgDraft[sid].link; if (!Object.keys(busy.rgDraft[sid]).length) delete busy.rgDraft[sid]; }
+      flash("\u{1F517} Saved " + x.name + "\u2019s link.", true); } catch (e) { flash("Couldn\u2019t save the link \u2014 " + (e.code || e.message)); }
+    return;
+  }
   if (ev.target.dataset && ev.target.dataset.sec === "swap") { if (cls) await secretClick(ev.target, secretCtx()).catch(e => showErr(e)); return; }
   if (ev.target.dataset && ev.target.dataset.rgf) { const id = ev.target.id.replace(/^rg(Sub|Xp|Lib|Name|Link)-/, ""); busy.rgDraft = busy.rgDraft || {}; rgDraftSet(id, ev.target.dataset.rgf, ev.target.value); return; }
   if (ev.target.id === "newsOn") { await newsSave({ on: ev.target.checked }); return; }
@@ -2278,11 +2291,12 @@ document.addEventListener("click", async ev => {
     students.forEach(x => {
       const a = document.getElementById("rgSub-" + x.id); if (!a) return;
       const sub = a.value, xp = Math.round(Number(document.getElementById("rgXp-" + x.id).value) || 0), name = document.getElementById("rgName-" + x.id).value.trim().slice(0, 40);
-      const old = rewardFor(x, cls), le = document.getElementById("rgLink-" + x.id), link = le ? le.value.trim().slice(0, 500) : "";
-      if (link && !/^https?:\/\//i.test(link)) { bad.push(x.name + " (the link has to start with https://)"); return; }
+      const old = rewardFor(x, cls), le = document.getElementById("rgLink-" + x.id); let link = le ? le.value.trim().slice(0, 500) : "";
+      if (link && !/^https?:\/\//i.test(link)) link = "https://" + link.replace(/^\/+/, "");
       let nw = null;
       if (xp > 0) { if (!sub) { bad.push(x.name); return; } nw = { week: wk, sub, xp, name, given: !!(old && old.given && old.sub === sub && old.xp === xp) }; if (link) nw.link = link; }
-      if (JSON.stringify(nw) === JSON.stringify(old) || (!nw && !old)) return;
+      const same = (a, b) => JSON.stringify(a && Object.keys(a).sort().reduce((o, k) => (o[k] = a[k], o), {})) === JSON.stringify(b && Object.keys(b).sort().reduce((o, k) => (o[k] = b[k], o), {}));
+      if (same(nw, old) || (!nw && !old)) return;
       if (!nw && !old) return;   // an old week's reward: leave it
       batch.update(studentRef(x.id), { reward: nw }); x.reward = nw; n++;
     });
