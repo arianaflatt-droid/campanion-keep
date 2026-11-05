@@ -8,10 +8,10 @@
    Each potion: +20 candy and a potion glow for the day. Shelf rewards at 3 / 6 / 10 / 15 potions.
    Saved on the student (student-writable): soloBrew = { days: { date: potions }, fx: { date: effect }, extra: { date: { e|b|s: n } }, got: { "3": true, ... } }
    Shelf rewards use fields the student page may write: doorEggs, candyBonus, doorXP, legendaryPulls, soloBrewLeg (counted by brewLegLeft). */
-import { esc, isHaunt, isGobble, isJingle, isFrost, isHeart, isLucky, boostMult } from "./game.js?v=20261104t";
-import { azToday } from "./collect.js?v=20261104t";
-import { TEAM_EVENTS, ingOf, subFor, SUB_NAMES, PER_XP, EFFECTS, effect, cauldronHTML, soloTableHTML, soloHouseHTML, soloBoxHTML, soloTrapHTML, DISHES } from "./teams.js?v=20261104t";
-import { SUBJECT_KEYS, addDays } from "./doors.js?v=20261104t";
+import { esc, isHaunt, isGobble, isJingle, isFrost, isHeart, isLucky, boostMult } from "./game.js?v=20261104u";
+import { azToday } from "./collect.js?v=20261104u";
+import { TEAM_EVENTS, ingOf, subFor, SUB_NAMES, PER_XP, EFFECTS, effect, cauldronHTML, soloTableHTML, soloHouseHTML, soloBoxHTML, soloTrapHTML, DISHES } from "./teams.js?v=20261104u";
+import { SUBJECT_KEYS, addDays } from "./doors.js?v=20261104u";
 
 export const BREW = TEAM_EVENTS.potion;
 const FEAST_ING = { key: "solofeast", ing: [

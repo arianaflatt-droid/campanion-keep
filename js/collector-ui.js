@@ -4,15 +4,15 @@ import {
   formIndex, formOf, statsOf, seenSet, rollRarity, doPull, arenaOpen, arenaOpenFor, lunchHour, hitGoalToday, LUNCH_ARENA, ARENA_HOURS, fighterFrom, teamSize, alive, resolve, resolveRound, moveOk, MOVES, hitDamage,
   birthdayLeft, pickleLeft, PICKLE_FAM, brewLegLeft, BREW_FAM, feastLegLeft, HARVEST_FAM, gingerLegLeft, GINGER_FAM, snowLegLeft, SNOW_FAM, candyLegLeft, CANDY_FAM, ghostEggLeft, GHOST_FAM, BOSS2_LIST, boss2EggLeft, vaultLegLeft, revengeLegLeft, heistLegLeft, goalLeft, nextGoal, rollRareUp, themeLeft, nextTheme, THEME_TYPES, THEME_EGG, WISH_FAM, spares, spareId, releaseXP, releaseProblem, isStarterFam, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
   EVENTS, eventOpen, eventWindow, eventStreak, hasEvent, eventUnlocked, azToday, rollTeacherRarity, teacherPull, TEACHER_ODDS, LIVE, staleBattle
-} from "./collect.js?v=20261104t";
-import { newBattleRef, battleRef, updateDoc, changeBattle as changeBattleRaw, setDoc, liveBattlesNow, ck, ckMessage } from "./db.js?v=20261104t";
+} from "./collect.js?v=20261104u";
+import { newBattleRef, battleRef, updateDoc, changeBattle as changeBattleRaw, setDoc, liveBattlesNow, ck, ckMessage } from "./db.js?v=20261104u";
 // every change to a battle is stamped with the time (upd), so a battle nobody has touched in a while can be ended
 let locking = null, leaving = null;   // battle id while "Lock in team" is saving
 const changeBattle = (id, fn) => changeBattleRaw(id, bt => { const n = fn(bt); if (n) n.upd = new Date().toISOString(); return n; });
 
-import { tradeCard } from "./trade-ui.js?v=20261104t";
-import { ultraLeft, isUltra, trapLegLeft, PRISM_FAM, teacherLegFam } from "./collect.js?v=20261104t";
-import { ultraSection, ultraInfoHTML } from "./ultra.js?v=20261104t";
+import { tradeCard } from "./trade-ui.js?v=20261104u";
+import { ultraLeft, isUltra, trapLegLeft, PRISM_FAM, teacherLegFam } from "./collect.js?v=20261104u";
+import { ultraSection, ultraInfoHTML } from "./ultra.js?v=20261104u";
 
 const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const PER_PAGE = 20;
@@ -510,11 +510,22 @@ function playFor(e, me) {
   if (e.k === "win") { const up = e.s === me; (up ? [523, 659, 784, 1047] : [392, 349, 330, 262]).forEach((f, i) => tone(f, 0.22, "square", 0.08, null, i * 0.15)); }
 }
 
+// Both moves in → play the round (one transaction; if both pages try, the second finds nothing to do).
+// Player A plays it right away; player B waits a moment first (in case A's page is closed or slow).
+const resolving = {};
+function resolveSoon(id) {
+  const bt = (ctx.battles || []).find(b => b.id === id); if (!bt || bt.status !== "fight" || !bt.moves || !bt.moves.A || !bt.moves.B) return;
+  const key = id + ":" + (bt.round || 0); if (resolving[key]) return; resolving[key] = true;
+  const go = () => changeBattle(id, b => { if (b.status !== "fight" || !b.moves || !b.moves.A || !b.moves.B || (b.round || 0) !== (bt.round || 0)) return null; resolveRound(b); return b; })
+    .catch(e => { console.error("round", e); delete resolving[key]; });
+  if (sideOf(bt) === "A") go(); else setTimeout(() => { const now = (ctx.battles || []).find(b => b.id === id); if (now && now.status === "fight" && (now.round || 0) === (bt.round || 0) && now.moves && now.moves.A && now.moves.B) go(); else delete resolving[key]; }, 2500);
+}
 function battleOverlay() {
   if (!battleOpen) return "";
   const bt = (ctx.battles || []).find(b => b.id === battleOpen);
   if (!bt) { battleOpen = null; return ""; }
   const me = sideOf(bt), them = me === "A" ? "B" : "A", meN = me === "A" ? bt.a.name : bt.b.name, thN = them === "A" ? bt.a.name : bt.b.name;
+  if (bt.status === "fight" && bt.moves && bt.moves.A && bt.moves.B) resolveSoon(bt.id);
   const logLen = (bt.log || []).length, k = Math.min(shown[bt.id] || 0, logLen);
   // Replay pace (Oct 30, faster): big moments get a beat to read, small effect lines go quickly, and a long backlog (rejoining) speeds through.
   if (k < logLen && !replayTimer) { const nx = bt.log[k] || {}, behind = logLen - k;
@@ -964,20 +975,27 @@ export async function onClick(el, c) {
     return;
   }
   if (a === "move") {
+    // Nov 5 (lag fix): picking a move is a plain one-field save (moves.A / moves.B), not a transaction. It shows on this
+    // screen right away (no server round trip first), and two players picking at the same time no longer fight over the
+    // battle (a transaction clash made the SDK wait and retry, sometimes for many seconds). The round itself is played by
+    // one page in a transaction once both moves are in (resolveSoon).
     const mv = { m: el.dataset.m }; if (mv.m === "swap") mv.to = Number(el.dataset.to);
     busyForfeit = false;
-    await changeBattle(battleOpen, bt => {
-      const me = sideOf(bt), them = me === "A" ? "B" : "A";
-      if (bt.status !== "fight" || (bt.moves && bt.moves[me]) || !moveOk(bt, me, mv)) return null;
-      bt.moves = Object.assign({ A: null, B: null }, bt.moves || {}); bt.moves[me] = mv;
-      if (bt.moves[them]) resolveRound(bt);
-      return bt;
-    });
-    return c.render(true);
+    const bt = (c.battles || []).find(b => b.id === battleOpen); if (!bt) return;
+    const me = sideOf(bt);
+    if (bt.status !== "fight" || (bt.moves && bt.moves[me]) || !moveOk(bt, me, mv)) return;
+    bt.moves = Object.assign({ A: null, B: null }, bt.moves || {}); bt.moves[me] = mv; c.render(true);   // show it now
+    try { await updateDoc(battleRef(bt.id), { ["moves." + me]: mv, upd: new Date().toISOString() }); }
+    catch (e) { bt.moves[me] = null; c.flash("That move didn\u2019t go through \u2014 tap it again."); return c.render(true); }
+    resolveSoon(bt.id);
+    return;
   }
   if (a === "undoMove") {
-    await changeBattle(battleOpen, bt => { const me = sideOf(bt); if (bt.status !== "fight" || !bt.moves || !bt.moves[me]) return null; bt.moves[me] = null; return bt; });
-    return c.render(true);
+    const bt = (c.battles || []).find(b => b.id === battleOpen); if (!bt) return;
+    const me = sideOf(bt); if (bt.status !== "fight" || !bt.moves || !bt.moves[me]) return;
+    bt.moves[me] = null; c.render(true);
+    try { await updateDoc(battleRef(bt.id), { ["moves." + me]: null, upd: new Date().toISOString() }); } catch (e) {}
+    return;
   }
   if (a === "forfeit") {
     if (!busyForfeit) { busyForfeit = true; return c.render(true); }

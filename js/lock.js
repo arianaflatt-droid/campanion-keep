@@ -2,7 +2,7 @@
    Ms. Ariana picks students on the console (Students tab) and types a message. Their student page shows ONLY that message,
    in giant letters, until she unlocks them. Saved on the class doc (teacher-only): cls.locks = { studentId: { msg, at } }.
    No extra reads: every student page already listens to the class doc. */
-import { esc } from "./game.js?v=20261104t";
+import { esc } from "./game.js?v=20261104u";
 
 export const DEFAULT_MSG = "Please come see Ms. Ariana \u{1F49B}";
 const picked = new Set();
