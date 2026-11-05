@@ -10,11 +10,11 @@
    The wheels use the season's wheel frame and colours (same look as the student Prize Wheel), with slices sized by entries.
    Class doc: cls.wheel = { on, mode, date, week, sub ("r" | "?"), pool:[subs], picked, prize:{ pick, text, candy, cp, egg, rare, leg, sparkle }, winners:[sid], log:[{ sid, name, sub, prize, at }] }
    Student doc: wheelWin = { at, prize, sub } (teacher writes it), wheelSeen = at (the student closes the 🎉 pop-up). */
-import { esc, SEASON, weekKey, displayNames } from "./game.js?v=20261104n";
-import { subFor, SUB_NAMES } from "./teams.js?v=20261104n";
-import { addDays } from "./doors.js?v=20261104n";
-import { azToday } from "./collect.js?v=20261104n";
-import { classRef, studentRef, updateDoc } from "./db.js?v=20261104n";
+import { esc, SEASON, weekKey, displayNames } from "./game.js?v=20261104o";
+import { subFor, SUB_NAMES } from "./teams.js?v=20261104o";
+import { addDays } from "./doors.js?v=20261104o";
+import { azToday } from "./collect.js?v=20261104o";
+import { classRef, studentRef, updateDoc } from "./db.js?v=20261104o";
 
 export const WHEEL_SUBS = ["r", "m", "l", "f", "w", "v", "sc", "ss"];
 const SUB_ICON = { r: "\u{1F4D6}", m: "➕", l: "✏️", f: "⚡", w: "\u{1F4DD}", v: "\u{1F524}", sc: "\u{1F52C}", ss: "\u{1F30E}" };
