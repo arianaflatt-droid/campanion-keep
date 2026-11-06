@@ -1,14 +1,15 @@
 /* ---------- 📸 Planet JP Creature Safari + Photo Album, Wave 3b (Nov 7) ----------
    In each unlocked zone a student can go on a safari: the zone scene fills the screen and creatures peek out and
-   hide again. Tapping one before it hides takes its photo (1 film). 3 free film a day; an extra roll (3 film) costs
+   hide again. Tapping one before it hides takes its photo (1 film). 5 free film a day (was 3 until Nov 7); an extra roll (3 film) costs
    10 Stardust. A photo of a creature that isn't in the album yet is added; a repeat gives +2 Stardust instead.
-   Each zone's album page has 9 spots: 8 creatures of the zone's types (no Legendaries or Ultras) + 1 rare Planet JP
-   alien. A full page = +100 Stardust (once) and a zone badge (worked out in badges.js from the album, nothing extra stored).
-   Saved on the student in planet: alb = { famId: photos, "A-zone": photos }, saf = { d: day, u: film used, b: film bought },
-   pg = [zone keys already paid]. One write per photo (≤3 a day unless they buy film). Preview saves nothing. */
-import { CREATURES } from "./creatures.js?v=20261107e";
-import { esc } from "./game.js?v=20261107e";
-import { azToday, azNow } from "./collect.js?v=20261107e";
+   Nov 7 (v20261107f): each zone's page holds EVERY form of every creature of the zone's types (no Legendaries, Ultras or
+   events: 387 in all) + 3 Planet JP–only aliens (21 in all). Every 10 new photos = +25 Stardust; a full page = +100 (once)
+   and the zone badge; all 3 of a zone's aliens = its alien badge (badges.js works these out from the album).
+   Saved on the student in planet: alb = { "c<id>" or alien key: photos }, saf = { d: day, u: film used, b: film bought },
+   pg = [zone keys already paid], ms = milestones paid. One write per photo (≤3 a day unless they buy film). Preview saves nothing. */
+import { CREATURES } from "./creatures.js?v=20261107f";
+import { esc } from "./game.js?v=20261107f";
+import { azToday, azNow } from "./collect.js?v=20261107f";
 
 const A = "assets/planet/";
 export const PJ_CLOSE_M = 12 * 60 + 55;
@@ -25,62 +26,95 @@ export const ZONES = [
   { key: "shadow", name: "Shadow Crater", icon: "\u{1F311}", at: 15, types: ["Dark", "Ghost"], line: "A mysterious crater full of glowing lanterns." },
 ];
 
-// The 7 Planet JP aliens: one rare one per zone. ART flips to true once its picture is in assets/planet/alien-<zone>.webp
-export const ALIENS = {
-  landing: { name: "Zibbit", color: "#7FD3FF", line: "A tiny robot-eared alien that tinkers with spaceship bolts." },
-  jungle: { name: "Glimmersprout", color: "#7BEA7B", line: "A leafy alien whose antenna glows like a firefly." },
-  caves: { name: "Geodorb", color: "#C69CFF", line: "A round crystal alien that rolls through the caves." },
-  ice: { name: "Frostnik", color: "#BDEBFF", line: "A fluffy snow alien that skates on frozen lakes." },
-  lava: { name: "Magmallow", color: "#FF9A57", line: "A squishy marshmallow alien that loves warm lava baths." },
-  nebula: { name: "Nebuloo", color: "#FF8BD8", line: "A floaty cloud alien made of rainbow stardust." },
-  shadow: { name: "Lanternook", color: "#FFD36B", line: "A shy alien that carries a glowing lantern in the dark." },
-};
-export const ALIEN_ART = { landing: false, jungle: false, caves: false, ice: false, lava: false, nebula: false, shadow: false };
+// The 21 Planet JP aliens: 3 per zone (a common one, a rare one, a super rare one), found only on the safari.
+// Pictures: assets/planet/alien-<zone>-c.webp / alien-<zone>.webp / alien-<zone>-s.webp — flip ALIEN_ART[key] to true once uploaded.
+const AL = (key, zone, tier, name, color, line) => ({ key, zone, tier, name, color, line, rarity: tier === "c" ? "Alien" : tier === "r" ? "Rare Alien" : "Super Rare Alien", alien: key });
+export const ALIEN_LIST = [
+  AL("A-landing-c", "landing", "c", "Blinkbot", "#9FD8FF", "A tiny round alien with a blinking light-bulb antenna. It zooms around on one hover wheel."),
+  AL("A-landing", "landing", "r", "Zibbit", "#7FD3FF", "A tiny robot-eared alien that tinkers with spaceship bolts."),
+  AL("A-landing-s", "landing", "s", "Quasarpup", "#FFD36B", "A puppy-like alien with rocket boots and a glowing star collar. It guards the spaceport."),
+  AL("A-jungle-c", "jungle", "c", "Pollywiggle", "#9BF08A", "A tadpole alien that hops between the glowing green pools."),
+  AL("A-jungle", "jungle", "r", "Glimmersprout", "#7BEA7B", "A leafy alien whose antenna glows like a firefly."),
+  AL("A-jungle-s", "jungle", "s", "Orchidra", "#FF9FE0", "A graceful flower alien with petal wings and three sparkly eyes."),
+  AL("A-caves-c", "caves", "c", "Clinkle", "#D8C2FF", "A tiny crystal-shard alien that goes clink, clink when it walks."),
+  AL("A-caves", "caves", "r", "Geodorb", "#C69CFF", "A round crystal alien that rolls through the caves."),
+  AL("A-caves-s", "caves", "s", "Prismoth", "#A0F0FF", "A crystal moth alien whose wings turn light into rainbows."),
+  AL("A-ice-c", "ice", "c", "Snowbloop", "#E4F6FF", "A jelly snowball alien that bounces across the frozen lakes."),
+  AL("A-ice", "ice", "r", "Frostnik", "#BDEBFF", "A fluffy snow alien that skates on frozen lakes."),
+  AL("A-ice-s", "ice", "s", "Auroraquin", "#9CFFD9", "A penguin-like alien with aurora feathers that leave trails of light."),
+  AL("A-lava-c", "lava", "c", "Sizzlit", "#FFC15C", "A tiny spark alien that hops from lava rock to lava rock."),
+  AL("A-lava", "lava", "r", "Magmallow", "#FF9A57", "A squishy marshmallow alien that loves warm lava baths."),
+  AL("A-lava-s", "lava", "s", "Volcanoodle", "#FF6A4A", "A long, wiggly noodle-dragon alien made of cooled lava with glowing cracks."),
+  AL("A-nebula-c", "nebula", "c", "Starbloop", "#FFF0A0", "A small star-shaped alien with a big smile that floats between islands."),
+  AL("A-nebula", "nebula", "r", "Nebuloo", "#FF8BD8", "A floaty cloud alien made of rainbow stardust."),
+  AL("A-nebula-s", "nebula", "s", "Cometail", "#B8A4FF", "A sleek alien fox with a sparkling comet tail."),
+  AL("A-shadow-c", "shadow", "c", "Gloomby", "#8E8CC9", "A fuzzy shadow puff with big round eyes. It loves to hide."),
+  AL("A-shadow", "shadow", "r", "Lanternook", "#FFD36B", "A shy alien that carries a glowing lantern in the dark."),
+  AL("A-shadow-s", "shadow", "s", "Eclipsa", "#C9D4FF", "A moon-cat alien with starry fur and a crescent moon on its forehead."),
+];
+export const ALIENS = {}; ALIEN_LIST.forEach(a => { ALIENS[a.key] = a; });
+export const ALIEN_ART = {}; ALIEN_LIST.forEach(a => { ALIEN_ART[a.key] = false; });
+export const zoneAliens = zk => ALIEN_LIST.filter(a => a.zone === zk);
 
-export const FREE_FILM = 3, ROLL_FILM = 3, ROLL_COST = 10, DUPE_DUST = 2, PAGE_DUST = 100;
-const PICK = [["Common", 3], ["Uncommon", 2], ["Rare", 2], ["Super Rare", 1]];
-const hash = s => { let h = 2166136261; for (const ch of String(s)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; };
-// each zone's 8 album creatures (first form of a family whose main type lives in that zone), picked the same way every time
-const FIRSTS = (() => { const seen = {}; CREATURES.forEach(c => { if (c.event || c.rarity === "Legendary" || c.rarity === "Ultra" || seen[c.fam]) return; if ((c.stage || 1) === 1) seen[c.fam] = c; }); return Object.values(seen); })();
+export const FREE_FILM = 5, ROLL_FILM = 3, ROLL_COST = 10, DUPE_DUST = 2, PAGE_DUST = 100, MILE_EVERY = 10, MILE_DUST = 25;
+// Every form of every creature (babies and evolved forms count separately) whose main type lives in the zone.
+// No Legendaries, Ultras or event creatures. Key "c<id>". Evolved forms are harder to spot.
+const RORDER = { Common: 0, Uncommon: 1, Rare: 2, "Super Rare": 3 };
+const OK = CREATURES.filter(c => !c.event && RORDER[c.rarity] != null);
+const FIRST_OF = {}; OK.forEach(c => { if ((c.stage || 1) === 1 && !FIRST_OF[c.fam]) FIRST_OF[c.fam] = "c" + c.id; });
 export const PAGES = {};
 ZONES.forEach(z => {
-  const pool = FIRSTS.filter(c => z.types.includes(c.types[0]));
-  const out = [];
-  PICK.forEach(([r, n]) => pool.filter(c => c.rarity === r).sort((a, b) => hash(z.key + a.fam) - hash(z.key + b.fam)).slice(0, n).forEach(c => out.push(c)));
-  PAGES[z.key] = out.map(c => ({ key: c.fam, name: c.name, rarity: c.rarity, img: c.img, types: c.types }))
-    .concat([{ key: "A-" + z.key, name: ALIENS[z.key].name, rarity: "Planet JP", alien: z.key }]);
+  const cs = OK.filter(c => z.types.includes(c.types[0])).sort((a, b) => RORDER[a.rarity] - RORDER[b.rarity] || String(a.fam).localeCompare(String(b.fam)) || (a.stage || 1) - (b.stage || 1));
+  PAGES[z.key] = zoneAliens(z.key).concat(cs.map(c => ({ key: "c" + c.id, name: c.name, rarity: c.rarity, img: c.img, types: c.types, stage: c.stage || 1 })));
 });
-export const PAGE_SIZE = 9;
+export const pageSize = zk => (PAGES[zk] || []).length;
+export const TOTAL = ZONES.reduce((n, z) => n + pageSize(z.key), 0);
 
 const plOf = st => (st && st.planet) || {};
-export const album = st => plOf(st).alb || {};
-export const pageCount = (st, zk) => (PAGES[zk] || []).filter(e => album(st)[e.key]).length;
+// Nov 7 (v20261107d) albums used family ids ("C-06") for first forms: read those as the first form's key
+const normAlb = alb => { const o = {}; Object.keys(alb || {}).forEach(k => { const nk = /^[CURS]-\d+$/.test(k) ? FIRST_OF[k] : k; if (nk) o[nk] = (o[nk] || 0) + (Number(alb[k]) || 0); }); return o; };
+export const album = st => normAlb(plOf(st).alb);
+export const pageCount = (st, zk) => { const a = album(st); return (PAGES[zk] || []).filter(e => a[e.key]).length; };
+export const aliensFound = (st, zk) => { const a = album(st); return zoneAliens(zk).filter(x => a[x.key]).length; };
+export const allAliensFound = st => { const a = album(st); return ALIEN_LIST.filter(x => a[x.key]).length; };
+export const photosTotal = st => Object.keys(album(st)).length;
 export function filmLeft(st) { const s = plOf(st).saf || {}; return s.d === azToday() ? Math.max(0, FREE_FILM + (Number(s.b) || 0) - (Number(s.u) || 0)) : FREE_FILM; }
 
-const alienSVG = (zk, cls) => { const c = (ALIENS[zk] || {}).color || "#9CF";
+// stand-in drawing until an alien's picture is uploaded (super rare = a little crown of stars)
+const alienSVG = (a, cls) => { const c = a.color || "#9CF";
   return '<svg class="' + (cls || "") + '" viewBox="0 0 100 100" aria-hidden="true"><line x1="38" y1="22" x2="30" y2="6" stroke="#333" stroke-width="3"/><line x1="62" y1="22" x2="70" y2="6" stroke="#333" stroke-width="3"/>' +
     '<circle cx="30" cy="6" r="5" fill="' + c + '" stroke="#333" stroke-width="2"/><circle cx="70" cy="6" r="5" fill="' + c + '" stroke="#333" stroke-width="2"/>' +
     '<ellipse cx="50" cy="56" rx="34" ry="36" fill="' + c + '" stroke="#333" stroke-width="3"/><ellipse cx="38" cy="50" rx="8" ry="11" fill="#222"/><ellipse cx="62" cy="50" rx="8" ry="11" fill="#222"/>' +
-    '<circle cx="35" cy="46" r="3" fill="#fff"/><circle cx="59" cy="46" r="3" fill="#fff"/><path d="M40 72 Q50 80 60 72" fill="none" stroke="#333" stroke-width="3" stroke-linecap="round"/></svg>'; };
-export const entryArt = (e, cls) => e.alien ? (ALIEN_ART[e.alien] ? '<img class="' + (cls || "") + '" src="' + A + "alien-" + e.alien + '.webp" alt="">' : alienSVG(e.alien, cls)) : '<img class="' + (cls || "") + '" src="' + e.img + '" alt="">';
+    '<circle cx="35" cy="46" r="3" fill="#fff"/><circle cx="59" cy="46" r="3" fill="#fff"/><path d="M40 72 Q50 80 60 72" fill="none" stroke="#333" stroke-width="3" stroke-linecap="round"/>' +
+    (a.tier === "s" ? '<text x="50" y="30" font-size="16" text-anchor="middle">✨</text>' : a.tier === "r" ? '<text x="50" y="30" font-size="12" text-anchor="middle">⭐</text>' : "") + "</svg>"; };
+const alienFile = a => A + "alien-" + a.zone + (a.tier === "c" ? "-c" : a.tier === "s" ? "-s" : "") + ".webp";
+export const entryArt = (e, cls) => { if (e.alien) { const a = ALIENS[e.alien] || e; return ALIEN_ART[a.key] ? '<img class="' + (cls || "") + '" src="' + alienFile(a) + '" alt="">' : alienSVG(a, cls); }
+  return '<img class="' + (cls || "") + '" src="' + e.img + '" alt="" loading="lazy">'; };
 
-/* ---------- the album (drawn inside the Planet JP tab) ---------- */
+/* ---------- the album (drawn inside the Planet JP tab): one page per zone, one page open at a time ---------- */
+let openPage = null;
 export function albumHTML(st, n) {
-  const alb = album(st), full = ZONES.filter(z => pageCount(st, z.key) === PAGE_SIZE).length;
-  let h = '<div class="card safalbum"><div class="card-head"><h2>\u{1F4D6} Photo album</h2><span class="fact">' + full + " of " + ZONES.length + " pages full</span></div>" +
-    '<p class="lede" style="font-size:13.5px;">Fill a page with all 9 photos for <b>+' + PAGE_DUST + " ⭐ Stardust</b> and that zone’s badge!</p>" +
+  const alb = album(st), full = ZONES.filter(z => pageCount(st, z.key) === pageSize(z.key)).length, tot = Object.keys(alb).length;
+  const opens = ZONES.filter(z => n >= z.at);
+  if (!openPage || (openPage !== "__none" && !opens.some(z => z.key === openPage))) { const f = opens.find(z => pageCount(st, z.key) < pageSize(z.key)) || opens[0]; openPage = f ? f.key : null; }
+  const nextMile = (Math.floor(tot / MILE_EVERY) + 1) * MILE_EVERY;
+  let h = '<div class="card safalbum"><div class="card-head"><h2>\u{1F4D6} Photo album</h2><span class="fact">' + tot + " of " + TOTAL + " photos</span></div>" +
+    '<p class="lede" style="font-size:13.5px;">Every <b>' + MILE_EVERY + " new photos</b> = +" + MILE_DUST + " ⭐ (next at " + nextMile + "). A full zone page = <b>+" + PAGE_DUST + " ⭐</b> and that zone’s badge. Find all 3 aliens in a zone for its alien badge! (" + full + " of " + ZONES.length + " pages full)</p>" +
     '<button class="btn ghost small" data-pjzone="">← Map</button>';
   ZONES.forEach(z => {
-    const open = n >= z.at, c = pageCount(st, z.key);
-    h += '<div class="safpage' + (open ? "" : " locked") + (c === PAGE_SIZE ? " full" : "") + '"><div class="safpagehead"><b>' + z.icon + " " + esc(z.name) + "</b><span>" +
-      (open ? c + " / " + PAGE_SIZE + (c === PAGE_SIZE ? " ✅" : "") : "\u{1F512} " + z.at + " launches") + "</span></div>";
-    if (open) h += '<div class="safgrid">' + PAGES[z.key].map(e => { const have = alb[e.key];
-      return '<div class="safslot' + (have ? " have" : "") + (e.alien ? " alien" : "") + '"><div class="safpic">' + entryArt(e, "safimg") + "</div><small>" + (have ? esc(e.name) : "???") + "</small>" +
-        (e.alien ? '<em class="safrare">\u{1F47D} rare</em>' : "") + "</div>"; }).join("") + "</div>";
+    const open = n >= z.at, c = pageCount(st, z.key), size = pageSize(z.key), al = aliensFound(st, z.key), shown = open && openPage === z.key;
+    h += '<div class="safpage' + (open ? "" : " locked") + (c === size ? " full" : "") + '"><button class="safpagehead"' + (open ? ' data-safpage="' + z.key + '"' : " disabled") + "><b>" + (open ? (shown ? "▾ " : "▸ ") : "") + z.icon + " " + esc(z.name) + "</b><span>" +
+      (open ? "\u{1F47D} " + al + "/3 · " + c + " / " + size + (c === size ? " ✅" : "") : "\u{1F512} " + z.at + " launches") + "</span></button>" +
+      (open ? '<div class="safbar"><i style="width:' + (100 * c / size).toFixed(1) + '%"></i></div>' : "");
+    if (shown) h += '<div class="safgrid">' + PAGES[z.key].map(e => { const have = alb[e.key];
+      return '<div class="safslot' + (have ? " have" : "") + (e.alien ? " alien t" + ALIENS[e.alien].tier : "") + '"><div class="safpic">' + entryArt(e, "safimg") + "</div><small>" + (have ? esc(e.name) : "???") + "</small>" +
+        (e.alien ? '<em class="safrare">\u{1F47D}' + (ALIENS[e.alien].tier === "s" ? " super rare" : ALIENS[e.alien].tier === "r" ? " rare" : "") + "</em>" : "") + "</div>"; }).join("") + "</div>";
     h += "</div>";
   });
   return h + "</div>";
 }
+if (typeof document !== "undefined") document.addEventListener("click", ev => { const b = ev.target.closest && ev.target.closest("[data-safpage]"); if (!b) return;
+  openPage = openPage === b.dataset.safpage ? "__none" : b.dataset.safpage; if (ctx && ctx.rerender) ctx.rerender(); });
 
 /* ---------- the safari itself: a full-screen layer (page redraws don't stop it) ---------- */
 let S = null, root = null, ctx = null, lastSaved = null;
@@ -120,21 +154,29 @@ function draw() {
   rootEl().innerHTML = '<div class="safover"><div class="safscene" id="safscene" style="background-image:url(' + A + "zone-" + S.zk + '.webp)">' +
     '<div class="saffinder" aria-hidden="true"><i></i><i></i><i></i><i></i></div><div id="safspot"></div><div class="safflash" id="safflash"></div><div id="safcard"></div></div>' +
     '<div class="saftop"><b>\u{1F4F8} ' + z.icon + " " + esc(z.name) + ' Safari</b><span class="saffilm">\u{1F39E}️ <b id="saffilm">' + f + "</b> film</span>" +
-    '<span class="saffilm">\u{1F4D6} <b id="safpg">' + pageCount(fakeSt(), S.zk) + "</b>/" + PAGE_SIZE + '</span><span class="saffilm">⭐ <b id="safdust">' + (Number(S.pl.dust) || 0) + "</b></span>" +
+    '<span class="saffilm">\u{1F4D6} <b id="safpg">' + pageCount(fakeSt(), S.zk) + "</b>/" + pageSize(S.zk) + '</span><span class="saffilm">\u{1F47D} <b id="safal">' + aliensFound(fakeSt(), S.zk) + "</b>/3</span>" + '<span class="saffilm">⭐ <b id="safdust">' + (Number(S.pl.dust) || 0) + "</b></span>" +
     (ctx && ctx.preview ? '<span class="saffilm">\u{1F440} preview</span>' : "") + '<button class="btn ghost small" data-saf="done">Done</button></div>' +
     '<p class="safhint" id="safhint">' + (f ? "Creatures peek out and hide again. Tap one to take its photo!" : "Out of film for today.") + "</p></div>";
   if (!f) noFilm();
 }
-const upd = () => { const f = filmLeft(fakeSt()); [["saffilm", f], ["safpg", pageCount(fakeSt(), S.zk)], ["safdust", Number(S.pl.dust) || 0]].forEach(([id, v]) => { const e = document.getElementById(id); if (e) e.textContent = v; }); };
-const SHOW = { Common: 2300, Uncommon: 1900, Rare: 1450, "Super Rare": 1150, "Planet JP": 900 };
-const WEIGHT = { Common: 10, Uncommon: 7, Rare: 4, "Super Rare": 2.5, "Planet JP": 1.6 };
+const upd = () => { const f = filmLeft(fakeSt()); [["saffilm", f], ["safpg", pageCount(fakeSt(), S.zk)], ["safal", aliensFound(fakeSt(), S.zk)], ["safdust", Number(S.pl.dust) || 0]].forEach(([id, v]) => { const e = document.getElementById(id); if (e) e.textContent = v; }); };
+const SHOW = { Common: 2300, Uncommon: 1900, Rare: 1450, "Super Rare": 1150, Alien: 1400, "Rare Alien": 950, "Super Rare Alien": 750 };
+const WEIGHT = { Common: 10, Uncommon: 7, Rare: 4, "Super Rare": 2.5 };
+const STAGE_W = [1, 1, 0.6, 0.35];
+// aliens scale with the page so they're just as findable on a big page: common ~1 in 15 spawns, rare ~1 in 35, super rare ~1 in 70
+const AL_SHARE = { c: 0.065, r: 0.028, s: 0.014 };
+function weights(page, alb) {
+  const ws = page.map(x => x.alien ? 0 : WEIGHT[x.rarity] * (STAGE_W[x.stage] || 0.35) * (alb[x.key] ? 1 : 2)), base = ws.reduce((a, b) => a + b, 0);
+  page.forEach((x, i) => { if (x.alien) { const t = ALIENS[x.alien].tier; ws[i] = base * AL_SHARE[t] * (alb[x.key] ? 0.6 : 1); } });
+  return ws;
+}
 function next() {
   if (!S || S.shot) return;
   if (minsNow() >= PJ_CLOSE_M && !(ctx && ctx.preview)) { hint("Planet JP is closing for today. See you tomorrow!"); later(1800, stop); return; }
   if (!filmLeft(fakeSt())) return noFilm();
-  const page = PAGES[S.zk], alb = S.pl.alb || {};
+  const page = PAGES[S.zk], alb = normAlb(S.pl.alb);
   let e = (typeof window !== "undefined" && window.__safPick) ? page.find(x => x.key === window.__safPick) : null;
-  if (!e) { const ws = page.map(x => WEIGHT[x.rarity] * (alb[x.key] ? 1 : 2)), tot = ws.reduce((a, b) => a + b, 0); let r = Math.random() * tot; e = page[page.length - 1];
+  if (!e) { const ws = weights(page, alb), tot = ws.reduce((a, b) => a + b, 0); let r = Math.random() * tot; e = page[page.length - 1];
     for (let i = 0; i < page.length; i++) { r -= ws[i]; if (r <= 0) { e = page[i]; break; } } }
   const x = 8 + Math.random() * 72, y = 30 + Math.random() * 42, flip = Math.random() < 0.5, ms = (typeof window !== "undefined" && window.__safSlow) ? 60000 : SHOW[e.rarity];
   S.spawn = e.key;
@@ -151,26 +193,32 @@ function snap(key) {
   setTimeout(() => { const sp = document.getElementById("safspot"); if (sp) sp.innerHTML = ""; }, 120);
   const pl = JSON.parse(JSON.stringify(S.pl)), d = today(), sf = pl.saf && pl.saf.d === d ? pl.saf : { d, u: 0, b: 0 };
   sf.u = (Number(sf.u) || 0) + 1; pl.saf = sf;
-  const alb = Object.assign({}, pl.alb || {}), isNew = !alb[key];
+  const alb = normAlb(pl.alb), isNew = !alb[key];
   alb[key] = (Number(alb[key]) || 0) + 1; pl.alb = alb;
-  let gain = isNew ? 0 : DUPE_DUST, pageDone = false;
+  let gain = isNew ? 0 : DUPE_DUST, pageDone = false, mile = 0, alDone = false;
   const pg = (pl.pg || []).slice();
   if (isNew && PAGES[S.zk].every(x => alb[x.key]) && !pg.includes(S.zk)) { pg.push(S.zk); pl.pg = pg; gain += PAGE_DUST; pageDone = true; }
+  // every 10 new photos (whole album) = +25 Stardust
+  const miles = Math.floor(Object.keys(alb).length / MILE_EVERY), paid = Number(pl.ms) || 0;
+  if (isNew && miles > paid) { mile = (miles - paid) * MILE_DUST; gain += mile; pl.ms = miles; }
+  if (isNew && e.alien && zoneAliens(S.zk).every(x => alb[x.key])) alDone = true;
   if (gain) pl.dust = (Number(pl.dust) || 0) + gain;
   save(pl); shutter();
   const fl = document.getElementById("safflash"); if (fl) { fl.classList.remove("on"); void fl.offsetWidth; fl.classList.add("on"); }
   const z = ZONES.find(x => x.key === S.zk), left = filmLeft(fakeSt());
   const card = document.getElementById("safcard");
   if (card) card.innerHTML = '<div class="safpola' + (e.alien ? " alien" : "") + '"><div class="safpolapic" style="background-image:url(' + A + "zone-" + S.zk + '.webp)">' + entryArt(e, "safpimg") + "</div>" +
-    "<b>" + esc(e.name) + '</b><small class="safr">' + (e.alien ? "\u{1F47D} Rare Planet JP alien!" : esc(e.rarity)) + "</small>" +
+    "<b>" + esc(e.name) + '</b><small class="safr">' + (e.alien ? "\u{1F47D} " + esc(ALIENS[e.alien].rarity) + " \u00b7 only on Planet JP!" : esc(e.rarity) + (e.stage > 1 ? " \u00b7 evolved form" : "")) + "</small>" +
     (isNew ? '<p class="safnew">\u{1F195} Added to your album!</p>' : '<p class="safdupe">Already in your album · +' + DUPE_DUST + " ⭐</p>") +
     (e.alien && isNew ? '<p class="small">' + esc(ALIENS[e.alien].line) + "</p>" : "") +
+    (mile ? '<p class="safdone">\u{1F389} ' + Object.keys(alb).length + " photos in your album! +" + mile + " ⭐</p>" : "") +
+    (alDone ? '<p class="safdone">\u{1F47D} You found all 3 ' + esc(z.name) + " aliens! New badge!</p>" : "") +
     (pageDone ? '<p class="safdone">\u{1F3C6} ' + esc(z.name) + " page complete! +" + PAGE_DUST + " ⭐ Stardust and a new badge!</p>" : "") +
     '<div class="row" style="justify-content:center;gap:8px;margin-top:8px;">' +
     (left ? '<button class="btn gold small" data-saf="again">\u{1F4F8} Keep going (' + left + " film)</button>" : "") +
     '<button class="btn ghost small" data-saf="done">' + (left ? "Done" : "Done for today") + "</button></div></div>";
   upd();
-  if (pageDone) setTimeout(() => { try { [1318, 1568, 1976, 2637, 3136].forEach((f, i) => setTimeout(() => beep(f, 0.14), i * 110)); } catch (x) {} }, 400);
+  if (pageDone || alDone || mile) setTimeout(() => { try { [1318, 1568, 1976, 2637, 3136].forEach((f, i) => setTimeout(() => beep(f, 0.14), i * 110)); } catch (x) {} }, 400);
 }
 function noFilm() {
   const card = document.getElementById("safcard"), dust = Number(S.pl.dust) || 0; S.shot = "film";

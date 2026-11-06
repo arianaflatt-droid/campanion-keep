@@ -7,12 +7,12 @@
    A launch is saved on the student: planet = { n: launches, last: "YYYY-MM-DD", streak, best } (one write a day).
    Wave 2 adds a space minigame between liftoff and landing; Planet JP itself comes later, one piece at a time.
    Pictures live in assets/planet/ — until one is uploaded (ART below) the stand-in drawing is used. */
-import { esc } from "./game.js?v=20261107e";
-import { azToday, azNow } from "./collect.js?v=20261107e";
-import { axoDay, schoolDayFor } from "./axolotl.js?v=20261107e";
-import { addDays } from "./doors.js?v=20261107e";
-import { GAMES, gameOfDay, gameByKey, play, preload } from "./spacegames.js?v=20261107e";
-import { ZONES, safariSync, freshSt, albumHTML, filmLeft, pageCount, PAGE_SIZE, FREE_FILM, ROLL_COST, ALIENS } from "./safari.js?v=20261107e";
+import { esc } from "./game.js?v=20261107f";
+import { azToday, azNow } from "./collect.js?v=20261107f";
+import { axoDay, schoolDayFor } from "./axolotl.js?v=20261107f";
+import { addDays } from "./doors.js?v=20261107f";
+import { GAMES, gameOfDay, gameByKey, play, preload } from "./spacegames.js?v=20261107f";
+import { ZONES, safariSync, freshSt, albumHTML, filmLeft, pageCount, pageSize, aliensFound, zoneAliens, FREE_FILM, ROLL_COST } from "./safari.js?v=20261107f";
 
 export const PJ_OPEN = 11 * 60, PJ_CLOSE = 12 * 60 + 55;   // minutes after midnight, Arizona time
 const A = "assets/planet/";
@@ -286,7 +286,7 @@ export function planetTab(st, cls, students, petOf, preview) {
       '<h2>' + z.icon + " " + esc(z.name) + '</h2><p class="lede">' + esc(z.line) + "</p>" +
       '<p class="small">Creatures here: ' + z.types.map(t => '<span class="pjtype">' + (TYPE_IC[t] || "") + " " + t + "</span>").join(" ") + "</p>" +
       '<div class="safbox"><div><b>\u{1F4F8} Creature Safari</b><p class="small" style="margin:2px 0 0;">Creatures peek out and hide again. Tap one fast to take its photo! ' +
-      "Album page: <b>" + pageCount(st, z.key) + " / " + PAGE_SIZE + "</b> · \u{1F39E}️ <b>" + filmLeft(st) + "</b> film left today (" + FREE_FILM + " free a day, then " + ROLL_COST + " ⭐ a roll). Rare find: <b>" + esc(ALIENS[z.key].name) + "</b> \u{1F47D}</p></div>" +
+      "Album page: <b>" + pageCount(st, z.key) + " / " + pageSize(z.key) + "</b> · \u{1F47D} aliens <b>" + aliensFound(st, z.key) + " / 3</b> · \u{1F39E}️ <b>" + filmLeft(st) + "</b> film left today (" + FREE_FILM + " free a day, then " + ROLL_COST + " ⭐ a roll). Only here: " + zoneAliens(z.key).map(a => "<b>" + esc(a.name) + "</b>").join(", ") + " \u{1F47D}</p></div>" +
       '<button class="btn gold" data-safari="' + z.key + '">\u{1F4F8} Start safari</button></div></div>';
   }
   const next = ZONES.find(x => n < x.at);

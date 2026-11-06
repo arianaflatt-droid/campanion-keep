@@ -2572,3 +2572,12 @@ body.mini-kite .wrap{ position:relative; z-index:1; } body.mini-kite .tile{ box-
 .safslot.alien{ background:linear-gradient(#FFF6D6,#FFE9F6); }
 .safrare{ position:absolute; top:3px; right:4px; font-size:10px; font-style:normal; color:#B3760B; }
 .pjzone .pjback{ background:rgba(255,255,255,.95) !important; color:#222 !important; border:0; box-shadow:0 2px 8px rgba(0,0,0,.25); }
+/* Safari album v2 (Nov 7): big pages, one open at a time */
+button.safpagehead{ width:100%; background:none; border:0; padding:2px 0; font:inherit; color:inherit; cursor:pointer; text-align:left; display:flex; justify-content:space-between; gap:8px; }
+button.safpagehead:disabled{ cursor:default; }
+.safbar{ height:8px; border-radius:99px; background:rgba(0,0,0,.08); margin-top:6px; overflow:hidden; }
+.safbar i{ display:block; height:100%; background:linear-gradient(90deg,#7BEA7B,#E9B949); border-radius:99px; }
+.safgrid{ grid-template-columns:repeat(auto-fill,minmax(84px,1fr)); }
+.safslot.alien.ts{ background:linear-gradient(#FFF3B8,#FFD9F2); box-shadow:0 0 0 2px #F0C24B inset; }
+.safslot.alien.tc{ background:linear-gradient(#EFFFF0,#E6F6FF); }
+.safrare.evo{ color:#6B5BA8; }
