@@ -2485,3 +2485,43 @@ body.mini-kite .wrap{ position:relative; z-index:1; } body.mini-kite .tile{ box-
 .schoolrow.here{ background:rgba(20,120,120,.08); }
 .schoolrow b{ min-width:170px; } .schoolrow input{ flex:1; min-width:240px; }
 .adminchip{ display:inline-block; padding:3px 10px; margin:2px; border-radius:99px; background:rgba(0,0,0,.06); }
+/* 🚀 launch announcements on The Keep / Battle Area (Nov 7) */
+#pjkeep .pjk{ position:fixed; inset:0; z-index:8500; pointer-events:none; overflow:hidden; }
+#pjkeep .pjkship{ position:absolute; left:0; top:0; width:min(340px,30vw); animation:pjkfly 4.6s cubic-bezier(.45,.05,.55,.95) forwards; filter:drop-shadow(0 14px 24px rgba(0,0,0,.45)); }
+#pjkeep .pjkship .pjduck-img,#pjkeep .pjkship .pjduck-svg{ width:100%; height:auto; display:block; position:relative; z-index:1; }
+#pjkeep .pjkship .pjflame{ position:absolute; right:87%; top:44%; width:50%; height:36%; object-fit:contain; animation:pjflick .12s infinite alternate; }
+@keyframes pjkfly{ 0%{ transform:translate(-40vw,85vh) rotate(-22deg); } 100%{ transform:translate(115vw,-35vh) rotate(-22deg); } }
+#pjkeep .pjktrail{ position:absolute; left:-10vw; top:30vh; width:140vw; height:16vh; transform:rotate(-22deg); transform-origin:0 50%;
+  background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,220,150,.55) 40%,rgba(255,255,255,.0)); filter:blur(14px); animation:pjktrail 4.6s ease-out forwards; }
+@keyframes pjktrail{ 0%{ opacity:0; clip-path:inset(0 100% 0 0); } 30%{ opacity:1; } 80%{ opacity:.8; clip-path:inset(0 0 0 0); } 100%{ opacity:0; } }
+#pjkeep .pjkmsg{ position:absolute; left:50%; top:42%; transform:translate(-50%,-50%) scale(.6); opacity:0; display:flex; align-items:center; gap:18px;
+  padding:18px 34px; border-radius:30px; background:rgba(20,14,60,.88); color:#fff; font-size:clamp(26px,3.4vw,52px); font-weight:900; white-space:nowrap;
+  box-shadow:0 0 0 5px #FFE38A,0 20px 60px rgba(0,0,0,.5); animation:pjkmsg 5.4s ease forwards; }
+#pjkeep .pjkmsg b{ color:#FFE38A; }
+#pjkeep .pjkplanet .pjplanet-img,#pjkeep .pjkplanet .pjplanet-css{ width:clamp(60px,6vw,96px); height:auto; display:block; }
+@keyframes pjkmsg{ 0%,12%{ opacity:0; transform:translate(-50%,-50%) scale(.6); } 22%{ opacity:1; transform:translate(-50%,-50%) scale(1.06); } 28%,82%{ opacity:1; transform:translate(-50%,-50%) scale(1); } 100%{ opacity:0; transform:translate(-50%,-50%) scale(.95); } }
+@media (prefers-reduced-motion: reduce){ #pjkeep .pjkship,#pjkeep .pjktrail{ animation:none; display:none; } }
+/* 🪐 Planet JP tab (Nov 7, Wave 3a) */
+.pjtab{ background:radial-gradient(circle at 15% 20%,#3A2C8C,#1B1250 70%); color:#F4EEFF; }
+.pjtab .lede{ color:#D9CCFF; } .pjtab b{ color:#FFE38A; }
+.pjtabhead{ display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+.pjtabhead .pjplanet-img,.pjtabhead .pjplanet-css{ width:110px; height:auto; flex:0 0 auto; }
+.pjtabhead h2{ margin:0; color:#FFE38A; }
+.pjtabstats{ display:flex; gap:10px; flex-wrap:wrap; margin-left:auto; }
+.pjtabstats span{ padding:6px 14px; border-radius:99px; background:rgba(255,255,255,.12); font-size:14px; }
+.pjmap{ display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px; margin-top:8px; }
+.pjzcard{ position:relative; height:130px; border:0; border-radius:16px; background-size:cover; background-position:center; cursor:pointer; overflow:hidden; box-shadow:0 6px 16px rgba(0,0,0,.2); transition:transform .15s; text-align:left; }
+.pjzcard:hover:not(:disabled){ transform:translateY(-3px) scale(1.02); }
+.pjzcard::after{ content:""; position:absolute; inset:0; background:linear-gradient(0deg,rgba(10,6,40,.8),rgba(10,6,40,0) 60%); }
+.pjzcard.locked{ filter:grayscale(.85) brightness(.55); cursor:default; }
+.pjzname{ position:absolute; left:10px; bottom:26px; z-index:1; color:#fff; font-weight:900; font-size:16px; text-shadow:0 2px 4px rgba(0,0,0,.6); }
+.pjztypes,.pjzlock{ position:absolute; left:10px; bottom:6px; z-index:1; color:#FFE38A; font-size:13px; font-weight:800; }
+.pjzone .pjzonescene{ position:relative; height:min(52vw,420px); border-radius:16px; background-size:cover; background-position:center; margin-bottom:10px; overflow:hidden; }
+.pjback{ position:absolute; left:10px; top:10px; background:rgba(255,255,255,.9); }
+.pjzonepet{ position:absolute; left:50%; bottom:10%; transform:translateX(-50%); font-size:90px; }
+.pjzonepet img,.pjzonepet .tglyph img{ width:clamp(120px,18vw,200px); height:auto; filter:drop-shadow(0 10px 12px rgba(0,0,0,.4)); animation:pjbob 1.6s ease-in-out infinite; }
+.pjtype{ display:inline-block; padding:2px 10px; border-radius:99px; background:rgba(0,0,0,.06); margin:2px; }
+.pjcolony{ display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:10px; margin-top:8px; }
+.pjcol{ display:flex; flex-direction:column; align-items:center; gap:2px; padding:8px; border-radius:14px; background:rgba(90,60,200,.08); text-align:center; }
+.pjcol.me{ box-shadow:0 0 0 3px #FFB547; }
+.pjcolpet{ font-size:44px; line-height:1; } .pjcolpet img{ width:64px; height:64px; object-fit:contain; }

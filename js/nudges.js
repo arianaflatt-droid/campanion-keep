@@ -1,14 +1,14 @@
 // Nudge messages: short, friendly "you're close!" notes at the top of a student's page.
 // Each rule returns a nudge or null; the most useful few are shown (lower pri = shown first).
-import { seasonOf, dayXP, simulate, GEAR, goalXP, arr5, esc, isHaunt, battleOn, nextAttack, companionOf, bossState } from "./game.js?v=20261107a";
-import { azToday, brewLegLeft, feastLegLeft, gingerLegLeft, snowLegLeft, candyLegLeft, ghostEggLeft, BOSS2_LIST, boss2EggLeft, vaultLegLeft, pickleLeft, birthdayLeft, EVENTS, eventOpen, eventUnlocked, hasEvent, eventStreak, creature, family, azNow, pullsLeft, legendaryLeft, bankXP, LEVEL_XP, PULL_XP, hasStarter, owned, MAX_LEVEL } from "./collect.js?v=20261107a";
-import { badgeState } from "./badges.js?v=20261107a";
-import { mqReady } from "./morning.js?v=20261107a";
-import { unthanked } from "./kindness.js?v=20261107a";
-import { pettedToday } from "./bond.js?v=20261107a";
-import { mealsReady } from "./meals.js?v=20261107a";
-import { passReady } from "./pass.js?v=20261107a";
-import { doorsLive, goldenReady, doorName } from "./doors.js?v=20261107a";
+import { seasonOf, dayXP, simulate, GEAR, goalXP, arr5, esc, isHaunt, battleOn, nextAttack, companionOf, bossState } from "./game.js?v=20261107c";
+import { azToday, brewLegLeft, feastLegLeft, gingerLegLeft, snowLegLeft, candyLegLeft, ghostEggLeft, BOSS2_LIST, boss2EggLeft, vaultLegLeft, pickleLeft, birthdayLeft, EVENTS, eventOpen, eventUnlocked, hasEvent, eventStreak, creature, family, azNow, pullsLeft, legendaryLeft, bankXP, LEVEL_XP, PULL_XP, hasStarter, owned, MAX_LEVEL } from "./collect.js?v=20261107c";
+import { badgeState } from "./badges.js?v=20261107c";
+import { mqReady } from "./morning.js?v=20261107c";
+import { unthanked } from "./kindness.js?v=20261107c";
+import { pettedToday } from "./bond.js?v=20261107c";
+import { mealsReady } from "./meals.js?v=20261107c";
+import { passReady } from "./pass.js?v=20261107c";
+import { doorsLive, goldenReady, doorName } from "./doors.js?v=20261107c";
 
 const MAX_SHOWN = 3;
 const WEEKDAY = { Mon: 0, Tue: 1, Wed: 2, Thu: 3, Fri: 4 };

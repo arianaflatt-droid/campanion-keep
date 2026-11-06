@@ -7,11 +7,11 @@
    A launch is saved on the student: planet = { n: launches, last: "YYYY-MM-DD", streak, best } (one write a day).
    Wave 2 adds a space minigame between liftoff and landing; Planet JP itself comes later, one piece at a time.
    Pictures live in assets/planet/ — until one is uploaded (ART below) the stand-in drawing is used. */
-import { esc } from "./game.js?v=20261107a";
-import { azToday, azNow } from "./collect.js?v=20261107a";
-import { axoDay, schoolDayFor } from "./axolotl.js?v=20261107a";
-import { addDays } from "./doors.js?v=20261107a";
-import { GAMES, gameOfDay, gameByKey, play, preload } from "./spacegames.js?v=20261107a";
+import { esc } from "./game.js?v=20261107c";
+import { azToday, azNow } from "./collect.js?v=20261107c";
+import { axoDay, schoolDayFor } from "./axolotl.js?v=20261107c";
+import { addDays } from "./doors.js?v=20261107c";
+import { GAMES, gameOfDay, gameByKey, play, preload } from "./spacegames.js?v=20261107c";
 
 export const PJ_OPEN = 11 * 60, PJ_CLOSE = 12 * 60 + 55;   // minutes after midnight, Arizona time
 const A = "assets/planet/";
@@ -59,7 +59,7 @@ export function planetBar(st, cls, preview) {
   if (p === "fill") msg = "Fill all 4 tanks to launch to <b>Planet JP</b>! " + (mins() < PJ_OPEN ? "Launch window opens at 11:00." : 'Window closes in <b id="pjcd">' + left(PJ_CLOSE) + "</b>");
   else if (p === "ready") msg = "\u{1F389} Ready for liftoff! The launch window opens in <b id=\"pjcd\">" + left(PJ_OPEN) + "</b>";
   else if (p === "go") msg = '\u{1F680} Fuel tanks full! <button class="btn small gold" data-pj="open">Launch the S.S. Duck!</button>';
-  else if (p === "landed") msg = "\u{1FA90} You landed on <b>Planet JP</b>! Launch #" + (pl.n || 1) + ((pl.streak || 0) > 1 ? " · \u{1F525} " + pl.streak + " days in a row" : "") + (pl.dust ? " · ⭐ " + pl.dust + " Stardust" : "");
+  else if (p === "landed") msg = (mins() < PJ_CLOSE ? '<button class="btn small gold" data-pj="tab">\u{1FA90} Explore Planet JP</button> ' : "") + "\u{1FA90} You landed on <b>Planet JP</b>! Launch #" + (pl.n || 1) + ((pl.streak || 0) > 1 ? " · \u{1F525} " + pl.streak + " days in a row" : "") + (pl.dust ? " · ⭐ " + pl.dust + " Stardust" : "");
   else msg = "\u{1F6D1} Mission scrubbed, try again tomorrow!";
   const tanks = p === "landed" || p === "scrubbed" ? "" : '<div class="pjtanks">' + f.tanks.map(t => '<span class="pjtank' + (t.have >= t.need ? " ok" : "") + '">' + t.icon + " " + esc(t.name) + " <b>" + Math.min(t.have, t.need) + "/" + t.need + "</b>" + (t.have >= t.need ? " ✅" : "") + "</span>").join("") + "</div>";
   return '<div class="pjbar ' + p + '"><div class="pjtrack"><div class="pjfill" style="width:' + (pct * 100).toFixed(1) + '%"></div>' +
@@ -78,7 +78,8 @@ function rootEl() {
     root.addEventListener("click", ev => { const b = ev.target.closest("[data-pj]"); if (b) act(b.dataset.pj); }); }
   return root;
 }
-document.addEventListener("click", ev => { const b = ev.target.closest && ev.target.closest('[data-pj="open"]'); if (b && C && !root?.contains(b)) openMC(); });
+document.addEventListener("click", ev => { const b = ev.target.closest && ev.target.closest('[data-pj="open"]'); if (b && C && !root?.contains(b)) openMC();
+  const t = ev.target.closest && ev.target.closest('[data-pj="tab"]'); if (t && !root?.contains(t)) window.dispatchEvent(new CustomEvent("pj-tab")); });
 
 // called on every student page render. c = { st, cls, patch, preview, rerender, calm }
 export function planetSync(c) {
@@ -98,6 +99,7 @@ function close() { clearT(); musicStop(); view = null; if (root) root.innerHTML 
 function act(a) {
   if (a === "open") return openMC();
   if (a === "later" || a === "done") return close();
+  if (a === "explore") { close(); window.dispatchEvent(new CustomEvent("pj-tab")); return; }
   if (a === "launch" && view === "mc") return launch();
   if (a === "skip" && view === "fly") { clearT(); const v = document.getElementById("pjvid"); if (v) v.pause(); intro(); }
   if (a === "gstart" && view === "intro") return startGame();
@@ -195,8 +197,8 @@ function land(skipped) {
     (ART.jpWave ? '<div class="pjjp wave" id="pjwave"><img src="' + A + 'jp-welcome.webp" alt="JP"></div>' : "") +
     '<div class="pjwelcome" id="pjwel"><h1 class="pjtitle">Welcome to Planet JP!</h1><p class="pjsub">The S.S. Duck landed safely, Captain ' + name + "!</p>" +
     '<p class="pjstat">\u{1F680} Launch <b>#' + (s.n || 1) + "</b>" + ((s.streak || 0) > 1 ? " · \u{1F525} <b>" + s.streak + "</b> days in a row" : "") + (s.dust ? " · ⭐ <b>" + s.dust + "</b> Stardust" : "") + "</p>" +
-    '<p class="pjsub small">More to explore on Planet JP is coming soon… come back tomorrow for another launch!</p>' +
-    '<button class="btn gold" data-pj="done">Done</button></div>');
+    '<p class="pjsub small">Explore the map and see who else landed in your <b>\u{1FA90} Planet JP</b> tab (open until 12:55).</p>' +
+    '<div class="row" style="justify-content:center;gap:10px;"><button class="btn gold" data-pj="explore">\u{1F5FA}\uFE0F Explore Planet JP</button><button class="btn ghost" data-pj="done">Done</button></div></div>');
   const show = () => { ["pjwel", "pjwave", "pjdust"].forEach(id => { const e = document.getElementById(id); if (e) e.classList.add("on"); }); };
   if (!skipped) later(1900, () => { thud(); show(); }); else show();
   later(skipped ? 100 : 2100, sparkle);
@@ -230,4 +232,77 @@ export function planetAdmin(students, cls) {
     '<p class="lede" style="font-size:13.5px;">A launch bar across the top of every student’s Keep. It fills with <b>120 XP + 25 Math, Reading and Language</b>. Full tanks can launch the S.S. Duck from <b>11:00 to 12:55</b> (Arizona time); not full by 12:55 = “Mission scrubbed”. School days only (your calendar breaks are skipped). To try it yourself, open a student’s page in preview and press “Preview the launch”.</p>' +
     '<div class="row" style="margin:10px 0;gap:8px;"><button class="btn' + (on ? " ghost" : "") + '" data-act="pjToggle">' + (on ? "Turn Planet JP off" : "\u{1F680} Turn Planet JP on") + "</button></div>" +
     (on && (went.length || ready.length) ? '<p class="small" style="margin:4px 0;">' + (went.length ? "\u{1FA90} <b>Landed:</b> " + went.map(s => esc(s.name)).join(", ") : "") + (ready.length ? (went.length ? "<br>" : "") + "⛽ <b>Tanks full, not launched yet:</b> " + ready.map(s => esc(s.name)).join(", ") : "") + "</p>" : "") + "</div>";
+}
+
+/* ---------- 🚀 "Ava has launched!" on The Keep + Battle Area (Nov 7) ----------
+   The teacher's big screens (class view and Battle Area) watch the class: when a student's launch count goes up today,
+   the S.S. Duck blasts across the screen with "<name> has launched to Planet JP!". Several launches line up one after another.
+   Nothing is saved; launches that happened before the screen was opened don't play. */
+const seenN = {}; let kq = [], kBusy = false, kRoot = null, kPrimed = false;
+export function keepLaunchWatch(students, active) {
+  const today = azToday();
+  (students || []).forEach(s => {
+    const p = s.planet || {}, n = Number(p.n) || 0;
+    if (kPrimed && seenN[s.id] != null && n > seenN[s.id] && p.last === today && active) kq.push(s.name || "A student");
+    seenN[s.id] = n;
+  });
+  kPrimed = true;
+  if (!active) kq = [];
+  if (!kBusy) kNext();
+}
+function kNext() {
+  const name = kq.shift(); if (!name) { kBusy = false; return; }
+  kBusy = true;
+  if (!kRoot) { kRoot = document.createElement("div"); kRoot.id = "pjkeep"; document.body.appendChild(kRoot); }
+  kRoot.innerHTML = '<div class="pjk"><div class="pjktrail"></div><div class="pjkship">' + duckHTML() + flameHTML() + "</div>" +
+    '<div class="pjkmsg"><span class="pjkplanet">' + planetHTML() + "</span><b>" + esc(name) + "</b> has launched to Planet JP! \u{1F680}</div></div>";
+  try { rumble(1.6); setTimeout(sparkle, 1400); } catch (e) {}
+  setTimeout(() => { if (kRoot) kRoot.innerHTML = ""; setTimeout(kNext, 500); }, 5600);
+}
+
+/* ---------- 🪐 The Planet JP tab, Wave 3a (Nov 7): the map of 7 zones + the Class Colony ----------
+   Opens after the day's launch and closes at 12:55 (Arizona). Zones unlock by number of launches (planet.n).
+   The Colony shows every classmate who landed today (from the class's public cards — no extra reads). */
+export const ZONES = [
+  { key: "landing", name: "Landing Bay", icon: "\u{1F6F8}", at: 1, types: ["Normal", "Steel", "Electric"], line: "The busy spaceport where every captain lands." },
+  { key: "jungle", name: "Glow Jungle", icon: "\u{1F33F}", at: 2, types: ["Nature", "Poison"], line: "Glowing mushrooms, curly plants and bubbling green pools." },
+  { key: "caves", name: "Crystal Caves", icon: "\u{1F48E}", at: 4, types: ["Crystal", "Earth", "Rock"], line: "Giant glowing crystals deep under the ground." },
+  { key: "ice", name: "Ice Moon", icon: "\u{1F9CA}", at: 6, types: ["Ice", "Water"], line: "Frozen lakes, ice spikes and snowy craters." },
+  { key: "lava", name: "Lava Fields", icon: "\u{1F30B}", at: 9, types: ["Fire", "Dragon"], line: "Rivers of lava and friendly little volcanoes." },
+  { key: "nebula", name: "Nebula Peaks", icon: "\u{1F30C}", at: 12, types: ["Light", "Arcane", "Air"], line: "Floating islands in a rainbow nebula." },
+  { key: "shadow", name: "Shadow Crater", icon: "\u{1F311}", at: 15, types: ["Dark", "Ghost"], line: "A mysterious crater full of glowing lanterns." },
+];
+export const pjOpen = (st, cls) => phase(st, cls) === "landed" && mins() < PJ_CLOSE;
+const TYPE_IC = { Fire: "\u{1F525}", Water: "\u{1F4A7}", Nature: "\u{1F343}", Rock: "\u{1FAA8}", Earth: "⛰️", Air: "\u{1F32A}️", Electric: "⚡", Ice: "❄️", Light: "✨", Dark: "\u{1F311}", Ghost: "\u{1F47B}", Poison: "\u{1F9EA}", Steel: "⚙️", Normal: "\u{1F4AB}", Arcane: "\u{1F52E}", Crystal: "\u{1F48E}", Dragon: "\u{1F409}" };
+let zoneOpen = null;
+export function planetZone(k) { zoneOpen = k || null; }
+// petOf(st) → companion HTML (passed in by the page, so this file doesn't need the game's art code)
+export function planetTab(st, cls, students, petOf, preview) {
+  const pl = (st && st.planet) || {}, n = Number(pl.n) || 0, today = azToday();
+  const closeIn = Math.max(0, PJ_CLOSE - mins());
+  let h = '<div class="card pjtab"><div class="pjtabhead">' + planetHTML() + '<div><h2>Planet JP</h2><p class="lede">' +
+    (pjOpen(st, cls) ? "Open until <b>12:55</b> · ⏱️ " + left(PJ_CLOSE) + " left" : preview ? "\u{1F440} Teacher preview" : "Closed for today") +
+    '</p></div><div class="pjtabstats"><span>\u{1F680} <b>' + n + "</b> launch" + (n === 1 ? "" : "es") + "</span><span>⭐ <b>" + (Number(pl.dust) || 0) + "</b> Stardust</span>" +
+    ((pl.streak || 0) > 1 ? "<span>\u{1F525} <b>" + pl.streak + "</b> days in a row</span>" : "") + "</div></div></div>";
+  const z = zoneOpen && ZONES.find(x => x.key === zoneOpen && n >= x.at);
+  if (z) {
+    return h + '<div class="card pjzone"><div class="pjzonescene" style="background-image:url(' + A + "zone-" + z.key + '.webp)">' +
+      '<button class="btn ghost small pjback" data-pjzone="">← Map</button><div class="pjzonepet">' + (petOf ? petOf(st) : "") + "</div></div>" +
+      '<h2>' + z.icon + " " + esc(z.name) + '</h2><p class="lede">' + esc(z.line) + "</p>" +
+      '<p class="small">Creatures here: ' + z.types.map(t => '<span class="pjtype">' + (TYPE_IC[t] || "") + " " + t + "</span>").join(" ") + "</p>" +
+      '<p class="small muted">\u{1F4F8} Coming soon: a creature safari, where you photograph the creatures that live in ' + esc(z.name) + ".</p></div>";
+  }
+  const next = ZONES.find(x => n < x.at);
+  h += '<div class="card"><div class="card-head"><h2>\u{1F5FA}️ Explore the map</h2><span class="fact">' + ZONES.filter(x => n >= x.at).length + " of " + ZONES.length + " zones</span></div>" +
+    (next ? '<p class="lede" style="font-size:14px;">Next zone: <b>' + next.icon + " " + esc(next.name) + "</b> in " + (next.at - n) + " more launch" + (next.at - n === 1 ? "" : "es") + ".</p>" : '<p class="lede">\u{1F3C6} You unlocked every zone!</p>') +
+    '<div class="pjmap">' + ZONES.map(x => { const open = n >= x.at;
+      return '<button class="pjzcard' + (open ? "" : " locked") + '"' + (open ? ' data-pjzone="' + x.key + '"' : " disabled") + ' style="background-image:url(' + A + "zone-" + x.key + '.webp)"><span class="pjzname">' + x.icon + " " + esc(x.name) + "</span>" +
+        (open ? '<span class="pjztypes">' + x.types.map(t => TYPE_IC[t] || "").join(" ") + "</span>" : '<span class="pjzlock">\u{1F512} ' + x.at + " launches</span>") + "</button>"; }).join("") + "</div></div>";
+  // the Class Colony: who landed today
+  const kids = (students || []).filter(s => s.companionId && !s.isTeacher), landed = kids.filter(s => s.planet && s.planet.last === today);
+  h += '<div class="card"><div class="card-head"><h2>\u{1F3D5}️ Class Colony</h2><span class="fact">' + landed.length + " of " + kids.length + " landed today</span></div>" +
+    (landed.length ? '<div class="pjcolony">' + landed.sort((a, b) => String(a.name).localeCompare(String(b.name))).map(s =>
+      '<div class="pjcol' + (st && s.id === st.id ? " me" : "") + '"><span class="pjcolpet">' + (petOf ? petOf(s) : "") + "</span><b>" + esc(s.name) + "</b><small>\u{1F680} " + (Number(s.planet.n) || 0) + "</small></div>").join("") + "</div>"
+      : '<p class="lede">Nobody has landed yet today.</p>') + "</div>";
+  return h;
 }
