@@ -2,49 +2,49 @@ import {
   checkVersion, hitOn, gearInSeason, applyDisplayNames, companionOf, petCreatures, pinnedBadgeHTML, DAYS, SHORT, ROSTER, GEAR, SIDEKICKS, BANNER, bannerFor, newsHTML, boostHTML, vipToday, countdownHTML, countdownLeft, isHaunt, battleOn, candyOf, basketHTML, CANDY_FULL, bossState, attacksReady, bossBarHTML, GHOST_IMG, ghostUnlocked, turkeyUnlocked, grinchUnlocked, isJingle, isFrost, isHeart, heartUnlocked, isLucky, luckyUnlocked, attackRefusal, saveProblems, yetiUnlocked, eventMode, isGobble, setSeason, SEASON, seasonOf, STORE, candyLeft, candySpent, ownedCount, ownsItem, storeArt, nextAttack, dmgOf, HAT_BONUS, BREW_BONUS, teamHTML, wallHTML, WHEEL, pickSlice, wheelHTML, spinTo, PRIZES, prizeSlices, bucketState, bucketHTML, baseDamage, EAT_PER_DAY, dayEaten, dayXP, byId, esc, arr5, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, sidekickSVG, petHTML as petBase, vipStage, withVipHat, vipWorn, petWithHead, OUTFITS, itemArt, potionFx, bondLevel,
   ghost2Unlocked, starterFam, boss2Of, BOSS2, BOSS2_LIST, creditCompanion, compKey, compLevel, compFill, COMP_DAYS, creatureCompanion, win1HTML
-} from "./game.js?v=20261107f";
-import { EVENT_LIST, TEAM_EVENTS, eventOn, teamCard, teamOf as tevTeamOf } from "./teams.js?v=20261107f";
-import { lockOf, lockScreen } from "./lock.js?v=20261107f";
-import { revengeCard, revengeSync } from "./revenge.js?v=20261107f";
-import { heistCard, heistSync } from "./heist.js?v=20261107f";
-import { ultraSync, vaultUltra } from "./ultra.js?v=20261107f";
-import { secretBanner, secretOverlay, secretOpen } from "./secret.js?v=20261107f";
-import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=20261107f";
-import { kindCard, gotKindToday } from "./kindness.js?v=20261107f";
-import { partyCards, partyOverlay, partyClick, partyBusy, partyTicker, partySync } from "./party.js?v=20261107f";
-import { kitchenCard, kitchenOverlay, kitchenClick, kitchenBusy, kitchenPointer } from "./meals.js?v=20261107f";
-import { miniCard, miniOverlay, miniClick, miniBusy, miniSync } from "./mini.js?v=20261107f";
-import { paintCard, paintClick } from "./paint.js?v=20261107f";
-import { surpriseCards, surpriseOverlay, surpriseClick, surpriseBusy } from "./surprise.js?v=20261107f";
-import { hofTab, hofParty, hofClick } from "./hof.js?v=20261107f";
-import { passTab, passOverlay, passClick, passBusy, passReady } from "./pass.js?v=20261107f";
-import { bondHTML, moodBubble, playTrick, burst, unlockAt } from "./bond.js?v=20261107f";
-import { morningTab, morningOverlay, morningClick, morningBusy, mqReady } from "./morning.js?v=20261107f";
-import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261107f";
-import { cardOf, sameData } from "./card.js?v=20261107f";
-import { mapOn, mapTab, mapClick, mapReady } from "./readmap.js?v=20261107f";
-import { tbCard, tbLeft } from "./teachbattle.js?v=20261107f";
-import { wheelBanner, wheelWinOverlay, wheelSeen } from "./subwheel.js?v=20261107f";
-import { axoOn, axoSync } from "./axolotl.js?v=20261107f";
-import { clubsTab, clubsNew, doneCount, clubPageSet } from "./clubs.js?v=20261107f";
-import { planetBar, planetSync, planetBusy, planetTab, planetZone, pjOpen, planetOn } from "./planet.js?v=20261107f";
-import { checklistTab, todoCount, markSeen } from "./checklist.js?v=20261107f";
-import { PREVIEW, configured, auth, googleStudentSignIn, seatInfo, googleReseat, signOut as gSignOut, SCHOOL_DOMAIN, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc as saveDoc, watchRewardPic, watchNewsPic, claimSeat, mySeat, watchCards, watchMe, saveCard, ck } from "./db.js?v=20261107f";
-import { rewardTab, rewardBadge, rgOf, rgProgress, RG_SUBS } from "./weekgoal.js?v=20261107f";
-import { soloOn, soloSwap, soloCard, brewOne, freeIngredient, soloReady, soloCfg, potNaming, potNameData } from "./solobrew.js?v=20261107f";
+} from "./game.js?v=20261107g";
+import { EVENT_LIST, TEAM_EVENTS, eventOn, teamCard, teamOf as tevTeamOf } from "./teams.js?v=20261107g";
+import { lockOf, lockScreen } from "./lock.js?v=20261107g";
+import { revengeCard, revengeSync } from "./revenge.js?v=20261107g";
+import { heistCard, heistSync } from "./heist.js?v=20261107g";
+import { ultraSync, vaultUltra } from "./ultra.js?v=20261107g";
+import { secretBanner, secretOverlay, secretOpen } from "./secret.js?v=20261107g";
+import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=20261107g";
+import { kindCard, gotKindToday } from "./kindness.js?v=20261107g";
+import { partyCards, partyOverlay, partyClick, partyBusy, partyTicker, partySync } from "./party.js?v=20261107g";
+import { kitchenCard, kitchenOverlay, kitchenClick, kitchenBusy, kitchenPointer } from "./meals.js?v=20261107g";
+import { miniCard, miniOverlay, miniClick, miniBusy, miniSync } from "./mini.js?v=20261107g";
+import { paintCard, paintClick } from "./paint.js?v=20261107g";
+import { surpriseCards, surpriseOverlay, surpriseClick, surpriseBusy } from "./surprise.js?v=20261107g";
+import { hofTab, hofParty, hofClick } from "./hof.js?v=20261107g";
+import { passTab, passOverlay, passClick, passBusy, passReady } from "./pass.js?v=20261107g";
+import { bondHTML, moodBubble, playTrick, burst, unlockAt } from "./bond.js?v=20261107g";
+import { morningTab, morningOverlay, morningClick, morningBusy, mqReady } from "./morning.js?v=20261107g";
+import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261107g";
+import { cardOf, sameData } from "./card.js?v=20261107g";
+import { mapOn, mapTab, mapClick, mapReady } from "./readmap.js?v=20261107g";
+import { tbCard, tbLeft } from "./teachbattle.js?v=20261107g";
+import { wheelBanner, wheelWinOverlay, wheelSeen } from "./subwheel.js?v=20261107g";
+import { axoOn, axoSync } from "./axolotl.js?v=20261107g";
+import { clubsTab, clubsNew, doneCount, clubPageSet } from "./clubs.js?v=20261107g";
+import { planetBar, planetSync, planetBusy, planetTab, planetZone, pjOpen, planetOn } from "./planet.js?v=20261107g";
+import { checklistTab, todoCount, markSeen } from "./checklist.js?v=20261107g";
+import { PREVIEW, configured, auth, googleStudentSignIn, seatInfo, googleReseat, signOut as gSignOut, SCHOOL_DOMAIN, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc as saveDoc, watchRewardPic, watchNewsPic, claimSeat, mySeat, watchCards, watchMe, saveCard, ck } from "./db.js?v=20261107g";
+import { rewardTab, rewardBadge, rgOf, rgProgress, RG_SUBS } from "./weekgoal.js?v=20261107g";
+import { soloOn, soloSwap, soloCard, brewOne, freeIngredient, soloReady, soloCfg, potNaming, potNameData } from "./solobrew.js?v=20261107g";
 let rpic = null, npic = null;
 // The wheel's slices; with Solo Potion Brewing on, Free Attack becomes Free Ingredient (same slice id, so saves still pass)
 const slicesNow = () => soloOn(cls) ? SEASON.slices.map(x => x.id === "attack" ? Object.assign({}, x, { label: "Free Ingredient", icon: soloCfg(cls).icon, note: "A free " + (soloCfg(cls).ingFor || soloCfg(cls).one) + " ingredient!" }) : x) : SEASON.slices;
-import { nudgeCard } from "./nudges.js?v=20261107f";
-import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261107f";
-import { teacherPlayer, hasStarter, MOVES, formOf } from "./collect.js?v=20261107f";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261107f";
-import { addDays, vaultMet, goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked, weekGoal, weekKey, weekTotal, weekDoorState, vaultState, vaultGoal, rewardFor, oldReady, vaultLessonsLeft, VAULT_XP, VAULT_BONUS_XP, VAULT_EGGS, VAULT_MIN, vaultMinOk, vaultNeedsMin, subReq, subReqHTML } from "./doors.js?v=20261107f";
-import { azToday } from "./collect.js?v=20261107f";
+import { nudgeCard } from "./nudges.js?v=20261107g";
+import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261107g";
+import { teacherPlayer, hasStarter, MOVES, formOf } from "./collect.js?v=20261107g";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261107g";
+import { addDays, vaultMet, goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked, weekGoal, weekKey, weekTotal, weekDoorState, vaultState, vaultGoal, rewardFor, oldReady, vaultLessonsLeft, VAULT_XP, VAULT_BONUS_XP, VAULT_EGGS, VAULT_MIN, vaultMinOk, vaultNeedsMin, subReq, subReqHTML } from "./doors.js?v=20261107g";
+import { azToday } from "./collect.js?v=20261107g";
 import { roomHTML, FIT_SLOTS, slotKind, KIND_NAMES, KIND_ICON, EVERYDAY_PRICE, THEMED_PRICE, TROPHY_PRICE, TYPE_THEMES, SEASON_THEMES, THEME_NAMES, TROPHIES,
   itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId,
-  ROOMS, EXTRA_ROOMS, ROOM_PRICE, hasRoom, roomStarters, fitIn, slotTakes, roomExtras, PET_SPOT_KEYS, petSpotLabel, petSpotOf, ACTIVITY_IDS, ACTIVITY_PRICE } from "./room.js?v=20261107f";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing, endMyBattle } from "./collector-ui.js?v=20261107f";
+  ROOMS, EXTRA_ROOMS, ROOM_PRICE, hasRoom, roomStarters, fitIn, slotTakes, roomExtras, PET_SPOT_KEYS, petSpotLabel, petSpotOf, ACTIVITY_IDS, ACTIVITY_PRICE } from "./room.js?v=20261107g";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing, endMyBattle } from "./collector-ui.js?v=20261107g";
 
 let fxFor = null;   // the student whose companion is being drawn (for the potion glow)
 const petHTML = (c, worn, held) => { const h = petBase(c, worn, held), fx = fxFor ? potionFx(fxFor) : ""; return fx ? h.replace('class="petwrap', 'class="petwrap' + fx) : h; };
@@ -85,13 +85,17 @@ function maybeCredit() {
 function flash(m, ok) { flashMsg = m; flashOk = !!ok; render(); clearTimeout(flashTimer); flashTimer = setTimeout(() => { flashMsg = null; render(); }, 4000); }
 const app = document.getElementById("app");
 
+// Nov 7: still loading after 15 s → say so, with Reload and Google sign-in, instead of "Loading your class…" forever
+let slowLoad = false;
+setTimeout(() => { if (!PREVIEW && (!loaded.c || !loaded.s) && !error) { slowLoad = true; render(); } }, 15000);
 if (!configured) { error = "This page isn’t connected yet. Ask your teacher."; render(); }
 else {
   onAuthStateChanged(auth, u => {
     if (!u) { anonSignIn().catch(e => { error = "Couldn’t connect (" + e.code + "). Try reloading."; render(); }); return; }
     if (watching || started) return;
     started = true;
-    seatUp().then(() => startWatch());
+    // Nov 7: never wait forever on the seat check (a slow or blocked network used to leave "Loading your class…" up for good)
+    Promise.race([seatUp().catch(() => {}), new Promise(r => setTimeout(r, 10000))]).then(() => { if (!watching) startWatch(); });
     // Pause when the tab has been hidden for 2 minutes (no Firebase reads while nobody is looking); catch up when it's back.
     let hideTimer = null, awayTimer = null;
     document.addEventListener("visibilitychange", () => {
@@ -300,6 +304,9 @@ function render(force) {
   let h = cls ? bannerFor(cls) + countdownHTML(cls) + newsHTML(cls, npic) + boostHTML(cls) + secretBanner(cls) : BANNER;   // Nov 4: the subject wheel was removed
   if (flashMsg) h += '<div class="banner ' + (flashOk ? "info" : "bad") + '">' + esc(flashMsg) + "</div>";
   if (error) h += '<div class="card"><p class="lede">' + esc(error) + "</p></div>";
+  else if ((!loaded.c || !loaded.s) && slowLoad) h += '<div class="card"><h2>Still loading\u2026</h2><p class="lede" style="margin-top:6px;">Your Keep is taking a long time to open. Try these:</p>' +
+    '<ol class="small" style="margin:8px 0 10px 18px;"><li>Press <b>Reload</b>.</li><li>Sign in with your <b>@' + esc(SCHOOL_DOMAIN) + '</b> school account below.</li><li>Still stuck? Tell Ms. Ariana. The school internet may be blocking it on this computer.</li></ol>' +
+    '<div class="row" style="gap:8px;"><button class="btn" onclick="location.replace(location.pathname)">\u21BB Reload</button></div></div>' + gsignCard();
   else if (!loaded.c || !loaded.s) h += '<div class="card"><p class="lede">Loading your class…</p></div>';
   else if (!cls) h += '<div class="card"><p class="lede">Your teacher hasn’t opened the Keep yet. Check back soon!</p></div>';
   else {
