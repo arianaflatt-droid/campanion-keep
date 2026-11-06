@@ -5,8 +5,8 @@
    roster doc and sits that device down as that student (seats/{uid} = { sid, email, at }, checked by the rules
    against the roster), so they open their own existing save — no progress moves anywhere.
    Personal links keep working exactly as before. One roster doc per student; reads only when the card is opened. */
-import { esc } from "./game.js?v=20261106c";
-import { SCHOOL_DOMAIN } from "./db.js?v=20261106c";
+import { esc } from "./game.js?v=20261106d";
+import { SCHOOL_DOMAIN } from "./db.js?v=20261106d";
 
 export const okEmail = e => new RegExp("^[^@\\s]+@" + SCHOOL_DOMAIN.replace(/\./g, "\\.") + "$", "i").test(String(e || "").trim());
 const EMAIL_KEYS = ["email", "student email", "school email", "e-mail", "email address", "google email"];
@@ -44,6 +44,7 @@ export function rosterAdmin(students, busy) {
     "Signing in opens their <b>same save</b>, so nobody loses progress. Personal links keep working too.</p>" +
     '<div class="row" style="gap:8px;margin:8px 0;"><label class="btn" style="cursor:pointer;">\u{1F4C4} Upload student emails<input id="rosterEmailFile" type="file" accept=".csv,.xlsx,.xls" hidden></label>' +
     '<button class="btn ghost" data-act="rosLoad">' + (R ? "↻ Refresh" : "\u{1F465} Show emails") + "</button></div>";
+  if (busy.rosterMsg) h += '<div class="banner ' + (busy.rosterMsg.bad ? "bad" : "info") + '" style="display:block;margin:8px 0;">' + esc(busy.rosterMsg.text) + "</div>";
   if (P) {
     if (P.err) h += '<div class="banner bad" style="display:block;">' + esc(P.err) + "</div>";
     else h += '<div class="banner info" style="display:block;margin-top:8px;"><b>' + P.pairs.length + "</b> student" + (P.pairs.length === 1 ? "" : "s") + " matched." +
@@ -51,7 +52,7 @@ export function rosterAdmin(students, busy) {
       (P.unmatched.length ? '<p class="small" style="margin:6px 0 0;">⚠️ Not on your roster (skipped): ' + P.unmatched.map(esc).join(", ") + "</p>" : "") +
       (P.bad.length ? '<p class="small" style="margin:6px 0 0;">⚠️ Not an @' + esc(SCHOOL_DOMAIN) + " email (skipped): " + P.bad.map(esc).join(", ") + "</p>" : "") +
       (P.dupes.length ? '<p class="small muted" style="margin:6px 0 0;">Listed twice (kept the first): ' + P.dupes.map(esc).join(", ") + "</p>" : "") +
-      '<div class="row" style="margin-top:8px;">' + (P.pairs.length ? '<button class="btn small" data-act="rosSave">✅ Save ' + P.pairs.length + "</button>" : "") + '<button class="btn ghost small" data-act="rosCancel">Cancel</button></div></div>';
+      '<div class="row" style="margin-top:8px;">' + (P.pairs.length ? '<button class="btn small" data-act="rosSave"' + (busy.rosterSaving ? " disabled" : "") + ">" + (busy.rosterSaving ? "Saving…" : "✅ Save " + P.pairs.length) + "</button>" : "") + '<button class="btn ghost small" data-act="rosCancel">Cancel</button></div></div>';
   }
   if (R) h += '<div class="rostlist">' + kids.map(s => { const x = bySid[s.id];
     return '<div class="rostrow"><b>' + esc(s.name) + '</b><input type="email" placeholder="name@' + esc(SCHOOL_DOMAIN) + '" value="' + esc(x ? x.email : "") + '" data-rosemail="' + s.id + '">' +
