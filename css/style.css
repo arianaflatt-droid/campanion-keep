@@ -2469,3 +2469,10 @@ body.mini-kite .wrap{ position:relative; z-index:1; } body.mini-kite .tile{ box-
 .pjcodeend{ width:100%; text-align:center; font-size:22px; font-weight:800; display:flex; gap:12px; align-items:center; justify-content:center; }
 .pjgame .pjskip{ background:rgba(255,255,255,.92); color:#2A1F5C; font-weight:800; }
 .pjslot{ width:clamp(44px,7.5vh,66px); height:clamp(44px,7.5vh,66px); }
+/* 🔑 School Google sign-in (Nov 6) */
+.gsigncard{ text-align:center; }
+.btn.gsign{ display:inline-flex; align-items:center; gap:10px; font-size:17px; padding:12px 26px; background:#fff; color:#3c4043; border:1px solid #dadce0; box-shadow:0 2px 6px rgba(0,0,0,.12); }
+.btn.gsign .gG{ font-weight:900; font-size:20px; background:conic-gradient(#4285F4 0 25%,#34A853 0 50%,#FBBC05 0 75%,#EA4335 0); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.rostlist{ display:grid; gap:6px; max-height:420px; overflow:auto; margin-top:8px; }
+.rostrow{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+.rostrow b{ min-width:130px; } .rostrow input{ flex:1; min-width:220px; max-width:320px; }

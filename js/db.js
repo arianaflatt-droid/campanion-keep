@@ -7,7 +7,7 @@ import {
   getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, signInAnonymously
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
-import { firebaseConfig, CLASS_ID, TEACHER_EMAILS } from "./firebase-config.js?v=20261106a";
+import { firebaseConfig, CLASS_ID, TEACHER_EMAILS } from "./firebase-config.js?v=20261106b";
 
 // Teacher preview (student.html?s=ID&preview=1): the page shows a student's view, but nothing is ever written.
 export const PREVIEW = typeof location !== "undefined" && new URLSearchParams(location.search).get("preview") === "1";
@@ -118,6 +118,36 @@ export async function claimSeat(sid, k) {
 export async function mySeat() {
   if (!auth.currentUser) return null;
   try { const d = await getDoc(seatRef(auth.currentUser.uid)); return d.exists() ? d.data().sid || null : null; } catch (e) { return null; }
+}
+/* ---------- 🔑 School Google sign-in (Nov 6, roster.js) ----------
+   roster/{school email} = { classId, sid, name }: written by the teacher; a student can read only their own.
+   A student signs in with Google → the page reads their roster doc → saves seats/{uid} = { sid, email, at }
+   (the rules check it against the roster) → they are that student on this device, just like a personal link. */
+export const SCHOOL_DOMAIN = "unbound.school";
+export const rosterRef = email => doc(db, "roster", String(email || "").trim().toLowerCase());
+export async function rosterList() {
+  const snap = await getDocs(query(collection(db, "roster"), where("classId", "==", CLASS_ID)));
+  return snap.docs.map(d => Object.assign({ email: d.id }, d.data()));
+}
+export async function seatsOnce() { const snap = await getDocs(seatsCol); return snap.docs.map(d => Object.assign({ id: d.id }, d.data())); }
+// pairs: [[sid, email, name]]; removes: [emails]
+export async function rosterSave(pairs, removes) {
+  const b = writeBatch(db), at = new Date().toISOString();
+  (removes || []).forEach(e => b.delete(rosterRef(e)));
+  pairs.forEach(([sid, email, name]) => b.set(rosterRef(email), { classId: CLASS_ID, sid, name: String(name || "").slice(0, 60), at }));
+  await b.commit();
+}
+export async function googleStudentSignIn() {
+  const p = new GoogleAuthProvider(); p.setCustomParameters({ hd: SCHOOL_DOMAIN, prompt: "select_account" });
+  const cred = await signInWithPopup(auth, p), email = String(cred.user.email || "").toLowerCase();
+  const fail = async code => { try { await signOut(auth); } catch (e) {} const er = new Error(code); er.code = code; er.email = email; throw er; };
+  if (!email.endsWith("@" + SCHOOL_DOMAIN)) return fail("wrong-domain");
+  let r = null; try { r = await getDoc(rosterRef(email)); } catch (e) { return fail("not-on-roster"); }
+  if (!r.exists()) return fail("not-on-roster");
+  const { classId, sid } = r.data();
+  if (classId !== CLASS_ID) return fail("other-class");
+  await fbSetDoc(seatRef(cred.user.uid), { sid, email, at: new Date().toISOString() });
+  return sid;
 }
 export async function getKeys() { const d = await getDoc(keysRef); return d.exists() ? d.data() : {}; }
 export function watchSeats(cb, onErr) { return onSnapshot(seatsCol, snap => cb(snap.docs.map(d => Object.assign({ id: d.id }, d.data()))), onErr); }

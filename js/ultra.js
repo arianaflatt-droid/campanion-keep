@@ -8,11 +8,11 @@
      🗺️ finishing all 3 Grade Level Quest tests at their own grade (st.grade = 4 or 5, set by Ms. Ariana; once)
    Saved on the student: ultraEggs, ultraUsed (server), ultraGoals = { st: { s: run start, n: given }, wk: { s, n }, vault: vaults rolled,
      q: true }, ultraLog = [{ why, at }] (newest last). */
-import { esc, weekKey, weekGoal } from "./game.js?v=20261106a";
-import { CLUB_ULTRA_FAMS } from "./collect.js?v=20261106a";
-import { ULTRA_FAMS, ULTRA_DUPE, ultraLeft, owned, formOf, family, creature, statsOf, bankXP, LEVEL_XP, MAX_LEVEL } from "./collect.js?v=20261106a";
-import { doneCount, GRADES } from "./quest.js?v=20261106a";
-import { addDays, mondayOf, histWeekTotal } from "./doors.js?v=20261106a";
+import { esc, weekKey, weekGoal } from "./game.js?v=20261106b";
+import { CLUB_ULTRA_FAMS } from "./collect.js?v=20261106b";
+import { ULTRA_FAMS, ULTRA_DUPE, ultraLeft, owned, formOf, family, creature, statsOf, bankXP, LEVEL_XP, MAX_LEVEL } from "./collect.js?v=20261106b";
+import { doneCount, GRADES } from "./quest.js?v=20261106b";
+import { addDays, mondayOf, histWeekTotal } from "./doors.js?v=20261106b";
 
 export const STREAK_DAYS = 30, WEEKS_IN_ROW = 4, WEEK_XP = 600, VAULT_ULTRA = 0.25;
 export const ULTRA_GRADES = [4, 5];
