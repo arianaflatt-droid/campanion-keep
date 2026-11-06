@@ -7,10 +7,11 @@
    A launch is saved on the student: planet = { n: launches, last: "YYYY-MM-DD", streak, best } (one write a day).
    Wave 2 adds a space minigame between liftoff and landing; Planet JP itself comes later, one piece at a time.
    Pictures live in assets/planet/ — until one is uploaded (ART below) the stand-in drawing is used. */
-import { esc } from "./game.js?v=20261105f";
-import { azToday, azNow } from "./collect.js?v=20261105f";
-import { axoDay, schoolDayFor } from "./axolotl.js?v=20261105f";
-import { addDays } from "./doors.js?v=20261105f";
+import { esc } from "./game.js?v=20261105h";
+import { azToday, azNow } from "./collect.js?v=20261105h";
+import { axoDay, schoolDayFor } from "./axolotl.js?v=20261105h";
+import { addDays } from "./doors.js?v=20261105h";
+import { GAMES, gameOfDay, gameByKey, play, preload } from "./spacegames.js?v=20261105h";
 
 export const PJ_OPEN = 11 * 60, PJ_CLOSE = 12 * 60 + 55;   // minutes after midnight, Arizona time
 const A = "assets/planet/";
@@ -58,7 +59,7 @@ export function planetBar(st, cls, preview) {
   if (p === "fill") msg = "Fill all 4 tanks to launch to <b>Planet JP</b>! " + (mins() < PJ_OPEN ? "Launch window opens at 11:00." : 'Window closes in <b id="pjcd">' + left(PJ_CLOSE) + "</b>");
   else if (p === "ready") msg = "\u{1F389} Ready for liftoff! The launch window opens in <b id=\"pjcd\">" + left(PJ_OPEN) + "</b>";
   else if (p === "go") msg = '\u{1F680} Fuel tanks full! <button class="btn small gold" data-pj="open">Launch the S.S. Duck!</button>';
-  else if (p === "landed") msg = "\u{1FA90} You landed on <b>Planet JP</b>! Launch #" + (pl.n || 1) + ((pl.streak || 0) > 1 ? " · \u{1F525} " + pl.streak + " days in a row" : "");
+  else if (p === "landed") msg = "\u{1FA90} You landed on <b>Planet JP</b>! Launch #" + (pl.n || 1) + ((pl.streak || 0) > 1 ? " · \u{1F525} " + pl.streak + " days in a row" : "") + (pl.dust ? " · ⭐ " + pl.dust + " Stardust" : "");
   else msg = "\u{1F6D1} Mission scrubbed, try again tomorrow!";
   const tanks = p === "landed" || p === "scrubbed" ? "" : '<div class="pjtanks">' + f.tanks.map(t => '<span class="pjtank' + (t.have >= t.need ? " ok" : "") + '">' + t.icon + " " + esc(t.name) + " <b>" + Math.min(t.have, t.need) + "/" + t.need + "</b>" + (t.have >= t.need ? " ✅" : "") + "</span>").join("") + "</div>";
   return '<div class="pjbar ' + p + '"><div class="pjtrack"><div class="pjfill" style="width:' + (pct * 100).toFixed(1) + '%"></div>' +
@@ -68,7 +69,7 @@ export function planetBar(st, cls, preview) {
 }
 
 /* ---------- the full-screen launch (its own layer, so page redraws don't restart it) ---------- */
-let C = null, saved0 = {}, view = null, root = null, timers = [], tick = null, lastPhase = "", popped = "";
+let C = null, saved0 = {}, forceGame = null, view = null, root = null, timers = [], tick = null, lastPhase = "", popped = "";
 export const planetBusy = () => !!view;
 const later = (ms, fn) => timers.push(setTimeout(fn, ms));
 const clearT = () => { timers.forEach(clearTimeout); timers = []; };
@@ -92,13 +93,16 @@ export function planetSync(c) {
   // the takeover: once a day (per page load) when the tanks are full and the window is open
   if (!view && p === "go" && c.calm && !c.preview && popped !== azToday() + c.st.id) { popped = azToday() + c.st.id; openMC(); }
 }
-function openMC() { view = "mc"; drawMC(); }
+function openMC() { view = "mc"; preload(); drawMC(); }
 function close() { clearT(); view = null; if (root) root.innerHTML = ""; if (C && C.rerender) C.rerender(); }
 function act(a) {
   if (a === "open") return openMC();
   if (a === "later" || a === "done") return close();
   if (a === "launch" && view === "mc") return launch();
-  if (a === "skip" && view === "fly") { clearT(); const v = document.getElementById("pjvid"); if (v) v.pause(); land(true); }
+  if (a === "skip" && view === "fly") { clearT(); const v = document.getElementById("pjvid"); if (v) v.pause(); intro(); }
+  if (a === "gstart" && view === "intro") return startGame();
+  if (a === "toland" && view === "results") { view = "fly"; return land(); }
+  if (a.startsWith("pick:")) { forceGame = a.slice(5); drawMC(); }
 }
 // Every scene is drawn on a 16:9 "stage" that covers the screen (like the background picture), so the rocket can sit
 // exactly on the painted launch pad / landing pad and the LAUNCH tap spot lands on the painted red button.
@@ -111,7 +115,7 @@ function drawMC() {
     '<button class="pjhot" data-pj="launch" aria-label="Launch"><span>PRESS TO LAUNCH</span></button>',
     '<div class="pjmc-top"><b>\u{1F6F0}️ Mission Control</b><button class="btn ghost small" data-pj="later">Not now</button></div>' +
     '<div class="pjhead"><h1 class="pjtitle">Fuel tanks full!</h1><p class="pjsub">Ready for liftoff, Captain ' + name + "? Next stop: <b>Planet JP</b> \u{1FA90}</p>" +
-    (C.preview ? '<p class="pjsub small">\u{1F440} Teacher preview: nothing is saved.</p>' : "") + "</div>" +
+    (C.preview ? '<p class="pjsub small">\u{1F440} Teacher preview: nothing is saved. Game: ' + GAMES.map(g => '<button class="btn small' + (todayGame().key === g.key ? " gold" : " ghost") + '" data-pj="pick:' + g.key + '" title="' + g.name + '">' + g.icon + "</button>").join(" ") + "</p>" : "") + "</div>" +
     jpCmd("Fuel tanks are full, Captain " + name + "! Press the big red button!"));
 }
 
@@ -123,9 +127,9 @@ function launch() {
     const today = azToday(); let prev = addDays(today, -1), i = 0;
     while (!schoolDayFor(C.cls, prev) && i++ < 20) prev = addDays(prev, -1);
     const streak = saved.last === prev ? (Number(saved.streak) || 0) + 1 : 1;
-    saved = { n: (Number(saved.n) || 0) + 1, last: today, streak, best: Math.max(Number(saved.best) || 0, streak) };
+    saved = Object.assign({}, saved, { n: (Number(saved.n) || 0) + 1, last: today, streak, best: Math.max(Number(saved.best) || 0, streak), g: null, gs: null });
     C.patch({ planet: saved });   // saved right away, so leaving mid-cutscene still counts
-  } else if (C.preview) saved = { n: (Number(saved.n) || 0) + 1, streak: (Number(saved.streak) || 0) + 1 };
+  } else if (C.preview) saved = Object.assign({}, saved, { n: (Number(saved.n) || 0) + 1, streak: (Number(saved.streak) || 0) + 1 });
   saved0 = saved;
   const r = rootEl();
   r.innerHTML = stage("pjpad", rocket("onpad", duckHTML() + flameHTML(), "pjrk") + '<div class="pjsmoke" id="pjsmoke"></div>',
@@ -136,26 +140,60 @@ function launch() {
   later(2000, () => { setTxt("pjcount", "1"); say("1…"); beep(520); });
   later(3000, () => { setTxt("pjcount", "LIFTOFF!"); say("We have liftoff! \u{1F680}"); beep(880, 0.4); rumble(2.4); const k = document.getElementById("pjrk"); if (k) k.classList.add("up"); const s = document.getElementById("pjsmoke"); if (s) s.classList.add("on"); r.firstChild.classList.add("quake"); });
   if (ART.video) later(3600, playVideo);   // Ms. Ariana's own liftoff video (assets/planet/liftoff.mp4) replaces the flight
-  else { later(5400, () => space()); later(11200, () => land()); }
+  else { later(5400, () => space()); later(8800, intro); }
 }
 function space() {
   rootEl().innerHTML = '<div class="pjover pjspace"' + bg("sky") + '><div class="pjstars"></div><div class="pjstars far"></div><div class="pjstage">' +
     '<div class="pjfly">' + duckHTML() + flameHTML() + "</div>" + '<div class="pjnear">' + planetHTML() + "</div>" +
-    '<p class="pjcap">Flying to Planet JP…</p></div><button class="btn ghost small pjskip" data-pj="skip">Skip ⏭</button></div>';
+    '<p class="pjcap">Incoming: ' + todayGame().icon + " " + todayGame().name + "!</p></div>" + '<button class="btn ghost small pjskip" data-pj="skip">Skip ⏭</button></div>';
   whoosh();
 }
 function playVideo() {
   rootEl().innerHTML = '<div class="pjover pjvideo"><video id="pjvid" src="' + A + 'liftoff.mp4" autoplay playsinline></video><button class="btn ghost small pjskip" data-pj="skip">Skip ⏭</button></div>';
   const v = document.getElementById("pjvid"); if (!v) return land();
-  v.onended = () => land(); v.onerror = () => land();
-  const p = v.play && v.play(); if (p && p.catch) p.catch(() => { v.muted = true; v.play().catch(() => land()); });
+  v.onended = intro; v.onerror = intro;
+  const p = v.play && v.play(); if (p && p.catch) p.catch(() => { v.muted = true; v.play().catch(intro); });
+}
+/* ---------- Wave 2: today's minigame, then the Stardust ---------- */
+const todayGame = () => gameByKey((typeof window !== "undefined" && window.__pjGame) || (forceGame && C && C.preview ? forceGame : gameOfDay(azToday()).key));
+const sfx = { beep: (f, d) => beep(f, d), thud: () => thud(), sparkle: () => sparkle() };
+const LAUNCH_DUST = 10;
+function intro() {
+  clearT(); view = "intro"; const g = todayGame();
+  rootEl().innerHTML = '<div class="pjover pjspace"' + bg("sky") + '><div class="pjstars far"></div><div class="pjstage"><div class="pjintro">' +
+    '<div class="pjgicon">' + g.icon + '</div><h1 class="pjtitle">' + esc(g.name) + '</h1><p class="pjsub">' + esc(g.how) + "</p>" +
+    '<p class="pjsub small">Earn up to <b>20 ⭐ Stardust</b> (plus 10 for launching)!</p><button class="btn gold pjgo" data-pj="gstart">Start!</button></div></div></div>';
+}
+function startGame() {
+  view = "game"; const g = todayGame(); let n = 3;
+  const r = rootEl(); r.innerHTML = '<div class="pjover pjspace"' + bg("sky") + '><div class="pjstage"><div class="pjcount">3</div></div></div>'; beep(520);
+  const t = setInterval(() => { n--; const el = r.querySelector(".pjcount"); if (n > 0) { if (el) el.textContent = n; beep(520); return; }
+    clearInterval(t); beep(880, 0.3);
+    r.innerHTML = '<div class="pjghost"' + bg("sky") + "></div>";
+    play(g.key, r.firstChild, sfx).then(results); }, 800);
+}
+function results(res) {
+  view = "results"; const g = gameByKey(res.key), gain = LAUNCH_DUST + res.dust, prev = saved0 || {};
+  const hs = Object.assign({}, prev.hs || {}), better = res.key === "code" ? res.score > 0 && (!hs.code || res.score < hs.code) : res.score > (hs[res.key] || 0);
+  if (better) hs[res.key] = res.score;
+  const first = !C.preview && C.st && C.st.planet && C.st.planet.last === azToday() && C.st.planet.g == null;   // only the day's launch game pays
+  if (first || C.preview) saved0 = Object.assign({}, prev, { dust: (Number(prev.dust) || 0) + gain, g: res.key, gs: res.score, hs });
+  if (first) C.patch({ planet: saved0 });
+  const line = res.key === "code" ? (res.score ? "Cracked in <b>" + res.score + "</b> tr" + (res.score === 1 ? "y" : "ies") + "!" : "Zib’s code stayed secret this time.")
+    : "You got <b>" + res.score + "</b> " + (res.score === 1 ? g.unit.replace(/s$/, "") : g.unit) + "!";
+  rootEl().innerHTML = '<div class="pjover pjspace"' + bg("sky") + '><div class="pjstage"><div class="pjintro">' +
+    '<img class="pjdustimg" src="' + A + 'stardust.webp" alt=""><h1 class="pjtitle">+' + gain + " Stardust!</h1>" +
+    '<p class="pjsub">' + g.icon + " " + esc(g.name) + ": " + line + (better ? " \u{1F3C6} New best!" : "") + "</p>" +
+    '<p class="pjsub small">⭐ ' + res.dust + " from the game + " + LAUNCH_DUST + " for launching · You have <b>" + (saved0.dust || 0) + "</b> Stardust</p>" +
+    '<button class="btn gold pjgo" data-pj="toland">Land on Planet JP \u{1FA90}</button></div></div></div>';
+  sparkle();
 }
 function land(skipped) {
   const s = saved0 || {}, name = esc(((C.st && C.st.name) || "").split(" ")[0]);
   rootEl().innerHTML = stage("pjland", rocket("landing" + (skipped ? " landed" : ""), duckHTML()) + '<div class="pjdust" id="pjdust"></div>',
     (ART.jpWave ? '<div class="pjjp wave" id="pjwave"><img src="' + A + 'jp-welcome.webp" alt="JP"></div>' : "") +
     '<div class="pjwelcome" id="pjwel"><h1 class="pjtitle">Welcome to Planet JP!</h1><p class="pjsub">The S.S. Duck landed safely, Captain ' + name + "!</p>" +
-    '<p class="pjstat">\u{1F680} Launch <b>#' + (s.n || 1) + "</b>" + ((s.streak || 0) > 1 ? " · \u{1F525} <b>" + s.streak + "</b> days in a row" : "") + "</p>" +
+    '<p class="pjstat">\u{1F680} Launch <b>#' + (s.n || 1) + "</b>" + ((s.streak || 0) > 1 ? " · \u{1F525} <b>" + s.streak + "</b> days in a row" : "") + (s.dust ? " · ⭐ <b>" + s.dust + "</b> Stardust" : "") + "</p>" +
     '<p class="pjsub small">More to explore on Planet JP is coming soon… come back tomorrow for another launch!</p>' +
     '<button class="btn gold" data-pj="done">Done</button></div>');
   const show = () => { ["pjwel", "pjwave", "pjdust"].forEach(id => { const e = document.getElementById(id); if (e) e.classList.add("on"); }); };

@@ -2445,3 +2445,27 @@ body.mini-kite .wrap{ position:relative; z-index:1; } body.mini-kite .tile{ box-
 .pjover.pjland .pjwelcome{ top:auto; bottom:4%; }
 .pjpad .pjcov .pjrocket{ bottom:51%; } .pjland .pjcov .pjrocket{ bottom:55%; }
 .pjgoal .pjplanet-img{ width:62px; height:auto; margin-left:-2px; } .pjnear .pjplanet-img{ width:190px; height:auto; }
+/* Planet JP Wave 2: the minigames */
+#pjroot .pjghost{ position:fixed; inset:0; z-index:8999; background:#160F4A center/cover no-repeat; }
+#pjroot .pjover.pjgame{ background:transparent; touch-action:none; user-select:none; -webkit-user-select:none; }
+.pjgame canvas{ position:absolute; inset:0; display:block; cursor:crosshair; touch-action:none; }
+.pjhud{ position:absolute; top:10px; left:50%; transform:translateX(-50%); display:flex; gap:14px; align-items:center; padding:8px 18px; border-radius:99px; background:rgba(20,14,60,.75); box-shadow:0 0 0 3px rgba(255,227,138,.6); font-size:clamp(14px,2vw,20px); font-weight:800; white-space:nowrap; z-index:2; pointer-events:none; }
+.pjhud b{ color:#FFE38A; }
+.pjintro{ width:min(620px,92vw); padding:26px 24px; border-radius:26px; background:rgba(20,14,60,.8); box-shadow:0 0 0 4px #FFE38A,0 20px 50px rgba(0,0,0,.45); }
+.pjgicon{ font-size:64px; line-height:1; margin-bottom:6px; }
+.pjgo{ font-size:22px; padding:12px 34px; margin-top:10px; }
+.pjdustimg{ width:140px; height:auto; display:block; margin:0 auto 6px; filter:drop-shadow(0 8px 14px rgba(0,0,0,.4)); }
+.pjcode{ display:flex; flex-direction:column; }
+.pjcodewrap{ display:flex; align-items:center; justify-content:center; gap:4vw; width:100%; height:100%; padding:70px 16px 16px; flex-wrap:wrap; }
+.pjzib{ position:relative; } .pjzib img{ width:min(280px,32vw); height:auto; display:block; filter:drop-shadow(0 10px 18px rgba(0,0,0,.4)); }
+.pjzib .pjsay{ position:absolute; left:55%; top:-6%; width:220px; }
+.pjboard{ display:grid; gap:8px; padding:14px; border-radius:20px; background:rgba(20,14,60,.75); box-shadow:0 0 0 3px rgba(255,227,138,.5); }
+.pjrowc{ display:inline-flex; gap:8px; }
+.pjslot{ width:clamp(38px,6vh,56px); height:clamp(38px,6vh,56px); border-radius:12px; background:rgba(255,255,255,.12); display:inline-flex; align-items:center; justify-content:center; font-weight:900; font-size:22px; color:#fff; text-shadow:0 2px 3px rgba(0,0,0,.6); box-shadow:inset 0 0 0 3px rgba(255,255,255,.2); }
+.pjslot.g{ box-shadow:inset 0 0 0 4px #3BE37A,0 0 10px #3BE37A; } .pjslot.y{ box-shadow:inset 0 0 0 4px #FFD23F,0 0 10px #FFD23F; } .pjslot.x{ opacity:.55; box-shadow:inset 0 0 0 4px #888; }
+.pjpalette{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:center; width:100%; }
+.pjcol{ width:64px; height:64px; border-radius:16px; border:0; cursor:pointer; box-shadow:0 6px 0 rgba(0,0,0,.3),inset 0 -6px 0 rgba(0,0,0,.15); }
+.pjcol:disabled{ opacity:.35; cursor:default; }
+.pjcodeend{ width:100%; text-align:center; font-size:22px; font-weight:800; display:flex; gap:12px; align-items:center; justify-content:center; }
+.pjgame .pjskip{ background:rgba(255,255,255,.92); color:#2A1F5C; font-weight:800; }
+.pjslot{ width:clamp(44px,7.5vh,66px); height:clamp(44px,7.5vh,66px); }
