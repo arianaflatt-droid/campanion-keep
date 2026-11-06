@@ -6,9 +6,9 @@
    - A student who misses a week keeps their training and plays that quest later.
    Saved on the student (one write per action): hero = { name, path, look, color, sk: { skill: xp }, used, done: [quest ids],
    items: [ids], title, at }. Nothing saves while a minigame or story is being played; it saves when it finishes. */
-import { esc, petHTML, companionOf, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261107g";
-import { dayXPs, azToday } from "./collect.js?v=20261107g";
-import { weekTotal, histWeekTotal, mondayOf, addDays } from "./doors.js?v=20261107g";
+import { esc, petHTML, companionOf, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261107h";
+import { dayXPs, azToday } from "./collect.js?v=20261107h";
+import { weekTotal, histWeekTotal, mondayOf, addDays, wkGoalOf, wkShare } from "./doors.js?v=20261107h";
 
 export const HERO_START = "2026-10-19";
 export const heroOn = cls => !(cls && cls.heroOff);
@@ -202,7 +202,7 @@ export function questCredits(st, cls) {
   const cur = weekKey(cls); let mon = mondayOf(startOf(cls)), n = 0, guard = 0;
   while (mon <= cur && guard++ < 60) {
     const now = mon === cur, tot = now ? weekTotal(st, cls) : histWeekTotal(st, mon);
-    const goal = now ? weekGoal(cls) : Number(((cls && cls.weekGoals) || {})[mon]) || WEEK_DOOR_XP;
+    const goal = Math.round((now ? weekGoal(cls) : Number(((cls && cls.weekGoals) || {})[mon]) || WEEK_DOOR_XP) * wkShare(st, cls));
     const door = !!((st && st.weekDoor) || {})[mon];
     n += tot >= goal * 2 ? 2 : tot >= goal || door ? 1 : 0;
     mon = addDays(mon, 7);
@@ -251,7 +251,7 @@ export function heroTab(s, cls) {
   o += '<div class="card"><div class="card-head"><h2>\u{1F4DC} ' + (qs.q ? "Quest " + (QUESTS.indexOf(qs.q) + 1) + ": " + esc(qs.q.n) : "All quests done!") + "</h2>" + (qs.q ? '<span class="fact">opens ' + fmtDay(qs.q.wk) + "</span>" : "") + "</div>";
   if (qs.q) {
     o += '<div class="hreq">' + Object.entries(qs.q.req).map(([k, v]) => { const L = skLvl(h, k), ok = L >= v; return '<span class="' + (ok ? "ok" : "") + '">' + SKILLS[k].i + " " + SKILLS[k].n + " " + L + " / " + v + (ok ? " ✅" : "") + "</span>"; }).join("") + "</div>";
-    const wt = weekTotal(s, cls), wg = weekGoal(cls);
+    const wt = weekTotal(s, cls), wg = wkGoalOf(s, cls);
     const msg = { soon: "This quest opens the week of " + fmtDay(qs.q.wk) + ". Train now to get ready!", coming: "The story for this quest is still being written. Keep training — it opens soon!",
       train: "Train the skills above to be ready for this quest.", goal: "You’re ready! Reach " + wg.toLocaleString() + " XP this week to start it. (" + wt.toLocaleString() + " / " + wg.toLocaleString() + ")", ready: "You’re ready and you earned it! Start the quest." }[qs.st];
     o += '<p class="lede" style="margin:8px 0;">' + msg + "</p>" + (qs.st === "ready" ? '<button class="btn gold big" data-hero="start">⚔️ Start the quest</button>' : "");

@@ -8,11 +8,11 @@
      🗺️ finishing all 3 Grade Level Quest tests at their own grade (st.grade = 4 or 5, set by Ms. Ariana; once)
    Saved on the student: ultraEggs, ultraUsed (server), ultraGoals = { st: { s: run start, n: given }, wk: { s, n }, vault: vaults rolled,
      q: true }, ultraLog = [{ why, at }] (newest last). */
-import { esc, weekKey, weekGoal } from "./game.js?v=20261107g";
-import { CLUB_ULTRA_FAMS } from "./collect.js?v=20261107g";
-import { ULTRA_FAMS, ULTRA_DUPE, ultraLeft, owned, formOf, family, creature, statsOf, bankXP, LEVEL_XP, MAX_LEVEL } from "./collect.js?v=20261107g";
-import { doneCount, GRADES } from "./quest.js?v=20261107g";
-import { addDays, mondayOf, histWeekTotal } from "./doors.js?v=20261107g";
+import { esc, weekKey, weekGoal } from "./game.js?v=20261107h";
+import { CLUB_ULTRA_FAMS } from "./collect.js?v=20261107h";
+import { ULTRA_FAMS, ULTRA_DUPE, ultraLeft, owned, formOf, family, creature, statsOf, bankXP, LEVEL_XP, MAX_LEVEL } from "./collect.js?v=20261107h";
+import { doneCount, GRADES } from "./quest.js?v=20261107h";
+import { addDays, mondayOf, histWeekTotal, wkShare } from "./doors.js?v=20261107h";
 
 export const STREAK_DAYS = 30, WEEKS_IN_ROW = 4, WEEK_XP = 600, VAULT_ULTRA = 0.25;
 export const ULTRA_GRADES = [4, 5];
@@ -51,7 +51,7 @@ export function weekRun(st, cls) {
   let run = 0, start = null, thisWeek = 0;
   if (dates.length) {
     for (let mon = mondayOf(dates[0]); mon <= now; mon = addDays(mon, 7)) {
-      const goal = weekGoalFor(cls, mon), tot = histWeekTotal(st, mon);
+      const goal = Math.round(weekGoalFor(cls, mon) * wkShare(st, cls)), tot = histWeekTotal(st, mon);
       if (mon === now) thisWeek = tot;
       if (goal <= 0) continue;   // a week off (winter break) is skipped
       const any = [0, 1, 2, 3, 4, 5, 6].some(i => h[addDays(mon, i)]);
@@ -60,7 +60,7 @@ export function weekRun(st, cls) {
       else if (mon !== now) { run = 0; start = null; }
     }
   }
-  return { cur: run, start, thisWeek, goal: weekGoalFor(cls, now) };
+  return { cur: run, start, thisWeek, goal: Math.round(weekGoalFor(cls, now) * wkShare(st, cls)) };
 }
 /* 🗺️ The student's own grade (Ms. Ariana sets 4 or 5) → its Grade Level Quest tests */
 export const gradeOf = st => (ULTRA_GRADES.includes(Number(st && st.grade)) ? Number(st.grade) : null);

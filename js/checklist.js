@@ -3,21 +3,21 @@
    Each step checks itself off from the student's save; tapping a step opens the tab where it's done.
    The Treasure Vault step is "check your progress", so it counts as done once the student opens it today
    (remembered on this computer only). */
-import { rvStarted, rvStock, rvBeatCount } from "./revenge.js?v=20261107g";
-import { heistTodo } from "./heist.js?v=20261107g";
-import { mapOn, mapState, todayReading, PER_ISLAND } from "./readmap.js?v=20261107g";
-import { tbLeft, tbLive } from "./teachbattle.js?v=20261107g";
-import { esc, simulate, companionOf, goalXP } from "./game.js?v=20261107g";
+import { rvStarted, rvStock, rvBeatCount } from "./revenge.js?v=20261107h";
+import { heistTodo } from "./heist.js?v=20261107h";
+import { mapOn, mapState, todayReading, PER_ISLAND } from "./readmap.js?v=20261107h";
+import { tbLeft, tbLive } from "./teachbattle.js?v=20261107h";
+import { esc, simulate, companionOf, goalXP } from "./game.js?v=20261107h";
 import { azToday, azNow, todayXP, pullsLeft, legendaryLeft, birthdayLeft, pickleLeft, vaultLegLeft, BOSS2_LIST, boss2EggLeft, candyLegLeft, snowLegLeft,
-  gingerLegLeft, feastLegLeft, brewLegLeft, goalLeft, themeLeft, hasStarter, bankXP, LEVEL_XP } from "./collect.js?v=20261107g";
-import { mqReady } from "./morning.js?v=20261107g";
-import { doorsLive, doorName, goldenReady, weekDoorState, vaultState, vaultGoal, subReq, todayPlan } from "./doors.js?v=20261107g";
-import { soloOn, soloReady, soloCfg } from "./solobrew.js?v=20261107g";
-import { passReady } from "./pass.js?v=20261107g";
-import { pettedToday } from "./bond.js?v=20261107g";
-import { mealsReady } from "./meals.js?v=20261107g";
-import { readyTests } from "./quest.js?v=20261107g";
-import { unthanked } from "./kindness.js?v=20261107g";
+  gingerLegLeft, feastLegLeft, brewLegLeft, goalLeft, themeLeft, hasStarter, bankXP, LEVEL_XP } from "./collect.js?v=20261107h";
+import { mqReady } from "./morning.js?v=20261107h";
+import { doorsLive, doorName, goldenReady, weekDoorState, vaultState, vaultGoal, subReq, todayPlan } from "./doors.js?v=20261107h";
+import { soloOn, soloReady, soloCfg } from "./solobrew.js?v=20261107h";
+import { passReady } from "./pass.js?v=20261107h";
+import { pettedToday } from "./bond.js?v=20261107h";
+import { mealsReady } from "./meals.js?v=20261107h";
+import { readyTests } from "./quest.js?v=20261107h";
+import { unthanked } from "./kindness.js?v=20261107h";
 
 const seenKey = (id, what) => "ck-seen-" + azToday() + "-" + id + "-" + what;
 export function markSeen(id, what) { try { localStorage.setItem(seenKey(id, what), "1"); } catch (e) {} }
@@ -106,12 +106,14 @@ export function checklistTab(s, cls, students, battles) {
   const list = steps(s, cls, students, battles), left = list.filter(x => !x.done).length, goal = goalXP(cls), xp = todayXP(s, cls);
   const hi = azNow().h < 12 ? "Good morning" : "Welcome back";
   let h = '<div class="card checklist"><div class="card-head"><h2>✅ ' + hi + ", " + esc(s.name) + '!</h2><span class="fact">' + (left ? left + " to do" : "all done!") + "</span></div>" +
-    '<p class="lede" style="margin-bottom:10px;">Go down your list. Tap a step to go do it, then come back here.</p><div class="cklist">' +
-    list.map((x, i) => '<button class="ckitem' + (x.done ? " done" : "") + '" data-tab="' + x.tab + '" data-ck="' + x.id + '"><span class="ckn">' + (x.done ? "✅" : i + 1) + '</span><span class="ckic">' + x.icon +
-      '</span><span class="cktxt"><b>' + esc(x.title) + "</b><small>" + esc(x.text) + '</small></span><span class="ckgo">' + (x.done ? "" : "Go →") + "</span></button>").join("") + "</div>" +
+    // Nov 7: finished steps leave the list; when everything's done the list goes away for the day
+    (left ? '<p class="lede" style="margin-bottom:10px;">Go down your list. Tap a step to go do it. Done steps disappear!' + (list.length - left ? ' <span class="ckdone">✅ ' + (list.length - left) + " done</span>" : "") + '</p><div class="cklist">' +
+    list.filter(x => !x.done).map((x, i) => '<button class="ckitem" data-tab="' + x.tab + '" data-ck="' + x.id + '"><span class="ckn">' + (i + 1) + '</span><span class="ckic">' + x.icon +
+      '</span><span class="cktxt"><b>' + esc(x.title) + "</b><small>" + esc(x.text) + '</small></span><span class="ckgo">Go →</span></button>').join("") + "</div>"
+      : '<div class="ckalldone"><span>\u{1F389}</span><b>Your checklist is all done for today!</b><small>Now get learning. New steps show up here when there\u2019s something to do.</small></div>') +
     '<div class="ckgoal"><b>\u{1F3AF} Then: earn ' + goal + " XP today!</b> " + (xp >= goal ? "You did it — every 120 more earns another egg! \u{1F389}" : xp.toLocaleString() + " / " + goal + " so far") +
     '<span class="pbar"><span style="width:' + Math.min(100, xp / goal * 100) + '%"></span></span></div>' +
     workCard(s, cls) +
-    (left ? "" : '<p class="arena-win" style="margin-top:10px;">\u{1F389} Your checklist is done! Now get learning!</p>') + "</div>";
+    "</div>";
   return h;
 }

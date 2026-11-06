@@ -7,12 +7,12 @@
    A launch is saved on the student: planet = { n: launches, last: "YYYY-MM-DD", streak, best } (one write a day).
    Wave 2 adds a space minigame between liftoff and landing; Planet JP itself comes later, one piece at a time.
    Pictures live in assets/planet/ — until one is uploaded (ART below) the stand-in drawing is used. */
-import { esc } from "./game.js?v=20261107g";
-import { azToday, azNow } from "./collect.js?v=20261107g";
-import { axoDay, schoolDayFor } from "./axolotl.js?v=20261107g";
-import { addDays } from "./doors.js?v=20261107g";
-import { GAMES, gameOfDay, gameByKey, play, preload } from "./spacegames.js?v=20261107g";
-import { ZONES, safariSync, freshSt, albumHTML, filmLeft, pageCount, pageSize, aliensFound, zoneAliens, FREE_FILM, ROLL_COST } from "./safari.js?v=20261107g";
+import { esc } from "./game.js?v=20261107h";
+import { azToday, azNow } from "./collect.js?v=20261107h";
+import { axoDay, schoolDayFor } from "./axolotl.js?v=20261107h";
+import { addDays } from "./doors.js?v=20261107h";
+import { GAMES, gameOfDay, gameByKey, play, preload } from "./spacegames.js?v=20261107h";
+import { ZONES, safariSync, freshSt, albumHTML, filmLeft, pageCount, pageSize, aliensFound, zoneAliens, FREE_FILM, ROLL_COST } from "./safari.js?v=20261107h";
 
 export const PJ_OPEN = 11 * 60, PJ_CLOSE = 12 * 60 + 55;   // minutes after midnight, Arizona time
 const A = "assets/planet/";
@@ -28,6 +28,8 @@ export function fuel(st, cls) {
   const ICON = { m: "➗", r: "\u{1F4D6}", l: "✏️" };
   const tanks = [{ icon: "⭐", name: "XP", have: hit ? Math.max(xp, d.goal) : xp, need: d.goal }].concat(d.rows.map(r => ({ icon: ICON[r.src] || "\u{1F4DA}", name: r.name, have: r.have, need: r.need })));
   const need = tanks.reduce((n, t) => n + t.need, 0), have = tanks.reduce((n, t) => n + Math.min(t.have, t.need), 0);
+  // Nov 7: Ms. Ariana can launch a student by hand (tech trouble, work done somewhere else): pjGo = today's date
+  if (st && st.pjGo === iso) return { tanks: tanks.map(t => Object.assign({}, t, { have: Math.max(t.have, t.need) })), pct: 1, full: true, manual: true };
   return { tanks, pct: need ? have / need : 0, full: tanks.every(t => t.have >= t.need) };
 }
 const launchedToday = st => !!(st && st.planet && st.planet.last === azToday());
@@ -226,12 +228,24 @@ const rumble = d => noise(d, 0.35, 420), whoosh = () => noise(1.4, 0.12, 1800), 
 function sparkle() { [1318, 1568, 1976, 2637].forEach((f, i) => setTimeout(() => beep(f, 0.12), i * 90)); }
 
 /* ---------- console card (Daily tab) ---------- */
+// ✋ Manual launch (Nov 7): for a student whose tanks didn't fill because of tech trouble. Their tanks count as full today,
+// so the launch window (11:00–12:55) works for them like everyone else. One write on the student; tap again to take it back.
+function manualRows(kids, cls, went) {
+  const today = azToday(), wait = kids.filter(s => !went.includes(s)).sort((a, b) => String(a.name).localeCompare(String(b.name)));
+  if (!wait.length) return "";
+  return '<details class="pjmanual"' + (wait.some(s => s.pjGo === today) ? " open" : "") + '><summary>✋ <b>Launch a student by hand</b> (tech trouble, or their subjects were done somewhere else)</summary>' +
+    '<div class="pjmanrows">' + wait.map(s => { const on = s.pjGo === today, full = fuel(Object.assign({}, s, { pjGo: null }), cls).full;
+      return '<div class="pjmanrow"><span>' + esc(s.name) + (full ? ' <small class="muted">tanks full</small>' : "") + "</span>" +
+        (on ? '<button class="btn small gold" data-pjgo="' + s.id + '" data-on="0" title="Take it back">\u{1F680} Cleared to launch \u2715</button>' : '<button class="btn small ghost" data-pjgo="' + s.id + '" data-on="1">\u{1F680} Let launch</button>') + "</div>"; }).join("") +
+    '</div><p class="small muted" style="margin:6px 0 0;">Their tanks fill right away. Before 11:00 they see \u201cReady for liftoff\u201d; from 11:00 to 12:55 Mission Control opens for them.</p></details>';
+}
 export function planetAdmin(students, cls) {
   const on = planetOn(cls), kids = students.filter(s => s.companionId && !s.isTeacher), today = azToday();
   const went = kids.filter(s => s.planet && s.planet.last === today), ready = kids.filter(s => !(s.planet && s.planet.last === today) && fuel(s, cls).full);
   return '<div class="card" id="pjCard"><div class="card-head"><h2>\u{1F680} Planet JP</h2><span class="fact">' + (on ? (schoolDayFor(cls, today) ? went.length + " launched today" : "no school today") : "off") + "</span></div>" +
     '<p class="lede" style="font-size:13.5px;">A launch bar across the top of every student’s Keep. It fills with <b>120 XP + 25 Math, Reading and Language</b>. Full tanks can launch the S.S. Duck from <b>11:00 to 12:55</b> (Arizona time); not full by 12:55 = “Mission scrubbed”. School days only (your calendar breaks are skipped). To try it yourself, open a student’s page in preview and press “Preview the launch”.</p>' +
     '<div class="row" style="margin:10px 0;gap:8px;"><button class="btn' + (on ? " ghost" : "") + '" data-act="pjToggle">' + (on ? "Turn Planet JP off" : "\u{1F680} Turn Planet JP on") + "</button></div>" +
+    (on && schoolDayFor(cls, today) ? manualRows(kids, cls, went) : "") +
     (on && (went.length || ready.length) ? '<p class="small" style="margin:4px 0;">' + (went.length ? "\u{1FA90} <b>Landed:</b> " + went.map(s => esc(s.name)).join(", ") : "") + (ready.length ? (went.length ? "<br>" : "") + "⛽ <b>Tanks full, not launched yet:</b> " + ready.map(s => esc(s.name)).join(", ") : "") + "</p>" : "") + "</div>";
 }
 

@@ -17,10 +17,10 @@
       pty60 / pty120 = { id, in, hat, mv, mn, pops, drop, solo, ch: { k, n }, hits }   (live party state; others read it)
       partyGot = { partyId: true, partyId + "-p": true }   partyAlbum = [ { id, d, who: [{ id, n, p }] } ]   vipDay
    Party music is made in the browser (no sound files); it only starts when someone taps 🎵. */
-import { esc, goalXP, companionOf, petHTML, wornItem, simulate, eventMode, seasonOf, hatHTML, randomHat, onPet, vipToday, partyHat, partyCrown, headFree } from "./game.js?v=20261107g";
-import { azToday } from "./collect.js?v=20261107g";
-import { heldWeapon } from "./quest.js?v=20261107g";
-import { tricksFor } from "./bond.js?v=20261107g";
+import { esc, goalXP, companionOf, petHTML, wornItem, simulate, eventMode, seasonOf, hatHTML, randomHat, onPet, vipToday, partyHat, partyCrown, headFree } from "./game.js?v=20261107h";
+import { azToday } from "./collect.js?v=20261107h";
+import { heldWeapon } from "./quest.js?v=20261107h";
+import { tricksFor } from "./bond.js?v=20261107h";
 
 export const PARTY_MIN = 10, PARTY_XP = 60;
 const DROP_MS = 20000, SOLO_MS = 15000, A = "assets/party/";
@@ -152,8 +152,27 @@ let mineLocal = null;  // my own numbers not saved yet: { pops, hits, cheer, flu
 let dropTimer = null, dropUntil = 0, announceQ = [], announcing = false, entering = 0;
 const roomEl = () => document.getElementById("partyRoom");
 
+// 🎟️ Nov 7: a student who has an invitation (60 XP Party) or a VIP ticket (120 XP Party) and hasn't walked in yet gets a
+// full-screen ticket they have to tap, like the Planet JP launch. It goes away once they're in, or when the party ends.
+function takeover(ctx) {
+  let el = document.getElementById("ptake");
+  const me = ctx && ctx.me, cls = ctx && ctx.cls;
+  const k = me && cls && !ROOM && !G && !ctx.noTake ? ["120", "60"].find(k => isOn(k, cls) && canEnter(me, k, cls) && !((mine(me, k, cls) || {}).in) && !(k === "120" && got(me, P(k, cls).id))) : null;
+  const busy = document.querySelector("#pjroot .pjover, #safroot .safover");   // Planet JP launch / safari first
+  if (!k || busy) { if (el) el.remove(); return; }
+  if (el && el.dataset.k === k) return;
+  if (!el) { el = document.createElement("div"); el.id = "ptake"; document.body.appendChild(el); }
+  el.dataset.k = k;
+  const vip = k === "120";
+  el.innerHTML = '<div class="ptake p' + k + '"><div class="ptakebox"><img class="ptakeimg" src="' + A + (vip ? "vip-ticket.webp" : "invitation.webp") + '" alt="">' +
+    "<h1>" + (vip ? "\u{1F451} You\u2019re a VIP!" : "\u{1F48C} You\u2019re invited!") + "</h1>" +
+    "<p>" + esc(petName(me)) + (vip ? " has a gold ticket to the <b>VIP Party</b>. The red carpet is waiting!" : " is going to the <b>60 XP Party</b>! Everyone\u2019s companions are on the dance floor.") + "</p>" +
+    '<div class="ptakepet">' + onPet(petHTML(companionOf(me)), vip ? partyCrown(companionOf(me)) : "") + "</div>" +
+    '<button class="btn gold big" data-party="open' + k + '">' + (vip ? "\u{1F39F}\uFE0F Use my VIP ticket" : "\u{1F389} Go to the party!") + "</button></div></div>";
+}
 export function partySync(ctx) {
   LAST = ctx;
+  try { takeover(ctx); } catch (e) {}
   claimPinata();
   const el = roomEl();
   if (!ROOM) { if (el) el.remove(); return; }

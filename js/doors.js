@@ -8,9 +8,9 @@
    Saved on the student: doors = { "YYYY-MM-DD": { "0": { st: "wait"|"ok"|"no"|"open", at, r }, g: { st: "open", r } } }
    plus lastDoor = "YYYY-MM-DD/<door>" (which door the last save touched; the save rules check it).
    Class: doorsOn (on/off), doorList (default list), doorDays = { "YYYY-MM-DD": [..] } (one-day lists). */
-import { azToday } from "./collect.js?v=20261107g";
-import { SEASON, eventMode, esc, dayXP, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261107g";
-import { subFor, SUB_NAMES } from "./teams.js?v=20261107g";
+import { azToday } from "./collect.js?v=20261107h";
+import { SEASON, eventMode, esc, dayXP, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261107h";
+import { subFor, SUB_NAMES } from "./teams.js?v=20261107h";
 
 // A door that starts with "!" is always open (not locked behind the first doors). The "!" isn't shown.
 export const DOOR_DEFAULT = [
@@ -231,6 +231,11 @@ export function histWeekTotal(st, mon) { let n = 0; for (let i = 0; i < 7; i++) 
    only a day off for everyone (cls.offDays[date]) lowers it. Students with their own plan use Ms. Ariana's subject swaps (cls.subSwap, same as their doors).
    cls.subRule === false turns the rule off. */
 export const SUB_DAY = 25, SUB_REQ = ["m", "r", "l"];
+// 🎯 A student's own weekly goal (Nov 7): Ms. Ariana can lower it for one student (st.wkGoal, teacher-only, stays until she changes it).
+// Their subject rings shrink by the same share: 480 of 600 = 20 a day (100 a week) in each subject.
+export const wkGoalOf = (st, cls) => Number(st && st.wkGoal) > 0 ? Number(st.wkGoal) : weekGoal(cls);
+export const wkShare = (st, cls) => Number(st && st.wkGoal) > 0 ? Math.min(1, Number(st.wkGoal) / (weekGoal(cls) || WEEK_DOOR_XP)) : 1;
+export const ringDay = (st, cls) => Math.max(1, Math.round(SUB_DAY * wkShare(st, cls)));
 export const SUB_SINCE = "2026-10-19";   // weeks before this one had no subject numbers, so they skip the rule
 export const subRuleOn = cls => !(cls && cls.subRule === false);
 export function subReq(st, cls, wk) {
@@ -241,9 +246,10 @@ export function subReq(st, cls, wk) {
   // Any swap that sends two or three core subjects to the same subject adds them up (Oct 26): all three → Math = one Math row of 375 a week, not 125 three times
   const rows = [], by = {};
   SUB_REQ.forEach(k => { const src = subFor(cls, st, k);
-    if (by[src]) { by[src].need += days * SUB_DAY; by[src].ks.push(k); return; }
+    const rd = ringDay(st, cls);
+    if (by[src]) { by[src].need += days * rd; by[src].ks.push(k); return; }
     let have = 0; for (let i = 0; i < 7; i++) have += Number((((hist[addDays(wk, i)] || {}).sub) || {})[src]) || 0;
-    rows.push(by[src] = { k, ks: [k], src, name: SUB_NAMES[src] || src, have: Math.round(have), need: days * SUB_DAY }); });
+    rows.push(by[src] = { k, ks: [k], src, name: SUB_NAMES[src] || src, have: Math.round(have), need: days * rd }); });
   const cells = SUB_REQ.map(k => Object.assign({}, by[subFor(cls, st, k)], { k }));   // one per Math / Reading / Language (the console table)
   const on = subRuleOn(cls) && wk >= SUB_SINCE;
   return { on, rows, cells, days, ok: !on || rows.every(r => r.have >= r.need), short: rows.filter(r => r.have < r.need) };
@@ -260,7 +266,7 @@ export function todayPlan(st, cls, today) {
   const weekend = idx >= 5, schoolToday = !weekend && !off[today];
   let soFar = 0; for (let i = 0; i <= Math.min(idx, 4); i++) if (!off[addDays(wk, i)]) soFar++;
   const rows = q.rows.map(r => {
-    const per = r.ks.length * SUB_DAY, tdy = Math.round(Number((((hist[today] || {}).sub) || {})[r.src]) || 0), before = r.have - tdy;
+    const per = r.ks.length * ringDay(st, cls), tdy = Math.round(Number((((hist[today] || {}).sub) || {})[r.src]) || 0), before = r.have - tdy;
     const target = weekend ? Math.max(0, r.need - before) : Math.max(schoolToday ? per : 0, soFar * per - before);
     return { name: r.name, src: r.src, per, today: tdy, target, extra: Math.max(0, target - (schoolToday ? per : 0)), week: r.have, need: r.need };
   });
@@ -275,7 +281,7 @@ export function weekDoorState(st, cls) {
   const v = ((st && st.weekDoor) || {})[weekKey(cls)];
   if (v === "open") return "open";
   if (v === "ready" && subReq(st, cls).ok) return "ready";   // a saved "ready" still needs the core subjects
-  return weekTotal(st, cls) >= weekGoal(cls) && subReq(st, cls).ok ? "ready" : "locked";   // opens on its own once the week adds up (XP + the 25/25/25 subjects)
+  return weekTotal(st, cls) >= wkGoalOf(st, cls) && subReq(st, cls).ok ? "ready" : "locked";   // opens on its own once the week adds up (XP + the 25/25/25 subjects)
 }
 // Doors from an earlier week that weekend work unlocked late ("ready" under an older week)
 export function oldReady(st, cls, field) { const wk = weekKey(cls), o = (st && st[field]) || {}; return Object.keys(o).filter(k => k !== wk && o[k] === "ready").sort(); }
@@ -289,6 +295,8 @@ export const VAULT_XP = 600,   // no goal subject set = a plain 600 XP week (Ms.
   VAULT_BONUS_XP = 500, VAULT_EGGS = 3;
 // Every vault also needs VAULT_MIN XP in total that week (weekend included), whatever the student's own goal is (Oct 20)
 export const VAULT_MIN = 600;
+// a student with their own lower weekly goal: the 600 minimum shrinks the same way
+export const vaultMinOf = (st, cls) => Math.round(VAULT_MIN * wkShare(st, cls));
 // The Vault's goal for a week: the student's own Weekly Reward goal (Rewards tab: a subject + an XP amount) when
 // Ms. Ariana set one for that week, otherwise a plain 600 XP total (VAULT_XP). Returns { xp, n, sub, reward }.
 // A student's Vault reward for a week. It counts for the week it was saved on, and also for this calendar week
@@ -308,16 +316,17 @@ export function vaultGoal(st, cls, wk) {
     if (g.sub === "all") n = wk === weekKey(cls) ? weekTotal(st, cls) : histWeekTotal(st, wk);   // a total-XP goal (like 600)
     else for (let i = 0; i < 7; i++) { const h = ((st.xpHist || {})[addDays(wk, i)]) || {}; n += Number((h.sub || {})[g.sub]) || 0; }
     const tot = g.sub === "all" ? Math.round(n) : wk === weekKey(cls) ? weekTotal(st, cls) : histWeekTotal(st, wk);
-    return { xp: Number(g.xp), n: Math.round(n), sub: g.sub, reward: g, tot, min: VAULT_MIN };
+    return { xp: Number(g.xp), n: Math.round(n), sub: g.sub, reward: g, tot, min: vaultMinOf(st, cls) };
   }
   const tot = wk === weekKey(cls) ? weekTotal(st, cls) : histWeekTotal(st, wk);
-  return { xp: VAULT_XP, n: tot, sub: null, reward: null, tot, min: VAULT_MIN };
+  const own = Number(st && st.wkGoal) > 0 ? Math.round(VAULT_XP * wkShare(st, cls)) : VAULT_XP;
+  return { xp: own, n: tot, sub: null, reward: null, tot, min: vaultMinOf(st, cls) };
 }
 // Goal reached AND at least VAULT_MIN XP in total that week
 export const vaultMet = (st, cls, wk) => { const v = vaultGoal(st, cls, wk); return v.n >= v.xp && v.tot >= v.min && subReq(st, cls, wk).ok; };
 // The 600-XP rule needs its own line when the goal itself doesn't already cover it (a subject goal, or a total under 600)
 // A week that's over: its saved "ready" stands (its goal may have changed since), but it still needs VAULT_MIN XP total
-export const vaultMinOk = (st, cls, wk) => (wk === weekKey(cls) ? weekTotal(st, cls) : histWeekTotal(st, wk)) >= VAULT_MIN && subReq(st, cls, wk).ok;
+export const vaultMinOk = (st, cls, wk) => (wk === weekKey(cls) ? weekTotal(st, cls) : histWeekTotal(st, wk)) >= vaultMinOf(st, cls) && subReq(st, cls, wk).ok;
 export const vaultNeedsMin = v => (v.sub && v.sub !== "all") || v.xp < v.min;
 export function vaultState(st, cls) {
   const v = ((st && st.vault) || {})[weekKey(cls)];

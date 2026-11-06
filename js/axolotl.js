@@ -10,13 +10,13 @@
    EVERY school day of that week as a feed day, so missed days earlier in the week are made up (and don't make it sick).
    Sick: 1 missed school day = slow, 2 = sick. Weekends, school breaks (cls.offDays) and excused days don't count.
    The save is s.axo (private: not on the public card, so classmates' pages don't re-read anything). */
-import { azToday } from "./collect.js?v=20261107g";
-import { goalXP, arr5, dateOfDay } from "./game.js?v=20261107g";
-import { subFor, SUB_NAMES } from "./teams.js?v=20261107g";
-import { addDays } from "./doors.js?v=20261107g";
-import { subRuleOn, SUB_DAY, SUB_REQ, subReq, weekTotal, histWeekTotal, mondayOf, VAULT_MIN } from "./doors.js?v=20261107g";
-import { weekKey } from "./game.js?v=20261107g";
-import { APP_V } from "./game.js?v=20261107g";
+import { azToday } from "./collect.js?v=20261107h";
+import { goalXP, arr5, dateOfDay } from "./game.js?v=20261107h";
+import { subFor, SUB_NAMES } from "./teams.js?v=20261107h";
+import { addDays } from "./doors.js?v=20261107h";
+import { subRuleOn, SUB_DAY, SUB_REQ, ringDay, subReq, weekTotal, histWeekTotal, mondayOf, VAULT_MIN, vaultMinOf } from "./doors.js?v=20261107h";
+import { weekKey } from "./game.js?v=20261107h";
+import { APP_V } from "./game.js?v=20261107h";
 
 export const axoOn = cls => !!(cls && cls.axoOn);
 export const axoFrom = cls => (cls && cls.axoFrom) || azToday();
@@ -31,15 +31,17 @@ export function axoDay(st, cls, iso) {
   for (let d = 0; d < 5; d++) if (dateOfDay(d) === iso) { const b = Number(arr5(st.xp, null)[d] != null ? arr5(st.xp, null)[d] : arr5(st.lunchXp, null)[d]) || 0; if (b > xp) xp = b; }
   const sub = h.sub || {}, by = {}, rows = [];
   if (subRuleOn(cls)) SUB_REQ.forEach(k => { const src = subFor(cls, st, k);
-    if (by[src]) { by[src].need += SUB_DAY; return; }
-    rows.push(by[src] = { src, name: SUB_NAMES[src] || src, have: Math.round(Number(sub[src]) || 0), need: SUB_DAY }); });
+    const rd = ringDay(st, cls);
+    if (by[src]) { by[src].need += rd; return; }
+    rows.push(by[src] = { src, name: SUB_NAMES[src] || src, have: Math.round(Number(sub[src]) || 0), need: rd }); });
   const xpOk = xp >= goal || !!h.h || !!h.lh;   // h / lh = marked as a hit by hand
   return { date: iso, xp: Math.round(xp), goal, rows, good: xpOk && rows.every(r => r.have >= r.need), excused: !!h.e };
 }
 // The week's make-up: 600 XP (Mon–Sun, weekend included) + the week's core subjects
 export function axoWeek(st, cls, mon) {
   const xp = Math.max(histWeekTotal(st, mon), mon === weekKey(cls) ? weekTotal(st, cls) : 0), q = subReq(st, cls, mon);
-  return { mon, xp: Math.round(xp), need: VAULT_MIN, rows: q.on ? q.rows.map(r => ({ name: r.name, have: r.have, need: r.need })) : [], met: xp >= VAULT_MIN && q.ok };
+  const need = vaultMinOf(st, cls);
+  return { mon, xp: Math.round(xp), need, rows: q.on ? q.rows.map(r => ({ name: r.name, have: r.have, need: r.need })) : [], met: xp >= need && q.ok };
 }
 function goodFn(st, cls) {
   const wk = {}, met = mon => (wk[mon] != null ? wk[mon] : (wk[mon] = axoWeek(st, cls, mon).met));
