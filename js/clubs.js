@@ -11,8 +11,8 @@
    (clubUltra = { key: "waiting" }) and a later upload gives it.
    The student page shows each club's sticker book and the club egg that grows with every step; new stickers pop up
    once (clubSeen = { key: number of steps already celebrated }, the student's own field). */
-import { esc } from "./game.js?v=20261105b";
-import { family, creature } from "./collect.js?v=20261105b";
+import { esc } from "./game.js?v=20261105c";
+import { family, creature } from "./collect.js?v=20261105c";
 
 export const CLUB_STEPS = 6;   // 5 steps + the Final Challenge (Ms. Ariana, Nov 4); steps per club unless Ms. Ariana sets another number (cls.clubSteps[key])
 export const CLUBS = {
@@ -32,7 +32,7 @@ export const CLUBS = {
     stickers: ["⏱️", "\u{1F3CB}️", "\u{1F45F}", "\u{1F3C3}", "\u{1F4A7}", "\u{1F4AA}", "\u{1F947}", "\u{1F3C6}"], ultra: "L-72" },
   pixelstudio: { name: "Pixel Studio", icon: "\u{1F4BB}", color: "#3BAA3F", skill: "Coding & Digital Literacy", goal: "Build and launch a working game, app or website",
     stickers: ["\u{1F4BB}", "\u{1F3AE}", "\u{1F9F1}", "⌨️", "\u{1F41E}", "\u{1F5B1}️", "\u{1F680}", "\u{1F31F}"], ultra: "L-73" },
-  english: { name: "English Immersion Club", icon: "\u{1F5E3}️", color: "#C2185B", skill: "Ideas & Thinking", goal: "Pitch the one life skill every middle schooler should learn",
+  english: { name: "Language Club", icon: "\u{1F5E3}️", color: "#C2185B", skill: "Ideas & Thinking", goal: "Pitch the one life skill every middle schooler should learn",
     stickers: ["\u{1F5E3}️", "\u{1F4DD}", "\u{1F4D6}", "\u{1F4A1}", "\u{1F3A4}", "\u{1F3AC}", "\u{1F44F}", "\u{1F31F}"], ultra: "L-74" }
 };
 // "Impact Makers - Lower Grades", "IMAGINEERS", "Eureka Club" → club key (or null)
@@ -47,7 +47,7 @@ export function clubKey(raw) {
   if (s.startsWith("eureka")) return "eureka";
   if (s.startsWith("trainingcamp")) return "trainingcamp";
   if (s.startsWith("pixel")) return "pixelstudio";
-  if (s.startsWith("english")) return "english";
+  if (s.startsWith("english") || s.startsWith("language")) return "english";
   return null;
 }
 export const clubSteps = (cls, k) => Math.max(1, Number(((cls && cls.clubSteps) || {})[k]) || CLUB_STEPS);

@@ -8,11 +8,11 @@
      🗺️ finishing all 3 Grade Level Quest tests at their own grade (st.grade = 4 or 5, set by Ms. Ariana; once)
    Saved on the student: ultraEggs, ultraUsed (server), ultraGoals = { st: { s: run start, n: given }, wk: { s, n }, vault: vaults rolled,
      q: true }, ultraLog = [{ why, at }] (newest last). */
-import { esc, weekKey, weekGoal } from "./game.js?v=20261105b";
-import { CLUB_ULTRA_FAMS } from "./collect.js?v=20261105b";
-import { ULTRA_FAMS, ULTRA_DUPE, ultraLeft, owned, formOf, family, creature, statsOf, bankXP, LEVEL_XP, MAX_LEVEL } from "./collect.js?v=20261105b";
-import { doneCount, GRADES } from "./quest.js?v=20261105b";
-import { addDays, mondayOf, histWeekTotal } from "./doors.js?v=20261105b";
+import { esc, weekKey, weekGoal } from "./game.js?v=20261105c";
+import { CLUB_ULTRA_FAMS } from "./collect.js?v=20261105c";
+import { ULTRA_FAMS, ULTRA_DUPE, ultraLeft, owned, formOf, family, creature, statsOf, bankXP, LEVEL_XP, MAX_LEVEL } from "./collect.js?v=20261105c";
+import { doneCount, GRADES } from "./quest.js?v=20261105c";
+import { addDays, mondayOf, histWeekTotal } from "./doors.js?v=20261105c";
 
 export const STREAK_DAYS = 30, WEEKS_IN_ROW = 4, WEEK_XP = 600, VAULT_ULTRA = 0.25;
 export const ULTRA_GRADES = [4, 5];
@@ -148,7 +148,7 @@ export function ultraSection(st, cls) {
   return h + "</div>";
 }
 const CLUB_NAMES = { imagineers: "Finish Imagineers Club", teamtrials: "Finish Team Trials", popupshop: "Finish Pop-Up Shop", impactmakers: "Finish Impact Makers", masterpiece: "Finish Masterpiece Club",
-  eureka: "Finish Eureka Club", trainingcamp: "Finish Training Camp", pixelstudio: "Finish Pixel Studio", english: "Finish English Immersion Club" };
+  eureka: "Finish Eureka Club", trainingcamp: "Finish Training Camp", pixelstudio: "Finish Pixel Studio", english: "Finish Language Club" };
 
 /* ---------- the lorebook page: what each Ultra does in battle ---------- */
 const P = x => Math.round((x || 0) * 100) + "%";
