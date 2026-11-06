@@ -11,8 +11,8 @@
    (clubUltra = { key: "waiting" }) and a later upload gives it.
    The student page shows each club's sticker book and the club egg that grows with every step; new stickers pop up
    once (clubSeen = { key: number of steps already celebrated }, the student's own field). */
-import { esc } from "./game.js?v=20261105i";
-import { family, creature } from "./collect.js?v=20261105i";
+import { esc } from "./game.js?v=20261106a";
+import { family, creature } from "./collect.js?v=20261106a";
 
 export const CLUB_STEPS = 6;   // 5 steps + the Final Challenge (Ms. Ariana, Nov 4); steps per club unless Ms. Ariana sets another number (cls.clubSteps[key])
 export const CLUBS = {
@@ -56,6 +56,9 @@ export const clubSteps = (cls, k) => Math.max(1, Number(((cls && cls.clubSteps) 
    Saved on the student as clubPick = ["imagineers", "eureka", "pixelstudio"] (teacher-only). The upload then only
    counts rows for a student's own clubs, and uses the picks to tell apart students with the same first name. */
 export const LANG = "english";
+// Eggs per finished step: 1, except Language Club (30 steps) = 1 egg for every 2 steps (Ms. Ariana, Nov 6)
+export const EGG_EVERY = { english: 2 };
+export const eggsFor = (k, n) => Math.floor((Number(n) || 0) / (EGG_EVERY[k] || 1));
 export const clubPicks = st => [...new Set(((st && st.clubPick) || []).filter(k => CLUBS[k]))].slice(0, 3);
 export const clubInfo = (st, k) => (((st && st.clubs) || {})[k]) || null;
 export const doneCount = c => Object.keys((c && c.done) || {}).length;
@@ -90,7 +93,7 @@ export function clubUpload(rows, students, cls, match) {
       const o = next[k] || { name: clubs[k].name, done: {}, wip: "" }, before = doneCount(o), total = clubSteps(cls, k);
       Object.assign(o.done, clubs[k].done); o.wip = clubs[k].done[stepNo(clubs[k].wip) || ""] ? "" : clubs[k].wip || o.wip; o.name = o.name || clubs[k].name;
       const after = doneCount(o); next[k] = o;
-      if (after > before) { eggs += after - before; news.push(CLUBS[k].icon + " " + CLUBS[k].name + " +" + (after - before)); }
+      if (after > before) { eggs += eggsFor(k, after) - eggsFor(k, before); news.push(CLUBS[k].icon + " " + CLUBS[k].name + " +" + (after - before)); }
       if (before < Math.ceil(total / 2) && after >= Math.ceil(total / 2)) rare++;
       if (after >= total && !((st.clubUltra || {})[k])) ultras.push(k);
     });
@@ -140,7 +143,7 @@ export function clubsAdmin(students, cls, busy) {
   const kids = students.filter(s => s.companionId), inClub = kids.filter(s => s.clubs && Object.keys(s.clubs).length);
   let h = '<div class="card" id="clubCard"><div class="card-head"><h2>\u{1F3A8} Clubs</h2><span class="fact">' + (inClub.length ? inClub.length + " students in clubs" : "no uploads yet") + "</span></div>" +
     '<p class="lede" style="font-size:13.5px;">After each club day, upload the <b>clubs progress</b> spreadsheet (CSV or XLSX). It reads <b>student_name</b>, <b>club_name</b>, <b>step_name</b> and <b>status</b>. ' +
-    "Students not on your roster are skipped. Every step marked <b>done</b> gives that student a club sticker + an egg; halfway through a club = a Rare+ egg; finishing a club = that club’s own \u{1F308} Ultra Legendary. Steps are only ever added, so uploading the same file twice is safe.</p>" +
+    "Students not on your roster are skipped. Every step marked <b>done</b> gives that student a club sticker + an egg (Language Club: an egg every 2 steps); halfway through a club = a Rare+ egg; finishing a club = that club’s own \u{1F308} Ultra Legendary. Steps are only ever added, so uploading the same file twice is safe.</p>" +
     '<label class="btn" style="cursor:pointer;">\u{1F4C4} Upload club progress<input id="clubFile" type="file" accept=".csv,.xlsx,.xls" hidden></label>';
   const P = busy.clubPreview;
   if (P) {
@@ -190,7 +193,7 @@ function bookHTML(k, C, c, tot, n, nums, seenN) {
 const CRACK = stg => '<svg class="eggcrack" viewBox="0 0 100 120" aria-hidden="true"><path d="M30 38 L40 46 L34 54 L46 60' + (stg >= 3 ? ' L40 70 L52 78 M60 30 L56 42 L66 48 L60 58 M46 60 L58 64' : "") + '" fill="none" stroke="#3a2a1a" stroke-width="' + (stg >= 3 ? 2.6 : 2) + '" stroke-linecap="round" stroke-linejoin="round" opacity=".75"/></svg>';
 export function clubsTab(st, cls) {
   const ks = [...new Set(clubPicks(st).concat(Object.keys((st && st.clubs) || {})))].filter(k => CLUBS[k]);
-  let h = '<div class="card"><div class="card-head"><h2>\u{1F3A8} My Clubs</h2></div><p class="lede">Every step you finish in a club earns that club’s <b>sticker</b> and an <b>egg</b>. Halfway through = a \u{1F48E} Rare+ egg. Finish every step and your club egg hatches the club’s own <b>\u{1F308} Ultra Legendary</b> — only club members can get it!</p></div>';
+  let h = '<div class="card"><div class="card-head"><h2>\u{1F3A8} My Clubs</h2></div><p class="lede">Every step you finish in a club earns that club’s <b>sticker</b> and an <b>egg</b>' + (clubPicks(st).includes(LANG) ? " (Language Club: an egg every 2 steps)" : "") + '. Halfway through = a \u{1F48E} Rare+ egg. Finish every step and your club egg hatches the club’s own <b>\u{1F308} Ultra Legendary</b> — only club members can get it!</p></div>';
   if (!ks.length) return h + '<div class="card"><p class="lede">Your clubs show up here once Ms. Ariana sets them. Keep working on your clubs!</p></div>';
   const seen = (st && st.clubSeen) || {};
   ks.forEach(k => {
@@ -202,7 +205,7 @@ export function clubsTab(st, cls) {
       '<div class="clubegg st' + stg + '"><span class="clubeggimg">' + (stg === 4 && fam ? '<img src="' + esc(creature(fam.forms[0]).img) + '" alt="">' : stg === 4 ? "\u{1F308}" :
         '<img src="assets/clubs/egg-' + k + '.webp" alt="" onerror="this.replaceWith(\'\u{1F95A}\')">' + (stg >= 2 ? CRACK(stg) : "")) + "</span><small>" + (stg === 4 ? (f ? "Your " + C.name + " Ultra is in your collection!" : "You finished! Your club Ultra is on its way \u{1F308}") : EGG_LINES[stg]) + "</small></div></div>" +
       (c.wip ? '<p class="small muted" style="margin:6px 0 0;">\u{1F6E0}️ Working on: ' + esc(c.wip) + "</p>" : "") +
-      (fresh ? '<div class="row" style="margin-top:8px;"><span class="clubnew">\u{1F389} New sticker' + (n - (Number(seen[k]) || 0) === 1 ? "" : "s") + "! +" + (n - (Number(seen[k]) || 0)) + " egg" + (n - (Number(seen[k]) || 0) === 1 ? "" : "s") + ' added to your Collector.</span><button class="btn small" data-clubseen="' + k + '">Yay!</button></div>' : "") + "</div>";
+      (fresh ? '<div class="row" style="margin-top:8px;"><span class="clubnew">\u{1F389} New sticker' + (n - (Number(seen[k]) || 0) === 1 ? "" : "s") + "!" + (eggsFor(k, n) - eggsFor(k, seen[k]) ? " +" + (eggsFor(k, n) - eggsFor(k, seen[k])) + " egg" + (eggsFor(k, n) - eggsFor(k, seen[k]) === 1 ? "" : "s") + " added to your Collector." : " One more step for your next egg!") + '</span><button class="btn small" data-clubseen="' + k + '">Yay!</button></div>' : "") + "</div>";
   });
   return h;
 }
