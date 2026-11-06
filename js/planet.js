@@ -7,11 +7,11 @@
    A launch is saved on the student: planet = { n: launches, last: "YYYY-MM-DD", streak, best } (one write a day).
    Wave 2 adds a space minigame between liftoff and landing; Planet JP itself comes later, one piece at a time.
    Pictures live in assets/planet/ — until one is uploaded (ART below) the stand-in drawing is used. */
-import { esc } from "./game.js?v=20261105h";
-import { azToday, azNow } from "./collect.js?v=20261105h";
-import { axoDay, schoolDayFor } from "./axolotl.js?v=20261105h";
-import { addDays } from "./doors.js?v=20261105h";
-import { GAMES, gameOfDay, gameByKey, play, preload } from "./spacegames.js?v=20261105h";
+import { esc } from "./game.js?v=20261105i";
+import { azToday, azNow } from "./collect.js?v=20261105i";
+import { axoDay, schoolDayFor } from "./axolotl.js?v=20261105i";
+import { addDays } from "./doors.js?v=20261105i";
+import { GAMES, gameOfDay, gameByKey, play, preload } from "./spacegames.js?v=20261105i";
 
 export const PJ_OPEN = 11 * 60, PJ_CLOSE = 12 * 60 + 55;   // minutes after midnight, Arizona time
 const A = "assets/planet/";
@@ -94,7 +94,7 @@ export function planetSync(c) {
   if (!view && p === "go" && c.calm && !c.preview && popped !== azToday() + c.st.id) { popped = azToday() + c.st.id; openMC(); }
 }
 function openMC() { view = "mc"; preload(); drawMC(); }
-function close() { clearT(); view = null; if (root) root.innerHTML = ""; if (C && C.rerender) C.rerender(); }
+function close() { clearT(); musicStop(); view = null; if (root) root.innerHTML = ""; if (C && C.rerender) C.rerender(); }
 function act(a) {
   if (a === "open") return openMC();
   if (a === "later" || a === "done") return close();
@@ -121,7 +121,7 @@ function drawMC() {
 
 /* ---------- liftoff → space → landing ---------- */
 function launch() {
-  view = "fly"; const st = C.st;
+  view = "fly"; const st = C.st; musicStart();
   let saved = st.planet || {};
   if (!C.preview && !launchedToday(st)) {
     const today = azToday(); let prev = addDays(today, -1), i = 0;
@@ -149,6 +149,7 @@ function space() {
   whoosh();
 }
 function playVideo() {
+  if (music) music.volume = 0.05;
   rootEl().innerHTML = '<div class="pjover pjvideo"><video id="pjvid" src="' + A + 'liftoff.mp4" autoplay playsinline></video><button class="btn ghost small pjskip" data-pj="skip">Skip ⏭</button></div>';
   const v = document.getElementById("pjvid"); if (!v) return land();
   v.onended = intro; v.onerror = intro;
@@ -202,6 +203,16 @@ function land(skipped) {
 }
 const setTxt = (id, t) => { const e = document.getElementById(id); if (e) e.textContent = t; };
 
+/* ---------- quiet space music under the trip (assets/planet/space-loop.mp3, a 32 s loop; off when ck-mute is set) ---------- */
+let music = null;
+function musicStart() {
+  try { if (localStorage.getItem("ck-mute") === "1") return; } catch (e) {}
+  try { if (!music) { music = new Audio(A + "space-loop.mp3"); music.loop = true; } music.volume = 0.18; music.currentTime = 0; const p = music.play(); if (p && p.catch) p.catch(() => {}); } catch (e) {}
+}
+function musicStop() {
+  if (!music || music.paused) return; const m = music; let v = m.volume;
+  const f = setInterval(() => { v -= 0.03; if (v <= 0) { clearInterval(f); m.pause(); } else m.volume = v; }, 60);
+}
 /* ---------- little sounds (off when ck-mute is set) ---------- */
 let AC = null;
 const ac = () => { try { if (localStorage.getItem("ck-mute") === "1") return null; } catch (e) {} try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === "suspended") AC.resume(); return AC; } catch (e) { return null; } };
