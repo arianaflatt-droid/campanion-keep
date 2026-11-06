@@ -7,7 +7,7 @@ import {
   getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, signInAnonymously
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
-import { firebaseConfig, CLASS_ID, TEACHER_EMAILS } from "./firebase-config.js?v=20261106e";
+import { firebaseConfig, CLASS_ID, TEACHER_EMAILS } from "./firebase-config.js?v=20261106f";
 
 // Teacher preview (student.html?s=ID&preview=1): the page shows a student's view, but nothing is ever written.
 export const PREVIEW = typeof location !== "undefined" && new URLSearchParams(location.search).get("preview") === "1";
@@ -17,6 +17,10 @@ export const configured = !String(firebaseConfig.apiKey).includes("PASTE_ME");
 export const app = configured ? initializeApp(firebaseConfig) : null;
 // Keep a saved copy on the computer, so reopening the page doesn't download the whole class again.
 function makeDb() {
+  // Nov 6: the teacher console keeps no saved copy (memory only). A saved copy is shared by every Companion Keep tab in
+  // the browser, and the console's saves could wait on another tab signed in as someone else (e.g. a student page).
+  const teacherPage = typeof location !== "undefined" && !/student\.html|axolotl/i.test(location.pathname);
+  if (teacherPage) return getFirestore(app);
   try { return initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) }); }
   catch (e) { console.warn("No offline cache:", e); return getFirestore(app); }
 }
