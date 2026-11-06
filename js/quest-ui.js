@@ -1,8 +1,8 @@
 // Grade Level Quest screens: the student's road + guardian battles, and the teacher's tracker.
-import { esc } from "./game.js?v=20261105a";
-import { owned, ownedFams, fighterFrom, formOf, resolveRound, hitDamage, alive, MOVES, RARITY_COLOR } from "./collect.js?v=20261105a";
+import { esc } from "./game.js?v=20261105b";
+import { owned, ownedFams, fighterFrom, formOf, resolveRound, hitDamage, alive, MOVES, RARITY_COLOR } from "./collect.js?v=20261105b";
 import { SUBJECTS, GRADES, ROAD_SPOTS, roadArt, battleArt, QUEST_XP, QUEST_CP, WEAPON_KINDS, weapon, weaponId, qKey, startOf, passOf, doneOf,
-  testState, currentGrade, doneCount, readyTests, weaponsOwned, heldWeapon } from "./quest.js?v=20261105a";
+  testState, currentGrade, doneCount, readyTests, weaponsOwned, heldWeapon } from "./quest.js?v=20261105b";
 
 const SUBJ = Object.fromEntries(SUBJECTS.map(([k, n, i]) => [k, { n, i }]));
 let qb = null;   // the guardian battle in progress (only on this page; nothing is saved until the student wins)

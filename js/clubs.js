@@ -11,8 +11,8 @@
    (clubUltra = { key: "waiting" }) and a later upload gives it.
    The student page shows each club's sticker book and the club egg that grows with every step; new stickers pop up
    once (clubSeen = { key: number of steps already celebrated }, the student's own field). */
-import { esc } from "./game.js?v=20261105a";
-import { family, creature } from "./collect.js?v=20261105a";
+import { esc } from "./game.js?v=20261105b";
+import { family, creature } from "./collect.js?v=20261105b";
 
 export const CLUB_STEPS = 6;   // 5 steps + the Final Challenge (Ms. Ariana, Nov 4); steps per club unless Ms. Ariana sets another number (cls.clubSteps[key])
 export const CLUBS = {
@@ -139,7 +139,7 @@ const EGG_LINES = ["Your club egg is waiting…", "It wiggled! \u{1F95A}", "A cr
 // The stamp book (assets/clubs/stamp-book.webp): 5 round spots + the star (Final Challenge), [left %, top %] of each spot's middle.
 // A stamp picture assets/clubs/stamp-KEY-N.webp is used once it's in STAMP_ART; until then the club's emoji sticker is stamped.
 const BOOK_SPOTS = [[23.2, 31.5], [49.8, 31.8], [76, 31.5], [23.3, 69.1], [49.2, 69.2], [75.6, 69.5]];
-export const STAMP_ART = { imagineers: true, teamtrials: true, impactmakers: true, popupshop: true, masterpiece: true, eureka: true, pixelstudio: true, english: true };   // clubs whose stamp-KEY-1…6.webp are uploaded
+export const STAMP_ART = { imagineers: true, teamtrials: true, impactmakers: true, popupshop: true, masterpiece: true, eureka: true, pixelstudio: true, english: true, trainingcamp: true };   // clubs whose stamp-KEY-1…6.webp are uploaded
 function bookHTML(k, C, c, tot, n, nums, seenN) {
   const stamp = i => STAMP_ART[k] ? '<img src="assets/clubs/stamp-' + k + "-" + (i + 1) + '.webp" alt="">' : '<b>' + (i === tot - 1 ? "\u{1F3C6}" : C.stickers[i % C.stickers.length]) + "</b>";
   const title = i => esc((i < n ? c.done[nums[i]] : "") || (i === tot - 1 ? "Final Challenge" : "Step " + (i + 1)));
