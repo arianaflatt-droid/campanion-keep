@@ -2478,3 +2478,10 @@ body.mini-kite .wrap{ position:relative; z-index:1; } body.mini-kite .tile{ box-
 .rostrow b{ min-width:130px; } .rostrow input{ flex:1; min-width:220px; max-width:320px; }
 .mincardbtn{ margin-left:auto; }
 .card-head .mincardbtn + *{ }
+/* 🏫 School setup (Nov 6, Step B) */
+.classpick{ max-width:240px; padding:6px 8px; border-radius:10px; border:1px solid var(--line-2, #ccc); font-weight:700; }
+.schoollist{ display:grid; gap:6px; margin-top:8px; }
+.schoolrow{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:6px 8px; border-radius:10px; }
+.schoolrow.here{ background:rgba(20,120,120,.08); }
+.schoolrow b{ min-width:170px; } .schoolrow input{ flex:1; min-width:240px; }
+.adminchip{ display:inline-block; padding:3px 10px; margin:2px; border-radius:99px; background:rgba(0,0,0,.06); }

@@ -2,49 +2,49 @@ import {
   checkVersion, hitOn, gearInSeason, applyDisplayNames, companionOf, petCreatures, pinnedBadgeHTML, DAYS, SHORT, ROSTER, GEAR, SIDEKICKS, BANNER, bannerFor, newsHTML, boostHTML, vipToday, countdownHTML, countdownLeft, isHaunt, battleOn, candyOf, basketHTML, CANDY_FULL, bossState, attacksReady, bossBarHTML, GHOST_IMG, ghostUnlocked, turkeyUnlocked, grinchUnlocked, isJingle, isFrost, isHeart, heartUnlocked, isLucky, luckyUnlocked, attackRefusal, saveProblems, yetiUnlocked, eventMode, isGobble, setSeason, SEASON, seasonOf, STORE, candyLeft, candySpent, ownedCount, ownsItem, storeArt, nextAttack, dmgOf, HAT_BONUS, BREW_BONUS, teamHTML, wallHTML, WHEEL, pickSlice, wheelHTML, spinTo, PRIZES, prizeSlices, bucketState, bucketHTML, baseDamage, EAT_PER_DAY, dayEaten, dayXP, byId, esc, arr5, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, sidekickSVG, petHTML as petBase, vipStage, withVipHat, vipWorn, petWithHead, OUTFITS, itemArt, potionFx, bondLevel,
   ghost2Unlocked, starterFam, boss2Of, BOSS2, BOSS2_LIST, creditCompanion, compKey, compLevel, compFill, COMP_DAYS, creatureCompanion, win1HTML
-} from "./game.js?v=20261106f";
-import { EVENT_LIST, TEAM_EVENTS, eventOn, teamCard, teamOf as tevTeamOf } from "./teams.js?v=20261106f";
-import { lockOf, lockScreen } from "./lock.js?v=20261106f";
-import { revengeCard, revengeSync } from "./revenge.js?v=20261106f";
-import { heistCard, heistSync } from "./heist.js?v=20261106f";
-import { ultraSync, vaultUltra } from "./ultra.js?v=20261106f";
-import { secretBanner, secretOverlay, secretOpen } from "./secret.js?v=20261106f";
-import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=20261106f";
-import { kindCard, gotKindToday } from "./kindness.js?v=20261106f";
-import { partyCards, partyOverlay, partyClick, partyBusy, partyTicker, partySync } from "./party.js?v=20261106f";
-import { kitchenCard, kitchenOverlay, kitchenClick, kitchenBusy, kitchenPointer } from "./meals.js?v=20261106f";
-import { miniCard, miniOverlay, miniClick, miniBusy, miniSync } from "./mini.js?v=20261106f";
-import { paintCard, paintClick } from "./paint.js?v=20261106f";
-import { surpriseCards, surpriseOverlay, surpriseClick, surpriseBusy } from "./surprise.js?v=20261106f";
-import { hofTab, hofParty, hofClick } from "./hof.js?v=20261106f";
-import { passTab, passOverlay, passClick, passBusy, passReady } from "./pass.js?v=20261106f";
-import { bondHTML, moodBubble, playTrick, burst, unlockAt } from "./bond.js?v=20261106f";
-import { morningTab, morningOverlay, morningClick, morningBusy, mqReady } from "./morning.js?v=20261106f";
-import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261106f";
-import { cardOf, sameData } from "./card.js?v=20261106f";
-import { mapOn, mapTab, mapClick, mapReady } from "./readmap.js?v=20261106f";
-import { tbCard, tbLeft } from "./teachbattle.js?v=20261106f";
-import { wheelBanner, wheelWinOverlay, wheelSeen } from "./subwheel.js?v=20261106f";
-import { axoOn, axoSync } from "./axolotl.js?v=20261106f";
-import { clubsTab, clubsNew, doneCount, clubPageSet } from "./clubs.js?v=20261106f";
-import { planetBar, planetSync, planetBusy } from "./planet.js?v=20261106f";
-import { checklistTab, todoCount, markSeen } from "./checklist.js?v=20261106f";
-import { PREVIEW, configured, auth, googleStudentSignIn, seatInfo, googleReseat, signOut as gSignOut, SCHOOL_DOMAIN, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc as saveDoc, watchRewardPic, watchNewsPic, claimSeat, mySeat, watchCards, watchMe, saveCard, ck } from "./db.js?v=20261106f";
-import { rewardTab, rewardBadge, rgOf, rgProgress, RG_SUBS } from "./weekgoal.js?v=20261106f";
-import { soloOn, soloSwap, soloCard, brewOne, freeIngredient, soloReady, soloCfg, potNaming, potNameData } from "./solobrew.js?v=20261106f";
+} from "./game.js?v=20261107a";
+import { EVENT_LIST, TEAM_EVENTS, eventOn, teamCard, teamOf as tevTeamOf } from "./teams.js?v=20261107a";
+import { lockOf, lockScreen } from "./lock.js?v=20261107a";
+import { revengeCard, revengeSync } from "./revenge.js?v=20261107a";
+import { heistCard, heistSync } from "./heist.js?v=20261107a";
+import { ultraSync, vaultUltra } from "./ultra.js?v=20261107a";
+import { secretBanner, secretOverlay, secretOpen } from "./secret.js?v=20261107a";
+import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=20261107a";
+import { kindCard, gotKindToday } from "./kindness.js?v=20261107a";
+import { partyCards, partyOverlay, partyClick, partyBusy, partyTicker, partySync } from "./party.js?v=20261107a";
+import { kitchenCard, kitchenOverlay, kitchenClick, kitchenBusy, kitchenPointer } from "./meals.js?v=20261107a";
+import { miniCard, miniOverlay, miniClick, miniBusy, miniSync } from "./mini.js?v=20261107a";
+import { paintCard, paintClick } from "./paint.js?v=20261107a";
+import { surpriseCards, surpriseOverlay, surpriseClick, surpriseBusy } from "./surprise.js?v=20261107a";
+import { hofTab, hofParty, hofClick } from "./hof.js?v=20261107a";
+import { passTab, passOverlay, passClick, passBusy, passReady } from "./pass.js?v=20261107a";
+import { bondHTML, moodBubble, playTrick, burst, unlockAt } from "./bond.js?v=20261107a";
+import { morningTab, morningOverlay, morningClick, morningBusy, mqReady } from "./morning.js?v=20261107a";
+import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261107a";
+import { cardOf, sameData } from "./card.js?v=20261107a";
+import { mapOn, mapTab, mapClick, mapReady } from "./readmap.js?v=20261107a";
+import { tbCard, tbLeft } from "./teachbattle.js?v=20261107a";
+import { wheelBanner, wheelWinOverlay, wheelSeen } from "./subwheel.js?v=20261107a";
+import { axoOn, axoSync } from "./axolotl.js?v=20261107a";
+import { clubsTab, clubsNew, doneCount, clubPageSet } from "./clubs.js?v=20261107a";
+import { planetBar, planetSync, planetBusy } from "./planet.js?v=20261107a";
+import { checklistTab, todoCount, markSeen } from "./checklist.js?v=20261107a";
+import { PREVIEW, configured, auth, googleStudentSignIn, seatInfo, googleReseat, signOut as gSignOut, SCHOOL_DOMAIN, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc as saveDoc, watchRewardPic, watchNewsPic, claimSeat, mySeat, watchCards, watchMe, saveCard, ck } from "./db.js?v=20261107a";
+import { rewardTab, rewardBadge, rgOf, rgProgress, RG_SUBS } from "./weekgoal.js?v=20261107a";
+import { soloOn, soloSwap, soloCard, brewOne, freeIngredient, soloReady, soloCfg, potNaming, potNameData } from "./solobrew.js?v=20261107a";
 let rpic = null, npic = null;
 // The wheel's slices; with Solo Potion Brewing on, Free Attack becomes Free Ingredient (same slice id, so saves still pass)
 const slicesNow = () => soloOn(cls) ? SEASON.slices.map(x => x.id === "attack" ? Object.assign({}, x, { label: "Free Ingredient", icon: soloCfg(cls).icon, note: "A free " + (soloCfg(cls).ingFor || soloCfg(cls).one) + " ingredient!" }) : x) : SEASON.slices;
-import { nudgeCard } from "./nudges.js?v=20261106f";
-import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261106f";
-import { teacherPlayer, hasStarter, MOVES, formOf } from "./collect.js?v=20261106f";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261106f";
-import { addDays, vaultMet, goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked, weekGoal, weekKey, weekTotal, weekDoorState, vaultState, vaultGoal, rewardFor, oldReady, vaultLessonsLeft, VAULT_XP, VAULT_BONUS_XP, VAULT_EGGS, VAULT_MIN, vaultMinOk, vaultNeedsMin, subReq, subReqHTML } from "./doors.js?v=20261106f";
-import { azToday } from "./collect.js?v=20261106f";
+import { nudgeCard } from "./nudges.js?v=20261107a";
+import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261107a";
+import { teacherPlayer, hasStarter, MOVES, formOf } from "./collect.js?v=20261107a";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261107a";
+import { addDays, vaultMet, goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked, weekGoal, weekKey, weekTotal, weekDoorState, vaultState, vaultGoal, rewardFor, oldReady, vaultLessonsLeft, VAULT_XP, VAULT_BONUS_XP, VAULT_EGGS, VAULT_MIN, vaultMinOk, vaultNeedsMin, subReq, subReqHTML } from "./doors.js?v=20261107a";
+import { azToday } from "./collect.js?v=20261107a";
 import { roomHTML, FIT_SLOTS, slotKind, KIND_NAMES, KIND_ICON, EVERYDAY_PRICE, THEMED_PRICE, TROPHY_PRICE, TYPE_THEMES, SEASON_THEMES, THEME_NAMES, TROPHIES,
   itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId,
-  ROOMS, EXTRA_ROOMS, ROOM_PRICE, hasRoom, roomStarters, fitIn, slotTakes, roomExtras, PET_SPOT_KEYS, petSpotLabel, petSpotOf, ACTIVITY_IDS, ACTIVITY_PRICE } from "./room.js?v=20261106f";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing, endMyBattle } from "./collector-ui.js?v=20261106f";
+  ROOMS, EXTRA_ROOMS, ROOM_PRICE, hasRoom, roomStarters, fitIn, slotTakes, roomExtras, PET_SPOT_KEYS, petSpotLabel, petSpotOf, ACTIVITY_IDS, ACTIVITY_PRICE } from "./room.js?v=20261107a";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing, endMyBattle } from "./collector-ui.js?v=20261107a";
 
 let fxFor = null;   // the student whose companion is being drawn (for the potion glow)
 const petHTML = (c, worn, held) => { const h = petBase(c, worn, held), fx = fxFor ? potionFx(fxFor) : ""; return fx ? h.replace('class="petwrap', 'class="petwrap' + fx) : h; };
@@ -317,6 +317,7 @@ function render(force) {
   const hof = !bday && !cape && !party && !PREVIEW && cur && cur.companionId && cls && !prizeWheel && !present && !collectorBusy() && !questBusy() && !morningBusy() && !passBusy() && !surpriseBusy() && !kitchenBusy() && !partyBusy() && !miniBusy() ? hofParty(cur, students, cls) : "";
   const fields = liveNow ? saveFields(app) : {};
   miniSync(cls);
+  h = teacherize(h);   // Step C: this class's teacher name instead of "Ms. Ariana"
   app.innerHTML = h + (cur && cur.companionId && cls ? miniOverlay(cur, cls) : "") + partyOverlay(cur && cur.companionId ? cur : null, cls) + (cur && cur.companionId && cls ? kitchenOverlay(cur) : "") + (cur && cur.companionId && cls && !PREVIEW && !bday && !cape && !party && !hof ? surpriseOverlay(cur, cls) : "") + passOverlay() + presentOverlay() + bulkOverlay() + (cur && cur.companionId && !PREVIEW ? secretOverlay(cur) : "") + vaultOverlay() + prizeOverlay() + (cur && cur.companionId && cls ? collectorOverlays(collectorCtx(cur)) + questOverlay(cur) + morningOverlay(cur, cls) : "") + party + cape + bday + hof;
   restoreFields(fields);
   axoSync(tab === "axo" && !!cur && !!cur.companionId && axoOn(cls), cur && cur.companionId ? cur : null, cls, d => patch(d, true), PREVIEW);   // 🫧 Bubble's Baby lives in its own frame under the page
@@ -335,6 +336,11 @@ function render(force) {
 const gsignCard = () => '<div class="card gsigncard"><div class="card-head"><h2>\u{1F511} Sign in with your school account</h2></div>' +
   '<p class="lede">Use your <b>@' + esc(SCHOOL_DOMAIN) + '</b> Google account to open your Keep on any computer.</p>' +
   '<button class="btn gsign" data-act="gsignin"' + (gBusy ? " disabled" : "") + '><span class="gG">G</span> ' + (gBusy ? "Signing in…" : "Sign in with Google") + "</button></div>";
+// "Ms. Ariana" in the game's words → this class's teacher (classes without a teacher name keep the words as they are)
+function teacherize(html) {
+  const t = cls && cls.teacherName; if (!t || t === "Ms. Ariana") return html;
+  return String(html).replace(/Ms\.(?:\s|&nbsp;|\u00a0)Ariana/g, esc(t));
+}
 function viewNames() {
   return (seatErr.trim() ? '<div class="banner bad">' + esc(seatErr) + "</div>" : "") + gsignCard();   // Nov 6: Google sign-in only
 }

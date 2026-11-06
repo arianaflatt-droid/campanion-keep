@@ -7,7 +7,8 @@ import {
   getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, signInAnonymously
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
-import { firebaseConfig, CLASS_ID, TEACHER_EMAILS } from "./firebase-config.js?v=20261106f";
+import { firebaseConfig, CLASS_ID, TEACHER_EMAILS, ADMIN_EMAILS, switchClass } from "./firebase-config.js?v=20261107a";
+export { CLASS_ID, switchClass };
 
 // Teacher preview (student.html?s=ID&preview=1): the page shows a student's view, but nothing is ever written.
 export const PREVIEW = typeof location !== "undefined" && new URLSearchParams(location.search).get("preview") === "1";
@@ -129,16 +130,29 @@ export async function mySeat() {
    (the rules check it against the roster) → they are that student on this device, just like a personal link. */
 export const SCHOOL_DOMAIN = "unbound.school";
 export const rosterRef = email => doc(db, "roster", String(email || "").trim().toLowerCase());
+// Nov 6 (Step B): the teacher's list of emails lives in ONE private doc per class (classes/{id}/private/roster = { sid: email }),
+// so a teacher only ever reads their own class's emails (and it costs 1 read). Old classes are copied over the first time.
+const rosterMapRef = () => doc(db, "classes", CLASS_ID, "private", "roster");
 export async function rosterList() {
-  const snap = await getDocs(query(collection(db, "roster"), where("classId", "==", CLASS_ID)));
-  return snap.docs.map(d => Object.assign({ email: d.id }, d.data()));
+  const m = await getDoc(rosterMapRef());
+  if (m.exists()) return Object.entries(m.data()).filter(([k, v]) => k !== "_at" && v).map(([sid, email]) => ({ sid, email, classId: CLASS_ID }));
+  const snap = await getDocs(query(collection(db, "roster"), where("classId", "==", CLASS_ID)));   // first time (admin): copy the Step A docs into the map
+  const list = snap.docs.map(d => Object.assign({ email: d.id }, d.data())), map = { _at: new Date().toISOString() };
+  list.forEach(x => { map[x.sid] = x.email; });
+  try { await fbSetDoc(rosterMapRef(), map); } catch (e) {}
+  return list;
 }
 export async function seatsOnce() { const snap = await getDocs(seatsCol); return snap.docs.map(d => Object.assign({ id: d.id }, d.data())); }
 // pairs: [[sid, email, name]]; removes: [emails]
 export async function rosterSave(pairs, removes) {
   const b = writeBatch(db), at = new Date().toISOString();
-  (removes || []).forEach(e => b.delete(rosterRef(e)));
-  pairs.forEach(([sid, email, name]) => b.set(rosterRef(email), { classId: CLASS_ID, sid, name: String(name || "").slice(0, 60), at }));
+  const gone = new Set(removes || []), up = { _at: at };
+  gone.forEach(e => b.delete(rosterRef(e)));
+  pairs.forEach(([sid, email, name]) => { b.set(rosterRef(email), { classId: CLASS_ID, sid, name: String(name || "").slice(0, 60), at }); up[sid] = email; });
+  // keep the class's private email list in step (removed students drop out; the map is merged, not replaced)
+  const cur = await getDoc(rosterMapRef()).then(d => (d.exists() ? d.data() : {})).catch(() => ({}));
+  Object.keys(cur).forEach(sid => { if (sid !== "_at" && gone.has(cur[sid]) && !up[sid]) up[sid] = deleteField(); });
+  b.set(rosterMapRef(), up, { merge: true });
   await b.commit();
 }
 // Nov 6: Google only. This device's seat, checked fresh every time the page opens: { sid, email } or null.
@@ -150,7 +164,8 @@ export async function seatInfo() {
 export async function googleReseat() {
   const u = auth.currentUser, email = String((u && u.email) || "").toLowerCase();
   if (!u || !email.endsWith("@" + SCHOOL_DOMAIN)) return null;
-  const r = await getDoc(rosterRef(email)); if (!r.exists() || r.data().classId !== CLASS_ID) return null;
+  const r = await getDoc(rosterRef(email)); if (!r.exists()) return null;
+  if (r.data().classId !== CLASS_ID) { moveToClass(r.data().classId); return null; }
   await fbSetDoc(seatRef(u.uid), { sid: r.data().sid, email, at: new Date().toISOString() });
   return r.data().sid;
 }
@@ -168,7 +183,7 @@ export async function googleStudentSignIn() {
   let r = null; try { r = await getDoc(rosterRef(email)); } catch (e) { return fail("not-on-roster"); }
   if (!r.exists()) return fail("not-on-roster");
   const { classId, sid } = r.data();
-  if (classId !== CLASS_ID) return fail("other-class");
+  if (classId !== CLASS_ID) { moveToClass(classId); return null; }   // their class is a different one: open it (the seat is made there)
   await fbSetDoc(seatRef(cred.user.uid), { sid, email, at: new Date().toISOString() });
   return sid;
 }
@@ -181,6 +196,39 @@ export const snapsCol = db ? collection(db, "classes", CLASS_ID, "snaps") : null
 export const snapRef = id => doc(db, "classes", CLASS_ID, "snaps", id);
 export async function snapsFor(sid) { const q = await getDocs(query(snapsCol, where("sid", "==", sid))); return q.docs.map(d => Object.assign({ id: d.id }, d.data())); }
 export async function snapsAt(stamp) { const q = await getDocs(query(snapsCol, where("stamp", "==", stamp))); return q.docs.map(d => Object.assign({ id: d.id }, d.data())); }
+
+// A student who belongs to another class: switch this computer to it (once per page visit, so it can never loop)
+function moveToClass(id) {
+  if (!/^[a-z0-9-]{1,40}$/.test(String(id || ""))) return;
+  try { if (sessionStorage.getItem("ck-moved") === id) return; sessionStorage.setItem("ck-moved", id); } catch (e) {}
+  switchClass(id);
+}
+
+/* ---------- 🏫 School setup (Nov 6, Step B) ----------
+   classDir/{classId} = { className, teacherName, teachers: [emails] } — the small public list of classes. The rules read
+   it to decide who teaches which class. admins/{email} = school admins (plus ADMIN_EMAILS built in). */
+export const classDirRef = id => doc(db, "classDir", id);
+export const isBuiltInAdmin = email => !!email && ADMIN_EMAILS.map(e => e.toLowerCase()).includes(String(email).toLowerCase());
+export async function myAccess(email) {
+  email = String(email || "").toLowerCase();
+  let admin = isBuiltInAdmin(email);
+  if (!admin) { try { admin = (await getDoc(doc(db, "admins", email))).exists(); } catch (e) {} }
+  let classes = [];
+  try {
+    const snap = admin ? await getDocs(collection(db, "classDir")) : await getDocs(query(collection(db, "classDir"), where("teachers", "array-contains", email)));
+    classes = snap.docs.map(d => Object.assign({ id: d.id }, d.data())).sort((a, b) => String(a.className || a.id).localeCompare(String(b.className || b.id)));
+  } catch (e) {}
+  return { admin, classes };
+}
+export async function saveClassDir(id, data) { await fbSetDoc(classDirRef(id), data, { merge: true }); }
+export async function createClass(id, dir, first) {
+  const b = writeBatch(db);
+  b.set(classDirRef(id), dir);
+  b.set(doc(db, "classes", id), first);
+  await b.commit();
+}
+export async function adminList() { const snap = await getDocs(collection(db, "admins")); return snap.docs.map(d => d.id); }
+export async function setAdmin(email, on) { const r = doc(db, "admins", String(email).toLowerCase()); on ? await fbSetDoc(r, { at: new Date().toISOString() }) : await fbDeleteDoc(r); }
 
 export function isTeacherEmail(email) {
   return !!email && TEACHER_EMAILS.map(e => e.toLowerCase()).includes(email.toLowerCase());
@@ -221,7 +269,7 @@ export const saveCard = (id, card) => (PREVIEW ? none() : fbSetDoc(cardRef(id), 
 const fns = app ? getFunctions(app, "us-central1") : null;
 export async function ck(op, input) {
   if (PREVIEW) throw Object.assign(new Error("This is a teacher preview \u2014 nothing is saved."), { code: "preview" });
-  const r = await httpsCallable(fns, "ck")(Object.assign({ op }, input || {}));
+  const r = await httpsCallable(fns, "ck")(Object.assign({ op, cls: CLASS_ID }, input || {}));   // cls = which class (Nov 6)
   return r.data || {};
 }
 export const ckMessage = e => (e && e.message ? String(e.message).replace(/^(functions\/)?[a-z-]+:\s*/i, "") : "Something went wrong. Try again.");

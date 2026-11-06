@@ -1,48 +1,48 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261106f";
-import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261106f";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261106f";
-import { cpEarnedCalc } from "./room.js?v=20261106f";
-import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261106f";
-import { rewardFor } from "./doors.js?v=20261106f";
-import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet, subReq, subRuleOn, SUB_DAY, addDays } from "./doors.js?v=20261106f";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing } from "./collector-ui.js?v=20261106f";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261107a";
+import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261107a";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261107a";
+import { cpEarnedCalc } from "./room.js?v=20261107a";
+import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261107a";
+import { rewardFor } from "./doors.js?v=20261107a";
+import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet, subReq, subRuleOn, SUB_DAY, addDays } from "./doors.js?v=20261107a";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing } from "./collector-ui.js?v=20261107a";
 import {
   newsHTML, boostOn, boostHTML, countdownHTML, applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   boss2Of, boss2Prize, simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, weekCandyBefore, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, isFrost, isHeart, heartUnlocked, isLucky, luckyUnlocked, saveProblems, yetiUnlocked, wallMarks, WALL_BLOCK, BOSS_START_HP, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261106f";
-import { MQ_CUTOFF } from "./morning.js?v=20261106f";
-import { kindAdmin } from "./kindness.js?v=20261106f";
-import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261106f";
-import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261106f";
-import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261106f";
-import { passAdmin } from "./pass.js?v=20261106f";
-import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261106f";
-import { watchSecret, secretRef } from "./db.js?v=20261106f";
-import { secretAdmin, secretClick, autoPick, secretBanner } from "./secret.js?v=20261106f";
-import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef, newBattleRef, newsPicRef, watchNewsPic } from "./db.js?v=20261106f";
-import { mapAdmin } from "./readmap.js?v=20261106f";
-import { wheelTab, wheelClick } from "./subwheel.js?v=20261106f";
-import { tbRequestsCard, tbInvite, tbToSettle } from "./teachbattle.js?v=20261106f";
-import { rewardAdmin, rgWaiting, rgOf, shrinkImage } from "./weekgoal.js?v=20261106f";
-import { soloAdmin, soloCfg, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261106f";
-import { feederLink } from "./feeder.js?v=20261106f";
-import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261106f";
+} from "./game.js?v=20261107a";
+import { MQ_CUTOFF } from "./morning.js?v=20261107a";
+import { kindAdmin } from "./kindness.js?v=20261107a";
+import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261107a";
+import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261107a";
+import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261107a";
+import { passAdmin } from "./pass.js?v=20261107a";
+import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261107a";
+import { watchSecret, secretRef } from "./db.js?v=20261107a";
+import { secretAdmin, secretClick, autoPick, secretBanner } from "./secret.js?v=20261107a";
+import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef, newBattleRef, newsPicRef, watchNewsPic } from "./db.js?v=20261107a";
+import { mapAdmin } from "./readmap.js?v=20261107a";
+import { wheelTab, wheelClick } from "./subwheel.js?v=20261107a";
+import { tbRequestsCard, tbInvite, tbToSettle } from "./teachbattle.js?v=20261107a";
+import { rewardAdmin, rgWaiting, rgOf, shrinkImage } from "./weekgoal.js?v=20261107a";
+import { soloAdmin, soloCfg, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261107a";
+import { feederLink } from "./feeder.js?v=20261107a";
+import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261107a";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef, watchSeats, watchCards, deleteField
-} from "./db.js?v=20261106f";
-import { G, guardCard, guardClick, guardInput, autoSnap, personalLink, syncCards } from "./guard.js?v=20261106f";
-import { lockCard, lockClick } from "./lock.js?v=20261106f";
-import { revengeAdmin, revengeAction } from "./revenge.js?v=20261106f";
-import { heistAdmin, heistAction } from "./heist.js?v=20261106f";
-import { calendarCard, calendarEdit, autoExcuse } from "./calendar.js?v=20261106f";
-import { axoAdmin } from "./axolotl.js?v=20261106f";
-import { clubsAdmin, clubUpload, clubPicks, pickChange } from "./clubs.js?v=20261106f";
-import { planetAdmin } from "./planet.js?v=20261106f";
-import { rosterAdmin, rosterPreview, okEmail } from "./roster.js?v=20261106f";
-import { rosterList, rosterSave, seatsOnce, removeLinkSeats } from "./db.js?v=20261106f";
+} from "./db.js?v=20261107a";
+import { G, guardCard, guardClick, guardInput, autoSnap, personalLink, syncCards } from "./guard.js?v=20261107a";
+import { lockCard, lockClick } from "./lock.js?v=20261107a";
+import { revengeAdmin, revengeAction } from "./revenge.js?v=20261107a";
+import { heistAdmin, heistAction } from "./heist.js?v=20261107a";
+import { calendarCard, calendarEdit, autoExcuse } from "./calendar.js?v=20261107a";
+import { axoAdmin } from "./axolotl.js?v=20261107a";
+import { clubsAdmin, clubUpload, clubPicks, pickChange } from "./clubs.js?v=20261107a";
+import { planetAdmin } from "./planet.js?v=20261107a";
+import { rosterAdmin, rosterPreview, okEmail } from "./roster.js?v=20261107a";
+import { rosterList, rosterSave, seatsOnce, removeLinkSeats, myAccess, saveClassDir, createClass, adminList, setAdmin, isBuiltInAdmin, switchClass } from "./db.js?v=20261107a";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -220,6 +220,7 @@ async function hauntOn(fresh) {
 function studentLink(id) {
   const u = new URL("student.html", location.href);
   if (id) u.searchParams.set("s", id);
+  if (CLASS_ID !== "my-class") u.searchParams.set("c", CLASS_ID);   // preview opens the right class
   return u.toString();
 }
 
@@ -227,17 +228,76 @@ function studentLink(id) {
 let cardT = null;
 function cardSoon() { clearTimeout(cardT); cardT = setTimeout(() => { if (studentsLoaded) syncCards(students); }, 2500); }
 
+/* ================= 🏫 school setup (Nov 6, Step B) ================= */
+let ACCESS = { admin: false, classes: [] }, regTried = false;
+const myDir = () => ACCESS.classes.find(c => c.id === CLASS_ID) || null;
+export const teacherNameOf = () => (cls && cls.teacherName) || (myDir() && myDir().teacherName) || "";
+// Admin opening a class that isn't in the class list yet (Ms. Ariana's original class): add it, with her as its teacher.
+function registerClass(c) {
+  if (regTried || !c || !ACCESS.admin || myDir() || !user) return; regTried = true;
+  const dir = { className: c.className || CLASS_ID, teacherName: c.teacherName || (CLASS_ID === "my-class" ? "Ms. Ariana" : ""), teachers: CLASS_ID === "my-class" ? [String(user.email).toLowerCase()] : [] };
+  saveClassDir(CLASS_ID, dir).then(() => { ACCESS.classes.push(Object.assign({ id: CLASS_ID }, dir)); render(); }).catch(() => {});
+}
+function classPicker() {
+  const list = ACCESS.classes; if (list.length < 2 && !(ACCESS.admin && list.length)) return "";
+  return '<select id="classPick" class="classpick" title="Switch class">' + list.map(c => '<option value="' + esc(c.id) + '"' + (c.id === CLASS_ID ? " selected" : "") + ">" + esc(c.className || c.id) + (c.teacherName ? " · " + esc(c.teacherName) : "") + "</option>").join("") + "</select>";
+}
+// ⚙️ Settings: this class's name + the teacher name students see (used everywhere the game says "Ms. Ariana")
+function myClassCard() {
+  const d = myDir() || {}, tn = (cls && cls.teacherName) || d.teacherName || "";
+  return '<div class="card" id="myClassCard"><div class="card-head"><h2>\u{1F469}\u200D\u{1F3EB} Your class</h2><span class="fact">' + esc(CLASS_ID) + "</span></div>" +
+    '<div class="row" style="gap:8px;align-items:flex-end;flex-wrap:wrap;"><div class="field"><label for="mcName">Class name</label><input id="mcName" type="text" maxlength="48" value="' + esc((cls && cls.className) || d.className || "") + '"></div>' +
+    '<div class="field"><label for="mcTeacher">Teacher name students see</label><input id="mcTeacher" type="text" maxlength="30" placeholder="Ms. Smith" value="' + esc(tn) + '"></div>' +
+    '<button class="btn" data-act="mcSave">Save</button></div>' +
+    '<p class="small muted" style="margin:6px 0 0;">Everywhere the game talks about the teacher (\u201cAsk Ms. Ariana\u2026\u201d, \u201cBattle Ms. Ariana\u201d), students in this class see this name.' +
+    (d.teachers && d.teachers.length ? " Teachers: " + d.teachers.map(esc).join(", ") + "." : "") + "</p></div>";
+}
+// 🏫 Admins only: every class, who teaches it, new classes, and the admin list
+function schoolAdmin() {
+  const A = busy.admins;
+  let h = '<div class="card" id="schoolCard"><div class="card-head"><h2>\u{1F3EB} School setup</h2><span class="fact">' + ACCESS.classes.length + " class" + (ACCESS.classes.length === 1 ? "" : "es") + " · you\u2019re an admin</span></div>" +
+    '<p class="lede" style="font-size:13.5px;">Each class is separate: its own students, events, Planet JP, battles and trades. A teacher only sees the classes they\u2019re listed on. Admins can open any class.</p>' +
+    '<div class="schoollist">' + ACCESS.classes.map(c => '<div class="schoolrow' + (c.id === CLASS_ID ? " here" : "") + '"><b>' + esc(c.className || c.id) + "</b>" +
+      '<span class="small muted">' + esc(c.teacherName || "") + "</span>" +
+      '<input type="text" value="' + esc((c.teachers || []).join(", ")) + '" placeholder="teacher@unbound.school" data-dirteachers="' + esc(c.id) + '" title="Teacher emails (comma-separated); press Enter to save">' +
+      (c.id === CLASS_ID ? '<span class="small">\u2190 open now</span>' : '<button class="btn ghost small" data-openclass="' + esc(c.id) + '">Open</button>') + "</div>").join("") + "</div>" +
+    '<h3 style="margin:14px 0 6px;">\u2795 New class</h3><div class="row" style="gap:8px;align-items:flex-end;flex-wrap:wrap;">' +
+    '<div class="field"><label for="ncName">Class name</label><input id="ncName" type="text" maxlength="48" placeholder="Ms. Smith\u2019s Class"></div>' +
+    '<div class="field"><label for="ncTeacher">Teacher name students see</label><input id="ncTeacher" type="text" maxlength="30" placeholder="Ms. Smith"></div>' +
+    '<div class="field" style="min-width:240px;"><label for="ncEmails">Teacher email(s)</label><input id="ncEmails" type="text" placeholder="smith@unbound.school"></div>' +
+    '<button class="btn" data-act="ncCreate">Create class</button></div>' +
+    '<h3 style="margin:14px 0 6px;">\u{1F6E1}\uFE0F Admins</h3>' + (A ? '<div class="small">' + ["ariana.flatt@unbound.school"].concat(A).map(e => "<span class=\"adminchip\">" + esc(e) + (isBuiltInAdmin(e) ? " (built in)" : ' <button class="linkbtn" data-rmadmin="' + esc(e) + '">\u2715</button>') + "</span>").join(" ") + "</div>" +
+      '<div class="row" style="gap:8px;margin-top:6px;"><input id="newAdmin" type="email" placeholder="someone@unbound.school" style="min-width:240px;"><button class="btn ghost small" data-act="addAdmin">Add admin</button></div>'
+      : '<button class="btn ghost small" data-act="loadAdmins">Show admins</button>') +
+    '<p class="small muted" style="margin:8px 0 0;">Admins can create classes, add teachers and add other admins.</p></div>';
+  return h;
+}
+// "Ms. Ariana" in the game's words → this class's teacher (Step C). Classes without a teacher name keep the words as they are.
+function teacherize(html) {
+  const t = teacherNameOf(); if (!t || t === "Ms. Ariana") return html;
+  return String(html).replace(/Ms\.(?:\s|&nbsp;|\u00a0)Ariana/g, esc(t));
+}
+
 /* ================= boot ================= */
 if (!configured) { mode = "noconfig"; render(); }
 else onAuthStateChanged(auth, u => {
   user = u;
   unsub.forEach(f => f()); unsub = [];
   if (!u || u.isAnonymous) { mode = "signin"; render(); return; }
-  if (!isTeacherEmail(u.email)) { mode = "denied"; render(); return; }
   mode = "boot"; render();
+  // 🏫 Nov 6 (Step B): which classes this teacher has (admins: all). Wrong class on this computer → switch to theirs.
+  myAccess(u.email).then(acc => {
+    if (user !== u) return;
+    ACCESS = acc;
+    const here = acc.classes.find(c => c.id === CLASS_ID);
+    if (!here && !acc.admin) { if (acc.classes.length) return switchClass(acc.classes[0].id); mode = "denied"; render(); return; }
+    startConsole();
+  });
+});
+function startConsole() {
   unsub.push(watchClass(c => { cls = c; clsLoaded = true; setSeason(c); setTimeout(secretAuto, 0); if (studentsLoaded) { autoSnap(c, students); excuseSoon(); } if (c && !c.weekStart) updateDoc(classRef, { weekStart: dateOfDay(0) }).catch(() => {}); if (c && checkVersion(c, true, v => updateDoc(classRef, { appVersion: v }).catch(() => {}))) return; autoGobble(); lockBadges();
     if (c && c.haunt && !c.hauntSince) updateDoc(classRef, { hauntSince: azToday() }).catch(() => {});   // Hexaduck streaks start today if the mode was already on
-    if (c && !c.collectorStart) updateDoc(classRef, { collectorStart: (() => { const t = new Date(); return t.getFullYear() + "-" + String(t.getMonth() + 1).padStart(2, "0") + "-" + String(t.getDate()).padStart(2, "0"); })() }).catch(() => {}); if (!c) mode = "setup"; else if (mode === "boot" || mode === "setup") mode = "guide"; detectEvents(); liveRender(); },
+    if (c && !c.collectorStart) updateDoc(classRef, { collectorStart: (() => { const t = new Date(); return t.getFullYear() + "-" + String(t.getMonth() + 1).padStart(2, "0") + "-" + String(t.getDate()).padStart(2, "0"); })() }).catch(() => {}); if (!c) mode = "setup"; else if (mode === "boot" || mode === "setup") mode = "guide"; registerClass(c); detectEvents(); liveRender(); },
     e => flash("Couldn’t load the class — " + e.code)));
   unsub.push(watchBattles(l => { battles = l; G.battles = l; addIds(l, battleRef); closeStale(l); tbSettle(l); lockBadges(); if (ctab === "collector") liveRender(); }, () => {}));
   unsub.push(watchTrades(l => { trades = l; addIds(l, tradeRef); if (cls) settleTrades(tctx()); if (ctab === "collector") liveRender(); }, () => {}));
@@ -249,7 +309,7 @@ else onAuthStateChanged(auth, u => {
   unsub.push(watchRewardPics(m => { rpics = m; if (ctab === "rewards") liveRender(); }));
   unsub.push(watchSecret(d => { secretDoc = d || {}; secretLoaded = true; secretAuto(); if (ctab === "daily") liveRender(); }));
   unsub.push(watchLive(d => { live = d; autoLive(); if (ctab === "daily") liveRender(); }, () => {}));
-});
+}
 setInterval(() => { autoLive(); }, 60000);
 
 /* ================= celebrations (class view) ================= */
@@ -558,7 +618,7 @@ function render(force) {
   let top = "";
   if (mode === "battle" && !battleOn(cls)) mode = "guide";   // no Battle Area outside special modes
   const bat = battleOn(cls) ? '<button class="btn small" data-act="battleView" style="background:#5B2A86;">\u2694\uFE0F Battle Area</button>' : "";
-  if (mode === "guide") top = '<button class="btn small" data-act="classView">Class view</button>' + bat + '<button class="btn ghost small" data-act="signOut">Sign out</button>';
+  if (mode === "guide") top = classPicker() + '<button class="btn small" data-act="classView">Class view</button>' + bat + '<button class="btn ghost small" data-act="signOut">Sign out</button>';
   else if (mode === "class") top = bat + '<button class="btn ghost small" data-act="testParty">Test celebration</button><button class="btn ghost small" data-act="backConsole">Back to console</button>';
   else if (mode === "battle") top = '<button class="btn small" data-act="classView">The Keep</button><button class="btn ghost small" data-act="backConsole">Back to console</button>';
   document.getElementById("topActions").innerHTML = top;
@@ -567,7 +627,7 @@ function render(force) {
   if (mode === "boot") h += '<div class="card"><p class="lede">Connecting to your class…</p></div>';
   else if (mode === "noconfig") h += '<div class="card"><h2>Almost there</h2><p class="lede" style="margin-top:8px;">Paste your Firebase settings into <code>js/firebase-config.js</code> (see README.md), then reload.</p></div>';
   else if (mode === "signin") h += '<div class="card"><div class="card-head"><h2>Teacher sign-in</h2></div><p class="lede">Sign in with your school Google account.</p><div class="row" style="margin-top:14px;"><button class="btn" data-act="signIn">Sign in with Google</button></div><p class="lede" style="margin-top:12px;font-size:13.5px;">Students: use the student link your teacher sent.</p></div>';
-  else if (mode === "denied") h += '<div class="card"><h2>This console is for the teacher</h2><p class="lede" style="margin-top:8px;">' + esc(user && user.email) + ' isn’t on the teacher list.</p><div class="row" style="margin-top:14px;"><button class="btn ghost" data-act="signOut">Use a different account</button></div></div>';
+  else if (mode === "denied") h += '<div class="card"><h2>This console is for the teacher</h2><p class="lede" style="margin-top:8px;">' + esc(user && user.email) + ' isn’t a teacher of any class yet. Ask your school’s Companion Keep admin to add you.</p><div class="row" style="margin-top:14px;"><button class="btn ghost" data-act="signOut">Use a different account</button></div></div>';
   else if (mode === "setup") h += viewSetup();
   else if (mode === "class") h += secretBanner(cls) + miniBanner(students, cls) + partyBanner(students, cls) + shoutTicker(students, cls) + keepHTML(cls, students, popIds, badgeShout());
   else if (mode === "battle") h += shoutTicker(students, cls) + battleHTML(cls, students, battleFx) + ghost2Card() + (isFrost(cls) ? "" : healControls());
@@ -586,13 +646,14 @@ function render(force) {
     else if (ctab === "rewards") h += rewardAdmin(students, cls, rpics, busy);   // Subject swaps live on the Students tab only (Nov 4); the vault reads the same setting
     else if (ctab === "quest") h += questTracker(students);
     else if (ctab === "events") h += heistAdmin(students, cls) + revengeAdmin(students, cls) + (isHaunt(cls) || isGobble(cls) || isJingle(cls) || isFrost(cls) || isHeart(cls) || isLucky(cls) ? soloAdmin(students, cls, azToday()) : "") + ghost2Card() + prize2Card() + viewModes() + viewSaveCheck() + viewBossHits() + (eventMode(cls) || waitingDoors(students, cls).length ? viewDoors() : "") + duckAdmin() + (eventMode(cls) ? viewBucket() + viewPrizes() + viewShop() : prizeRows().length ? viewPrizes() : "");
-    else h += calendarCard(cls, busy) + viewClassSettings();
+    else h += myClassCard() + (ACCESS.admin ? schoolAdmin() : "") + calendarCard(cls, busy) + viewClassSettings();
   }
 
   const active = document.activeElement, keep = active && active.id && active.matches("input, textarea") ? { id: active.id, v: active.value, pos: active.selectionStart } : null;
   const fields = liveNow ? saveFields(app) : {};
   // Battle on screen: draw only the battle (the console under it has hundreds of creature pictures; redrawing them every replay step made battles lag)
   if (mode === "guide" && ctab === "collector" && cls && battleShowing()) { if (battleScroll == null) battleScroll = scrollY; app.innerHTML = collectorOverlays(tctx()); return; }
+  h = teacherize(h);
   app.innerHTML = h + (mode === "guide" ? '<p class="muted small" style="text-align:center;margin:18px 0 6px;opacity:.6;">Version ' + APP_V + "</p>" : "") + (mode === "guide" && ctab === "collector" && cls ? collectorOverlays(tctx()) : "");
   if (battleScroll != null) { scrollTo(0, battleScroll); battleScroll = null; }
   if (cls) partySync(partyCtx());
@@ -1801,6 +1862,15 @@ document.addEventListener("change", async ev => {
   if (ev.target.id === "cdOn") { await cdSave({ on: ev.target.checked }); return; }
   if (ev.target.id === "readMapBox") { const on = ev.target.checked; try { await updateDoc(classRef, { readMap: on }); cls.readMap = on; flash("Saved \u2014 the Reading Map is " + (on ? "on! Students see a \u{1F4DA} Reading Map tab." : "off."), true); render(); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
   if (ev.target.id === "subRuleBox") { const on = ev.target.checked; try { await updateDoc(classRef, { subRule: on }); cls.subRule = on; flash("Saved \u2014 the core subjects rule is " + (on ? "on." : "off."), true); render(); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
+  if (ev.target.id === "classPick") { switchClass(ev.target.value); return; }
+  if (ev.target.id === "rosAddNew" && busy.rosterPreview) { busy.rosterPreview.addNew = ev.target.checked; render(); return; }
+  if (ev.target.dataset && ev.target.dataset.dirteachers) {   // 🏫 who teaches a class (admins)
+    const id = ev.target.dataset.dirteachers, list = [...new Set(ev.target.value.split(/[\s,;]+/).map(x => x.trim().toLowerCase()).filter(Boolean))];
+    const bad = list.filter(e => !/^[^@\s]+@unbound\.school$/.test(e));
+    if (bad.length) { flash("Not an @unbound.school email: " + bad.join(", ")); return; }
+    try { await saveClassDir(id, { teachers: list }); const c = ACCESS.classes.find(x => x.id === id); if (c) c.teachers = list; flash("Saved \u2014 " + (list.length ? list.join(", ") + (list.length === 1 ? " teaches" : " teach") + " that class." : "that class has no teachers now."), true); }
+    catch (e) { flash("Couldn\u2019t save \u2014 " + (e.code || e.message)); }
+    render(); return; }
   if (ev.target.dataset && ev.target.dataset.rosemail) {   // 🔑 one student's school email typed in
     const sid = ev.target.dataset.rosemail, st = students.find(x => x.id === sid), v = ev.target.value.trim().toLowerCase(), R = busy.roster || { list: [], seats: [] };
     const old = R.list.find(x => x.sid === sid);
@@ -1945,6 +2015,9 @@ async function addIds(list, ref) {
 document.addEventListener("click", async ev => {
   { const mb = ev.target.closest && ev.target.closest("[data-mincard]"); if (mb) { const k = mb.dataset.mincard, nowMin = mb.textContent.includes("Minimize");
     try { localStorage.setItem("ck-min-" + k, nowMin ? "1" : "0"); } catch (e) {} render(); return; } }
+  { const oc = ev.target.closest && ev.target.closest("[data-openclass]"); if (oc) { switchClass(oc.dataset.openclass); return; } }
+  { const ra = ev.target.closest && ev.target.closest("[data-rmadmin]"); if (ra) { const em = ra.dataset.rmadmin;
+    try { await setAdmin(em, false); busy.admins = await adminList(); flash("Removed " + em + " as an admin.", true); } catch (e) { flash("Couldn\u2019t remove \u2014 " + (e.code || e.message)); } render(); return; } }
   if (ev.target.closest("[data-feeder]")) { ev.preventDefault(); flash("Drag this button up to your bookmarks bar (don\u2019t click it here)."); return; }
   { const pb = ev.target.closest && ev.target.closest('[data-party="music"]'); if (pb) { toggleMusic(); render(); return; } }
   { const pb = ev.target.closest && ev.target.closest("[data-party]"); if (pb) { if (cls) await partyClick(pb, partyCtx()).catch(e => showErr(e)); return; } }
@@ -2248,7 +2321,8 @@ document.addEventListener("click", async ev => {
     if (!name) { flash("Give the class a name first."); return; }
     const goal = Math.max(10, Math.min(2000, Math.floor(Number(document.getElementById("setGoal").value) || 120)));
     try {
-      await setDoc(classRef, { className: name, weekLabel: document.getElementById("setWeek").value.trim(), goal, recorded: five(false), createdAt: new Date().toISOString() });
+      await setDoc(classRef, { className: name, weekLabel: document.getElementById("setWeek").value.trim(), goal, recorded: five(false), createdAt: new Date().toISOString(), linksRequired: true });
+      if (!myDir()) { const dir = { className: name, teacherName: "", teachers: [String(user.email).toLowerCase()] }; await saveClassDir(CLASS_ID, dir).catch(() => {}); ACCESS.classes.push(Object.assign({ id: CLASS_ID }, dir)); }
       mode = "guide";
     } catch (e) { flash("Couldn’t create the class — " + (e.code || e.message) + ". Check that your email is in firestore.rules."); }
     return;
@@ -2415,6 +2489,33 @@ document.addEventListener("click", async ev => {
   if (act === "saveFastRing") { const v = Math.max(1, Math.floor(Number(document.getElementById("fastRing").value) || FAST_RING)); try { await updateDoc(classRef, { fastRing: v }); flash("Saved \u2014 the Fast Math Ring closes at " + v + " FastMath XP."); } catch (e) { flash("Couldn\u2019t save \u2014 " + e.code); } return; }
   if (act === "duckMore") { busy.duckMore = !busy.duckMore; return; }
   if (act === "rosLoad") { busy.rosterMsg = null; try { busy.roster = { list: await rosterList(), seats: await seatsOnce().catch(() => []) }; } catch (e) { busy.rosterMsg = { bad: true, text: rosErr(e, "load the emails") }; } render(); return; }
+  if (act === "mcSave") {   // 👩‍🏫 class name + teacher name
+    const name = (document.getElementById("mcName").value || "").trim().slice(0, 48), tn = (document.getElementById("mcTeacher").value || "").trim().slice(0, 30);
+    try { await updateDoc(classRef, { className: name || (cls && cls.className) || "", teacherName: tn }); await saveClassDir(CLASS_ID, { className: name || CLASS_ID, teacherName: tn }).catch(() => {});
+      const d = myDir(); if (d) { d.className = name; d.teacherName = tn; } if (cls) { cls.teacherName = tn; cls.className = name || cls.className; }
+      flash("Saved \u2014 students now see " + (tn || "the teacher") + ".", true); } catch (e) { flash("Couldn\u2019t save \u2014 " + (e.code || e.message)); }
+    render(); return;
+  }
+  if (act === "ncCreate") {   // 🏫 admins: a new class
+    const name = (document.getElementById("ncName").value || "").trim().slice(0, 48), tn = (document.getElementById("ncTeacher").value || "").trim().slice(0, 30);
+    const emails = [...new Set((document.getElementById("ncEmails").value || "").split(/[\s,;]+/).map(x => x.trim().toLowerCase()).filter(Boolean))];
+    if (!name) return flash("Give the class a name first.");
+    if (!emails.length || emails.some(e => !/^[^@\s]+@unbound\.school$/.test(e))) return flash("Add the teacher\u2019s @unbound.school email.");
+    const id = (name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 28) || "class") + "-" + Math.random().toString(36).slice(2, 6);
+    const now = new Date().toISOString(), dir = { className: name, teacherName: tn, teachers: emails, createdAt: now };
+    try { await createClass(id, dir, { className: name, teacherName: tn, weekLabel: "", goal: 120, recorded: five(false), createdAt: now, linksRequired: true });
+      ACCESS.classes.push(Object.assign({ id }, dir)); ACCESS.classes.sort((a, b) => String(a.className).localeCompare(String(b.className)));
+      flash("Created \u201c" + name + "\u201d. " + emails.join(", ") + " can now open it from the console (they sign in with Google).", true); }
+    catch (e) { flash("Couldn\u2019t create the class \u2014 " + (e.code || e.message)); }
+    render(); return;
+  }
+  if (act === "loadAdmins") { try { busy.admins = await adminList(); } catch (e) { flash("Couldn\u2019t load the admins \u2014 " + (e.code || e.message)); } render(); return; }
+  if (act === "addAdmin") {
+    const em = (document.getElementById("newAdmin").value || "").trim().toLowerCase();
+    if (!/^[^@\s]+@unbound\.school$/.test(em)) return flash("That needs to be an @unbound.school email.");
+    try { await setAdmin(em, true); busy.admins = await adminList(); flash(em + " is now an admin.", true); } catch (e) { flash("Couldn\u2019t add \u2014 " + (e.code || e.message)); }
+    render(); return;
+  }
   if (act === "rosKick") {   // 🚪 sign out every personal-link computer (Google sign-in only from now on)
     if (!busy.rosKickSure) { busy.rosKickSure = true; render(); return; }
     busy.rosKickSure = false;
@@ -2424,11 +2525,15 @@ document.addEventListener("click", async ev => {
   }
   if (act === "rosCancel") { busy.rosterPreview = null; render(); return; }
   if (act === "rosSave") {
-    const P = busy.rosterPreview; if (!P || !P.pairs || !P.pairs.length) return;
+    const P = busy.rosterPreview; if (!P || !P.pairs || !(P.pairs.length || (P.addNew && P.news.length))) return;
     if (busy.rosterSaving) return; busy.rosterSaving = true; busy.rosterMsg = { text: "Saving\u2026" }; render();
     const slow = setTimeout(() => { if (!busy.rosterSaving) return; busy.rosterMsg = { text: "Still saving\u2026 (slow internet?) It finishes on its own \u2014 press \u21bb Refresh in a minute to check." }; render(); }, 8000);
     try { const cur = busy.roster ? busy.roster.list : await rosterList(), sids = new Set(P.pairs.map(p => p[0])), emails = new Set(P.pairs.map(p => p[1]));
       const removes = cur.filter(x => (sids.has(x.sid) || emails.has(x.email)) && !P.pairs.some(p => p[0] === x.sid && p[1] === x.email)).map(x => x.email);
+      // ➕ new students first (a new class's roster), then everyone's email
+      if (P.addNew && P.news.length) { const batch = writeBatch(db), base = students.length;
+        P.news.forEach(([nm, em], i) => { const ref = newStudentRef(), st = blankStudent(nm, base + i); batch.set(ref, st); P.pairs.push([ref.id, em, nm]); });
+        await batch.commit(); }
       await rosterSave(P.pairs, removes); busy.rosterPreview = null;
       busy.roster = { list: await rosterList(), seats: await seatsOnce().catch(() => []) };
       busy.rosterMsg = { text: "\u2705 Saved \u2014 " + P.pairs.length + " student" + (P.pairs.length === 1 ? "" : "s") + " can now sign in with Google." }; }
