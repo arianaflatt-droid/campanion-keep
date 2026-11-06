@@ -2525,3 +2525,50 @@ body.mini-kite .wrap{ position:relative; z-index:1; } body.mini-kite .tile{ box-
 .pjcol{ display:flex; flex-direction:column; align-items:center; gap:2px; padding:8px; border-radius:14px; background:rgba(90,60,200,.08); text-align:center; }
 .pjcol.me{ box-shadow:0 0 0 3px #FFB547; }
 .pjcolpet{ font-size:44px; line-height:1; } .pjcolpet img{ width:64px; height:64px; object-fit:contain; }
+
+/* ---------- 📸 Planet JP Creature Safari + Photo Album (Nov 7) ---------- */
+.safbox{ display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; background:linear-gradient(135deg,#2B1D5C,#3E2A7A); color:#fff; border-radius:14px; padding:12px 14px; margin-top:10px; }
+.safbox .small{ color:#E8E2FF; }
+#safroot .safover{ position:fixed; inset:0; z-index:9500; background:#0B0820; display:flex; flex-direction:column; }
+.saftop{ position:absolute; top:0; left:0; right:0; display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding:10px 14px; background:linear-gradient(#000a,#0000); color:#fff; z-index:3; }
+.saftop b{ font-size:17px; margin-right:auto; }
+.saffilm{ background:rgba(255,255,255,.16); padding:4px 10px; border-radius:99px; font-size:14px; }
+.saftop .btn{ background:rgba(255,255,255,.9); }
+.safscene{ position:relative; flex:1; background-size:cover; background-position:center; overflow:hidden; cursor:crosshair; touch-action:manipulation; }
+.safhint{ position:absolute; bottom:12px; left:50%; transform:translateX(-50%); margin:0; background:rgba(0,0,0,.55); color:#fff; padding:6px 14px; border-radius:99px; font-size:14px; z-index:3; text-align:center; max-width:92%; }
+.saffinder{ position:absolute; inset:7%; pointer-events:none; z-index:1; }
+.saffinder i{ position:absolute; width:42px; height:42px; border:4px solid rgba(255,255,255,.8); }
+.saffinder i:nth-child(1){ left:0; top:0; border-right:0; border-bottom:0; } .saffinder i:nth-child(2){ right:0; top:0; border-left:0; border-bottom:0; }
+.saffinder i:nth-child(3){ left:0; bottom:0; border-right:0; border-top:0; } .saffinder i:nth-child(4){ right:0; bottom:0; border-left:0; border-top:0; }
+.safcrit{ position:absolute; width:clamp(90px,15vw,170px); aspect-ratio:1; transform:translate(-50%,-50%); background:none; border:0; padding:0; cursor:crosshair; z-index:2; }
+.safbody{ position:absolute; inset:0; display:block; animation:safpeek var(--d,2000ms) ease-in-out forwards; transform-origin:50% 100%; }
+.safbody.flip .safcimg{ transform:scaleX(-1); }
+.safcimg{ width:100%; height:100%; object-fit:contain; filter:drop-shadow(0 6px 8px rgba(0,0,0,.5)); }
+.safcrit.alien .safbody{ filter:drop-shadow(0 0 14px #FFE36B) drop-shadow(0 0 26px #FF8BD8); }
+.safbush{ position:absolute; left:-8%; right:-8%; bottom:-6%; height:34%; border-radius:50% 50% 40% 40%; background:radial-gradient(ellipse at 50% 30%,rgba(255,255,255,.25),rgba(0,0,0,.35)); filter:blur(2px); z-index:1; animation:safbushin var(--d,2000ms) ease-in-out forwards; }
+@keyframes safpeek{ 0%{ transform:translateY(60%) scale(.4); opacity:0; } 14%{ transform:translateY(0) scale(1); opacity:1; } 30%{ transform:rotate(-6deg); } 50%{ transform:rotate(6deg); } 70%{ transform:rotate(-3deg); } 86%{ transform:translateY(0) scale(1); opacity:1; } 100%{ transform:translateY(60%) scale(.4); opacity:0; } }
+@keyframes safbushin{ 0%,100%{ opacity:0; } 12%,88%{ opacity:1; } }
+.safflash{ position:absolute; inset:0; background:#fff; opacity:0; pointer-events:none; z-index:4; }
+.safflash.on{ animation:safflash .5s ease-out; }
+@keyframes safflash{ 0%{ opacity:.95; } 100%{ opacity:0; } }
+#safcard{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; pointer-events:none; z-index:5; }
+.safpola{ pointer-events:auto; background:#fff; padding:14px 14px 16px; border-radius:6px; box-shadow:0 18px 40px rgba(0,0,0,.5); width:min(320px,86vw); text-align:center; transform:rotate(-2deg); animation:safpola .45s cubic-bezier(.2,1.4,.4,1); color:#222; }
+.safpola.alien{ box-shadow:0 0 0 4px #FFD36B,0 18px 40px rgba(0,0,0,.5); }
+@keyframes safpola{ 0%{ transform:scale(.4) rotate(-12deg); opacity:0; } 100%{ transform:scale(1) rotate(-2deg); opacity:1; } }
+.safpolapic{ aspect-ratio:4/3; background-size:cover; background-position:center; border-radius:3px; display:flex; align-items:center; justify-content:center; margin-bottom:8px; }
+.safpimg{ width:62%; height:auto; max-height:92%; object-fit:contain; filter:drop-shadow(0 6px 8px rgba(0,0,0,.45)); }
+.safpola b{ display:block; font-size:19px; } .safr{ color:#6B5BA8; }
+.safnew{ color:#1F8A4C; font-weight:700; margin:6px 0 0; } .safdupe{ color:#7A6E58; margin:6px 0 0; } .safdone{ color:#B3760B; font-weight:700; margin:6px 0 0; }
+.safalbum .safpage{ border:1px solid rgba(0,0,0,.08); border-radius:14px; padding:10px 12px; margin-top:12px; background:linear-gradient(#FFFDF6,#FBF4E4); }
+.safalbum .safpage.full{ border-color:#E9B949; box-shadow:0 0 0 2px #F6D98A inset; }
+.safalbum .safpage.locked{ opacity:.55; }
+.safpagehead{ display:flex; justify-content:space-between; gap:8px; }
+.safgrid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(92px,1fr)); gap:8px; margin-top:8px; }
+.safslot{ position:relative; background:#fff; border-radius:10px; padding:6px 4px 4px; text-align:center; box-shadow:0 2px 6px rgba(0,0,0,.08); }
+.safslot small{ display:block; font-size:11.5px; line-height:1.2; margin-top:2px; }
+.safpic{ aspect-ratio:1; display:flex; align-items:center; justify-content:center; }
+.safimg{ width:88%; height:88%; object-fit:contain; }
+.safslot:not(.have) .safimg{ filter:brightness(0) opacity(.22); }
+.safslot.alien{ background:linear-gradient(#FFF6D6,#FFE9F6); }
+.safrare{ position:absolute; top:3px; right:4px; font-size:10px; font-style:normal; color:#B3760B; }
+.pjzone .pjback{ background:rgba(255,255,255,.95) !important; color:#222 !important; border:0; box-shadow:0 2px 8px rgba(0,0,0,.25); }

@@ -1,11 +1,12 @@
-import { owned as roomOwned, fitOf as roomFit, FIT_SLOTS, setItems as roomSet } from "./room.js?v=20261107c";
-import { presentsOpened } from "./doors.js?v=20261107c";
-import { PASS_THEMES, passDone } from "./pass.js?v=20261107c";
+import { owned as roomOwned, fitOf as roomFit, FIT_SLOTS, setItems as roomSet } from "./room.js?v=20261107d";
+import { presentsOpened } from "./doors.js?v=20261107d";
+import { PASS_THEMES, passDone } from "./pass.js?v=20261107d";
+import { ZONES as PJ_ZONES, pageCount as pjPage, PAGE_SIZE as PJ_PAGE } from "./safari.js?v=20261107d";
 // Badges: worked out from each student's saved data, so nothing extra is stored and no rules change.
 // To add a badge: add an entry with a check(st) that returns how far along the student is,
 // and a goal. Put its picture in assets/badges/ (a transparent WEBP or PNG). Without a picture, the emoji shows.
-import { esc, goalXP, candyOf, ghostUnlocked } from "./game.js?v=20261107c";
-import { seenSet, ownedFams, owned, family, formIndex, formOf, STARTERS, CREATURES } from "./collect.js?v=20261107c";
+import { esc, goalXP, candyOf, ghostUnlocked } from "./game.js?v=20261107d";
+import { seenSet, ownedFams, owned, family, formIndex, formOf, STARTERS, CREATURES } from "./collect.js?v=20261107d";
 
 export const hatches = st => (Number(st.pullsUsed) || 0) + (Number(st.legendaryUsed) || 0);
 
@@ -133,6 +134,7 @@ export const BADGE_GROUPS = [
   { key: "doors", title: "\u{1F6AA} Daily Doors" },
   { key: "room", title: "\u{1F3E0} Home Sweet Keep" },
   { key: "pass", title: "\u{1F39F}\uFE0F Season Pass" },
+  { key: "planet", title: "\u{1FA90} Planet JP Explorer" },
 ];
 
 export const BADGES = [
@@ -257,6 +259,8 @@ export const BADGES = [
   { id: "pass-spring", group: "pass", name: "Spring Pass", desc: "Finish the Spring Pass (all 20 tiers)", goal: 1, img: "assets/badges/pass-spring.webp", emoji: "\u{1F337}", check: st => passDone(st, "spring") },
   { id: "pass-summer", group: "pass", name: "Summer Pass", desc: "Finish the Summer Pass (all 20 tiers)", goal: 1, img: "assets/badges/pass-summer.webp", emoji: "\u2600\uFE0F", check: st => passDone(st, "summer") },
   { id: "pass-school", group: "pass", name: "Back-to-School Pass", desc: "Finish the Back-to-School Pass (all 20 tiers)", goal: 1, img: "assets/badges/pass-school.webp", emoji: "\u{1F4DA}", check: st => passDone(st, "school") },
+  // 🪐 Planet JP: a full album page (all 9 photos of a zone) = that zone's badge (no picture yet, so the emoji shows)
+  ...PJ_ZONES.map(z => ({ id: "pj-" + z.key, group: "planet", name: z.name + " Explorer", desc: "Fill the " + z.name + " page of your Planet JP photo album (all " + PJ_PAGE + " photos)", goal: PJ_PAGE, img: null, emoji: z.icon, check: st => pjPage(st, z.key) })),
 ];
 
 /* Earned badges are locked in forever: once earned, the id is saved in st.badges = { id: ISO date }

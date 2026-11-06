@@ -7,11 +7,12 @@
    A launch is saved on the student: planet = { n: launches, last: "YYYY-MM-DD", streak, best } (one write a day).
    Wave 2 adds a space minigame between liftoff and landing; Planet JP itself comes later, one piece at a time.
    Pictures live in assets/planet/ — until one is uploaded (ART below) the stand-in drawing is used. */
-import { esc } from "./game.js?v=20261107c";
-import { azToday, azNow } from "./collect.js?v=20261107c";
-import { axoDay, schoolDayFor } from "./axolotl.js?v=20261107c";
-import { addDays } from "./doors.js?v=20261107c";
-import { GAMES, gameOfDay, gameByKey, play, preload } from "./spacegames.js?v=20261107c";
+import { esc } from "./game.js?v=20261107d";
+import { azToday, azNow } from "./collect.js?v=20261107d";
+import { axoDay, schoolDayFor } from "./axolotl.js?v=20261107d";
+import { addDays } from "./doors.js?v=20261107d";
+import { GAMES, gameOfDay, gameByKey, play, preload } from "./spacegames.js?v=20261107d";
+import { ZONES, safariSync, freshSt, albumHTML, filmLeft, pageCount, PAGE_SIZE, FREE_FILM, ROLL_COST, ALIENS } from "./safari.js?v=20261107d";
 
 export const PJ_OPEN = 11 * 60, PJ_CLOSE = 12 * 60 + 55;   // minutes after midnight, Arizona time
 const A = "assets/planet/";
@@ -83,7 +84,7 @@ document.addEventListener("click", ev => { const b = ev.target.closest && ev.tar
 
 // called on every student page render. c = { st, cls, patch, preview, rerender, calm }
 export function planetSync(c) {
-  C = c;
+  C = c; safariSync(c);
   if (!tick) tick = setInterval(() => {
     if (!C) return; const el = document.getElementById("pjcd"), p = phase(C.st, C.cls);
     if (el) el.textContent = p === "ready" ? left(PJ_OPEN) : left(PJ_CLOSE);
@@ -263,38 +264,35 @@ function kNext() {
 /* ---------- 🪐 The Planet JP tab, Wave 3a (Nov 7): the map of 7 zones + the Class Colony ----------
    Opens after the day's launch and closes at 12:55 (Arizona). Zones unlock by number of launches (planet.n).
    The Colony shows every classmate who landed today (from the class's public cards — no extra reads). */
-export const ZONES = [
-  { key: "landing", name: "Landing Bay", icon: "\u{1F6F8}", at: 1, types: ["Normal", "Steel", "Electric"], line: "The busy spaceport where every captain lands." },
-  { key: "jungle", name: "Glow Jungle", icon: "\u{1F33F}", at: 2, types: ["Nature", "Poison"], line: "Glowing mushrooms, curly plants and bubbling green pools." },
-  { key: "caves", name: "Crystal Caves", icon: "\u{1F48E}", at: 4, types: ["Crystal", "Earth", "Rock"], line: "Giant glowing crystals deep under the ground." },
-  { key: "ice", name: "Ice Moon", icon: "\u{1F9CA}", at: 6, types: ["Ice", "Water"], line: "Frozen lakes, ice spikes and snowy craters." },
-  { key: "lava", name: "Lava Fields", icon: "\u{1F30B}", at: 9, types: ["Fire", "Dragon"], line: "Rivers of lava and friendly little volcanoes." },
-  { key: "nebula", name: "Nebula Peaks", icon: "\u{1F30C}", at: 12, types: ["Light", "Arcane", "Air"], line: "Floating islands in a rainbow nebula." },
-  { key: "shadow", name: "Shadow Crater", icon: "\u{1F311}", at: 15, types: ["Dark", "Ghost"], line: "A mysterious crater full of glowing lanterns." },
-];
+export { ZONES };
 export const pjOpen = (st, cls) => phase(st, cls) === "landed" && mins() < PJ_CLOSE;
 const TYPE_IC = { Fire: "\u{1F525}", Water: "\u{1F4A7}", Nature: "\u{1F343}", Rock: "\u{1FAA8}", Earth: "⛰️", Air: "\u{1F32A}️", Electric: "⚡", Ice: "❄️", Light: "✨", Dark: "\u{1F311}", Ghost: "\u{1F47B}", Poison: "\u{1F9EA}", Steel: "⚙️", Normal: "\u{1F4AB}", Arcane: "\u{1F52E}", Crystal: "\u{1F48E}", Dragon: "\u{1F409}" };
 let zoneOpen = null;
 export function planetZone(k) { zoneOpen = k || null; }
 // petOf(st) → companion HTML (passed in by the page, so this file doesn't need the game's art code)
 export function planetTab(st, cls, students, petOf, preview) {
+  st = freshSt(st);
   const pl = (st && st.planet) || {}, n = Number(pl.n) || 0, today = azToday();
   const closeIn = Math.max(0, PJ_CLOSE - mins());
   let h = '<div class="card pjtab"><div class="pjtabhead">' + planetHTML() + '<div><h2>Planet JP</h2><p class="lede">' +
     (pjOpen(st, cls) ? "Open until <b>12:55</b> · ⏱️ " + left(PJ_CLOSE) + " left" : preview ? "\u{1F440} Teacher preview" : "Closed for today") +
     '</p></div><div class="pjtabstats"><span>\u{1F680} <b>' + n + "</b> launch" + (n === 1 ? "" : "es") + "</span><span>⭐ <b>" + (Number(pl.dust) || 0) + "</b> Stardust</span>" +
     ((pl.streak || 0) > 1 ? "<span>\u{1F525} <b>" + pl.streak + "</b> days in a row</span>" : "") + "</div></div></div>";
+  if (zoneOpen === "album") return h + albumHTML(st, n);
   const z = zoneOpen && ZONES.find(x => x.key === zoneOpen && n >= x.at);
   if (z) {
     return h + '<div class="card pjzone"><div class="pjzonescene" style="background-image:url(' + A + "zone-" + z.key + '.webp)">' +
       '<button class="btn ghost small pjback" data-pjzone="">← Map</button><div class="pjzonepet">' + (petOf ? petOf(st) : "") + "</div></div>" +
       '<h2>' + z.icon + " " + esc(z.name) + '</h2><p class="lede">' + esc(z.line) + "</p>" +
       '<p class="small">Creatures here: ' + z.types.map(t => '<span class="pjtype">' + (TYPE_IC[t] || "") + " " + t + "</span>").join(" ") + "</p>" +
-      '<p class="small muted">\u{1F4F8} Coming soon: a creature safari, where you photograph the creatures that live in ' + esc(z.name) + ".</p></div>";
+      '<div class="safbox"><div><b>\u{1F4F8} Creature Safari</b><p class="small" style="margin:2px 0 0;">Creatures peek out and hide again. Tap one fast to take its photo! ' +
+      "Album page: <b>" + pageCount(st, z.key) + " / " + PAGE_SIZE + "</b> · \u{1F39E}️ <b>" + filmLeft(st) + "</b> film left today (" + FREE_FILM + " free a day, then " + ROLL_COST + " ⭐ a roll). Rare find: <b>" + esc(ALIENS[z.key].name) + "</b> \u{1F47D}</p></div>" +
+      '<button class="btn gold" data-safari="' + z.key + '">\u{1F4F8} Start safari</button></div></div>';
   }
   const next = ZONES.find(x => n < x.at);
   h += '<div class="card"><div class="card-head"><h2>\u{1F5FA}️ Explore the map</h2><span class="fact">' + ZONES.filter(x => n >= x.at).length + " of " + ZONES.length + " zones</span></div>" +
     (next ? '<p class="lede" style="font-size:14px;">Next zone: <b>' + next.icon + " " + esc(next.name) + "</b> in " + (next.at - n) + " more launch" + (next.at - n === 1 ? "" : "es") + ".</p>" : '<p class="lede">\u{1F3C6} You unlocked every zone!</p>') +
+    '<div class="row" style="margin:0 0 10px;"><button class="btn small" data-pjzone="album">\u{1F4D6} Photo album</button></div>' +
     '<div class="pjmap">' + ZONES.map(x => { const open = n >= x.at;
       return '<button class="pjzcard' + (open ? "" : " locked") + '"' + (open ? ' data-pjzone="' + x.key + '"' : " disabled") + ' style="background-image:url(' + A + "zone-" + x.key + '.webp)"><span class="pjzname">' + x.icon + " " + esc(x.name) + "</span>" +
         (open ? '<span class="pjztypes">' + x.types.map(t => TYPE_IC[t] || "").join(" ") + "</span>" : '<span class="pjzlock">\u{1F512} ' + x.at + " launches</span>") + "</button>"; }).join("") + "</div></div>";
