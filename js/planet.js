@@ -7,14 +7,14 @@
    A launch is saved on the student: planet = { n: launches, last: "YYYY-MM-DD", streak, best } (one write a day).
    Wave 2 adds a space minigame between liftoff and landing; Planet JP itself comes later, one piece at a time.
    Pictures live in assets/planet/ — until one is uploaded (ART below) the stand-in drawing is used. */
-import { esc } from "./game.js?v=20261105e";
-import { azToday, azNow } from "./collect.js?v=20261105e";
-import { axoDay, schoolDayFor } from "./axolotl.js?v=20261105e";
-import { addDays } from "./doors.js?v=20261105e";
+import { esc } from "./game.js?v=20261105f";
+import { azToday, azNow } from "./collect.js?v=20261105f";
+import { axoDay, schoolDayFor } from "./axolotl.js?v=20261105f";
+import { addDays } from "./doors.js?v=20261105f";
 
 export const PJ_OPEN = 11 * 60, PJ_CLOSE = 12 * 60 + 55;   // minutes after midnight, Arizona time
 const A = "assets/planet/";
-export const ART = { duck: true, flame: true, planet: false, pad: false, sky: false, landing: false, button: false, jpCmd: false, jpWave: false, video: false };   // flip to true as each picture is uploaded
+export const ART = { duck: true, flame: true, planet: true, pad: true, sky: true, landing: true, button: true, jpCmd: true, jpWave: true, video: false };   // flip to true as each picture is uploaded
 export const planetOn = cls => !!(cls && cls.planetOn);
 const now = () => (typeof window !== "undefined" && window.__pjNow ? new Date(window.__pjNow) : new Date());
 const mins = () => { const t = azNow(now()); return t.h * 60 + t.m; };
@@ -48,7 +48,7 @@ const DUCK_SVG = '<svg class="pjduck-svg" viewBox="0 0 160 100" aria-hidden="tru
 const duckHTML = cls => (ART.duck ? '<img class="pjduck-img" src="' + A + 'ss-duck.webp" alt="The S.S. Duck">' : DUCK_SVG);
 const flameHTML = () => (ART.flame ? '<img class="pjflame" src="' + A + 'ss-duck-flame.webp" alt="">' : '<span class="pjflame pjflame-css"></span>');
 const planetHTML = () => (ART.planet ? '<img class="pjplanet-img" src="' + A + 'planet-jp.webp" alt="Planet JP">' : '<span class="pjplanet-css"></span>');
-const bg = (k, cls) => (ART[k] ? ' style="background-image:url(' + A + { pad: "launch-pad", sky: "space-sky", landing: "jp-landing" }[k] + '.webp)"' : "");
+const bg = k => (ART[k] ? ' style="background-image:url(' + A + { pad: "launch-pad", sky: "space-sky", landing: "jp-landing" }[k] + '.webp)"' : "");
 
 /* ---------- the bar (drawn on the student page, under "Hi, name!") ---------- */
 export function planetBar(st, cls, preview) {
@@ -100,15 +100,19 @@ function act(a) {
   if (a === "launch" && view === "mc") return launch();
   if (a === "skip" && view === "fly") { clearT(); const v = document.getElementById("pjvid"); if (v) v.pause(); land(true); }
 }
+// Every scene is drawn on a 16:9 "stage" that covers the screen (like the background picture), so the rocket can sit
+// exactly on the painted launch pad / landing pad and the LAUNCH tap spot lands on the painted red button.
+const stage = (cls, inner, extra) => '<div class="pjover ' + cls + '"><div class="pjcov">' + inner + "</div>" + (extra || "") + "</div>";
+const rocket = (cls, inner, id) => '<div class="pjrocket ' + cls + '"><div class="pjrot"' + (id ? ' id="' + id + '"' : "") + ">" + inner + "</div></div>";
+const jpCmd = say => ART.jpCmd ? '<div class="pjjp cmd"><img src="' + A + 'jp-commander.webp" alt="Commander JP">' + (say ? '<span class="pjsay">' + say + "</span>" : "") + "</div>" : "";
 function drawMC() {
   const st = C.st, name = esc((st && (st.name || "")).split(" ")[0]);
-  rootEl().innerHTML = '<div class="pjover pjpad"' + bg("pad") + '><div class="pjstage">' +
+  rootEl().innerHTML = stage("pjmc",
+    '<button class="pjhot" data-pj="launch" aria-label="Launch"><span>PRESS TO LAUNCH</span></button>',
     '<div class="pjmc-top"><b>\u{1F6F0}️ Mission Control</b><button class="btn ghost small" data-pj="later">Not now</button></div>' +
-    (ART.jpCmd ? '<div class="pjjp cmd"><img src="' + A + 'jp-commander.webp" alt="Commander JP"><span class="pjsay">Fuel tanks are full, Captain! Ready when you are!</span></div>' : "") +
-    '<h1 class="pjtitle">Fuel tanks full!</h1><p class="pjsub">Ready for liftoff, Captain ' + name + "? Next stop: <b>Planet JP</b> \u{1FA90}</p>" +
-    '<div class="pjrocket onpad"><div class="pjrot">' + duckHTML() + "</div></div>" +
-    '<button class="pjbig" data-pj="launch">' + (ART.button ? '<img src="' + A + 'mission-control.webp" alt="">' : "") + "<span>LAUNCH</span></button>" +
-    (C.preview ? '<p class="pjsub small">\u{1F440} Teacher preview: nothing is saved.</p>' : "") + "</div></div>";
+    '<div class="pjhead"><h1 class="pjtitle">Fuel tanks full!</h1><p class="pjsub">Ready for liftoff, Captain ' + name + "? Next stop: <b>Planet JP</b> \u{1FA90}</p>" +
+    (C.preview ? '<p class="pjsub small">\u{1F440} Teacher preview: nothing is saved.</p>' : "") + "</div>" +
+    jpCmd("Fuel tanks are full, Captain " + name + "! Press the big red button!"));
 }
 
 /* ---------- liftoff → space → landing ---------- */
@@ -122,16 +126,17 @@ function launch() {
     saved = { n: (Number(saved.n) || 0) + 1, last: today, streak, best: Math.max(Number(saved.best) || 0, streak) };
     C.patch({ planet: saved });   // saved right away, so leaving mid-cutscene still counts
   } else if (C.preview) saved = { n: (Number(saved.n) || 0) + 1, streak: (Number(saved.streak) || 0) + 1 };
+  saved0 = saved;
   const r = rootEl();
-  r.innerHTML = '<div class="pjover pjpad"' + bg("pad") + '><div class="pjstage"><div class="pjcount" id="pjcount">3</div>' +
-    '<div class="pjrocket onpad"><div class="pjrot shake" id="pjrk">' + duckHTML() + flameHTML() + '</div></div><div class="pjsmoke" id="pjsmoke"></div></div>' +
-    '<button class="btn ghost small pjskip" data-pj="skip">Skip ⏭</button></div>';
-  beep(520); later(1000, () => { setTxt("pjcount", "2"); beep(520); });
-  later(2000, () => { setTxt("pjcount", "1"); beep(520); });
-  later(3000, () => { setTxt("pjcount", "LIFTOFF!"); beep(880, 0.4); rumble(2.4); const k = document.getElementById("pjrk"); if (k) k.classList.add("up"); const s = document.getElementById("pjsmoke"); if (s) s.classList.add("on"); r.firstChild.classList.add("quake"); });
+  r.innerHTML = stage("pjpad", rocket("onpad", duckHTML() + flameHTML(), "pjrk") + '<div class="pjsmoke" id="pjsmoke"></div>',
+    '<div class="pjcount" id="pjcount">3</div>' + jpCmd("T-minus 3…") + '<button class="btn ghost small pjskip" data-pj="skip">Skip ⏭</button>');
+  const k0 = document.getElementById("pjrk"); if (k0) k0.classList.add("shake");
+  const say = t => { const b = r.querySelector(".pjsay"); if (b) b.textContent = t; };
+  beep(520); later(1000, () => { setTxt("pjcount", "2"); say("2…"); beep(520); });
+  later(2000, () => { setTxt("pjcount", "1"); say("1…"); beep(520); });
+  later(3000, () => { setTxt("pjcount", "LIFTOFF!"); say("We have liftoff! \u{1F680}"); beep(880, 0.4); rumble(2.4); const k = document.getElementById("pjrk"); if (k) k.classList.add("up"); const s = document.getElementById("pjsmoke"); if (s) s.classList.add("on"); r.firstChild.classList.add("quake"); });
   if (ART.video) later(3600, playVideo);   // Ms. Ariana's own liftoff video (assets/planet/liftoff.mp4) replaces the flight
   else { later(5400, () => space()); later(11200, () => land()); }
-  saved0 = saved;
 }
 function space() {
   rootEl().innerHTML = '<div class="pjover pjspace"' + bg("sky") + '><div class="pjstars"></div><div class="pjstars far"></div><div class="pjstage">' +
@@ -147,14 +152,14 @@ function playVideo() {
 }
 function land(skipped) {
   const s = saved0 || {}, name = esc(((C.st && C.st.name) || "").split(" ")[0]);
-  rootEl().innerHTML = '<div class="pjover pjland"' + bg("landing") + '><div class="pjstage"><div class="pjrocket landing"><div class="pjrot' + (skipped ? " landed" : "") + '">' + duckHTML() + "</div></div>" +
-    (ART.jpWave ? '<div class="pjjp wave"><img src="' + A + 'jp-welcome.webp" alt="JP"></div>' : "") +
+  rootEl().innerHTML = stage("pjland", rocket("landing" + (skipped ? " landed" : ""), duckHTML()) + '<div class="pjdust" id="pjdust"></div>',
+    (ART.jpWave ? '<div class="pjjp wave" id="pjwave"><img src="' + A + 'jp-welcome.webp" alt="JP"></div>' : "") +
     '<div class="pjwelcome" id="pjwel"><h1 class="pjtitle">Welcome to Planet JP!</h1><p class="pjsub">The S.S. Duck landed safely, Captain ' + name + "!</p>" +
     '<p class="pjstat">\u{1F680} Launch <b>#' + (s.n || 1) + "</b>" + ((s.streak || 0) > 1 ? " · \u{1F525} <b>" + s.streak + "</b> days in a row" : "") + "</p>" +
     '<p class="pjsub small">More to explore on Planet JP is coming soon… come back tomorrow for another launch!</p>' +
-    '<button class="btn gold" data-pj="done">Done</button></div></div></div>';
-  if (!skipped) later(1900, () => { thud(); const w = document.getElementById("pjwel"); if (w) w.classList.add("on"); });
-  else { const w = document.getElementById("pjwel"); if (w) w.classList.add("on"); }
+    '<button class="btn gold" data-pj="done">Done</button></div>');
+  const show = () => { ["pjwel", "pjwave", "pjdust"].forEach(id => { const e = document.getElementById(id); if (e) e.classList.add("on"); }); };
+  if (!skipped) later(1900, () => { thud(); show(); }); else show();
   later(skipped ? 100 : 2100, sparkle);
 }
 const setTxt = (id, t) => { const e = document.getElementById(id); if (e) e.textContent = t; };
