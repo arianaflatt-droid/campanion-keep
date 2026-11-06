@@ -11,8 +11,8 @@
    (clubUltra = { key: "waiting" }) and a later upload gives it.
    The student page shows each club's sticker book and the club egg that grows with every step; new stickers pop up
    once (clubSeen = { key: number of steps already celebrated }, the student's own field). */
-import { esc } from "./game.js?v=20261106b";
-import { family, creature } from "./collect.js?v=20261106b";
+import { esc } from "./game.js?v=20261106c";
+import { family, creature } from "./collect.js?v=20261106c";
 
 export const CLUB_STEPS = 6;   // 5 steps + the Final Challenge (Ms. Ariana, Nov 4); steps per club unless Ms. Ariana sets another number (cls.clubSteps[key])
 export const CLUBS = {

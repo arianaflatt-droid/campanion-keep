@@ -2476,3 +2476,5 @@ body.mini-kite .wrap{ position:relative; z-index:1; } body.mini-kite .tile{ box-
 .rostlist{ display:grid; gap:6px; max-height:420px; overflow:auto; margin-top:8px; }
 .rostrow{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
 .rostrow b{ min-width:130px; } .rostrow input{ flex:1; min-width:220px; max-width:320px; }
+.mincardbtn{ margin-left:auto; }
+.card-head .mincardbtn + *{ }
