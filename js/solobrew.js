@@ -8,10 +8,10 @@
    Each potion: +20 candy and a potion glow for the day. Shelf rewards at 3 / 6 / 10 / 15 potions.
    Saved on the student (student-writable): soloBrew = { days: { date: potions }, fx: { date: effect }, extra: { date: { e|b|s: n } }, got: { "3": true, ... } }
    Shelf rewards use fields the student page may write: doorEggs, candyBonus, doorXP, legendaryPulls, soloBrewLeg (counted by brewLegLeft). */
-import { esc, isHaunt, isGobble, isJingle, isFrost, isHeart, isLucky, boostMult } from "./game.js?v=20261107h";
-import { azToday } from "./collect.js?v=20261107h";
-import { TEAM_EVENTS, ingOf, subFor, SUB_NAMES, PER_XP, EFFECTS, effect, cauldronHTML, soloTableHTML, soloHouseHTML, soloBoxHTML, soloTrapHTML, DISHES } from "./teams.js?v=20261107h";
-import { SUBJECT_KEYS, addDays } from "./doors.js?v=20261107h";
+import { esc, isHaunt, isGobble, isJingle, isFrost, isHeart, isLucky, boostMult } from "./game.js?v=20261107i";
+import { azToday } from "./collect.js?v=20261107i";
+import { TEAM_EVENTS, ingOf, subFor, SUB_NAMES, PER_XP, EFFECTS, effect, cauldronHTML, soloTableHTML, soloHouseHTML, soloBoxHTML, soloTrapHTML, DISHES } from "./teams.js?v=20261107i";
+import { SUBJECT_KEYS, addDays } from "./doors.js?v=20261107i";
 
 export const BREW = TEAM_EVENTS.potion;
 const FEAST_ING = { key: "solofeast", ing: [
@@ -93,6 +93,7 @@ const LUCKY = { key: "lucky", E: LUCKY_ING, goal: { k: "g", name: "Shamrocks", i
 JINGLE.ingFor = "gingerbread"; JINGLE.art = "ginger"; HAUNT.ingFor = "potion"; GOBBLE.ingFor = "dish";
 HAUNT.name = "Potion Brewing"; HAUNT.tabName = "Haunt-O-Ween"; HAUNT.cls = "potion"; GOBBLE.name = "Feast Cooking"; GOBBLE.tabName = "Gobble-Palooza"; GOBBLE.cls = "feast";
 const ALL_ING = k => k.E.ing.concat([k.goal]);
+export const soloIngs = ALL_ING;
 // Oct 27 (Ms. Ariana): the 4th ingredient (Pumpkin Seeds, Pie Spice...) no longer comes from a Goal Subject. It comes from ANY XP
 // left over after the 3 main ingredients take theirs, so a potion is still 120 XP in all: 25 Math + 25 Reading + 25 Language + 45 from anywhere.
 // (Leftover Math/Reading/Language XP counts too.) The Goal Subject still drives the Daily Doors.

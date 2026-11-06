@@ -9,9 +9,9 @@
      Student: targetGot = { date: true }.
    Confetti: a burst the first time a student opens their page after crossing halfway and the goal. Student: confSeen = { date: [..] }.
    Shout-outs: a ticker on The Keep built from today's pastes. */
-import { esc, goalXP } from "./game.js?v=20261107h";
-import { musicBtn, stopMusic } from "./party.js?v=20261107h";
-import { azToday, azNow, doPull, formOf, sparkleImg, FAMILIES, RARITY_COLOR } from "./collect.js?v=20261107h";
+import { esc, goalXP } from "./game.js?v=20261107i";
+import { musicBtn, stopMusic } from "./party.js?v=20261107i";
+import { azToday, azNow, doPull, formOf, sparkleImg, FAMILIES, RARITY_COLOR } from "./collect.js?v=20261107i";
 
 export const SNACK_XP = 25, TARGET_MIN = 30, TARGET_MAX = 80, VISIT_SPARKLE = 0.05;
 const rng = s => { let h = 2166136261; for (const ch of s) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return () => { h += 0x6D2B79F5; let t = h; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; };
@@ -103,7 +103,8 @@ export function surpriseOverlay(st, cls) {
 export const surpriseBusy = () => !!fx;
 
 /* ---------- confetti ---------- */
-function milestones(st, cls) { const v = xpOn(st), g = goalXP(cls), out = []; if (v >= g / 2) out.push("half"); if (v >= g) out.push("goal"); if (v >= g * 2) out.push("double"); return out; }
+// Nov 7: no confetti screen at 60 (half) or 120 (goal) any more — the 60 XP Party and VIP Party tickets cover those. Only the double-goal burst is left.
+function milestones(st, cls) { const v = xpOn(st), g = goalXP(cls), out = []; if (v >= g * 2) out.push("double"); return out; }
 export function confettiDue(st, cls) { const seen = ((st.confSeen || {})[azToday()]) || []; return milestones(st, cls).filter(m => !seen.includes(m)); }
 function confettiHTML(st, cls) {
   const due = confettiDue(st, cls); if (!due.length) return "";
