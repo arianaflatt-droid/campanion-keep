@@ -7,7 +7,7 @@ import {
   getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, signInAnonymously
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
-import { firebaseConfig, CLASS_ID, TEACHER_EMAILS } from "./firebase-config.js?v=20261106d";
+import { firebaseConfig, CLASS_ID, TEACHER_EMAILS } from "./firebase-config.js?v=20261106e";
 
 // Teacher preview (student.html?s=ID&preview=1): the page shows a student's view, but nothing is ever written.
 export const PREVIEW = typeof location !== "undefined" && new URLSearchParams(location.search).get("preview") === "1";
@@ -136,6 +136,25 @@ export async function rosterSave(pairs, removes) {
   (removes || []).forEach(e => b.delete(rosterRef(e)));
   pairs.forEach(([sid, email, name]) => b.set(rosterRef(email), { classId: CLASS_ID, sid, name: String(name || "").slice(0, 60), at }));
   await b.commit();
+}
+// Nov 6: Google only. This device's seat, checked fresh every time the page opens: { sid, email } or null.
+export async function seatInfo() {
+  if (!auth.currentUser) return null;
+  try { const d = await getDoc(seatRef(auth.currentUser.uid)); return d.exists() ? d.data() : null; } catch (e) { return null; }
+}
+// A Google-signed-in student whose seat is missing (new class year, cleared…): sit down again from the roster, quietly.
+export async function googleReseat() {
+  const u = auth.currentUser, email = String((u && u.email) || "").toLowerCase();
+  if (!u || !email.endsWith("@" + SCHOOL_DOMAIN)) return null;
+  const r = await getDoc(rosterRef(email)); if (!r.exists() || r.data().classId !== CLASS_ID) return null;
+  await fbSetDoc(seatRef(u.uid), { sid: r.data().sid, email, at: new Date().toISOString() });
+  return r.data().sid;
+}
+// Teacher: sign out every personal-link computer (deletes the seats that came from a link, not from Google)
+export async function removeLinkSeats() {
+  const snap = await getDocs(seatsCol), old = snap.docs.filter(d => !d.data().email);
+  for (let i = 0; i < old.length; i += 400) { const b = writeBatch(db); old.slice(i, i + 400).forEach(d => b.delete(d.ref)); await b.commit(); }
+  return old.length;
 }
 export async function googleStudentSignIn() {
   const p = new GoogleAuthProvider(); p.setCustomParameters({ hd: SCHOOL_DOMAIN, prompt: "select_account" });

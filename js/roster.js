@@ -5,8 +5,8 @@
    roster doc and sits that device down as that student (seats/{uid} = { sid, email, at }, checked by the rules
    against the roster), so they open their own existing save — no progress moves anywhere.
    Personal links keep working exactly as before. One roster doc per student; reads only when the card is opened. */
-import { esc } from "./game.js?v=20261106d";
-import { SCHOOL_DOMAIN } from "./db.js?v=20261106d";
+import { esc } from "./game.js?v=20261106e";
+import { SCHOOL_DOMAIN } from "./db.js?v=20261106e";
 
 export const okEmail = e => new RegExp("^[^@\\s]+@" + SCHOOL_DOMAIN.replace(/\./g, "\\.") + "$", "i").test(String(e || "").trim());
 const EMAIL_KEYS = ["email", "student email", "school email", "e-mail", "email address", "google email"];
@@ -41,9 +41,10 @@ export function rosterAdmin(students, busy) {
     (R ? Object.keys(bySid).length + " of " + kids.length + " emails set" : "new") + "</span></div>" +
     '<p class="lede" style="font-size:13.5px;">Students can sign in with their <b>@' + esc(SCHOOL_DOMAIN) + "</b> Google account instead of a personal link. " +
     "Add each student’s school email once (upload a spreadsheet with a <b>name</b> and an <b>email</b> column, or type them below). " +
-    "Signing in opens their <b>same save</b>, so nobody loses progress. Personal links keep working too.</p>" +
+    "Signing in opens their <b>same save</b>, so nobody loses progress. <b>Personal links are turned off</b>: students sign in with Google only.</p>" +
     '<div class="row" style="gap:8px;margin:8px 0;"><label class="btn" style="cursor:pointer;">\u{1F4C4} Upload student emails<input id="rosterEmailFile" type="file" accept=".csv,.xlsx,.xls" hidden></label>' +
-    '<button class="btn ghost" data-act="rosLoad">' + (R ? "↻ Refresh" : "\u{1F465} Show emails") + "</button></div>";
+    '<button class="btn ghost" data-act="rosLoad">' + (R ? "↻ Refresh" : "\u{1F465} Show emails") + "</button>" +
+    '<button class="btn ghost" data-act="rosKick"' + (busy.rosKickSure ? ' style="background:#B23B3B;color:#fff;"' : "") + ">" + (busy.rosKickSure ? "Yes, sign out all personal links" : "\u{1F6AA} Sign out all personal links") + "</button></div>";
   if (busy.rosterMsg) h += '<div class="banner ' + (busy.rosterMsg.bad ? "bad" : "info") + '" style="display:block;margin:8px 0;">' + esc(busy.rosterMsg.text) + "</div>";
   if (P) {
     if (P.err) h += '<div class="banner bad" style="display:block;">' + esc(P.err) + "</div>";
