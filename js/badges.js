@@ -1,12 +1,12 @@
-import { owned as roomOwned, fitOf as roomFit, FIT_SLOTS, setItems as roomSet } from "./room.js?v=20261107d";
-import { presentsOpened } from "./doors.js?v=20261107d";
-import { PASS_THEMES, passDone } from "./pass.js?v=20261107d";
-import { ZONES as PJ_ZONES, pageCount as pjPage, PAGE_SIZE as PJ_PAGE } from "./safari.js?v=20261107d";
+import { owned as roomOwned, fitOf as roomFit, FIT_SLOTS, setItems as roomSet } from "./room.js?v=20261107e";
+import { presentsOpened } from "./doors.js?v=20261107e";
+import { PASS_THEMES, passDone } from "./pass.js?v=20261107e";
+import { ZONES as PJ_ZONES, pageCount as pjPage, PAGE_SIZE as PJ_PAGE } from "./safari.js?v=20261107e";
 // Badges: worked out from each student's saved data, so nothing extra is stored and no rules change.
 // To add a badge: add an entry with a check(st) that returns how far along the student is,
 // and a goal. Put its picture in assets/badges/ (a transparent WEBP or PNG). Without a picture, the emoji shows.
-import { esc, goalXP, candyOf, ghostUnlocked } from "./game.js?v=20261107d";
-import { seenSet, ownedFams, owned, family, formIndex, formOf, STARTERS, CREATURES } from "./collect.js?v=20261107d";
+import { esc, goalXP, candyOf, ghostUnlocked } from "./game.js?v=20261107e";
+import { seenSet, ownedFams, owned, family, formIndex, formOf, STARTERS, CREATURES } from "./collect.js?v=20261107e";
 
 export const hatches = st => (Number(st.pullsUsed) || 0) + (Number(st.legendaryUsed) || 0);
 

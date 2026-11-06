@@ -7,12 +7,12 @@
    A launch is saved on the student: planet = { n: launches, last: "YYYY-MM-DD", streak, best } (one write a day).
    Wave 2 adds a space minigame between liftoff and landing; Planet JP itself comes later, one piece at a time.
    Pictures live in assets/planet/ — until one is uploaded (ART below) the stand-in drawing is used. */
-import { esc } from "./game.js?v=20261107d";
-import { azToday, azNow } from "./collect.js?v=20261107d";
-import { axoDay, schoolDayFor } from "./axolotl.js?v=20261107d";
-import { addDays } from "./doors.js?v=20261107d";
-import { GAMES, gameOfDay, gameByKey, play, preload } from "./spacegames.js?v=20261107d";
-import { ZONES, safariSync, freshSt, albumHTML, filmLeft, pageCount, PAGE_SIZE, FREE_FILM, ROLL_COST, ALIENS } from "./safari.js?v=20261107d";
+import { esc } from "./game.js?v=20261107e";
+import { azToday, azNow } from "./collect.js?v=20261107e";
+import { axoDay, schoolDayFor } from "./axolotl.js?v=20261107e";
+import { addDays } from "./doors.js?v=20261107e";
+import { GAMES, gameOfDay, gameByKey, play, preload } from "./spacegames.js?v=20261107e";
+import { ZONES, safariSync, freshSt, albumHTML, filmLeft, pageCount, PAGE_SIZE, FREE_FILM, ROLL_COST, ALIENS } from "./safari.js?v=20261107e";
 
 export const PJ_OPEN = 11 * 60, PJ_CLOSE = 12 * 60 + 55;   // minutes after midnight, Arizona time
 const A = "assets/planet/";

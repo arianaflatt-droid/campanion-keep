@@ -1,48 +1,48 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261107d";
-import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261107d";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261107d";
-import { cpEarnedCalc } from "./room.js?v=20261107d";
-import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261107d";
-import { rewardFor } from "./doors.js?v=20261107d";
-import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet, subReq, subRuleOn, SUB_DAY, addDays } from "./doors.js?v=20261107d";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing } from "./collector-ui.js?v=20261107d";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261107e";
+import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261107e";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261107e";
+import { cpEarnedCalc } from "./room.js?v=20261107e";
+import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261107e";
+import { rewardFor } from "./doors.js?v=20261107e";
+import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet, subReq, subRuleOn, SUB_DAY, addDays } from "./doors.js?v=20261107e";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing } from "./collector-ui.js?v=20261107e";
 import {
   newsHTML, boostOn, boostHTML, countdownHTML, applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   boss2Of, boss2Prize, simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, weekCandyBefore, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, isFrost, isHeart, heartUnlocked, isLucky, luckyUnlocked, saveProblems, yetiUnlocked, wallMarks, WALL_BLOCK, BOSS_START_HP, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261107d";
-import { MQ_CUTOFF } from "./morning.js?v=20261107d";
-import { kindAdmin } from "./kindness.js?v=20261107d";
-import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261107d";
-import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261107d";
-import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261107d";
-import { passAdmin } from "./pass.js?v=20261107d";
-import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261107d";
-import { watchSecret, secretRef } from "./db.js?v=20261107d";
-import { secretAdmin, secretClick, autoPick, secretBanner } from "./secret.js?v=20261107d";
-import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef, newBattleRef, newsPicRef, watchNewsPic } from "./db.js?v=20261107d";
-import { mapAdmin } from "./readmap.js?v=20261107d";
-import { wheelTab, wheelClick } from "./subwheel.js?v=20261107d";
-import { tbRequestsCard, tbInvite, tbToSettle } from "./teachbattle.js?v=20261107d";
-import { rewardAdmin, rgWaiting, rgOf, shrinkImage } from "./weekgoal.js?v=20261107d";
-import { soloAdmin, soloCfg, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261107d";
-import { feederLink } from "./feeder.js?v=20261107d";
-import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261107d";
+} from "./game.js?v=20261107e";
+import { MQ_CUTOFF } from "./morning.js?v=20261107e";
+import { kindAdmin } from "./kindness.js?v=20261107e";
+import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261107e";
+import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261107e";
+import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261107e";
+import { passAdmin } from "./pass.js?v=20261107e";
+import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261107e";
+import { watchSecret, secretRef } from "./db.js?v=20261107e";
+import { secretAdmin, secretClick, autoPick, secretBanner } from "./secret.js?v=20261107e";
+import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef, newBattleRef, newsPicRef, watchNewsPic } from "./db.js?v=20261107e";
+import { mapAdmin } from "./readmap.js?v=20261107e";
+import { wheelTab, wheelClick } from "./subwheel.js?v=20261107e";
+import { tbRequestsCard, tbInvite, tbToSettle } from "./teachbattle.js?v=20261107e";
+import { rewardAdmin, rgWaiting, rgOf, shrinkImage } from "./weekgoal.js?v=20261107e";
+import { soloAdmin, soloCfg, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261107e";
+import { feederLink } from "./feeder.js?v=20261107e";
+import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261107e";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef, watchSeats, watchCards, deleteField
-} from "./db.js?v=20261107d";
-import { G, guardCard, guardClick, guardInput, autoSnap, personalLink, syncCards } from "./guard.js?v=20261107d";
-import { lockCard, lockClick } from "./lock.js?v=20261107d";
-import { revengeAdmin, revengeAction } from "./revenge.js?v=20261107d";
-import { heistAdmin, heistAction } from "./heist.js?v=20261107d";
-import { calendarCard, calendarEdit, autoExcuse } from "./calendar.js?v=20261107d";
-import { axoAdmin } from "./axolotl.js?v=20261107d";
-import { clubsAdmin, clubUpload, clubPicks, pickChange } from "./clubs.js?v=20261107d";
-import { planetAdmin, keepLaunchWatch } from "./planet.js?v=20261107d";
-import { rosterAdmin, rosterPreview, okEmail } from "./roster.js?v=20261107d";
-import { rosterList, rosterSave, seatsOnce, removeLinkSeats, myAccess, saveClassDir, createClass, adminList, setAdmin, isBuiltInAdmin, switchClass } from "./db.js?v=20261107d";
+} from "./db.js?v=20261107e";
+import { G, guardCard, guardClick, guardInput, autoSnap, personalLink, syncCards } from "./guard.js?v=20261107e";
+import { lockCard, lockClick } from "./lock.js?v=20261107e";
+import { revengeAdmin, revengeAction } from "./revenge.js?v=20261107e";
+import { heistAdmin, heistAction } from "./heist.js?v=20261107e";
+import { calendarCard, calendarEdit, autoExcuse } from "./calendar.js?v=20261107e";
+import { axoAdmin } from "./axolotl.js?v=20261107e";
+import { clubsAdmin, clubUpload, clubPicks, pickChange } from "./clubs.js?v=20261107e";
+import { planetAdmin, keepLaunchWatch } from "./planet.js?v=20261107e";
+import { rosterAdmin, rosterPreview, okEmail } from "./roster.js?v=20261107e";
+import { rosterList, rosterSave, seatsOnce, removeLinkSeats, myAccess, saveClassDir, createClass, adminList, setAdmin, isBuiltInAdmin, switchClass } from "./db.js?v=20261107e";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -271,7 +271,7 @@ function schoolAdmin() {
     '<div class="field" style="min-width:240px;"><label for="ncEmails">Teacher email(s)</label><input id="ncEmails" type="text" placeholder="smith@unbound.school"></div>' +
     '<button class="btn" data-act="ncCreate">Create class</button></div>' +
     '<h3 style="margin:14px 0 6px;">\u{1F6E1}\uFE0F Admins</h3>' + (A ? '<div class="small">' + ["ariana.flatt@unbound.school"].concat(A).map(e => "<span class=\"adminchip\">" + esc(e) + (isBuiltInAdmin(e) ? " (built in)" : ' <button class="linkbtn" data-rmadmin="' + esc(e) + '">\u2715</button>') + "</span>").join(" ") + "</div>" +
-      '<div class="row" style="gap:8px;margin-top:6px;"><input id="newAdmin" type="email" placeholder="someone@unbound.school" style="min-width:240px;"><button class="btn ghost small" data-act="addAdmin">Add admin</button></div>' +
+      '<div class="row" style="gap:8px;margin-top:6px;"><input id="newAdmin" type="email" placeholder="their Google email" style="min-width:240px;"><button class="btn ghost small" data-act="addAdmin">Add admin</button></div>' +
       (busy.adminMsg ? '<div class="banner ' + (busy.adminMsg.bad ? "bad" : "info") + '" style="display:block;margin-top:8px;">' + esc(busy.adminMsg.text) + "</div>" : "")
       : '<button class="btn ghost small" data-act="loadAdmins">Show admins</button>' + (busy.adminMsg ? '<div class="banner bad" style="display:block;margin-top:8px;">' + esc(busy.adminMsg.text) + "</div>" : "")) +
     '<p class="small muted" style="margin:8px 0 0;">Admins can create classes, add teachers and add other admins.</p></div>';
@@ -1883,8 +1883,8 @@ document.addEventListener("change", async ev => {
   if (ev.target.id === "rosAddNew" && busy.rosterPreview) { busy.rosterPreview.addNew = ev.target.checked; render(); return; }
   if (ev.target.dataset && ev.target.dataset.dirteachers) {   // 🏫 who teaches a class (admins)
     const id = ev.target.dataset.dirteachers, list = [...new Set(ev.target.value.split(/[\s,;]+/).map(x => x.trim().toLowerCase()).filter(Boolean))];
-    const bad = list.filter(e => !/^[^@\s]+@unbound\.school$/.test(e));
-    if (bad.length) { flash("Not an @unbound.school email: " + bad.join(", ")); return; }
+    const bad = list.filter(e => !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e));
+    if (bad.length) { flash("That doesn\u2019t look like an email: " + bad.join(", ")); return; }
     try { await saveClassDir(id, { teachers: list }); const c = ACCESS.classes.find(x => x.id === id); if (c) c.teachers = list; flash("Saved \u2014 " + (list.length ? list.join(", ") + (list.length === 1 ? " teaches" : " teach") + " that class." : "that class has no teachers now."), true); }
     catch (e) { flash("Couldn\u2019t save \u2014 " + (e.code || e.message)); }
     render(); return; }
@@ -2519,7 +2519,7 @@ document.addEventListener("click", async ev => {
     const name = (document.getElementById("ncName").value || "").trim().slice(0, 48), tn = (document.getElementById("ncTeacher").value || "").trim().slice(0, 30);
     const emails = [...new Set((document.getElementById("ncEmails").value || "").split(/[\s,;]+/).map(x => x.trim().toLowerCase()).filter(Boolean))];
     if (!name) return flash("Give the class a name first.");
-    if (!emails.length || emails.some(e => !/^[^@\s]+@unbound\.school$/.test(e))) return flash("Add the teacher\u2019s @unbound.school email.");
+    if (!emails.length || emails.some(e => !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e))) return flash("Add the teacher\u2019s Google email (the one they sign in with).");
     const id = (name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 28) || "class") + "-" + Math.random().toString(36).slice(2, 6);
     const now = new Date().toISOString(), dir = { className: name, teacherName: tn, teachers: emails, createdAt: now };
     try { await createClass(id, dir, { className: name, teacherName: tn, weekLabel: "", goal: 120, recorded: five(false), createdAt: now, linksRequired: true });
@@ -2531,7 +2531,7 @@ document.addEventListener("click", async ev => {
   if (act === "loadAdmins") { busy.adminMsg = null; try { busy.admins = await withTimeout(adminList()); } catch (e) { busy.adminMsg = { bad: true, text: adminErr(e) }; } render(); return; }
   if (act === "addAdmin") {
     const em = (document.getElementById("newAdmin").value || "").trim().toLowerCase();
-    if (!/^[^@\s]+@unbound\.school$/.test(em)) return flash("That needs to be an @unbound.school email.");
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) { busy.adminMsg = { bad: true, text: "That doesn\u2019t look like an email address. Type the Google email they sign in with." }; render(); return; }
     busy.adminMsg = { text: "Adding " + em + "\u2026" }; render();
     try { await withTimeout(setAdmin(em, true)); busy.admins = await adminList(); busy.adminMsg = { text: "\u2705 " + em + " is now an admin. They can open the console and sign in with Google." }; }
     catch (e) { busy.adminMsg = { bad: true, text: adminErr(e) }; }

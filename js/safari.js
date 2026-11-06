@@ -6,9 +6,9 @@
    alien. A full page = +100 Stardust (once) and a zone badge (worked out in badges.js from the album, nothing extra stored).
    Saved on the student in planet: alb = { famId: photos, "A-zone": photos }, saf = { d: day, u: film used, b: film bought },
    pg = [zone keys already paid]. One write per photo (≤3 a day unless they buy film). Preview saves nothing. */
-import { CREATURES } from "./creatures.js?v=20261107d";
-import { esc } from "./game.js?v=20261107d";
-import { azToday, azNow } from "./collect.js?v=20261107d";
+import { CREATURES } from "./creatures.js?v=20261107e";
+import { esc } from "./game.js?v=20261107e";
+import { azToday, azNow } from "./collect.js?v=20261107e";
 
 const A = "assets/planet/";
 export const PJ_CLOSE_M = 12 * 60 + 55;
