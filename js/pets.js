@@ -15,9 +15,9 @@
      page-only (localStorage), no database writes.
    Saved in planet.pets = { o: { key: { n: name, p: personality, h: outfit id or "", at: date adopted } }, buddy: key, rel: releases }
    through safari.js planetSave, so the other Planet JP saves aren't overwritten. */
-import { esc, OUTFITS } from "./game.js?v=20261109g";
-import { azToday } from "./collect.js?v=20261109g";
-import { freshSt, planetSave, planetNow, planetCtx } from "./safari.js?v=20261109g";
+import { esc, OUTFITS } from "./game.js?v=20261109h";
+import { azToday } from "./collect.js?v=20261109h";
+import { freshSt, planetSave, planetNow, planetCtx } from "./safari.js?v=20261109h";
 
 export const PA = "assets/pets/", PP = PA + "place/";
 export const TIERS = [
@@ -265,7 +265,7 @@ function schedule(ms) { clearTimeout(timer); timer = setTimeout(popUp, ms == nul
 function popUp() {
   schedule();
   const st = side.st; if (!st || !side.out || popOff() || side.busy || document.hidden) return;
-  if (document.querySelector(".pjover, #safroot:not(:empty), .bookover, .modal, .overlay")) return;   // stay out of the way of full-screen things
+  if (document.querySelector(".pjover, .pgover, #safroot:not(:empty), .bookover, .modal, .overlay")) return;   // stay out of the way of full-screen things
   const k = sidekickOf(st, side.cls); if (!k) return;
   const o = ownedOf(st)[k], p = PERS[o.p] || PERSONALITIES[0], spot = SPOTS[Math.floor(Math.random() * SPOTS.length)];
   const pos = spot === "l" || spot === "r" ? "top:" + Math.round(25 + Math.random() * 45) + "%" : spot === "b" ? "left:" + Math.round(20 + Math.random() * 55) + "%" : "";

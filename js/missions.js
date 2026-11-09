@@ -4,10 +4,11 @@
    has photographed an animal, so there is something in the zoo).  Optional: 🛍️ a Swap Shop deal is waiting (never required: buying costs Stardust).
    All required done = a "Claim +5 ⭐" button (ONE save: planet.mb = { d: date claimed, n: days claimed }).
    The map shows a bouncing "!" on a place while it has something to do today (placeBang).  */
-import { azToday } from "./collect.js?v=20261109g";
-import { freshSt, planetSave, planetNow, planetCtx, filmLeft } from "./safari.js?v=20261109g";
-import { zooPicks } from "./zoo.js?v=20261109g";
-import { swapDeal } from "./spaceshop.js?v=20261109g";
+import { azToday } from "./collect.js?v=20261109h";
+import { freshSt, planetSave, planetNow, planetCtx, filmLeft } from "./safari.js?v=20261109h";
+import { zooPicks } from "./zoo.js?v=20261109h";
+import { swapDeal } from "./spaceshop.js?v=20261109h";
+import { careDone, hasNebble } from "./petpark.js?v=20261109h";
 
 export const MISSION_BONUS = 5;
 const plOf = st => (st && st.planet) || {};
@@ -25,6 +26,7 @@ export function placeBang(st, k) {
   if (k === "safari") return !safariDone(st) && filmLeft(st) > 0;
   if (k === "zoo") return zooHas(st) && !zooDone(st);
   if (k === "swap") return swapWaiting(st);
+  if (k === "park") return hasNebble(st) && !careDone(st);
   return false;
 }
 
@@ -34,6 +36,7 @@ export function missionList(st) {
     { k: "cafe", icon: "\u2615", text: "Cook a snack in the Space Caf\u00e9", done: cafeDone(st), go: "cafe" },
     { k: "safari", icon: "\u{1F4F8}", text: "Take a photo on the Safari", done: safariDone(st), go: "landing" }];
   if (zooHas(st)) m.push({ k: "zoo", icon: "\u{1F992}", text: "Finish your Space Zoo tour", done: zooDone(st), go: "zoo" });
+  if (hasNebble(st)) m.push({ k: "park", icon: "\u{1F333}", text: "Care for your Nebble at the Pet Park", done: careDone(st), go: "park" });
   return m;
 }
 

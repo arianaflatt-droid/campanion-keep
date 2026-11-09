@@ -8,9 +8,9 @@
    Saved on the student: doors = { "YYYY-MM-DD": { "0": { st: "wait"|"ok"|"no"|"open", at, r }, g: { st: "open", r } } }
    plus lastDoor = "YYYY-MM-DD/<door>" (which door the last save touched; the save rules check it).
    Class: doorsOn (on/off), doorList (default list), doorDays = { "YYYY-MM-DD": [..] } (one-day lists). */
-import { azToday } from "./collect.js?v=20261109g";
-import { SEASON, eventMode, esc, dayXP, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261109g";
-import { subFor, SUB_NAMES } from "./teams.js?v=20261109g";
+import { azToday } from "./collect.js?v=20261109h";
+import { SEASON, eventMode, esc, dayXP, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261109h";
+import { subFor, SUB_NAMES } from "./teams.js?v=20261109h";
 
 // A door that starts with "!" is always open (not locked behind the first doors). The "!" isn't shown.
 export const DOOR_DEFAULT = [
@@ -86,7 +86,8 @@ export function goldenReady(st, cls, date) { return allDone(st, cls, date) && !d
 /* ---------- rewards ---------- */
 // A regular present gives one of these. cur = the event's currency (candy / corn / presents).
 export const PRESENT_ODDS = [
-  { id: "xp25",   p: 0.34, xp: 25 },
+  { id: "xp25",   p: 0.24, xp: 25 },
+  { id: "dust25", p: 0.10 },   // ⭐ +25 Planet JP Stardust (Nov 9)
   { id: "xp50",   p: 0.23, xp: 50 },
   { id: "cur20",  p: 0.20 },
   { id: "brew",   p: 0.12 },
@@ -130,10 +131,12 @@ export function rollPresent(golden, tier) {
   return { id: x.id };
 }
 export const REWARD_XP = { xp25: 25, xp50: 50, xp500: 500 };
+export const DOOR_DUST = 25, WEEK_DOOR_DUST = 100, WHEEL_DUST = 50;   // ⭐ Stardust from doors and event wheels (Nov 9)
 export function rewardText(r, S) {
   S = S || SEASON;
   switch (r && r.id) {
     case "xp25": case "xp50": case "xp500": return { icon: "⭐", big: "+" + REWARD_XP[r.id] + " XP", sub: "It’s in your XP — use it to level up your creatures!" };
+    case "dust25": return { icon: "\u2B50", big: "+" + DOOR_DUST + " Stardust", sub: "Added to your Planet JP Stardust. Spend it on Nebbles and in the Space Shop!" };
     case "cur20": return { icon: S.coin, big: "+20 " + S.Cur, sub: "Added to your " + S.basket + "." };
     case "brew": return { icon: S.brewIcon, big: S.brewName, sub: "Your next attack does +10 damage." };
     case "attack": return { icon: "⚔️", big: "Extra attack", sub: "One more attack on the " + S.boss + "!" };

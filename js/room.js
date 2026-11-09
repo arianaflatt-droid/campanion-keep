@@ -5,9 +5,9 @@
    Saved on the student: cpEarned (teacher writes), cpSpent, roomOwned [item ids], roomFit { slot: id }, roomBuys [{ id, cost, at }].
    Item ids are "{kind}_{theme}" (e.g. bed_dragon); art is assets/room/{id}.webp. Trophies are trophy_{season}.
    The room picture is 1536x1024; everything below is placed in % of that. */
-import { azToday } from "./collect.js?v=20261109g";
-import { questCP } from "./quest.js?v=20261109g";
-import { esc } from "./game.js?v=20261109g";
+import { azToday } from "./collect.js?v=20261109h";
+import { questCP } from "./quest.js?v=20261109h";
+import { esc } from "./game.js?v=20261109h";
 
 // Themes that have art so far. Add a theme name here once its 9 pieces are in assets/room/.
 export const TYPE_THEMES = ["fire", "water", "nature", "rock", "sky", "electric", "ice", "light", "dark", "ghost", "poison", "steel", "arcane", "crystal", "dragon"];
@@ -178,6 +178,7 @@ export function roomHTML(st, petMarkup, opts) {
   if (f.activity && /^activity_/.test(f.activity)) h += img(f.activity, "ract", "left:47%;bottom:2.5%;width:" + (ACT_W[parseItem(f.activity).theme] || 8) + "%;transform:translateX(-50%);");
   const rm = o.room || "bedroom", at = (SPOT_AT[rm] || SPOT_AT.bedroom)[petSpotOf(st, rm)];
   h += '<div class="rpet" style="left:' + at[0] + "%;bottom:" + at[1] + '%;">' + (petMarkup || "") + "</div>";
+  if (o.neb) h += o.neb;   // 🐾 Nebble buddy on its bed (Nov 9)
   // Lunch Hero sidekick: on a day the student hit the goal by lunch, it runs (or floats, for the Ghost-olotl) around the room
   if (o.side) h += '<div class="rside k-' + esc(o.side.kind) + '"><div class="rside-in">' + o.side.html + "</div></div>";
   return h + "</div>";

@@ -6,10 +6,10 @@
    The paint is already bought, so nobody can fail; 1–3 stars are just for fun. Owned paints can be switched for free (Use)
    or painted again for fun (🎨). Buying goes through spaceshop.js buy() (one save). The minigame saves nothing.
    Paint cans, bucket, roller and splats are her art with WHITE paint; the game tints the white with each color (CSS mask + multiply). */
-import { esc } from "./game.js?v=20261109g";
-import { freshSt } from "./safari.js?v=20261109g";
-import { buy } from "./spaceshop.js?v=20261109g";
-import { SHOP_ITEMS, SHOP_BY, PAINT_COLORS, COLOR_NAMES, hasItem, wearing, duckImgOf, paintsOwned } from "./shop-data.js?v=20261109g";
+import { esc } from "./game.js?v=20261109h";
+import { freshSt } from "./safari.js?v=20261109h";
+import { buy } from "./spaceshop.js?v=20261109h";
+import { SHOP_ITEMS, SHOP_BY, PAINT_COLORS, COLOR_NAMES, hasItem, wearing, duckImgOf, paintsOwned } from "./shop-data.js?v=20261109h";
 
 const H = "assets/planet/hangar/";
 const cname = c => COLOR_NAMES[c] || c;

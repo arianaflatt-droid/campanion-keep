@@ -7,19 +7,20 @@
    A launch is saved on the student: planet = { n: launches, last: "YYYY-MM-DD", streak, best } (one write a day).
    Wave 2 adds a space minigame between liftoff and landing; Planet JP itself comes later, one piece at a time.
    Pictures live in assets/planet/ — until one is uploaded (ART below) the stand-in drawing is used. */
-import { esc } from "./game.js?v=20261109g";
-import { azToday, azNow } from "./collect.js?v=20261109g";
-import { axoDay, schoolDayFor } from "./axolotl.js?v=20261109g";
-import { addDays } from "./doors.js?v=20261109g";
-import { GAMES, gameOfDay, gameByKey, play, preload } from "./spacegames.js?v=20261109g";
-import { ZONES, safariSync, freshSt, albumHTML, filmLeft, pageCount, pageSize, aliensFound, zoneAliens, FREE_FILM, ROLL_COST, shopHTML, netsOf, NETS, netImg, pjWindow, classOpenAll, PJ_LATE } from "./safari.js?v=20261109g";
-import { cafeHTML } from "./cafe.js?v=20261109g";
-import { shopPageHTML } from "./spaceshop.js?v=20261109g";
-import { hangarHTML } from "./hangar.js?v=20261109g";
-import { zooHTML } from "./zoo.js?v=20261109g";
-import { adoptHTML, PP as NEB_PP } from "./pets.js?v=20261109g";
-import { missionsHTML, placeBang } from "./missions.js?v=20261109g";
-import { duckImgOf, flameFxOf, trailOf } from "./shop-data.js?v=20261109g";
+import { esc } from "./game.js?v=20261109h";
+import { azToday, azNow } from "./collect.js?v=20261109h";
+import { axoDay, schoolDayFor } from "./axolotl.js?v=20261109h";
+import { addDays } from "./doors.js?v=20261109h";
+import { GAMES, gameOfDay, gameByKey, play, preload } from "./spacegames.js?v=20261109h";
+import { ZONES, safariSync, freshSt, albumHTML, filmLeft, pageCount, pageSize, aliensFound, zoneAliens, FREE_FILM, ROLL_COST, shopHTML, netsOf, NETS, netImg, pjWindow, classOpenAll, PJ_LATE } from "./safari.js?v=20261109h";
+import { cafeHTML } from "./cafe.js?v=20261109h";
+import { shopPageHTML } from "./spaceshop.js?v=20261109h";
+import { hangarHTML } from "./hangar.js?v=20261109h";
+import { zooHTML } from "./zoo.js?v=20261109h";
+import { adoptHTML, PP as NEB_PP } from "./pets.js?v=20261109h";
+import { parkHTML } from "./petpark.js?v=20261109h";
+import { missionsHTML, placeBang } from "./missions.js?v=20261109h";
+import { duckImgOf, flameFxOf, trailOf } from "./shop-data.js?v=20261109h";
 
 export const PJ_OPEN = 11 * 60, PJ_CLOSE = 12 * 60 + 55;   // minutes after midnight, Arizona time
 const A = "assets/planet/";
@@ -146,7 +147,11 @@ function launch() {
     while (!schoolDayFor(C.cls, prev) && i++ < 20) prev = addDays(prev, -1);
     const streak = saved.last === prev ? (Number(saved.streak) || 0) + 1 : 1;
     saved = Object.assign({}, saved, { n: (Number(saved.n) || 0) + 1, last: today, streak, best: Math.max(Number(saved.best) || 0, streak), g: null, gs: null });
-    Object.assign(saved, weekTrack(saved, today, C.cls));
+    const wt = weekTrack(saved, today, C.cls); Object.assign(saved, wt);
+    // ⭐ launch bonuses (Nov 9): streak +2 a day in a row (max +10), +1 per 10 XP over the goal (max +20), +50 for a full Space Week
+    const dx = axoDay(st, C.cls, today), hx = ((st.xpHist || {})[today]) || {}, xp = Math.max(Number(dx.xp) || 0, Number(hx.mo) || 0);
+    const lb = { d: today, s: Math.min(STREAK_MAX, STREAK_EACH * streak), x: Math.min(XP_MAX, Math.floor(Math.max(0, xp - (Number(dx.goal) || 120)) / 10)), w: wt.wr != null ? WEEK_DUST : 0 };
+    saved.dust = (Number(saved.dust) || 0) + lb.s + lb.x + lb.w; saved.lb = lb;
     C.patch({ planet: saved });   // saved right away, so leaving mid-cutscene still counts
   } else if (C.preview) saved = Object.assign({}, saved, { n: (Number(saved.n) || 0) + 1, streak: (Number(saved.streak) || 0) + 1 });
   saved0 = saved;
@@ -198,6 +203,9 @@ function playVideo() {
 const todayGame = () => gameByKey((typeof window !== "undefined" && window.__pjGame) || (forceGame && C && C.preview ? forceGame : gameOfDay(azToday()).key));
 const sfx = { beep: (f, d) => beep(f, d), thud: () => thud(), sparkle: () => sparkle() };
 const LAUNCH_DUST = 10;
+export const STREAK_EACH = 2, STREAK_MAX = 10, XP_MAX = 20, WEEK_DUST = 50;
+const bonusLine = s => { const b = s && s.lb && s.lb.d === azToday() ? s.lb : null; if (!b || !(b.s + b.x + b.w)) return "";
+  return "<br>\u{1F381} Launch bonus already added: " + [b.s ? "\u{1F525} streak +" + b.s : "", b.x ? "\u2B50 extra XP +" + b.x : "", b.w ? "\u{1F5D3}\uFE0F full Space Week +" + b.w : ""].filter(Boolean).join(" \u00b7 "); };
 function intro() {
   clearT(); view = "intro"; const g = todayGame();
   rootEl().innerHTML = '<div class="pjover pjspace"' + bg("sky") + '><div class="pjstars far"></div><div class="pjstage"><div class="pjintro">' +
@@ -224,7 +232,7 @@ function results(res) {
   rootEl().innerHTML = '<div class="pjover pjspace"' + bg("sky") + '><div class="pjstage"><div class="pjintro">' +
     '<img class="pjdustimg" src="' + A + 'stardust.webp" alt=""><h1 class="pjtitle">+' + gain + " Stardust!</h1>" +
     '<p class="pjsub">' + g.icon + " " + esc(g.name) + ": " + line + (better ? " \u{1F3C6} New best!" : "") + "</p>" +
-    '<p class="pjsub small">⭐ ' + res.dust + " from the game + " + LAUNCH_DUST + " for launching · You have <b>" + (saved0.dust || 0) + "</b> Stardust</p>" +
+    '<p class="pjsub small">⭐ ' + res.dust + " from the game + " + LAUNCH_DUST + " for launching · You have <b>" + (saved0.dust || 0) + "</b> Stardust" + bonusLine(saved0) + "</p>" +
     '<button class="btn gold pjgo" data-pj="toland">Land on Planet JP \u{1FA90}</button></div></div></div>';
   sparkle();
 }
@@ -348,6 +356,7 @@ const HUB_PLACES = [
   { k: "swap", name: "\u{1F527} Swap Shop", x: 86, y: 63, w: 21, html: () => '<img src="' + A + 'shop/swap-shop.webp" alt="">' },
   { k: "zoo", name: "\u{1F992} Space Zoo", x: 12, y: 35.5, w: 13.5, html: () => '<img src="' + A + 'zoo/zoo-gate.webp" alt="">' },
   { k: "adopt", name: "\u{1F43E} Adoption Center", x: 42, y: 53, w: 12, html: () => '<img src="' + NEB_PP + 'adopt-building.webp" alt="">' },   // 🐾 Nebbles (Nov 9)
+  { k: "park", name: "\u{1F333} Pet Park", x: 67, y: 57, w: 11, html: () => '<img src="' + NEB_PP + 'park-building.webp" alt="">' },   // 🌳 Nebbles Pet Park (Nov 9)
   { k: "hangar", name: "\u{1F527} Duck Hangar", x: 78, y: 41, w: 15, html: () => '<img src="' + A + 'hangar/hangar-building.webp" alt="">' },
   { k: "album", name: "\u{1F4D6} Photo Album", x: 30, y: 44, w: 10, html: () => '<span class="hubbook">\u{1F4D6}</span>' },
   { k: "colony", name: "\u{1F3D5}\uFE0F Class Colony", x: 54, y: 46, w: 14, html: () => '<span class="hubduck">' + duckHTML() + "</span>" }];
@@ -370,6 +379,7 @@ export function planetTab(st, cls, students, petOf, preview) {
     ((pl.streak || 0) > 1 ? "<span>\u{1F525} <b>" + pl.streak + "</b> days in a row</span>" : "") + "</div></div></div>";
   if (zoneOpen === "album") return h + albumHTML(st, n);
   if (zoneOpen === "hangar") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn ghost small" data-pjzone="">← Map</button></div>' + hangarHTML(st, cls, pjOpen(st, cls) || !!preview);
+  if (zoneOpen === "park") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn ghost small" data-pjzone="">← Map</button></div>' + parkHTML(st, cls, pjOpen(st, cls) || !!preview, students);
   if (zoneOpen === "adopt") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn ghost small" data-pjzone="">← Map</button></div>' + adoptHTML(st, cls, pjOpen(st, cls) || !!preview);
   if (zoneOpen === "zoo") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn ghost small" data-pjzone="">← Map</button></div>' + zooHTML(st, cls, pjOpen(st, cls) || !!preview);
   if (zoneOpen === "safari") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn ghost small" data-pjzone="">← Map</button></div>' + shopHTML(st);

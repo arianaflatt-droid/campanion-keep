@@ -1,14 +1,16 @@
-import { owned as roomOwned, fitOf as roomFit, FIT_SLOTS, setItems as roomSet } from "./room.js?v=20261109g";
-import { presentsOpened } from "./doors.js?v=20261109g";
-import { PASS_THEMES, passDone } from "./pass.js?v=20261109g";
-import { shopBuys, swapBuys, outfitsOwned, cabinOwned, paintsOwned } from "./shop-data.js?v=20261109g";
-import { REGULARS as CF_REG, SPECIALS as CF_SP, keptCount as cfKept, perfectTotal as cfPerfect, monthPairs as cfPairs } from "./cafe-data.js?v=20261109g";
-import { ZONES as PJ_ZONES, pageCount as pjPage, pageSize as pjSize, aliensFound as pjAl, allAliensFound as pjAllAl, ALIEN_LIST as PJ_ALIENS } from "./safari.js?v=20261109g";
+import { owned as roomOwned, fitOf as roomFit, FIT_SLOTS, setItems as roomSet } from "./room.js?v=20261109h";
+import { presentsOpened } from "./doors.js?v=20261109h";
+import { PASS_THEMES, passDone } from "./pass.js?v=20261109h";
+import { shopBuys, swapBuys, outfitsOwned, cabinOwned, paintsOwned } from "./shop-data.js?v=20261109h";
+import { REGULARS as CF_REG, SPECIALS as CF_SP, keptCount as cfKept, perfectTotal as cfPerfect, monthPairs as cfPairs } from "./cafe-data.js?v=20261109h";
+import { ZONES as PJ_ZONES, pageCount as pjPage, pageSize as pjSize, aliensFound as pjAl, allAliensFound as pjAllAl, ALIEN_LIST as PJ_ALIENS } from "./safari.js?v=20261109h";
 // Badges: worked out from each student's saved data, so nothing extra is stored and no rules change.
 // To add a badge: add an entry with a check(st) that returns how far along the student is,
 // and a goal. Put its picture in assets/badges/ (a transparent WEBP or PNG). Without a picture, the emoji shows.
-import { esc, goalXP, candyOf, ghostUnlocked } from "./game.js?v=20261109g";
-import { seenSet, ownedFams, owned, family, formIndex, formOf, STARTERS, CREATURES } from "./collect.js?v=20261109g";
+const nebOf = st => ((st && st.planet) || {}).pets || {}, nebN = st => Object.keys(nebOf(st).o || {}).length;
+const NEB_SEASON = ["pumpkin", "pie", "candycane", "snowball", "sweetheart", "clover", "egg", "springflower", "sunbeam", "pencil"];
+import { esc, goalXP, candyOf, ghostUnlocked } from "./game.js?v=20261109h";
+import { seenSet, ownedFams, owned, family, formIndex, formOf, STARTERS, CREATURES } from "./collect.js?v=20261109h";
 
 export const hatches = st => (Number(st.pullsUsed) || 0) + (Number(st.legendaryUsed) || 0);
 
@@ -140,6 +142,7 @@ export const BADGE_GROUPS = [
   { key: "planet", title: "\u{1FA90} Planet JP Explorer" },
   { key: "cafe", title: "\u2615 Space Caf\u00e9 + \u{1F6D2} Shops" },
   { key: "zoo", title: "\u{1F992} Space Zoo" },
+  { key: "neb", title: "\u{1F43E} Nebbles" },
 ];
 
 export const BADGES = [
@@ -287,6 +290,13 @@ export const BADGES = [
   { id: "zoo-first", group: "zoo", name: "First Visit", desc: "Finish a tour of the Space Zoo", goal: 1, img: "assets/badges/zoo-first.webp", emoji: "\u{1F992}", check: st => Math.min(1, Number(zooOf(st).v) || 0) },
   { id: "zoo-all5", group: "zoo", name: "Meet the Animals", desc: "Say hi to all 5 animals in one zoo tour", goal: 1, img: "assets/badges/zoo-all5.webp", emoji: "\u{1F43E}", check: st => zooOf(st).all5 ? 1 : 0 },
   { id: "zoo-regular", group: "zoo", name: "Zoo Regular", desc: "Fill 3 Zoo Stamp Cards", goal: 3, img: "assets/badges/zoo-regular.webp", emoji: "\u{1F3AB}", check: st => Math.min(3, Number(zooOf(st).cards) || 0) },
+  // 🐾 Nebbles (Nov 9)
+  { id: "neb-first", group: "neb", name: "First Nebble", desc: "Adopt your first Nebble", goal: 1, img: "assets/badges/neb-first.webp", emoji: "\u{1F43E}", check: st => Math.min(1, nebN(st)) },
+  { id: "neb-5", group: "neb", name: "Nebble Pals", desc: "Own 5 Nebbles", goal: 5, img: "assets/badges/neb-5.webp", emoji: "\u{1F43E}", check: st => Math.min(5, nebN(st)) },
+  { id: "neb-25", group: "neb", name: "Nebble Collector", desc: "Own 25 Nebbles", goal: 25, img: "assets/badges/neb-25.webp", emoji: "\u{1F3C6}", check: st => Math.min(25, nebN(st)) },
+  { id: "neb-50", group: "neb", name: "Nebble Master", desc: "Own all 50 Nebbles", goal: 50, img: "assets/badges/neb-50.webp", emoji: "\u{1F451}", check: st => Math.min(50, nebN(st)) },
+  { id: "neb-care", group: "neb", name: "Pet Pro", desc: "Care for your Nebble 5 school days in a row", goal: 1, img: "assets/badges/neb-care.webp", emoji: "\u{1F6C1}", check: st => Math.min(1, Number((nebOf(st).care || {}).cards) || 0) },
+  { id: "neb-season", group: "neb", name: "Seasonal Friend", desc: "Adopt a seasonal Nebble", goal: 1, img: "assets/badges/neb-season.webp", emoji: "\u{1F383}", check: st => Object.keys(nebOf(st).o || {}).some(k => NEB_SEASON.includes(k)) ? 1 : 0 },
   { id: "zoo-rare", group: "zoo", name: "Rare Find", desc: "Meet a Super Rare animal in your zoo", goal: 1, img: "assets/badges/zoo-rare.webp", emoji: "\u{1F31F}", check: st => zooOf(st).fr ? 1 : 0 },
   { id: "zoo-alien", group: "zoo", name: "Alien Exhibit", desc: "Meet a Planet JP alien in your zoo", goal: 1, img: "assets/badges/zoo-alien.webp", emoji: "\u{1F47D}", check: st => zooOf(st).fa ? 1 : 0 },
   { id: "zoo-sparkle", group: "zoo", name: "Sparkle Spotter", desc: "Meet a \u2728 Sparkle animal in your zoo", goal: 1, img: "assets/badges/zoo-sparkle.webp", emoji: "\u2728", check: st => zooOf(st).fs ? 1 : 0 },
