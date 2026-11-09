@@ -326,7 +326,7 @@ function hubHTML(st, n) {
   ZONES.forEach((z, i) => { const open = n >= z.at, [x, y] = HUB_ZONES[i];
     h += '<button class="hubzone' + (open ? "" : " locked") + '" style="left:' + x + "%;top:" + y + '%"' + (open ? ' data-pjzone="' + z.key + '"' : " disabled") + ">" +
       '<span class="hubport" style="background-image:url(' + A + "zone-" + z.key + '.webp)">' + (open ? "" : "<i>\u{1F512}</i>") + '</span><span class="hublbl">' + z.icon + " " + esc(z.name) + (open ? "" : " \u00b7 " + z.at + " \u{1F680}") + "</span></button>"; });
-  HUB_PLACES.forEach(p => { h += '<button class="hubplace hub-' + p.k + '" style="left:' + p.x + "%;top:" + p.y + "%;width:" + p.w + '%" data-pjzone="' + p.k + '">' + p.html() + '<span class="hublbl">' + p.name + "</span></button>"; });
+  HUB_PLACES.forEach(p => { h += '<button class="hubplace hub-' + p.k + '" style="left:' + p.x + "%;top:" + p.y + "%;width:" + p.w + '%" ' + (p.k === "colony" ? 'data-pjcolony="1"' : 'data-pjzone="' + p.k + '"') + ">" + p.html() + '<span class="hublbl">' + p.name + "</span></button>"; });
   return h + "</div></div>";
 }
 export function planetTab(st, cls, students, petOf, preview) {
@@ -361,8 +361,8 @@ export function planetTab(st, cls, students, petOf, preview) {
   // the Class Colony: who landed today
   const kids = (students || []).filter(s => s.companionId && !s.isTeacher), landed = kids.filter(s => s.planet && s.planet.last === today);
   h += '<div class="card" id="pjcolonycard"><div class="card-head"><h2>\u{1F3D5}️ Class Colony</h2><span class="fact">' + landed.length + " of " + kids.length + " landed today</span></div>" +
-    (landed.length ? '<div class="pjcolony">' + landed.sort((a, b) => String(a.name).localeCompare(String(b.name))).map(s =>
-      '<div class="pjcol' + (st && s.id === st.id ? " me" : "") + '"><span class="pjcolpet">' + (petOf ? petOf(s) : "") + "</span><b>" + esc(s.name) + "</b><small>\u{1F680} " + (Number(s.planet.n) || 0) + "</small></div>").join("") + "</div>"
+    (landed.length ? '<div class="pjcolony" style="background-image:url(' + A + 'jp-landing.webp)">' + landed.sort((a, b) => String(a.name).localeCompare(String(b.name))).map(s =>
+      '<div class="pjkid' + (st && s.id === st.id ? " me" : "") + '"><span class="pjcolpet">' + (petOf ? petOf(s) : "") + "</span><b>" + esc(s.name) + "</b><small>\u{1F680} " + (Number(s.planet.n) || 0) + "</small></div>").join("") + "</div>"
       : '<p class="lede">Nobody has landed yet today.</p>') + "</div>";
   return h;
 }
