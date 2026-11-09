@@ -7,16 +7,16 @@
    A launch is saved on the student: planet = { n: launches, last: "YYYY-MM-DD", streak, best } (one write a day).
    Wave 2 adds a space minigame between liftoff and landing; Planet JP itself comes later, one piece at a time.
    Pictures live in assets/planet/ — until one is uploaded (ART below) the stand-in drawing is used. */
-import { esc } from "./game.js?v=20261109a";
-import { azToday, azNow } from "./collect.js?v=20261109a";
-import { axoDay, schoolDayFor } from "./axolotl.js?v=20261109a";
-import { addDays } from "./doors.js?v=20261109a";
-import { GAMES, gameOfDay, gameByKey, play, preload } from "./spacegames.js?v=20261109a";
-import { ZONES, safariSync, freshSt, albumHTML, filmLeft, pageCount, pageSize, aliensFound, zoneAliens, FREE_FILM, ROLL_COST, shopHTML, netsOf, NETS, netImg } from "./safari.js?v=20261109a";
-import { cafeHTML } from "./cafe.js?v=20261109a";
-import { shopPageHTML } from "./spaceshop.js?v=20261109a";
-import { hangarHTML } from "./hangar.js?v=20261109a";
-import { duckImgOf, flameFxOf, trailOf } from "./shop-data.js?v=20261109a";
+import { esc } from "./game.js?v=20261109b";
+import { azToday, azNow } from "./collect.js?v=20261109b";
+import { axoDay, schoolDayFor } from "./axolotl.js?v=20261109b";
+import { addDays } from "./doors.js?v=20261109b";
+import { GAMES, gameOfDay, gameByKey, play, preload } from "./spacegames.js?v=20261109b";
+import { ZONES, safariSync, freshSt, albumHTML, filmLeft, pageCount, pageSize, aliensFound, zoneAliens, FREE_FILM, ROLL_COST, shopHTML, netsOf, NETS, netImg, pjWindow, classOpenAll, PJ_LATE } from "./safari.js?v=20261109b";
+import { cafeHTML } from "./cafe.js?v=20261109b";
+import { shopPageHTML } from "./spaceshop.js?v=20261109b";
+import { hangarHTML } from "./hangar.js?v=20261109b";
+import { duckImgOf, flameFxOf, trailOf } from "./shop-data.js?v=20261109b";
 
 export const PJ_OPEN = 11 * 60, PJ_CLOSE = 12 * 60 + 55;   // minutes after midnight, Arizona time
 const A = "assets/planet/";
@@ -33,7 +33,7 @@ export function fuel(st, cls) {
   const tanks = [{ icon: "⭐", name: "XP", have: hit ? Math.max(xp, d.goal) : xp, need: d.goal }].concat(d.rows.map(r => ({ icon: ICON[r.src] || "\u{1F4DA}", name: r.name, have: r.have, need: r.need })));
   const need = tanks.reduce((n, t) => n + t.need, 0), have = tanks.reduce((n, t) => n + Math.min(t.have, t.need), 0);
   // Nov 7: Ms. Ariana can launch a student by hand (tech trouble, work done somewhere else): pjGo = today's date
-  if (st && st.pjGo === iso) return { tanks: tanks.map(t => Object.assign({}, t, { have: Math.max(t.have, t.need) })), pct: 1, full: true, manual: true };
+  if (st && (st.pjGo === iso || classOpenAll(cls))) return { tanks: tanks.map(t => Object.assign({}, t, { have: Math.max(t.have, t.need) })), pct: 1, full: true, manual: true };
   return { tanks, pct: need ? have / need : 0, full: tanks.every(t => t.have >= t.need) };
 }
 const launchedToday = st => !!(st && st.planet && st.planet.last === azToday());
@@ -42,10 +42,12 @@ export function phase(st, cls) {
   if (!planetOn(cls) || !st || !schoolDayFor(cls, azToday())) return "off";
   if (launchedToday(st)) return "landed";
   const m = mins(), f = fuel(st, cls);
-  if (m >= PJ_CLOSE) return "scrubbed";
+  const W = pjWindow(st, cls);
+  if (m >= W.c) return "scrubbed";
   if (!f.full) return "fill";
-  return m >= PJ_OPEN ? "go" : "ready";
+  return m >= W.o ? "go" : "ready";
 }
+const hhmm = n => { const h = Math.floor(n / 60), m = n % 60; return (h > 12 ? h - 12 : h) + ":" + String(m).padStart(2, "0"); };
 const left = to => { const n = Math.max(0, to - mins()), hh = Math.floor(n / 60), mm = n % 60; return (hh ? hh + "h " : "") + mm + "m"; };
 
 const DUCK_SVG = '<svg class="pjduck-svg" viewBox="0 0 160 100" aria-hidden="true"><path d="M30 30 L8 14 L16 44 Z M30 70 L8 86 L16 56 Z" fill="#FF9A2E" stroke="#C25E00" stroke-width="3" stroke-linejoin="round"/>' +
@@ -64,11 +66,12 @@ const bg = k => (ART[k] ? ' style="background-image:url(' + A + { pad: "launch-p
 export function planetBar(st, cls, preview) {
   const p = phase(st, cls); if (p === "off") return preview && planetOn(cls) ? '<div class="pjbar off"><span class="pjmsg">\u{1F680} Planet JP launches on school days.</span></div>' : "";
   const f = fuel(st, cls), pct = p === "landed" ? 1 : Math.min(1, f.pct), pl = st.planet || {};
+  const W = pjWindow(st, cls);
   let msg;
-  if (p === "fill") msg = "Fill all 4 tanks to launch to <b>Planet JP</b>! " + (mins() < PJ_OPEN ? "Launch window opens at 11:00." : 'Window closes in <b id="pjcd">' + left(PJ_CLOSE) + "</b>");
-  else if (p === "ready") msg = "\u{1F389} Ready for liftoff! The launch window opens in <b id=\"pjcd\">" + left(PJ_OPEN) + "</b>";
+  if (p === "fill") msg = "Fill all 4 tanks to launch to <b>Planet JP</b>! " + (mins() < W.o ? "Launch window opens at " + hhmm(W.o) + "." : 'Window closes in <b id="pjcd">' + left(W.c) + "</b>");
+  else if (p === "ready") msg = "\u{1F389} Ready for liftoff! The launch window opens in <b id=\"pjcd\">" + left(W.o) + "</b>";
   else if (p === "go") msg = '\u{1F680} Fuel tanks full! <button class="btn small gold" data-pj="open">Launch the S.S. Duck!</button>';
-  else if (p === "landed") msg = (mins() < PJ_CLOSE ? '<button class="btn small gold" data-pj="tab">\u{1FA90} Explore Planet JP</button> ' : "") + "\u{1FA90} You landed on <b>Planet JP</b>! Launch #" + (pl.n || 1) + ((pl.streak || 0) > 1 ? " · \u{1F525} " + pl.streak + " days in a row" : "") + (pl.dust ? " · ⭐ " + pl.dust + " Stardust" : "");
+  else if (p === "landed") msg = (mins() < W.c ? '<button class="btn small gold" data-pj="tab">\u{1FA90} Explore Planet JP</button> ' : "") + "\u{1FA90} You landed on <b>Planet JP</b>! Launch #" + (pl.n || 1) + ((pl.streak || 0) > 1 ? " · \u{1F525} " + pl.streak + " days in a row" : "") + (pl.dust ? " · ⭐ " + pl.dust + " Stardust" : "");
   else msg = "\u{1F6D1} Mission scrubbed, try again tomorrow!";
   const tanks = p === "landed" || p === "scrubbed" ? "" : '<div class="pjtanks">' + f.tanks.map(t => '<span class="pjtank' + (t.have >= t.need ? " ok" : "") + '">' + t.icon + " " + esc(t.name) + " <b>" + Math.min(t.have, t.need) + "/" + t.need + "</b>" + (t.have >= t.need ? " ✅" : "") + "</span>").join("") + "</div>";
   return '<div class="pjbar ' + p + '"><div class="pjtrack"><div class="pjfill" style="width:' + (pct * 100).toFixed(1) + '%"></div>' +
@@ -96,7 +99,7 @@ export function planetSync(c) {
   C = c; safariSync(c);
   if (!tick) tick = setInterval(() => {
     if (!C) return; const el = document.getElementById("pjcd"), p = phase(C.st, C.cls);
-    if (el) el.textContent = p === "ready" ? left(PJ_OPEN) : left(PJ_CLOSE);
+    const W = pjWindow(C.st, C.cls); if (el) el.textContent = p === "ready" ? left(W.o) : left(W.c);
     if (p !== lastPhase && C.rerender) C.rerender();
   }, 15000);
   const p = phase(c.st, c.cls); lastPhase = p;
@@ -265,14 +268,24 @@ function manualRows(kids, cls, went) {
     '<div class="pjmanrows">' + wait.map(s => { const on = s.pjGo === today, full = fuel(Object.assign({}, s, { pjGo: null }), cls).full;
       return '<div class="pjmanrow"><span>' + esc(s.name) + (full ? ' <small class="muted">tanks full</small>' : "") + "</span>" +
         (on ? '<button class="btn small gold" data-pjgo="' + s.id + '" data-on="0" title="Take it back">\u{1F680} Cleared to launch \u2715</button>' : '<button class="btn small ghost" data-pjgo="' + s.id + '" data-on="1">\u{1F680} Let launch</button>') + "</div>"; }).join("") +
-    '</div><p class="small muted" style="margin:6px 0 0;">Their tanks fill right away. Before 11:00 they see \u201cReady for liftoff\u201d; from 11:00 to 12:55 Mission Control opens for them.</p></details>';
+    '</div><p class="small muted" style="margin:6px 0 0;">Their tanks fill right away and they can launch <b>right now, any time today</b>, then explore Planet JP until 3:30.</p></details>';
 }
+// 🚀 Open the launch window now for the whole class (Nov 9), any time of day, until the time she picks
+function winRow(cls) {
+  const w = cls.pjWin && cls.pjWin.d === azToday() ? cls.pjWin : null, now = mins();
+  if (w && w.to > now) return '<div class="pjwinrow open"><b>\u{1F7E2} The launch window is open for the class until ' + hhmm(w.to) + "</b>" + (w.all ? " · everyone can launch, even without full tanks" : " · students with full tanks can launch") +
+    ' <button class="btn small ghost" data-act="pjWinClose">Close it now</button></div>';
+  return '<div class="pjwinrow"><b>\u{1F680} Open Planet JP now</b> (any time of day) for <select id="pjWinLen"><option value="30">30 minutes</option><option value="60" selected>1 hour</option><option value="90">1\u00bd hours</option><option value="late">until 3:30</option></select> ' +
+    '<label class="small"><input type="checkbox" id="pjWinAll"> everyone can launch, even without full tanks</label> <button class="btn small gold" data-act="pjWinOpen">\u{1F680} Open the launch window</button></div>';
+}
+export const pjMinsNow = () => mins();
 export function planetAdmin(students, cls) {
   const on = planetOn(cls), kids = students.filter(s => s.companionId && !s.isTeacher), today = azToday();
   const went = kids.filter(s => s.planet && s.planet.last === today), ready = kids.filter(s => !(s.planet && s.planet.last === today) && fuel(s, cls).full);
   return '<div class="card" id="pjCard"><div class="card-head"><h2>\u{1F680} Planet JP</h2><span class="fact">' + (on ? (schoolDayFor(cls, today) ? went.length + " launched today" : "no school today") : "off") + "</span></div>" +
     '<p class="lede" style="font-size:13.5px;">A launch bar across the top of every student’s Keep. It fills with <b>120 XP + 25 Math, Reading and Language</b>. Full tanks can launch the S.S. Duck from <b>11:00 to 12:55</b> (Arizona time); not full by 12:55 = “Mission scrubbed”. School days only (your calendar breaks are skipped). To try it yourself, open a student’s page in preview and press “Preview the launch”.</p>' +
     '<div class="row" style="margin:10px 0;gap:8px;"><button class="btn' + (on ? " ghost" : "") + '" data-act="pjToggle">' + (on ? "Turn Planet JP off" : "\u{1F680} Turn Planet JP on") + "</button></div>" +
+    (on ? winRow(cls) : "") +
     (on && schoolDayFor(cls, today) ? manualRows(kids, cls, went) : "") +
     (on && (went.length || ready.length) ? '<p class="small" style="margin:4px 0;">' + (went.length ? "\u{1FA90} <b>Landed:</b> " + went.map(s => esc(s.name)).join(", ") : "") + (ready.length ? (went.length ? "<br>" : "") + "⛽ <b>Tanks full, not launched yet:</b> " + ready.map(s => esc(s.name)).join(", ") : "") + "</p>" : "") + "</div>";
 }
@@ -307,7 +320,7 @@ function kNext() {
    Opens after the day's launch and closes at 12:55 (Arizona). Zones unlock by number of launches (planet.n).
    The Colony shows every classmate who landed today (from the class's public cards — no extra reads). */
 export { ZONES };
-export const pjOpen = (st, cls) => phase(st, cls) === "landed" && mins() < PJ_CLOSE;
+export const pjOpen = (st, cls) => phase(st, cls) === "landed" && mins() < pjWindow(st, cls).c;
 const TYPE_IC = { Fire: "\u{1F525}", Water: "\u{1F4A7}", Nature: "\u{1F343}", Rock: "\u{1FAA8}", Earth: "⛰️", Air: "\u{1F32A}️", Electric: "⚡", Ice: "❄️", Light: "✨", Dark: "\u{1F311}", Ghost: "\u{1F47B}", Poison: "\u{1F9EA}", Steel: "⚙️", Normal: "\u{1F4AB}", Arcane: "\u{1F52E}", Crystal: "\u{1F48E}", Dragon: "\u{1F409}" };
 let zoneOpen = null;
 export function planetZone(k) { zoneOpen = k || null; }
@@ -336,7 +349,7 @@ export function planetTab(st, cls, students, petOf, preview) {
   const pl = (st && st.planet) || {}, n = Number(pl.n) || 0, today = azToday();
   const closeIn = Math.max(0, PJ_CLOSE - mins());
   let h = '<div class="card pjtab"><div class="pjtabhead">' + planetHTML() + '<div><h2>Planet JP</h2><p class="lede">' +
-    (pjOpen(st, cls) ? "Open until <b>12:55</b> · ⏱️ " + left(PJ_CLOSE) + " left" : preview ? "\u{1F440} Teacher preview" : "Closed for today") +
+    (pjOpen(st, cls) ? "Open until <b>" + hhmm(pjWindow(st, cls).c) + "</b> · ⏱️ " + left(pjWindow(st, cls).c) + " left" : preview ? "\u{1F440} Teacher preview" : "Closed for today") +
     '</p></div><div class="pjtabstats"><span>\u{1F680} <b>' + n + "</b> launch" + (n === 1 ? "" : "es") + "</span><span>⭐ <b>" + (Number(pl.dust) || 0) + "</b> Stardust</span>" +
     ((pl.streak || 0) > 1 ? "<span>\u{1F525} <b>" + pl.streak + "</b> days in a row</span>" : "") + "</div></div></div>";
   if (zoneOpen === "album") return h + albumHTML(st, n);

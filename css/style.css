@@ -2906,3 +2906,4 @@ button.cafit{ border:0; background:none; padding:0; cursor:pointer; } button.caf
 .hgdone{ background:rgba(255,255,255,.95); border-radius:22px; padding:14px 22px; box-shadow:0 10px 30px rgba(0,0,0,.3); } .hgdone p{ margin:4px 0 10px; }
 .hgstars{ font-size:44px; line-height:1.2; }
 @media (max-width:640px){ .hgwork{ padding:12px 12px 150px; } .hgchef{ width:110px; } .hgbub{ left:90%; bottom:30%; width:60vw; font-size:14px; } }
+.pjwinrow{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; background:#F3F0FF; border-radius:12px; padding:8px 12px; margin:8px 0; font-size:14px; } .pjwinrow.open{ background:#E9FFF3; }

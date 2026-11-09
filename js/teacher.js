@@ -1,49 +1,49 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261109a";
-import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261109a";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261109a";
-import { cpEarnedCalc } from "./room.js?v=20261109a";
-import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261109a";
-import { rewardFor, wkGoalOf, wkShare, ringDay } from "./doors.js?v=20261109a";
-import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet, subReq, subRuleOn, SUB_DAY, addDays } from "./doors.js?v=20261109a";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing } from "./collector-ui.js?v=20261109a";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261109b";
+import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261109b";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261109b";
+import { cpEarnedCalc } from "./room.js?v=20261109b";
+import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261109b";
+import { rewardFor, wkGoalOf, wkShare, ringDay } from "./doors.js?v=20261109b";
+import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet, subReq, subRuleOn, SUB_DAY, addDays } from "./doors.js?v=20261109b";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing } from "./collector-ui.js?v=20261109b";
 import {
   newsHTML, boostOn, boostHTML, countdownHTML, applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   boss2Of, boss2Prize, simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, weekCandyBefore, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, isFrost, isHeart, heartUnlocked, isLucky, luckyUnlocked, saveProblems, yetiUnlocked, wallMarks, WALL_BLOCK, BOSS_START_HP, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261109a";
-import { MQ_CUTOFF } from "./morning.js?v=20261109a";
-import { kindAdmin } from "./kindness.js?v=20261109a";
-import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261109a";
-import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261109a";
-import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261109a";
-import { passAdmin } from "./pass.js?v=20261109a";
-import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261109a";
-import { watchSecret, secretRef } from "./db.js?v=20261109a";
-import { secretAdmin, secretClick, autoPick, secretBanner } from "./secret.js?v=20261109a";
-import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef, newBattleRef, newsPicRef, watchNewsPic } from "./db.js?v=20261109a";
-import { mapAdmin } from "./readmap.js?v=20261109a";
-import { wheelTab, wheelClick } from "./subwheel.js?v=20261109a";
-import { tbRequestsCard, tbInvite, tbToSettle } from "./teachbattle.js?v=20261109a";
-import { rewardAdmin, rgWaiting, rgOf, shrinkImage } from "./weekgoal.js?v=20261109a";
-import { soloAdmin, soloCfg, soloOn, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261109a";
-import { feederLink } from "./feeder.js?v=20261109a";
-import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261109a";
+} from "./game.js?v=20261109b";
+import { MQ_CUTOFF } from "./morning.js?v=20261109b";
+import { kindAdmin } from "./kindness.js?v=20261109b";
+import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261109b";
+import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261109b";
+import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261109b";
+import { passAdmin } from "./pass.js?v=20261109b";
+import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261109b";
+import { watchSecret, secretRef } from "./db.js?v=20261109b";
+import { secretAdmin, secretClick, autoPick, secretBanner } from "./secret.js?v=20261109b";
+import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef, newBattleRef, newsPicRef, watchNewsPic } from "./db.js?v=20261109b";
+import { mapAdmin } from "./readmap.js?v=20261109b";
+import { wheelTab, wheelClick } from "./subwheel.js?v=20261109b";
+import { tbRequestsCard, tbInvite, tbToSettle } from "./teachbattle.js?v=20261109b";
+import { rewardAdmin, rgWaiting, rgOf, shrinkImage } from "./weekgoal.js?v=20261109b";
+import { soloAdmin, soloCfg, soloOn, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261109b";
+import { feederLink } from "./feeder.js?v=20261109b";
+import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261109b";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef, watchSeats, watchCards, deleteField
-} from "./db.js?v=20261109a";
-import { G, guardCard, guardClick, guardInput, autoSnap, personalLink, syncCards } from "./guard.js?v=20261109a";
-import { lockCard, lockClick } from "./lock.js?v=20261109a";
-import { revengeAdmin, revengeAction } from "./revenge.js?v=20261109a";
-import { heistAdmin, heistAction } from "./heist.js?v=20261109a";
-import { calendarCard, calendarEdit, autoExcuse } from "./calendar.js?v=20261109a";
-import { axoAdmin } from "./axolotl.js?v=20261109a";
-import { clubsAdmin, clubUpload, clubPicks, pickChange } from "./clubs.js?v=20261109a";
-import { planetAdmin, keepLaunchWatch } from "./planet.js?v=20261109a";
-import { soloScreenSync, soloScreenOpenNow } from "./soloscreen.js?v=20261109a";
-import { rosterAdmin, rosterPreview, okEmail } from "./roster.js?v=20261109a";
-import { rosterList, rosterSave, seatsOnce, removeLinkSeats, myAccess, saveClassDir, createClass, adminList, setAdmin, isBuiltInAdmin, switchClass } from "./db.js?v=20261109a";
+} from "./db.js?v=20261109b";
+import { G, guardCard, guardClick, guardInput, autoSnap, personalLink, syncCards } from "./guard.js?v=20261109b";
+import { lockCard, lockClick } from "./lock.js?v=20261109b";
+import { revengeAdmin, revengeAction } from "./revenge.js?v=20261109b";
+import { heistAdmin, heistAction } from "./heist.js?v=20261109b";
+import { calendarCard, calendarEdit, autoExcuse } from "./calendar.js?v=20261109b";
+import { axoAdmin } from "./axolotl.js?v=20261109b";
+import { clubsAdmin, clubUpload, clubPicks, pickChange } from "./clubs.js?v=20261109b";
+import { planetAdmin, keepLaunchWatch, pjMinsNow } from "./planet.js?v=20261109b";
+import { soloScreenSync, soloScreenOpenNow } from "./soloscreen.js?v=20261109b";
+import { rosterAdmin, rosterPreview, okEmail } from "./roster.js?v=20261109b";
+import { rosterList, rosterSave, seatsOnce, removeLinkSeats, myAccess, saveClassDir, createClass, adminList, setAdmin, isBuiltInAdmin, switchClass } from "./db.js?v=20261109b";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -2608,6 +2608,12 @@ document.addEventListener("click", async ev => {
     if (!id) return flash("Pick a student first.");
     if (!(xp >= 30 && xp < cg)) return flash("Type a weekly goal between 30 and " + (cg - 1) + " XP (the class goal is " + cg + ").");
     await patch(id, { wkGoal: xp }); flash("Saved \u2014 " + esc((sOf(id) || {}).name || "") + "\u2019s weekly goal is " + xp + " XP (rings " + ringDay(sOf(id), cls) + " a day).", true); return;
+  }
+  if (act === "pjWinOpen" || act === "pjWinClose") {   // 🚀 open the Planet JP launch window now for the whole class (Nov 9)
+    const now = pjMinsNow(), len = (document.getElementById("pjWinLen") || {}).value || "60", all = !!(document.getElementById("pjWinAll") || {}).checked;
+    const w = act === "pjWinClose" ? { d: azToday(), from: 0, to: 0 } : { d: azToday(), from: now, to: len === "late" ? 15 * 60 + 30 : Math.min(23 * 60, now + Number(len)), all: all ? 1 : 0 };
+    try { await updateDoc(classRef, { pjWin: w }); cls.pjWin = w; flash(act === "pjWinClose" ? "Saved \u2014 the extra launch window is closed." : "Saved \u2014 \u{1F680} the launch window is open now!", true); } catch (e) { flash("Couldn\u2019t save (" + (e.code || e.message) + ").", false); }
+    render(); return;
   }
   if (act === "pjToggle") {
     const on = !(cls && cls.planetOn);

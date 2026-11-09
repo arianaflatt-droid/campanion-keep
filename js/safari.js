@@ -2,15 +2,15 @@
    In each unlocked zone a student can go on a safari: the zone scene fills the screen and creatures peek out and
    hide again. Tapping one before it hides takes its photo (1 film). 5 free film a day (was 3 until Nov 7); an extra roll (3 film) costs
    10 Stardust. A photo of a creature that isn't in the album yet is added; a repeat gives +2 Stardust instead.
-   Nov 7 (v20261109a): each zone's page holds EVERY form of every creature of the zone's types (no Legendaries, Ultras or
+   Nov 7 (v20261109b): each zone's page holds EVERY form of every creature of the zone's types (no Legendaries, Ultras or
    events: 387 in all) + 3 Planet JP–only aliens (21 in all). Every 10 new photos = +25 Stardust; a full page = +100 (once)
    and the zone badge; all 3 of a zone's aliens = its alien badge (badges.js works these out from the album).
    Saved on the student in planet: alb = { "c<id>" or alien key: photos }, saf = { d: day, u: film used, b: film bought },
    pg = [zone keys already paid], ms = milestones paid. One write per photo (≤3 a day unless they buy film). Preview saves nothing. */
-import { CREATURES } from "./creatures.js?v=20261109a";
-import { ALIEN_CREATURES, ALIEN_FAM } from "./aliens.js?v=20261109a";
-import { esc } from "./game.js?v=20261109a";
-import { azToday, azNow } from "./collect.js?v=20261109a";
+import { CREATURES } from "./creatures.js?v=20261109b";
+import { ALIEN_CREATURES, ALIEN_FAM } from "./aliens.js?v=20261109b";
+import { esc } from "./game.js?v=20261109b";
+import { azToday, azNow } from "./collect.js?v=20261109b";
 // ✨ Sparkles (Nov 7): now and then a creature shows up in its Sparkle colors. A photo of one = +10 ⭐ (first time) and a ✨ on its album spot;
 // catching one makes that creature Sparkle in the Collector for good (like a Sparkle hatch). Saved as planet.spk = { key: 1 }.
 export const SAF_SPARKLE = 0.04, SPARKLE_DUST = 10;
@@ -18,6 +18,17 @@ const spkImg = e => e.img ? String(e.img).replace("assets/creatures/", "assets/c
 
 const A = "assets/planet/";
 export const PJ_CLOSE_M = 12 * 60 + 55;
+/* 🚀 Launch window (Nov 9): normally 11:00–12:55 (Arizona). Ms. Ariana can open it early or keep it open later for the whole class
+   (cls.pjWin = { d: today, from, to } in minutes; all: 1 = everyone can launch, even without full tanks), and a student she launches
+   by hand (pjGo = today) can launch any time today and explore until 3:30 pm. */
+export const PJ_LATE = 15 * 60 + 30;
+export function pjWindow(st, cls) {
+  const today = azToday(); let o = 11 * 60, c = PJ_CLOSE_M; const w = cls && cls.pjWin;
+  if (w && w.d === today) { o = Math.min(o, Number(w.from) || 0); c = Math.max(c, Number(w.to) || c); }
+  if (st && st.pjGo === today) { o = 0; c = Math.max(c, PJ_LATE); }
+  return { o, c };
+}
+export const classOpenAll = cls => !!(cls && cls.pjWin && cls.pjWin.d === azToday() && cls.pjWin.all);
 const nowD = () => (typeof window !== "undefined" && window.__pjNow ? new Date(window.__pjNow) : new Date());
 const minsNow = () => { const t = azNow(nowD()); return t.h * 60 + t.m; };
 
@@ -230,7 +241,7 @@ function weights(page, alb) {
 }
 function next() {
   if (!S || S.shot) return;
-  if (minsNow() >= PJ_CLOSE_M && !(ctx && ctx.preview)) { hint("Planet JP is closing for today. See you tomorrow!"); later(1800, stop); return; }
+  if (minsNow() >= pjWindow(ctx && ctx.st, ctx && ctx.cls).c && !(ctx && ctx.preview)) { hint("Planet JP is closing for today. See you tomorrow!"); later(1800, stop); return; }
   if (S.tool === "cam" && !filmLeft(fakeSt())) return noFilm();
   const page = PAGES[S.zk], alb = normAlb(S.pl.alb);
   let e = (typeof window !== "undefined" && window.__safPick) ? page.find(x => x.key === window.__safPick) : null;
