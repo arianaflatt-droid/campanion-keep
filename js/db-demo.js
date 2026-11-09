@@ -60,6 +60,8 @@ export async function changeBattle(id, fn) { const s = read(), t = s["battles/" 
 export function watchRewardPic(id, cb) { return watch(() => read()["rewards/" + id] || null, cb); }
 export function watchRewardPics(cb) { return watch(() => { const m = {}; Object.entries(read()).forEach(([k, v]) => { if (k.startsWith("rewards/") && v && v.img) m[k.slice(8)] = v.img; }); return m; }, cb); }
 export function watchNewsPic(cb) { return watch(() => read()["news/pic"] || null, cb); }
+export const newsPicFor = id => ({ path: "news/" + id });
+export function watchNewsPics(cb) { return watch(() => { const m = {}; Object.entries(read()).forEach(([k, v]) => { if (k.startsWith("news/") && v && v.img) m[k.slice(5)] = v.img; }); return m; }, cb); }
 export function watchSecret(cb) { return watch(() => read()["private/secret"] || null, cb); }
 export function watchLive(cb) { return watch(() => read()["live/xp"] || null, cb); }
 export function watchSeats(cb) { return watch(() => list("seats"), cb); }

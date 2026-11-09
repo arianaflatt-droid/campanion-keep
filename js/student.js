@@ -32,10 +32,11 @@ import { nebbleSync, nebbleCard } from "./pets.js?v=20261109h";
 import { nebbleCorner } from "./petpark.js?v=20261109h";
 import { playSync } from "./playground.js?v=20261109h";
 import { checklistTab, todoCount, markSeen, newsKey, newsRead } from "./checklist.js?v=20261109h";
-import { PREVIEW, configured, auth, googleStudentSignIn, seatInfo, googleReseat, signOut as gSignOut, SCHOOL_DOMAIN, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc as saveDoc, watchRewardPic, watchNewsPic, claimSeat, mySeat, watchCards, watchMe, saveCard, ck } from "./db.js?v=20261109h";
+import { newsPage, shownNews, reactSave, pinnedNews, newsCard, likesFor } from "./news.js?v=20261109h";
+import { PREVIEW, configured, auth, googleStudentSignIn, seatInfo, googleReseat, signOut as gSignOut, SCHOOL_DOMAIN, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc as saveDoc, watchRewardPic, watchNewsPics, claimSeat, mySeat, watchCards, watchMe, saveCard, ck } from "./db.js?v=20261109h";
 import { rewardTab, rewardBadge, rgOf, rgProgress, RG_SUBS } from "./weekgoal.js?v=20261109h";
 import { soloOn, soloSwap, soloCard, brewOne, freeIngredient, soloReady, soloCfg, potNaming, potNameData } from "./solobrew.js?v=20261109h";
-let rpic = null, npic = null;
+let rpic = null, npic = null, npics = {};
 // The wheel's slices; with Solo Potion Brewing on, Free Attack becomes Free Ingredient (same slice id, so saves still pass)
 const slicesNow0 = () => soloOn(cls) ? SEASON.slices.map(x => x.id === "attack" ? Object.assign({}, x, { label: "Free Ingredient", icon: soloCfg(cls).icon, note: "A free " + (soloCfg(cls).ingFor || soloCfg(cls).one) + " ingredient!" }) : x) : SEASON.slices;
 // ⭐ Nov 9: while Planet JP is on, one of the two "Nothing" slices on every event wheel is +50 Stardust instead
@@ -157,7 +158,7 @@ function startWatch() {
   watching = true;
   unsubMain = [
     me ? watchRewardPic(me, d => { rpic = d && d.img; liveRender(); }) : () => {},
-    watchNewsPic(d => { npic = d && d.img; liveRender(); }),
+    watchNewsPics(m => { npics = m || {}; npic = npics.pic || null; liveRender(); }),
     watchClass(c => { cls = c; setSeason(c); loaded.c = true; if (!PREVIEW && checkVersion(c, false)) return; liveRender(); maybeCredit(); }, e => { error = "Couldn’t load your class (" + e.code + ")."; render(); }),
     PREVIEW ? watchStudents(onStudents, noStudents) : watchCards(l => { cards = l; cardsIn = true; if (!l.length && !legacy) legacy = watchStudents(l2 => { cards = l2; mergeStudents(); }, () => {}); mergeStudents(); }, noStudents)
   ];
@@ -311,7 +312,7 @@ function render(force) {
     app.innerHTML = (flashMsg ? '<div class="banner ' + (flashOk ? "info" : "bad") + '">' + esc(flashMsg) + "</div>" : "") + collectorOverlays(collectorCtx(bcur));
     partySync(Object.assign(collectorCtx(!PREVIEW ? bcur : null), { noTake: true })); axoSync(false); return; }
   const bme = cls && students.find(x => x.id === me);
-  let h = cls ? bannerFor(cls, bme && Number(bme.wkGoal) > 0 ? wkGoalOf(bme, cls) : 0) + countdownHTML(cls) + newsPill(bme, cls) + boostHTML(cls) + secretBanner(cls) : BANNER;   // Nov 4: the subject wheel was removed
+  let h = cls ? bannerFor(cls, bme && Number(bme.wkGoal) > 0 ? wkGoalOf(bme, cls) : 0) + countdownHTML(cls) + pinnedTop(bme, cls) + newsPill(bme, cls) + boostHTML(cls) + (tab === "news" ? "" : secretBanner(cls)) : BANNER;   // Nov 4: the subject wheel was removed
   if (flashMsg) h += '<div class="banner ' + (flashOk ? "info" : "bad") + '">' + esc(flashMsg) + "</div>";
   if (error) h += '<div class="card"><p class="lede">' + esc(error) + "</p></div>";
   else if ((!loaded.c || !loaded.s) && slowLoad) h += '<div class="card"><h2>Still loading\u2026</h2><p class="lede" style="margin-top:6px;">Your Keep is taking a long time to open. Try these:</p>' +
@@ -422,7 +423,7 @@ function viewMine(s) {
     .concat((s.clubs && Object.keys(s.clubs).length) || (s.clubPick && s.clubPick.length) ? [["clubs", "\u{1F3A8} Clubs" + B(clubsNew(s))]] : [])
     .concat(tevs.map(E => [E.key, E.tab]))
     .concat([["adv", "\u{1F392} Adventures" + B(nMq + nQ)], ["collect", "\u{1F95A} Creature Collector"], ["room", "\u{1F6CF}\uFE0F My Room"], ["tro", "\u{1F3C6} Trophies" + B(nPass)]]);
-  let h = notYou(s) + planetBar(s, cls, PREVIEW) + '<div class="tabs" role="tablist">' +
+  let h = notYou(s) + planetBar(s, cls, PREVIEW) + '<div class="tabs maintabs" role="tablist" style="--cols:' + Math.ceil(TABS.length / 2) + '">' +
     TABS.map(([k, t]) => { const on = grp === k; return '<button role="tab" class="tab' + (on ? " on" : "") + '" data-tab="' + (on && tab === "axo" ? "room" : firstOf(k)) + '" aria-selected="' + on + '">' + t + "</button>"; }).join("") + "</div>";
   const SUBS = { check: [["check", "\u2705 Checklist" + B(nChk)], ["news", "\u{1F4E3} Announcements" + (newsRead(s, cls) ? "" : B(1))]],
     adv: [["morning", "\u{1F305} Morning Quests" + B(nMq)], ["quest", "\u{1F5FA}\uFE0F Quest" + B(nQ)]],
@@ -552,14 +553,13 @@ function rItemCard(id, opts) {
 // 📣 Announcements page (Nov 9)
 const seenAxo = s => { try { return localStorage.getItem("ck-seen-" + azToday() + "-" + s.id + "-axo") === "1"; } catch (e) { return false; } };
 const lastSub = {};   // the page each combined tab was last on
-function newsTab(cls) {
-  const n = newsHTML(cls, npic);
-  return n || '<div class="card"><h2>\u{1F4E3} Announcements</h2><p class="lede">No announcements right now. When Ms. Ariana posts one, it shows up here (and on your Checklist).</p></div>';
-}
+function newsTab(cls) { return newsPage(students.find(x => x.id === me) || null, cls, students, npics, PREVIEW, secretBanner(cls)); }   // 🕵️ the Secret Students news shows here too
+// ⭐ the starred announcement, at the top of every page
+function pinnedTop(st, cls) { const n = pinnedNews(cls); if (!n || !st || tab === "news") return ""; return '<div class="newstop">' + newsCard(n, npics, likesFor(students, n.id), (st.nlike || {})[n.id] || "", !PREVIEW) + "</div>"; }
 function newsPill(st, cls) {
   if (!st || !newsKey(cls) || newsRead(st, cls) || tab === "news") return "";
-  const t = cls.news.title || "Ms. Ariana posted something new";
-  return '<button class="newspill" data-tab="news">\u{1F4E3} <b>New announcement:</b> ' + esc(t) + ' <span>Read it \u2192</span></button>';
+  const L = shownNews(cls), t = L.length > 1 ? L.length + " announcements to read" : L[0].title || "Something new from the teacher";
+  return '<button class="newspill" data-tab="news">\u{1F4E3} <b>' + (L.length > 1 ? "New announcements:" : "New announcement:") + "</b> " + esc(t) + ' <span>Read ' + (L.length > 1 ? "them" : "it") + ' \u2192</span></button>';
 }
 function roomTab(s, c, worn) {
   if (!ROOMS[roomAt]) roomAt = "bedroom";
@@ -734,7 +734,7 @@ function vaultCard(s) {
     (vaultNeedsMin(v) && st !== "open" ? '<div class="vaultbar' + (v.tot >= v.min ? " full" : "") + '"><span style="width:' + Math.min(100, v.tot / v.min * 100) + '%"></span><b>' + v.tot.toLocaleString() + " / " + v.min + " XP total</b></div>" : "") +
     (st === "open" ? "" : subReqHTML(s, cls)) +
     vaultArt(st === "open", false) +
-    '<p class="small" style="text-align:center;margin:6px 0;">Inside: ' + (v.reward ? "\u{1F381} <b>" + esc(v.reward.name || "your reward") + "</b> · " : "") + (((s.ultraGoals || {}).vault) ? "\u{1F308} a <b>25% chance</b> of an <b>Ultra Legendary egg</b> · " : "\u{1F308} an <b>Ultra Legendary egg</b> (your first vault!) · ") + '\u{1F48E} a <b>Sparkle Legendary egg</b> · ' + (((s.weekDoor || {})[weekKey(cls)]) === "open" ? "" : "\u2728 a <b>Golden Present</b> · ") + "\u{1F510} the <b>Vault Breaker</b> move</p>" +
+    '<p class="small" style="text-align:center;margin:6px 0;">Inside: ' + (v.reward ? "\u{1F381} <b>" + esc(v.reward.name || "your reward") + "</b> · " : "") + (((s.ultraGoals || {}).vault) ? "\u{1F308} a <b>25% chance</b> of an <b>Ultra Legendary egg</b> · " : "\u{1F308} an <b>Ultra Legendary egg</b> (your first vault!) · ") + '\u{1F48E} a <b>Sparkle Legendary egg</b> · ' + (((s.weekDoor || {})[weekKey(cls)]) === "open" ? "" : "\u2728 a <b>Golden Present</b> · ") + "\u{1F510} the <b>Vault Breaker</b> move \u00b7 \u2B50 <b>+100 Stardust</b> \u00b7 \u{1F34E} a <b>trade with the teacher</b></p>" +
     '<div style="text-align:center;">' + body + "</div></div>";
 }
 function earlierWeeksHTML(s) {
@@ -766,7 +766,7 @@ function vaultOverlay() {
   return '<div class="prizeover" role="dialog" aria-label="Treasure Vault"><div class="prizebox presentbox golden vaultbox' + (open ? " opened" : "") + '"><h2>\u{1F48E} TREASURE VAULT \u{1F48E}</h2>' +
     vaultArt(open, !open) +
     (open ? '<div class="prizewon vaultwon"><b>You cracked the vault!</b>' +
-        '<ul class="vaultloot">' + (vaultFx.reward ? '<li>\u{1F381} <b>' + esc(vaultFx.reward) + "</b>! Ms. Ariana will give it to you.</li>" : "") + (vaultFx.ultra ? '<li class="vultra">\u{1F308} An <b>ULTRA LEGENDARY egg</b>! Hatch it in your Creature Collector!</li>' : "") + (vaultFx.golden ? '<li>\u2728 Golden Present: ' + vaultFx.golden.icon + " <b>" + esc(vaultFx.golden.big) + "</b></li>" : "") + '<li>\u{1F48E} A <b>Sparkle Legendary egg</b> — hatch it in your Creature Collector!</li><li>\u{1F510} A <b>Vault Breaker</b> lesson for any creature</li>' +
+        '<ul class="vaultloot">' + (vaultFx.reward ? '<li>\u{1F381} <b>' + esc(vaultFx.reward) + "</b>! Ms. Ariana will give it to you.</li>" : "") + (vaultFx.ultra ? '<li class="vultra">\u{1F308} An <b>ULTRA LEGENDARY egg</b>! Hatch it in your Creature Collector!</li>' : "") + (vaultFx.golden ? '<li>\u2728 Golden Present: ' + vaultFx.golden.icon + " <b>" + esc(vaultFx.golden.big) + "</b></li>" : "") + '<li>\u{1F48E} A <b>Sparkle Legendary egg</b> — hatch it in your Creature Collector!</li><li>\u{1F510} A <b>Vault Breaker</b> lesson for any creature</li><li>\u{1F34E} A <b>trade with the teacher</b>: send your offer from the Trading card!</li>' +
         (vaultFx.prize != null ? "<li>\u{1F3C6} A <b>prize spin</b>!</li>" : "") + "<li>\u2B50 <b>+" + WEEK_DOOR_DUST + " Stardust</b> for Planet JP!</li></ul>" +
         (vaultFx.prize != null ? '<button class="attackbtn" data-act="vaultSpin">\u{1F3C6} Spin the Prize Wheel!</button>' : '<button class="attackbtn" data-act="vaultClose">Yay! \u{1F389}</button>') + "</div>"
       : '<p class="arena-foot" style="font-size:14px;">Cracking the code…</p>') + "</div></div>";
@@ -1083,6 +1083,9 @@ document.addEventListener("click", async ev => {
     await patch({ clubSeen: Object.assign({}, s0.clubSeen || {}, { [k]: doneCount(s0.clubs[k]) }) }); return; }
   if ((el = ev.target.closest("[data-petcr]"))) { await patch({ petCreature: el.dataset.petcr || null }); return; }
   if ((el = ev.target.closest("[data-ck]")) && el.dataset.ck === "vault") { markSeen(me, "vault"); setTimeout(() => { const v = document.querySelector(".vaultcard"); if (v) v.scrollIntoView({ behavior: "smooth", block: "center" }); }, 80); }
+  if ((el = ev.target.closest("[data-nemo]"))) {   // 📣 one kind emote per announcement (Nov 9)
+    const sv = students.find(x => x.id === me); if (!sv || PREVIEW) return; const [id, k] = el.dataset.nemo.split(":"); const d = reactSave(sv, cls, id, k);
+    if (d) await patch(d); return; }
   if ((el = ev.target.closest("[data-tab]"))) { tab = el.dataset.tab; try { localStorage.setItem("ck-tab", tab); } catch (e) {} render(true); scrollTo({ top: 0 }); return; }
   // Teacher preview can't save anything, so say so instead of doing nothing.
   if (PREVIEW && (ev.target.closest("[data-tr]") || ev.target.closest('[data-cc="decline"],[data-cc="accept"],[data-cc="challenge"],[data-cc="move"],[data-cc="leaveBattle"]'))) { flash("This is a teacher preview \u2014 battles and trades only work on the student\u2019s own page (or in your teacher console)."); return; }

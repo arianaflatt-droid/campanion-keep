@@ -6,6 +6,7 @@
 import { rvStarted, rvStock, rvBeatCount } from "./revenge.js?v=20261109h";
 import { heistTodo } from "./heist.js?v=20261109h";
 import { axoOn } from "./axolotl.js?v=20261109h";
+import { newsKeyOf, shownNews } from "./news.js?v=20261109h";
 import { tbLeft, tbLive } from "./teachbattle.js?v=20261109h";
 import { esc, simulate, companionOf, goalXP } from "./game.js?v=20261109h";
 import { azToday, azNow, todayXP, pullsLeft, legendaryLeft, birthdayLeft, pickleLeft, vaultLegLeft, BOSS2_LIST, boss2EggLeft, candyLegLeft, snowLegLeft,
@@ -21,7 +22,7 @@ import { unthanked } from "./kindness.js?v=20261109h";
 
 const seenKey = (id, what) => "ck-seen-" + azToday() + "-" + id + "-" + what;
 // 📣 the class announcement (Nov 9): a new one gets a new key, so it shows up on the list again
-export const newsKey = cls => { const n = cls && cls.news; if (!n || !n.on || !(n.title || n.text || n.pic)) return ""; let h = 7; for (const ch of String(n.title || "") + "|" + String(n.text || "")) h = (h * 31 + ch.charCodeAt(0)) % 999983; return "news" + h; };
+export const newsKey = cls => newsKeyOf(cls);   // changes whenever the list students see changes
 export const newsRead = (s, cls) => !newsKey(cls) || seen(s && s.id, newsKey(cls));
 export function markSeen(id, what) { try { localStorage.setItem(seenKey(id, what), "1"); } catch (e) {} }
 const seen = (id, what) => { try { return localStorage.getItem(seenKey(id, what)) === "1"; } catch (e) { return false; } };
@@ -45,7 +46,7 @@ export function steps(s, cls, students, battles) {
   const school = !["Sat", "Sun"].includes(azNow().day);
 
   // 0. 📣 the announcement (Nov 9)
-  if (newsKey(cls)) add("news", "news", "\u{1F4E3}", "Read the announcement", (cls.news.title ? "\u201C" + cls.news.title + "\u201D \u2014 " : "") + "Ms. Ariana posted something new!", newsRead(s, cls));
+  if (newsKey(cls)) { const L = shownNews(cls); add("news", "news", "\u{1F4E3}", L.length > 1 ? "Read the announcements" : "Read the announcement", (L.length > 1 ? L.length + " announcements: " : "") + (L[0].title ? "\u201C" + L[0].title + "\u201D" : "Something new from the teacher!"), newsRead(s, cls)); }
   // 1. companion
   add("pet", "pet", "\u{1F43E}", "Check on " + pet,
     (sim.alive ? (sim.atRisk ? "⚠️ " + pet + " needs a " + goalXP(cls) + " XP day to heal. " : pet + " is doing great. ") : pet + " needs your help! ")

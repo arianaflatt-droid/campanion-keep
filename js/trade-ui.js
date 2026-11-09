@@ -9,7 +9,7 @@
 // Trading follows the same schedule as the arena (its own switches in the teacher console), and a player has to
 // tick "I'm ready to trade" (tradeReady) before anyone can send them an offer.
 import { esc } from "./game.js?v=20261109h";
-import { seenSet, owned, ownedFams, family, formOf, creature, RARITY_COLOR, hasStarter, spares, spareId, tradeOpen, tradeOpenFor, lunchHour, hitGoalToday, ARENA_HOURS, LUNCH_ARENA, LIVE, staleBattle } from "./collect.js?v=20261109h";
+import { seenSet, owned, ownedFams, family, formOf, creature, RARITY_COLOR, hasStarter, spares, spareId, tradeOpen, tradeOpenFor, lunchHour, hitGoalToday, ARENA_HOURS, LUNCH_ARENA, LIVE, staleBattle, TEACHER_ID } from "./collect.js?v=20261109h";
 import { newTradeRef, changeTrade, setDoc, ck, ckMessage } from "./db.js?v=20261109h";
 
 let pick = { who: "", theirs: "", mine: "" };
@@ -45,6 +45,20 @@ const NEW_TAG = '<span class="trnew">\u{1F4D6} NEW</span>';
 function inBattle(ctx, id) { return (ctx.battles || []).some(b => LIVE.includes(b.status) && !staleBattle(b) && (b.a.id === id || b.b.id === id)); }
 
 const open = t => t.status === "offer";
+/* 🍎 Trading with Ms. Ariana (Nov 9): only by request. Every Treasure Vault a student opens (from the week of Nov 9 on)
+   earns ONE trade with the teacher. The student sends the offer (that's the request) and she answers it in the console.
+   A trade that's waiting or done uses it up; a cancelled or declined one gives it back. Nothing new is saved. */
+export const TT_SINCE = "2026-11-09";
+const isT = x => x && (x.isTeacher || x.id === TEACHER_ID);
+const vsTeacher = (t, sid) => t.a && t.b && ((t.a.id === sid && t.b.id === TEACHER_ID) || (t.b.id === sid && t.a.id === TEACHER_ID));
+export function teacherTradesLeft(st, trades) {
+  if (!st || isT(st)) return 0;
+  const earned = Object.keys(st.vault || {}).filter(w => w >= TT_SINCE && st.vault[w] === "open").length;
+  const used = (trades || []).filter(t => vsTeacher(t, st.id) && (t.status === "offer" || t.status === "accepted") && String(t.created || "") >= TT_SINCE).length;
+  return Math.max(0, earned - used);
+}
+// can these two players trade? (a student and the teacher only with a vault trade left)
+const canPair = (ctx, me, o) => !isT(me) && !isT(o) ? true : teacherTradesLeft(isT(me) ? o : me, ctx.trades) > 0;
 const mineOf = (ctx, s) => (ctx.trades || []).filter(t => t.a && t.b && (t.a.id === s.id || t.b.id === s.id));
 
 export function tradeCard(ctx) {
@@ -85,7 +99,10 @@ export function tradeCard(ctx) {
   if (!ready) return h + "</div>";
 
   // make an offer (only to other ready players who can trade right now)
-  const others = ctx.students.filter(x => x.id !== s.id && hasStarter(x) && x.tradeReady && tradeOpenFor(x, cls));
+  const ttLeft = isT(s) ? 0 : teacherTradesLeft(s, ctx.trades);
+  h += isT(s) ? '<p class="muted small" style="margin:0 0 8px;">\u{1F34E} Students can trade with you once for every Treasure Vault they open. Only those students show up in your list.</p>'
+    : '<p class="small" style="margin:0 0 8px;">\u{1F34E} ' + (ttLeft ? "You opened your Treasure Vault, so you can send <b>" + (ttLeft === 1 ? "one trade offer" : ttLeft + " trade offers") + "</b> to the teacher!" : "Open your <b>Treasure Vault</b> to earn a trade with the teacher.") + "</p>";
+  const others = ctx.students.filter(x => x.id !== s.id && hasStarter(x) && x.tradeReady && tradeOpenFor(x, cls) && canPair(ctx, s, x));
   if (!others.length) return h + '<p class="lede">Nobody else is ready to trade yet. Hang tight!</p></div>';
   const who = others.find(x => x.id === pick.who) || null;
   const mineOk = offerable(s);
@@ -140,6 +157,7 @@ export async function onTradeClick(el, ctx) {
     const why = problem(ctx, s, g, o, w); if (why) return ctx.flash(why);
     if (!tradeOpenFor(s, ctx.cls) || !tradeOpenFor(o, ctx.cls)) return ctx.flash("Trading isn\u2019t open for both of you right now.");
     if (!o.tradeReady) return ctx.flash(o.name + " isn\u2019t ready to trade right now.");
+    if (!canPair(ctx, s, o)) return ctx.flash(isT(o) ? "Open your Treasure Vault to earn a trade with the teacher!" : o.name + " hasn\u2019t earned a trade with you yet (they get one for each Treasure Vault they open).");
     if (mineOf(ctx, s).some(t => open(t) && t.a.id === s.id && t.b.id === o.id)) return ctx.flash("You already have an offer waiting for " + o.name + ".");
     await setDoc(newTradeRef(), { a: { id: s.id, name: s.name }, b: { id: o.id, name: o.name }, ids: [s.id, o.id], give: g, get: w, status: "offer", created: new Date().toISOString() });
     pick = { who: "", theirs: "", mine: "" };

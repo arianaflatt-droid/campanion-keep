@@ -39,6 +39,9 @@ export function watchRewardPics(cb) { return onSnapshot(collection(db, "classes"
 // The announcement picture (Ms. Ariana's top-of-page news, like who's winning the duck race). Everyone can read it.
 export const newsPicRef = db ? doc(db, "classes", CLASS_ID, "news", "pic") : null;
 export function watchNewsPic(cb) { return onSnapshot(newsPicRef, snap => cb(snap.exists() ? snap.data() : null), () => {}); }
+// 📣 Nov 9: one picture per announcement (news/<id>); the old one is news/pic
+export const newsPicFor = id => doc(db, "classes", CLASS_ID, "news", id);
+export function watchNewsPics(cb) { return onSnapshot(collection(db, "classes", CLASS_ID, "news"), snap => { const m = {}; snap.docs.forEach(d => { const x = d.data(); if (x && x.img) m[d.id] = x.img; }); cb(m); }, () => cb({})); }
 export const feederKeyRef = db ? doc(db, "classes", CLASS_ID, "private", "feeder") : null;
 // 🕵️ Secret Students (Nov 2026): today's picks live here so students can't see them (teacher-only)
 export const secretRef = db ? doc(db, "classes", CLASS_ID, "private", "secret") : null;

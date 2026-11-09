@@ -18,10 +18,11 @@ import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyCl
 import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261109h";
 import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261109h";
 import { passAdmin } from "./pass.js?v=20261109h";
-import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf } from "./collect.js?v=20261109h";
+import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf, ULTRA_FAMS, CLUB_ULTRA_FAMS } from "./collect.js?v=20261109h";
 import { watchSecret, secretRef } from "./db.js?v=20261109h";
 import { secretAdmin, secretClick, autoPick, secretBanner } from "./secret.js?v=20261109h";
-import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef, newBattleRef, newsPicRef, watchNewsPic } from "./db.js?v=20261109h";
+import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef, newBattleRef, newsPicRef, watchNewsPics, newsPicFor } from "./db.js?v=20261109h";
+import { allNews, newsAdminHTML } from "./news.js?v=20261109h";
 import { mapAdmin } from "./readmap.js?v=20261109h";
 import { wheelTab, wheelClick } from "./subwheel.js?v=20261109h";
 import { tbRequestsCard, tbInvite, tbToSettle } from "./teachbattle.js?v=20261109h";
@@ -315,7 +316,7 @@ function startConsole() {
     e => flash("Couldn’t load students — " + e.code)));
   unsub.push(watchCards(l => { G.cards = l; cardSoon(); }, () => {}));
   unsub.push(watchSeats(l => { G.seats = l; if (ctab === "students") liveRender(); }, () => {}));
-  unsub.push(watchNewsPic(d => { npic = d && d.img; if (ctab === "daily" || mode === "class") liveRender(); }));
+  unsub.push(watchNewsPics(m => { npics = m || {}; npic = npics.pic || null; if (ctab === "daily" || mode === "class") liveRender(); }));
   unsub.push(watchRewardPics(m => { rpics = m; if (ctab === "rewards") liveRender(); }));
   unsub.push(watchSecret(d => { secretDoc = d || {}; secretLoaded = true; secretAuto(); if (ctab === "daily") liveRender(); }));
   unsub.push(watchLive(d => { live = d; autoLive(); if (ctab === "daily") liveRender(); }, () => {}));
@@ -586,7 +587,10 @@ function teacherCollectorCard() {
     '<p class="lede" style="font-size:13.5px;">Your own collection. Students battle you as <b>' + esc(tplayer().name) + "</b> after they reach the weekly XP goal and ask (see Battle requests).</p>" +
     (() => { const c = (cls.teacher || {}).coll || {}, ks = Object.keys(c), low = ks.filter(k => (Number(c[k] && c[k].lvl) || 1) < 100).length;
       return ks.length ? '<div class="row" style="margin-top:8px;align-items:center;gap:10px;"><button class="btn small" data-act="teacherMax"' + (low ? "" : " disabled") + ">\u2B06\uFE0F Set all my creatures to level 100</button>" +
-        '<span class="muted small">' + (low ? low + " of " + ks.length + " below level 100" : "All " + ks.length + " are level 100 \u2705") + "</span></div>" : ""; })() + "</div>" +
+        '<span class="muted small">' + (low ? low + " of " + ks.length + " below level 100" : "All " + ks.length + " are level 100 \u2705") + "</span></div>" : ""; })() +
+    (() => { const c = (cls.teacher || {}).coll || {}, U = ULTRA_FAMS.concat(CLUB_ULTRA_FAMS), need = U.filter(f => !c[f] || (Number(c[f].lvl) || 1) < 100).length;   // 🌈 Nov 9
+      return '<div class="row" style="margin-top:8px;align-items:center;gap:10px;"><button class="btn small" data-act="teacherUltra"' + (need ? "" : " disabled") + ">\u{1F308} Give me every Ultra Legendary at level 100</button>" +
+        '<span class="muted small">' + (need ? (U.length - need) + " of " + U.length + " Ultras at level 100" : "All " + U.length + " Ultras are yours at level 100 \u2705") + "</span></div>"; })() + "</div>" +
     collectorTab(tctx());
 }
 // While a finger/mouse is pressed, hold page redraws until it lifts. Otherwise a redraw from someone else's
@@ -650,7 +654,7 @@ function render(force) {
     if (nd && nd > doorHidden) h += '<div class="banner prizealert"><span>\u{1F6AA} <b>' + nd + " door" + (nd === 1 ? "" : "s") + "</b> to check" + doorNames() + '</span><span class="row" style="gap:8px;"><button class="btn small" data-act="goDoors">Check doors</button><button class="btn ghost small" data-act="hideDoors">Hide</button></span></div>';
     if (np && np > prizeHidden) h += '<div class="banner prizealert"><span>\u{1F381} <b>' + np + " prize" + (np === 1 ? "" : "s") + "</b> to order or give" + prizeNames() + '</span><span class="row" style="gap:8px;"><button class="btn small" data-act="goPrizes">View prizes</button><button class="btn ghost small" data-act="hidePrizes">Hide</button></span></div>';
     h += '<div class="tabs ctabs" role="tablist">' + tabs.map(([k, l]) => '<button role="tab" class="tab' + (ctab === k ? " on" : "") + '" data-ctab="' + k + '" aria-selected="' + (ctab === k) + '">' + l + "</button>").join("") + "</div>";
-    if (ctab === "daily") h += viewDaily() + planetAdmin(students, cls) + secretAdmin(students, cls, secretDoc) + newsAdmin() + countdownAdmin() + boostAdmin() + miniAdmin(students, cls) + partyAdmin(students, cls) + recessAdmin(students, cls) + surpriseAdmin(students, cls) + viewWeekDoor() + viewRewards();
+    if (ctab === "daily") h += viewDaily() + planetAdmin(students, cls) + secretAdmin(students, cls, secretDoc) + newsAdminHTML(cls, students, npics, newsEditing) + countdownAdmin() + boostAdmin() + miniAdmin(students, cls) + partyAdmin(students, cls) + recessAdmin(students, cls) + surpriseAdmin(students, cls) + viewWeekDoor() + viewRewards();
     else if (ctab === "students") h += viewAssign() + minCard("viewas", viewAsCard(), true) + minCard("standings", viewStandings(), true) + minCard("roster", rosterAdmin(students, busy)) + minCard("lock", lockCard(students, cls)) + minCard("pass", passAdmin(students, cls)) +
       minCard("losses", viewLosses()) + minCard("subswap", subSwapCard()) + minCard("wkgoal", wkGoalCard()) + minCard("axo", axoAdmin(students, cls, busy, esc));   // Nov 6: personal-link cards removed (Google sign-in), clubs got their own tab
     else if (ctab === "clubs") h += clubsAdmin(students, cls, busy);
@@ -1782,7 +1786,14 @@ function rgDraftSet(id, f, v) {
   if (Object.keys(d).every(k => String(d[k]) === String(saved[k]))) delete busy.rgDraft[id]; else busy.rgDraft[id] = d;
   const w = document.getElementById("rgUnsaved"); if (w) w.style.display = Object.keys(busy.rgDraft).length ? "" : "none";
 }
-let npic = null;
+let npic = null, npics = {}, newsEditing = null;
+// 📣 Nov 9: the announcement list (the old single announcement becomes the first item on the first save)
+async function newsListSave(fn, msg) {
+  const l = JSON.parse(JSON.stringify(allNews(cls))); if (fn(l) === false) return;
+  const up = { newsList: l }; if (cls.news && cls.news.on) up["news.on"] = false;
+  try { await updateDoc(classRef, up); cls.newsList = l; if (up["news.on"] === false) cls.news = Object.assign({}, cls.news, { on: false }); if (msg) flash(msg, true); render(); }
+  catch (e) { flash("Couldn\u2019t save \u2014 " + (e.code || e.message)); }
+}
 let live = null, liveBusy = false, liveSaved = null, rpics = {}, rgHidden = 0;
 const LIVE_COUNT_AT = "15:00", LIVE_MORNING_END = "08:15";
 const hm = x => { const [h, m] = String(x).split(":").map(Number); return h * 60 + (m || 0); };
@@ -1879,6 +1890,13 @@ document.addEventListener("change", async ev => {
   if (ev.target.dataset && ev.target.dataset.sec === "swap") { if (cls) await secretClick(ev.target, secretCtx()).catch(e => showErr(e)); return; }
   if (ev.target.dataset && ev.target.dataset.rgf) { const id = ev.target.id.replace(/^rg(Sub|Xp|Lib|Name|Link)-/, ""); busy.rgDraft = busy.rgDraft || {}; rgDraftSet(id, ev.target.dataset.rgf, ev.target.value); return; }
   if (ev.target.id === "newsOn") { await newsSave({ on: ev.target.checked }); return; }
+  if (ev.target.id === "nPicFile" && ev.target.files && ev.target.files[0]) {   // 📣 a picture for one announcement
+    const id = ev.target.dataset.nid, pid = id === "legacy" ? "pic" : id;
+    try { const img = await shrinkImage(ev.target.files[0], 1200); await setDoc(newsPicFor(pid), { img, at: new Date().toISOString() }); npics = Object.assign({}, npics, { [pid]: img });
+      await newsListSave(l => { const n = l.find(x => x.id === id); if (!n) return false; n.pic = pid; }, "\u{1F4F7} Picture saved."); }
+    catch (e) { flash("Couldn\u2019t save that picture \u2014 " + (e.code || e.message)); }
+    ev.target.value = ""; return;
+  }
   if (ev.target.id === "newsPicFile" && ev.target.files && ev.target.files[0]) {
     try { const img = await shrinkImage(ev.target.files[0], 640); await setDoc(newsPicRef, { img, at: new Date().toISOString() }); npic = img; await newsSave({ pic: new Date().toISOString() }); }
     catch (e) { flash("Couldn\u2019t save that picture \u2014 " + (e.code || e.message)); }
@@ -2287,12 +2305,32 @@ document.addEventListener("click", async ev => {
     try { await navigator.clipboard.writeText(link); el.textContent = "Copied!"; setTimeout(render, 1400); } catch (e) { prompt("Copy this link:", link); }
     return;
   }
+  if ((el = ev.target.closest("[data-nedit]"))) { newsEditing = newsEditing === el.dataset.nedit ? null : el.dataset.nedit; render(); return; }
   if ((el = ev.target.closest("[data-pday]"))) { busy.pasteText = (document.getElementById("pasteBox") || {}).value || busy.pasteText; busy.pasteDay = Number(el.dataset.pday); render(); return; }
   if ((el = ev.target.closest("[data-g]")) && (el.tagName !== "SELECT")) { await guardClick(el, { students, cls, flash, render }); return; }
   if (!(el = ev.target.closest("[data-act]"))) return;
   const act = el.dataset.act;
 
   if (act === "newsSave") { await newsSave(); return; }
+  if (act === "newsAdd") { const id = "n" + Date.now().toString(36); newsEditing = id;
+    await newsListSave(l => { l.unshift({ id, title: "", text: "", on: true, end: "", at: new Date().toISOString(), pic: "" }); }); return; }
+  if (act === "newsItemSave" || act === "newsItemDel" || act === "newsPin" || act === "newsPicDel") {
+    const id = el.dataset.nid, v = x => { const e = document.getElementById(x); return e ? (e.type === "checkbox" ? e.checked : e.value.trim()) : null; };
+    if (act === "newsItemDel") { if (!confirm("Delete this announcement?")) return; const n = allNews(cls).find(x => x.id === id);
+      if (n && n.pic) { try { await deleteDoc(newsPicFor(n.pic)); } catch (e) {} } newsEditing = null; return newsListSave(l => { const i = l.findIndex(x => x.id === id); if (i < 0) return false; l.splice(i, 1); }, "Announcement deleted."); }
+    if (act === "newsPin") return newsListSave(l => { const n = l.find(x => x.id === id); if (!n) return false; const on = !n.pin; l.forEach(x => { delete x.pin; }); if (on) { n.pin = true; n.on = true; } }, "\u2B50 Saved.");
+    if (act === "newsPicDel") { const n = allNews(cls).find(x => x.id === id); if (n && n.pic) { try { await deleteDoc(newsPicFor(n.pic)); } catch (e) {} } return newsListSave(l => { const m = l.find(x => x.id === id); if (!m) return false; m.pic = ""; }, "Picture removed."); }
+    const title = v("nTitle") || "", text = v("nText") || "", on = !!v("nOn"), end = v("nEnd") || "";
+    if (!title && !text) return flash("Write a title or a message first.");
+    newsEditing = null;
+    return newsListSave(l => { const n = l.find(x => x.id === id); if (!n) return false; const changed = n.title !== title || n.text !== text; Object.assign(n, { title, text, on, end }); if (changed) n.at = new Date().toISOString(); }, "Saved \u2014 " + (on ? "students can see it." : "it\u2019s hidden."));
+  }
+  if (act === "teacherUltra") {   // 🌈 Nov 9: every Ultra Legendary in Ms. Ariana's own collection, at level 100 (the class doc only)
+    const c = (cls.teacher || {}).coll || {}, coll = Object.assign({}, c), U = ULTRA_FAMS.concat(CLUB_ULTRA_FAMS); let n = 0;
+    U.forEach(f => { if (!coll[f] || (Number(coll[f].lvl) || 1) < 100) { n++; coll[f] = Object.assign({ at: new Date().toISOString() }, coll[f] || {}, { lvl: 100 }); } });
+    if (!n || !confirm("Add every Ultra Legendary (" + U.length + ") to your collection at level 100?")) return;
+    await tpatch({ coll }); flash("Saved \u2014 " + n + " Ultra Legendar" + (n === 1 ? "y" : "ies") + " at level 100 in your collection."); return;
+  }
   if (act === "teacherMax") {   // Oct 26: Ms. Ariana's creatures all at the top level (the class doc only; students' saves aren't touched)
     const c = (cls.teacher || {}).coll || {}, coll = {}; let n = 0;
     Object.keys(c).forEach(k => { const lv = Number(c[k] && c[k].lvl) || 1; if (lv < 100) n++; coll[k] = Object.assign({}, c[k], { lvl: 100 }); });
