@@ -6,12 +6,12 @@
      About 1 day in 10 it's a ✨ Lucky Find: a holiday or event set piece.
    Every buy is one write (planet + the thing bought: outfits / roomOwned / coll), through safari.js planetSave so the safari, the café
    and the shop never overwrite each other. Teacher preview and the student demo save nothing to the class. Catalog: shop-data.js. */
-import { esc } from "./game.js?v=20261108a";
-import { azToday } from "./collect.js?v=20261108a";
-import { planetNow, planetSave, planetCtx, freshSt } from "./safari.js?v=20261108a";
-import { TYPE_THEMES, SEASON_THEMES, KINDS, itemName, itemArt, owned as roomOwnedList } from "./room.js?v=20261108a";
-import { ALIEN_CREATURES, ALIEN_FAMILIES } from "./aliens.js?v=20261108a";
-import { HANGAR_CATS, HANGAR_OPEN, SHOP_ITEMS, SHOP_BY, CATS, CRATE_COST, SHOP_ART, COLLECTIONS, shopOf, hasItem, wearing } from "./shop-data.js?v=20261108a";
+import { esc } from "./game.js?v=20261109a";
+import { azToday } from "./collect.js?v=20261109a";
+import { planetNow, planetSave, planetCtx, freshSt } from "./safari.js?v=20261109a";
+import { TYPE_THEMES, SEASON_THEMES, KINDS, itemName, itemArt, owned as roomOwnedList } from "./room.js?v=20261109a";
+import { ALIEN_CREATURES, ALIEN_FAMILIES } from "./aliens.js?v=20261109a";
+import { HANGAR_CATS, HANGAR_OPEN, SHOP_ITEMS, SHOP_BY, CATS, CRATE_COST, SHOP_ART, COLLECTIONS, shopOf, hasItem, wearing } from "./shop-data.js?v=20261109a";
 
 const WEAR_CATS = ["duck", "flame", "trail", "orbit", "table"];
 let msg = null, extra = null;   // the last message, and the last non-planet fields saved (so the page shows them before the save comes back)
@@ -57,13 +57,13 @@ function give(st, it, shop) {   // what owning an item means; returns the extra 
   return null;
 }
 const HOW = { outfit: "Wear it from Gear on My Companion!", room: "Decorate with it in My Room!", duck: "Your duck has its new paint!", flame: "Your rocket has its new flame!", trail: "Look behind your duck on the launch bar!", orbit: "It’s circling your companion now!", table: "It’s at your seat in the Space Café!" };
-function buy(k) {
+export function buy(k, then) {
   const it = SHOP_BY[k], c = ctx(); if (!it || !c) return;
   const st = stNow(c.st); if (hasItem(st, k) && !it.again) return;
   if (it.cost >= 300 && typeof confirm === "function" && !confirm("Buy " + it.name + " for " + it.cost + " ⭐ Stardust?")) return;
   if (it.cat === "egg") return hatchEgg(st, it);
   const ex = it.cat === "outfit" || it.cat === "room" ? give(st, it, null) : null;   // outfits / room pieces live outside planet
-  pay(it.cost, shop => { if (!ex) give(st, it, shop); }, ex, "\u{1F389} You got the " + it.name + "! " + (HOW[it.cat] || ""));
+  if (pay(it.cost, shop => { if (!ex) give(st, it, shop); }, ex, "\u{1F389} You got the " + it.name + "! " + (HOW[it.cat] || "")) && then) { msg = null; then(it); }
 }
 // 🥚 Planet JP Egg: an alien you don't have yet (Lv 1), or +5 levels on one you do. 10% Sparkle.
 function hatchEgg(st, it) {
@@ -80,8 +80,8 @@ function hatchEgg(st, it) {
 // 🎁 Mystery Space Crate: mostly small things, sometimes something big, sometimes Stardust back
 function openCrate() {
   const c = ctx(); if (!c) return; const st = stNow(c.st);
-  const r0 = Math.random(), r = !HANGAR_OPEN && r0 >= 0.97 ? 0.9 : r0, notMine = cats => SHOP_ITEMS.filter(i => cats.includes(i.cat) && (HANGAR_OPEN || !HANGAR_CATS.includes(i.cat)) && !i.goal && !hasItem(st, i.k));
-  let pickFrom = r < 0.4 ? notMine(["table", "flame"]).concat(HANGAR_OPEN ? [] : notMine(["table"])) : r < 0.65 ? [] : r < 0.85 ? notMine(["trail", "orbit"]).concat(HANGAR_OPEN ? [] : notMine(["orbit"])) : r < 0.97 ? notMine(["outfit"]) : notMine(["duck"]);
+  const r0 = Math.random(), r = r0 >= 0.97 ? 0.9 : r0, notMine = cats => SHOP_ITEMS.filter(i => cats.includes(i.cat) && !HANGAR_CATS.includes(i.cat) && !i.goal && !hasItem(st, i.k));
+  let pickFrom = r < 0.4 ? notMine(["table", "flame"]).concat(notMine(["table"])) : r < 0.65 ? [] : r < 0.85 ? notMine(["trail", "orbit"]).concat(notMine(["orbit"])) : r < 0.97 ? notMine(["outfit"]) : notMine(["duck"]);
   const it = pickFrom.length ? pickFrom[Math.floor(Math.random() * pickFrom.length)] : null;
   const back = it ? 0 : 30 + Math.floor(Math.random() * 8) * 10;   // 30–100 Stardust back
   const ex = it && (it.cat === "outfit" || it.cat === "room") ? give(st, it, null) : null;
@@ -93,7 +93,7 @@ function buySwap() {
   const c = ctx(); if (!c) return; const st = stNow(c.st), d = swapDeal(st); if (!d || d.got) return;
   pay(d.cost, shop => { shop.sw = { d: azToday(), got: 1, id: d.id, lk: d.lucky ? 1 : 0 }; shop.swn = (Number(shop.swn) || 0) + 1; }, { roomOwned: (st.roomOwned || []).concat([d.id]) }, "\u{1F91D} Deal! The " + itemName(d.id) + " is yours. Decorate with it in My Room!");
 }
-function use(k) {   // put on / take off a duck paint, flame, trail, buddy or table extra
+export function use(k) {   // put on / take off a duck paint, flame, trail, buddy or table extra
   const it = SHOP_BY[k], c = ctx(); if (!it || !c || !WEAR_CATS.includes(it.cat)) return;
   const pl = planetNow(); pl.shop = JSON.parse(JSON.stringify(pl.shop || {})); pl.shop.w = pl.shop.w || {};
   if (pl.shop.w[it.cat] === k) delete pl.shop.w[it.cat]; else pl.shop.w[it.cat] = k;
@@ -130,7 +130,7 @@ export function shopPageHTML(st, cls, open, which) {
     '<p class="lede" style="font-size:14px;">“Beep boop! Welcome, Captain! This season: <b>' + COLLECTIONS[COLLECTIONS.length - 1].name + "</b>.”</p></div><img class=\"shstall\" src=\"" + SHOP_ART + 'space-shop.webp" alt=""></div>' +
     '<div class="shcrate"><img src="' + SHOP_ART + 'mystery-crate.webp" alt=""><div><b>\u{1F381} Mystery Space Crate</b><small>A surprise from the shop (mostly small things, sometimes something big) or Stardust back!</small></div>' +
     (open ? '<button class="btn gold" data-shcrate="1"' + (dust >= CRATE_COST ? "" : " disabled") + ">" + CRATE_COST + " ⭐</button>" : "") + "</div>";
-  CATS.forEach(([cat, title, sub]) => { if (!HANGAR_OPEN && HANGAR_CATS.includes(cat)) return; const list = SHOP_ITEMS.filter(i => i.cat === cat); if (!list.length) return;
+  CATS.forEach(([cat, title, sub]) => { if (HANGAR_CATS.includes(cat)) return; /* sold in the Duck Hangar */ const list = SHOP_ITEMS.filter(i => i.cat === cat); if (!list.length) return;
     h += '<h3 class="shcat">' + title + ' <small class="muted">' + esc(sub) + "</small></h3><div class=\"shgrid\">" + list.map(i => itemCard(st, i, open, dust)).join("") + "</div>"; });
   return h + (open ? "" : '<p class="small muted">The shops open after today’s launch, until 12:55.</p>') + "</div>";
 }

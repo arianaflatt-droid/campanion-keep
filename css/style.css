@@ -2872,3 +2872,37 @@ button.cafit{ border:0; background:none; padding:0; cursor:pointer; } button.caf
 .hubduck{ display:block; width:100%; } .hubduck img{ width:100%; height:auto; }
 @media (prefers-reduced-motion: reduce){ .hubplace{ animation:none; } }
 .pjhubhint{ display:none; margin:6px 0 0; text-align:center; } @media (max-width:700px){ .pjhubhint{ display:block; } }
+
+/* ---------- 🔧 Duck Hangar (Nov 9) ---------- */
+.hghead{ position:relative; min-height:230px; background-size:cover; background-position:center; overflow:hidden; display:flex; align-items:flex-end; padding:0; }
+.hgmech{ position:absolute; left:2%; bottom:0; width:min(26%,170px); height:auto; filter:drop-shadow(0 6px 8px rgba(0,0,0,.35)); }
+.hgsay{ position:absolute; left:min(26%,175px); top:14px; max-width:46%; background:#fff; color:#2A1F5C; border-radius:16px; padding:8px 12px; font-size:14px; box-shadow:0 6px 16px rgba(0,0,0,.25); }
+.hgmine{ position:absolute; right:6%; bottom:12%; width:min(42%,300px); height:auto; filter:drop-shadow(0 10px 10px rgba(0,0,0,.4)); animation:hubbob 3s ease-in-out infinite; }
+.hgdust{ position:absolute; right:10px; top:10px; background:rgba(255,255,255,.92); }
+.hggrid{ grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); }
+.shitem.hgduck img{ width:130px; height:84px; }
+.hgbtns{ display:flex; gap:4px; align-items:center; } .hgagain{ padding:4px 8px !important; }
+.hgtool{ position:relative; display:inline-block; line-height:0; } .hgtool img{ display:block; width:100%; height:auto; }
+.hgtint{ position:absolute; left:0; top:0; width:100%; height:100%; mix-blend-mode:multiply; -webkit-mask-size:100% 100%; mask-size:100% 100%; transition:background .5s; }
+#hgroot .hgover{ position:fixed; inset:0; z-index:9500; background:#2A1F5C center/cover no-repeat; display:flex; flex-direction:column; color:#2A1F5C; user-select:none; -webkit-user-select:none; }
+.hgtop{ display:flex; align-items:center; gap:10px; padding:10px 14px; background:rgba(255,255,255,.9); font-size:15px; } .hgtop span{ margin-left:auto; }
+.hgchef{ position:absolute; left:1%; bottom:1%; width:min(22vw,200px); z-index:3; pointer-events:none; } .hgchef img{ width:100%; height:auto; display:block; filter:drop-shadow(0 6px 10px rgba(0,0,0,.3)); }
+.hgbub{ position:absolute; left:10%; bottom:104%; width:min(40vw,290px); background:#fff; border-radius:16px; padding:10px 14px; font-size:16px; font-weight:700; box-shadow:0 6px 16px rgba(0,0,0,.25); }
+.hgwork{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; padding:12px 12px 12px max(12px,min(24vw,220px)); text-align:center; }
+.hgrecipe{ display:flex; gap:10px; align-items:center; background:rgba(255,255,255,.92); border-radius:16px; padding:8px 16px; font-size:18px; font-weight:700; }
+.hgrecipe i{ display:inline-block; width:34px; height:34px; border-radius:50%; border:3px solid #fff; box-shadow:0 0 0 2px #2A1F5C; } .hgrecipe i.ok{ outline:4px solid #3BE37A; }
+.hgbucket{ width:min(34vw,220px); }
+.hgcans{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; max-width:640px; }
+.hgcan{ width:min(15vw,104px); border:0; background:none; padding:0; cursor:pointer; transition:transform .2s; font:inherit; }
+.hgcan small{ display:block; margin-top:4px; background:rgba(255,255,255,.9); border-radius:99px; font-size:12px; font-weight:700; line-height:1.6; }
+.hgcan:hover{ transform:translateY(-4px); } .hgcan.used{ opacity:.3; transform:scale(.85); } .hgcan.nope{ animation:cafno .3s; }
+.hgstage{ position:relative; width:min(72vw,620px); aspect-ratio:800/512; touch-action:none; cursor:none; }
+.hgstage canvas{ position:absolute; inset:0; width:100%; height:100%; transition:opacity .4s; }
+.hgroller{ position:absolute !important; width:min(24vw,150px); pointer-events:none; transform:translate(-18%,-12%); z-index:5; left:60%; top:20%; }
+.hgsplat{ position:absolute; width:46px; transform:translate(-50%,-50%); pointer-events:none; z-index:4; animation:hgsp .7s forwards; }
+@keyframes hgsp{ from{ transform:translate(-50%,-50%) scale(.3); opacity:1; } to{ transform:translate(-50%,-50%) scale(1.3); opacity:0; } }
+.hgbar{ width:min(70vw,520px); height:20px; border-radius:10px; background:rgba(255,255,255,.88); border:3px solid #2A1F5C; overflow:hidden; } .hgbar div{ height:100%; width:0; background:linear-gradient(90deg,#FFB347,#FF6FB5,#7AE7FF); }
+.hgtime{ font-size:40px; font-weight:900; color:#FFE066; text-shadow:0 4px 0 #2A1F5C; }
+.hgdone{ background:rgba(255,255,255,.95); border-radius:22px; padding:14px 22px; box-shadow:0 10px 30px rgba(0,0,0,.3); } .hgdone p{ margin:4px 0 10px; }
+.hgstars{ font-size:44px; line-height:1.2; }
+@media (max-width:640px){ .hgwork{ padding:12px 12px 150px; } .hgchef{ width:110px; } .hgbub{ left:90%; bottom:30%; width:60vw; font-size:14px; } }

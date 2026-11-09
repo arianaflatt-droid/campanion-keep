@@ -7,15 +7,16 @@
    A launch is saved on the student: planet = { n: launches, last: "YYYY-MM-DD", streak, best } (one write a day).
    Wave 2 adds a space minigame between liftoff and landing; Planet JP itself comes later, one piece at a time.
    Pictures live in assets/planet/ — until one is uploaded (ART below) the stand-in drawing is used. */
-import { esc } from "./game.js?v=20261108a";
-import { azToday, azNow } from "./collect.js?v=20261108a";
-import { axoDay, schoolDayFor } from "./axolotl.js?v=20261108a";
-import { addDays } from "./doors.js?v=20261108a";
-import { GAMES, gameOfDay, gameByKey, play, preload } from "./spacegames.js?v=20261108a";
-import { ZONES, safariSync, freshSt, albumHTML, filmLeft, pageCount, pageSize, aliensFound, zoneAliens, FREE_FILM, ROLL_COST, shopHTML, netsOf, NETS, netImg } from "./safari.js?v=20261108a";
-import { cafeHTML } from "./cafe.js?v=20261108a";
-import { shopPageHTML } from "./spaceshop.js?v=20261108a";
-import { duckImgOf, flameFxOf, trailOf } from "./shop-data.js?v=20261108a";
+import { esc } from "./game.js?v=20261109a";
+import { azToday, azNow } from "./collect.js?v=20261109a";
+import { axoDay, schoolDayFor } from "./axolotl.js?v=20261109a";
+import { addDays } from "./doors.js?v=20261109a";
+import { GAMES, gameOfDay, gameByKey, play, preload } from "./spacegames.js?v=20261109a";
+import { ZONES, safariSync, freshSt, albumHTML, filmLeft, pageCount, pageSize, aliensFound, zoneAliens, FREE_FILM, ROLL_COST, shopHTML, netsOf, NETS, netImg } from "./safari.js?v=20261109a";
+import { cafeHTML } from "./cafe.js?v=20261109a";
+import { shopPageHTML } from "./spaceshop.js?v=20261109a";
+import { hangarHTML } from "./hangar.js?v=20261109a";
+import { duckImgOf, flameFxOf, trailOf } from "./shop-data.js?v=20261109a";
 
 export const PJ_OPEN = 11 * 60, PJ_CLOSE = 12 * 60 + 55;   // minutes after midnight, Arizona time
 const A = "assets/planet/";
@@ -318,6 +319,7 @@ const HUB_PLACES = [
   { k: "safari", name: "\u{1F6D2} Safari Shop", x: 37, y: 74, w: 18, html: () => '<img src="' + A + 'safari-shop.webp" alt="">' },
   { k: "shop", name: "\u{1F6CD}\uFE0F Space Shop", x: 62, y: 74, w: 22, html: () => '<img src="' + A + 'shop/space-shop.webp" alt="">' },
   { k: "swap", name: "\u{1F527} Swap Shop", x: 86, y: 63, w: 21, html: () => '<img src="' + A + 'shop/swap-shop.webp" alt="">' },
+  { k: "hangar", name: "\u{1F527} Duck Hangar", x: 78, y: 41, w: 15, html: () => '<img src="' + A + 'hangar/hangar-building.webp" alt="">' },
   { k: "album", name: "\u{1F4D6} Photo Album", x: 30, y: 44, w: 10, html: () => '<span class="hubbook">\u{1F4D6}</span>' },
   { k: "colony", name: "\u{1F3D5}\uFE0F Class Colony", x: 54, y: 46, w: 14, html: () => '<span class="hubduck">' + duckHTML() + "</span>" }];
 if (typeof document !== "undefined") document.addEventListener("click", ev => { const b = ev.target.closest && ev.target.closest("[data-pjcolony]"); if (!b) return; const c = document.getElementById("pjcolonycard"); if (c) c.scrollIntoView({ behavior: "smooth" }); });
@@ -338,6 +340,7 @@ export function planetTab(st, cls, students, petOf, preview) {
     '</p></div><div class="pjtabstats"><span>\u{1F680} <b>' + n + "</b> launch" + (n === 1 ? "" : "es") + "</span><span>⭐ <b>" + (Number(pl.dust) || 0) + "</b> Stardust</span>" +
     ((pl.streak || 0) > 1 ? "<span>\u{1F525} <b>" + pl.streak + "</b> days in a row</span>" : "") + "</div></div></div>";
   if (zoneOpen === "album") return h + albumHTML(st, n);
+  if (zoneOpen === "hangar") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn ghost small" data-pjzone="">← Map</button></div>' + hangarHTML(st, cls, pjOpen(st, cls) || !!preview);
   if (zoneOpen === "safari") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn ghost small" data-pjzone="">← Map</button></div>' + shopHTML(st);
   if (zoneOpen === "swap") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn ghost small" data-pjzone="">← Map</button></div>' + shopPageHTML(st, cls, pjOpen(st, cls) || !!preview, "swap");
   if (zoneOpen === "shop") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn ghost small" data-pjzone="">← Map</button></div>' + shopPageHTML(st, cls, pjOpen(st, cls) || !!preview, "shop");

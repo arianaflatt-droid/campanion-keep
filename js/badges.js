@@ -1,14 +1,14 @@
-import { owned as roomOwned, fitOf as roomFit, FIT_SLOTS, setItems as roomSet } from "./room.js?v=20261108a";
-import { presentsOpened } from "./doors.js?v=20261108a";
-import { PASS_THEMES, passDone } from "./pass.js?v=20261108a";
-import { shopBuys, swapBuys, outfitsOwned, cabinOwned } from "./shop-data.js?v=20261108a";
-import { REGULARS as CF_REG, SPECIALS as CF_SP, keptCount as cfKept, perfectTotal as cfPerfect, monthPairs as cfPairs } from "./cafe-data.js?v=20261108a";
-import { ZONES as PJ_ZONES, pageCount as pjPage, pageSize as pjSize, aliensFound as pjAl, allAliensFound as pjAllAl, ALIEN_LIST as PJ_ALIENS } from "./safari.js?v=20261108a";
+import { owned as roomOwned, fitOf as roomFit, FIT_SLOTS, setItems as roomSet } from "./room.js?v=20261109a";
+import { presentsOpened } from "./doors.js?v=20261109a";
+import { PASS_THEMES, passDone } from "./pass.js?v=20261109a";
+import { shopBuys, swapBuys, outfitsOwned, cabinOwned, paintsOwned } from "./shop-data.js?v=20261109a";
+import { REGULARS as CF_REG, SPECIALS as CF_SP, keptCount as cfKept, perfectTotal as cfPerfect, monthPairs as cfPairs } from "./cafe-data.js?v=20261109a";
+import { ZONES as PJ_ZONES, pageCount as pjPage, pageSize as pjSize, aliensFound as pjAl, allAliensFound as pjAllAl, ALIEN_LIST as PJ_ALIENS } from "./safari.js?v=20261109a";
 // Badges: worked out from each student's saved data, so nothing extra is stored and no rules change.
 // To add a badge: add an entry with a check(st) that returns how far along the student is,
 // and a goal. Put its picture in assets/badges/ (a transparent WEBP or PNG). Without a picture, the emoji shows.
-import { esc, goalXP, candyOf, ghostUnlocked } from "./game.js?v=20261108a";
-import { seenSet, ownedFams, owned, family, formIndex, formOf, STARTERS, CREATURES } from "./collect.js?v=20261108a";
+import { esc, goalXP, candyOf, ghostUnlocked } from "./game.js?v=20261109a";
+import { seenSet, ownedFams, owned, family, formIndex, formOf, STARTERS, CREATURES } from "./collect.js?v=20261109a";
 
 export const hatches = st => (Number(st.pullsUsed) || 0) + (Number(st.legendaryUsed) || 0);
 
@@ -275,6 +275,7 @@ export const BADGES = [
   { id: "shop-first", group: "cafe", name: "First Purchase", desc: "Buy something in the Planet JP Space Shop or Swap Shop", goal: 1, img: "assets/badges/shop-first.webp", emoji: "\u{1F6CD}\uFE0F", check: st => Math.min(1, shopBuys(st)) },
   { id: "shop-suited", group: "cafe", name: "Fully Suited", desc: "Own all 4 Starship Cadet outfits", goal: 4, img: "assets/badges/shop-suited.webp", emoji: "\u{1F469}\u200D\u{1F680}", check: outfitsOwned },
   { id: "shop-cabin", group: "cafe", name: "Starship Captain", desc: "Own all 9 Starship Cabin room pieces", goal: 9, img: "assets/badges/shop-cabin.webp", emoji: "\u{1F6CF}\uFE0F", check: cabinOwned },
+  { id: "hangar-paint", group: "cafe", name: "Master Painter", desc: "Own 10 S.S. Duck paint jobs from the Duck Hangar", goal: 10, img: "assets/badges/hangar-paint.webp", emoji: "\u{1F3A8}", check: st => Math.min(10, paintsOwned(st)) },
   { id: "shop-swap", group: "cafe", name: "Deal Hunter", desc: "Buy 5 Swap Shop deals", goal: 5, img: "assets/badges/shop-swap.webp", emoji: "\u{1F527}", check: st => Math.min(5, swapBuys(st)) },
   { id: "snack-first", group: "cafe", name: "First Perfect Snack", desc: "Cook your first 3-star snack in the Cosmic Kitchen", goal: 1, img: "assets/badges/snack-first.webp", emoji: "\u{1F469}\u200D\u{1F373}", check: st => Math.min(1, cfPerfect(st)) },
   { id: "snack-regulars", group: "cafe", name: "Caf\u00e9 Regular", desc: "Keep all 6 everyday snacks (3 perfect cooks each)", goal: CF_REG.length, img: "assets/badges/snack-regulars.webp", emoji: "\u2615", check: st => cfKept(st, CF_REG) },
