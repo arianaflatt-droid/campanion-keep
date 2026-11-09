@@ -11,9 +11,9 @@
    Class switch: cls.heist = { on, id, from, to }. Student save: heist = { id, used, bonus, hp{n}, mh{n:[3]}, beat{n}, pw{pie,shield,cry,rage},
      tw, th, best, bells, got{}, rounds }. Rewards use fields students may write (rules countsOk): candyBonus, doorEggs, eggBoost,
    legendaryPulls, outfits, roomOwned, heistLeg (✨ Sparkle Grinch-a-Duck egg, hatched by the server kind "heist"). */
-import { esc, SEASON } from "./game.js?v=20261109e";
-import { azToday } from "./collect.js?v=20261109e";
-import { subFor } from "./teams.js?v=20261109e";
+import { esc, SEASON } from "./game.js?v=20261109g";
+import { azToday } from "./collect.js?v=20261109g";
+import { subFor } from "./teams.js?v=20261109g";
 
 export const PER_ENERGY = 10, ROUND_SEC = 20, XMAS_DAY = 4;
 const A = "assets/heist/";

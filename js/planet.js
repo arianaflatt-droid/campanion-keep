@@ -7,17 +7,19 @@
    A launch is saved on the student: planet = { n: launches, last: "YYYY-MM-DD", streak, best } (one write a day).
    Wave 2 adds a space minigame between liftoff and landing; Planet JP itself comes later, one piece at a time.
    Pictures live in assets/planet/ — until one is uploaded (ART below) the stand-in drawing is used. */
-import { esc } from "./game.js?v=20261109e";
-import { azToday, azNow } from "./collect.js?v=20261109e";
-import { axoDay, schoolDayFor } from "./axolotl.js?v=20261109e";
-import { addDays } from "./doors.js?v=20261109e";
-import { GAMES, gameOfDay, gameByKey, play, preload } from "./spacegames.js?v=20261109e";
-import { ZONES, safariSync, freshSt, albumHTML, filmLeft, pageCount, pageSize, aliensFound, zoneAliens, FREE_FILM, ROLL_COST, shopHTML, netsOf, NETS, netImg, pjWindow, classOpenAll, PJ_LATE } from "./safari.js?v=20261109e";
-import { cafeHTML } from "./cafe.js?v=20261109e";
-import { shopPageHTML } from "./spaceshop.js?v=20261109e";
-import { hangarHTML } from "./hangar.js?v=20261109e";
-import { zooHTML } from "./zoo.js?v=20261109e";
-import { duckImgOf, flameFxOf, trailOf } from "./shop-data.js?v=20261109e";
+import { esc } from "./game.js?v=20261109g";
+import { azToday, azNow } from "./collect.js?v=20261109g";
+import { axoDay, schoolDayFor } from "./axolotl.js?v=20261109g";
+import { addDays } from "./doors.js?v=20261109g";
+import { GAMES, gameOfDay, gameByKey, play, preload } from "./spacegames.js?v=20261109g";
+import { ZONES, safariSync, freshSt, albumHTML, filmLeft, pageCount, pageSize, aliensFound, zoneAliens, FREE_FILM, ROLL_COST, shopHTML, netsOf, NETS, netImg, pjWindow, classOpenAll, PJ_LATE } from "./safari.js?v=20261109g";
+import { cafeHTML } from "./cafe.js?v=20261109g";
+import { shopPageHTML } from "./spaceshop.js?v=20261109g";
+import { hangarHTML } from "./hangar.js?v=20261109g";
+import { zooHTML } from "./zoo.js?v=20261109g";
+import { adoptHTML, PP as NEB_PP } from "./pets.js?v=20261109g";
+import { missionsHTML, placeBang } from "./missions.js?v=20261109g";
+import { duckImgOf, flameFxOf, trailOf } from "./shop-data.js?v=20261109g";
 
 export const PJ_OPEN = 11 * 60, PJ_CLOSE = 12 * 60 + 55;   // minutes after midnight, Arizona time
 const A = "assets/planet/";
@@ -321,6 +323,17 @@ function kNext() {
    Opens after the day's launch and closes at 12:55 (Arizona). Zones unlock by number of launches (planet.n).
    The Colony shows every classmate who landed today (from the class's public cards — no extra reads). */
 export { ZONES };
+// 🐾 Nebbles (Nov 9): the buddy pops up around the Keep when the student launched today, can launch today (full tanks),
+// or launched on the last school day before today. (Ms. Ariana: it disappears if they don't launch again.)
+export function nebbleOut(st, cls) {
+  if (!st || !planetOn(cls)) return false;
+  const pl = st.planet || {}, today = azToday();
+  if (pl.last === today) return true;
+  if (["ready", "go"].includes(phase(st, cls))) return true;
+  let prev = addDays(today, -1), i = 0;
+  while (!schoolDayFor(cls, prev) && i++ < 20) prev = addDays(prev, -1);
+  return !!pl.last && pl.last === prev;
+}
 export const pjOpen = (st, cls) => phase(st, cls) === "landed" && mins() < pjWindow(st, cls).c;
 const TYPE_IC = { Fire: "\u{1F525}", Water: "\u{1F4A7}", Nature: "\u{1F343}", Rock: "\u{1FAA8}", Earth: "⛰️", Air: "\u{1F32A}️", Electric: "⚡", Ice: "❄️", Light: "✨", Dark: "\u{1F311}", Ghost: "\u{1F47B}", Poison: "\u{1F9EA}", Steel: "⚙️", Normal: "\u{1F4AB}", Arcane: "\u{1F52E}", Crystal: "\u{1F48E}", Dragon: "\u{1F409}" };
 let zoneOpen = null;
@@ -334,6 +347,7 @@ const HUB_PLACES = [
   { k: "shop", name: "\u{1F6CD}\uFE0F Space Shop", x: 62, y: 74, w: 22, html: () => '<img src="' + A + 'shop/space-shop.webp" alt="">' },
   { k: "swap", name: "\u{1F527} Swap Shop", x: 86, y: 63, w: 21, html: () => '<img src="' + A + 'shop/swap-shop.webp" alt="">' },
   { k: "zoo", name: "\u{1F992} Space Zoo", x: 12, y: 35.5, w: 13.5, html: () => '<img src="' + A + 'zoo/zoo-gate.webp" alt="">' },
+  { k: "adopt", name: "\u{1F43E} Adoption Center", x: 42, y: 53, w: 12, html: () => '<img src="' + NEB_PP + 'adopt-building.webp" alt="">' },   // 🐾 Nebbles (Nov 9)
   { k: "hangar", name: "\u{1F527} Duck Hangar", x: 78, y: 41, w: 15, html: () => '<img src="' + A + 'hangar/hangar-building.webp" alt="">' },
   { k: "album", name: "\u{1F4D6} Photo Album", x: 30, y: 44, w: 10, html: () => '<span class="hubbook">\u{1F4D6}</span>' },
   { k: "colony", name: "\u{1F3D5}\uFE0F Class Colony", x: 54, y: 46, w: 14, html: () => '<span class="hubduck">' + duckHTML() + "</span>" }];
@@ -343,7 +357,7 @@ function hubHTML(st, n) {
   ZONES.forEach((z, i) => { const open = n >= z.at, [x, y] = HUB_ZONES[i];
     h += '<button class="hubzone' + (open ? "" : " locked") + '" style="left:' + x + "%;top:" + y + '%"' + (open ? ' data-pjzone="' + z.key + '"' : " disabled") + ">" +
       '<span class="hubport" style="background-image:url(' + A + "zone-" + z.key + '.webp)">' + (open ? "" : "<i>\u{1F512}</i>") + '</span><span class="hublbl">' + z.icon + " " + esc(z.name) + (open ? "" : " \u00b7 " + z.at + " \u{1F680}") + "</span></button>"; });
-  HUB_PLACES.forEach(p => { h += '<button class="hubplace hub-' + p.k + '" style="left:' + p.x + "%;top:" + p.y + "%;width:" + p.w + '%" ' + (p.k === "colony" ? 'data-pjcolony="1"' : 'data-pjzone="' + p.k + '"') + ">" + p.html() + '<span class="hublbl">' + p.name + "</span></button>"; });
+  HUB_PLACES.forEach(p => { h += '<button class="hubplace hub-' + p.k + '" style="left:' + p.x + "%;top:" + p.y + "%;width:" + p.w + '%" ' + (p.k === "colony" ? 'data-pjcolony="1"' : 'data-pjzone="' + p.k + '"') + ">" + p.html() + (placeBang(st, p.k) ? '<span class="hubbang" title="Something to do here today!">!</span>' : "") + '<span class="hublbl">' + p.name + "</span></button>"; });
   return h + "</div></div>";
 }
 export function planetTab(st, cls, students, petOf, preview) {
@@ -356,6 +370,7 @@ export function planetTab(st, cls, students, petOf, preview) {
     ((pl.streak || 0) > 1 ? "<span>\u{1F525} <b>" + pl.streak + "</b> days in a row</span>" : "") + "</div></div></div>";
   if (zoneOpen === "album") return h + albumHTML(st, n);
   if (zoneOpen === "hangar") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn ghost small" data-pjzone="">← Map</button></div>' + hangarHTML(st, cls, pjOpen(st, cls) || !!preview);
+  if (zoneOpen === "adopt") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn ghost small" data-pjzone="">← Map</button></div>' + adoptHTML(st, cls, pjOpen(st, cls) || !!preview);
   if (zoneOpen === "zoo") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn ghost small" data-pjzone="">← Map</button></div>' + zooHTML(st, cls, pjOpen(st, cls) || !!preview);
   if (zoneOpen === "safari") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn ghost small" data-pjzone="">← Map</button></div>' + shopHTML(st);
   if (zoneOpen === "swap") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn ghost small" data-pjzone="">← Map</button></div>' + shopPageHTML(st, cls, pjOpen(st, cls) || !!preview, "swap");
@@ -373,6 +388,7 @@ export function planetTab(st, cls, students, petOf, preview) {
       '<p class="small" style="margin:8px 0 0;">\u{1F6D2} Your nets: ' + NETS.map(n => netImg(n, "pjnetimg") + " " + (Number(netsOf(st)[n.k]) || 0)).join(" · ") + ". Switch to a net on the safari to catch a creature!</p></div>" + shopHTML(st);
   }
   const next = ZONES.find(x => n < x.at);
+  h += missionsHTML(st, pjOpen(st, cls) || !!preview);   // 🧭 Today's missions (Nov 9)
   // 🗺️ The Planet JP hub (Nov 8): one big picture of the landing area. Tap a place to go there.
   h += '<div class="card pjhubcard"><div class="card-head"><h2>\u{1F5FA}\uFE0F Planet JP</h2><span class="fact">' + ZONES.filter(x => n >= x.at).length + " of " + ZONES.length + " zones open</span></div>" +
     (next ? '<p class="lede" style="font-size:14px;margin:0 0 8px;">Tap a place to go there! Next zone: <b>' + next.icon + " " + esc(next.name) + "</b> in " + (next.at - n) + " more launch" + (next.at - n === 1 ? "" : "es") + ".</p>" : '<p class="lede" style="margin:0 0 8px;">Tap a place to go there! \u{1F3C6} You unlocked every zone!</p>') +
