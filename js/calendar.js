@@ -6,9 +6,9 @@
    excused (status "e" + xpHist[date].e, so companion health, streaks and the daily count skip it). Those are marked
    xpHist[date].eo ("excused by the calendar"), so un-marking the break puts them back. One write per student, only
    when something changes. */
-import { esc, arr5, dateOfDay, hitOn } from "./game.js?v=20261109i";
-import { azToday } from "./collect.js?v=20261109i";
-import { addDays } from "./doors.js?v=20261109i";
+import { esc, arr5, dateOfDay, hitOn } from "./game.js?v=20261109j";
+import { azToday } from "./collect.js?v=20261109j";
+import { addDays } from "./doors.js?v=20261109j";
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const wd = iso => { const [y, m, d] = iso.split("-").map(Number); return new Date(y, m - 1, d).getDay(); };

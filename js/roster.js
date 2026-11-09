@@ -5,8 +5,8 @@
    roster doc and sits that device down as that student (seats/{uid} = { sid, email, at }, checked by the rules
    against the roster), so they open their own existing save — no progress moves anywhere.
    Personal links keep working exactly as before. One roster doc per student; reads only when the card is opened. */
-import { esc } from "./game.js?v=20261109i";
-import { SCHOOL_DOMAIN } from "./db.js?v=20261109i";
+import { esc } from "./game.js?v=20261109j";
+import { SCHOOL_DOMAIN } from "./db.js?v=20261109j";
 
 export const okEmail = e => new RegExp("^[^@\\s]+@" + SCHOOL_DOMAIN.replace(/\./g, "\\.") + "$", "i").test(String(e || "").trim());
 const EMAIL_KEYS = ["email", "student email", "school email", "e-mail", "email address", "google email"];

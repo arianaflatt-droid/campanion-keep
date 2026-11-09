@@ -3164,8 +3164,16 @@ button.cafit{ border:0; background:none; padding:0; cursor:pointer; } button.caf
 .newsprevin{ margin-top:8px; padding:10px; border-radius:14px; background:var(--casing); }
 .newsemo:disabled{ opacity:.55; } .newsemo.mine:disabled{ opacity:1; }
 /* picture announcements: big picture across the card, words (if any) under it */
-.newscard.haspic{ flex-direction:column; align-items:stretch; text-align:left; padding:10px; }
-.newscard.haspic .newsbig{ width:100%; height:auto; max-height:640px; object-fit:contain; border-radius:12px; display:block; background:#fff; }
+.newscard.haspic{ flex-direction:row; align-items:center; text-align:left; padding:10px 14px; }
+.newscard.haspic .newsbig{ width:220px; flex:none; height:auto; max-height:220px; object-fit:contain; border-radius:12px; display:block; background:#fff; cursor:zoom-in; }
+.newscard.haspic .newstxt{ flex:1; min-width:0; }
+@media (max-width:560px){ .newscard.haspic{ flex-direction:column; align-items:stretch; } .newscard.haspic .newsbig{ width:100%; max-height:240px; } }
 .newscard.haspic .newstxt{ padding:2px 6px 4px; }
 .newscard.haspic h2{ font-size:18px; }
-.newstop .newscard.haspic .newsbig{ max-height:380px; }   /* the starred one at the top of every page: a bit smaller */
+/* the starred one at the top of every page: compact, picture on the left */
+.newstop .newscard{ padding:8px 12px; margin-bottom:10px; }
+.newstop .newscard.haspic{ flex-direction:row; align-items:center; }
+.newstop .newscard.haspic .newsbig{ width:120px; max-height:120px; flex:none; }
+.newstop .newscard h2{ font-size:17px; margin:0 0 2px; } .newstop .newscard p{ font-size:14px; }
+.newstop .newsdate{ display:none; } .newstop .newsemos{ margin-top:6px; } .newstop .newsemo{ font-size:16px; padding:3px 8px; }
+@media (max-width:560px){ .newstop .newscard.haspic{ flex-direction:row; text-align:left; } .newstop .newscard.haspic .newsbig{ width:84px; max-height:84px; } }
