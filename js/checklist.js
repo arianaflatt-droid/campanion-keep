@@ -112,7 +112,8 @@ export function checklistTab(s, cls, students, battles) {
     (left ? '<p class="lede" style="margin-bottom:10px;">Go down your list. Tap a step to go do it. Done steps disappear!' + (list.length - left ? ' <span class="ckdone">✅ ' + (list.length - left) + " done</span>" : "") + '</p><div class="cklist">' +
     list.filter(x => !x.done).map((x, i) => '<button class="ckitem" data-tab="' + x.tab + '" data-ck="' + x.id + '"><span class="ckn">' + (i + 1) + '</span><span class="ckic">' + x.icon +
       '</span><span class="cktxt"><b>' + esc(x.title) + "</b><small>" + esc(x.text) + '</small></span><span class="ckgo">Go →</span></button>').join("") + "</div>"
-      : '<div class="ckalldone"><span>\u{1F389}</span><b>Your checklist is all done for today!</b><small>Now get learning. New steps show up here when there\u2019s something to do.</small></div>') +
+      : '<div class="ckalldone"><span>\u{1F389}</span><b>Your checklist is all done for today!</b><small>Now get learning. New steps show up here when there\u2019s something to do.</small>' +
+        (((s.planet || {}).ckd === azToday()) ? '<small>\u2B50 You got your <b>+10 Stardust</b> for today!</small>' : '<button class="btn gold" data-act="ckClaim" style="margin-top:8px;">\u2B50 Claim +10 Stardust</button>') + "</div>") +
     '<div class="ckgoal"><b>\u{1F3AF} Then: earn ' + goal + " XP today!</b> " + (xp >= goal ? "You did it — every 120 more earns another egg! \u{1F389}" : xp.toLocaleString() + " / " + goal + " so far") +
     '<span class="pbar"><span style="width:' + Math.min(100, xp / goal * 100) + '%"></span></span></div>' +
     workCard(s, cls) +

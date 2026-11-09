@@ -153,7 +153,7 @@ export function secretOverlay(st) {
   return '<div class="prizeover secretover" role="dialog" aria-label="You were a Secret Student"><div class="prizebox">' +
     (opened
       ? '<div class="secenv open">\u{1F48C}</div><h2>You were a SECRET STUDENT!</h2><p class="lede">Your secret mission: <b>' + (M.icon || "") + " " + esc(M.name || "") + "</b> — and you did it! \u{1F389}</p>" +
-        '<p style="font-size:22px;margin:10px 0;">' + esc(w.icon || "\u{1F381}") + " You won <b>" + esc(w.prize || "a prize") + "</b>!</p>" + (w.note ? '<p class="secnote">“' + esc(w.note) + "” — Ms. Ariana</p>" : "") +
+        '<p style="font-size:22px;margin:10px 0;">' + esc(w.icon || "\u{1F381}") + " You won <b>" + esc(w.prize || "a prize") + "</b>!</p><p style=\"font-size:18px;margin:0 0 10px;\">\u2B50 + <b>25 Stardust</b> for Planet JP!</p>" + (w.note ? '<p class="secnote">“' + esc(w.note) + "” — Ms. Ariana</p>" : "") +
         '<button class="attackbtn" data-act="secretSeen">Yay! \u{1F389}</button>'
       : '<div class="secenv">✉️</div><h2>\u{1F575}️ A secret envelope for you!</h2><p class="lede">It’s sealed with a star…</p><button class="attackbtn" data-act="secretOpen">Open it!</button>') +
     "</div></div>";

@@ -47,7 +47,7 @@ import { nudgeCard } from "./nudges.js?v=20261109h";
 import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261109h";
 import { teacherPlayer, hasStarter, MOVES, formOf } from "./collect.js?v=20261109h";
 import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261109h";
-import { addDays, wkGoalOf, wkShare, ringDay, vaultMet, goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked, weekGoal, weekKey, weekTotal, weekDoorState, vaultState, vaultGoal, rewardFor, oldReady, vaultLessonsLeft, VAULT_XP, VAULT_BONUS_XP, VAULT_EGGS, VAULT_MIN, vaultMinOk, vaultNeedsMin, subReq, subReqHTML, DOOR_DUST, WEEK_DOOR_DUST, WHEEL_DUST } from "./doors.js?v=20261109h";
+import { addDays, wkGoalOf, wkShare, ringDay, vaultMet, goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked, weekGoal, weekKey, weekTotal, weekDoorState, vaultState, vaultGoal, rewardFor, oldReady, vaultLessonsLeft, VAULT_XP, VAULT_BONUS_XP, VAULT_EGGS, VAULT_MIN, vaultMinOk, vaultNeedsMin, subReq, subReqHTML, DOOR_DUST, WEEK_DOOR_DUST, WHEEL_DUST, DOOR_OPEN_DUST, SECRET_DUST, CHECK_DUST } from "./doors.js?v=20261109h";
 import { freshSt as pjFresh } from "./safari.js?v=20261109h";
 import { azToday } from "./collect.js?v=20261109h";
 import { roomHTML, FIT_SLOTS, slotKind, KIND_NAMES, KIND_ICON, EVERYDAY_PRICE, THEMED_PRICE, TROPHY_PRICE, TYPE_THEMES, SEASON_THEMES, THEME_NAMES, TROPHIES,
@@ -835,7 +835,7 @@ function presentOverlay() {
       ? '<div class="giftbox shake">\u{1F381}</div><p class="arena-foot" style="font-size:14px;">Unwrapping\u2026</p>'
       : '<div class="prizewon"><span style="font-size:72px;line-height:1;">' + t.icon + "</span><b>" + esc(t.big) + '</b><span class="arena-foot">' + esc(t.sub) + "</span>" +
         (present.week ? '<p class="arena-win" style="margin:8px 0 0;">\u2728 Golden Present \u2728 + \u{1F31F} a <b>Legendary egg</b> in your Creature Collector!</p>' : "") +
-        (present.week && present.dust ? '<p class="arena-win" style="margin:6px 0 0;">\u2B50 + <b>' + present.dust + " Stardust</b> for Planet JP!</p>" : "") +
+        (present.dust ? '<p class="arena-win" style="margin:6px 0 0;">\u2B50 + <b>' + present.dust + " Stardust</b> for Planet JP!</p>" : "") +
         (present.week && tbLeft(students.find(x => x.id === me) || {}, cls, battles).length ? '<p class="arena-win tbwon" style="margin:8px 0 0;">\u{1F34E} You also earned a <b>battle with Ms. Ariana</b>! ' +
           ((students.find(x => x.id === me) || {}).tbAsk ? "You already asked for it ✅" : '<button class="btn small" data-act="tbAsk">Ask for a battle!</button>') + "</p>" : "") +
         (present.prize != null ? '<button class="attackbtn" data-act="presentSpin">\u{1F3C6} Spin the Prize Wheel!</button>' : '<button class="attackbtn" data-act="closePresent">Yay! \u{1F389}</button>') + "</div>") +
@@ -941,7 +941,8 @@ async function openPresent(date, k) {
   doors[date][k] = Object.assign({}, doors[date][k] || {}, { st: "open", r, openedAt: new Date().toISOString() });
   const data = { doors, lastDoor: date + "/" + k };
   const prize = presentReward(s, r, data);
-  present = { date, k, r, phase: "shake", golden, prize, goal: tier };
+  if (!golden) plusDust(Object.assign({}, s, data.planet ? { planet: data.planet } : {}), DOOR_OPEN_DUST, data);   // ⭐ Nov 9: every door has +10 Stardust behind it too
+  present = { date, k, r, phase: "shake", golden, prize, goal: tier, dust: golden ? 0 : DOOR_OPEN_DUST };
   render(true);
   const saving = updateDoc(studentRef(me), data).then(() => Object.assign(s, data)).catch(e => { present = null; flash("That present didn\u2019t open \u2014 ask Ms. Ariana. (" + (e.code || e.message) + ")"); });
   setTimeout(async () => { await saving; if (present) { present.phase = "open"; render(true); } }, 1600);
@@ -1297,7 +1298,12 @@ document.addEventListener("click", async ev => {
   if (act === "unwrapAll") { await unwrapAll(); return; }
   if (act === "bulkClose") { bulk = null; render(); return; }
   if (act === "secretOpen") { secretOpen(); render(true); return; }
-  if (act === "secretSeen") { const sv = students.find(x => x.id === me); if (!sv || PREVIEW || !sv.secretWin) return; return patch({ secretSeen: sv.secretWin.date }); }
+  if (act === "secretSeen") { const sv = students.find(x => x.id === me); if (!sv || PREVIEW || !sv.secretWin) return;
+    const d = { secretSeen: sv.secretWin.date }; if (sv.secretSeen !== sv.secretWin.date) plusDust(sv, SECRET_DUST, d);   // ⭐ Nov 9: a Secret Student win also gives +25 Stardust
+    return patch(d); }
+  if (act === "ckClaim") { const sv = students.find(x => x.id === me); if (!sv || PREVIEW) return;   // ⭐ Nov 9: +10 Stardust for finishing the checklist (once a day)
+    const pl = (pjFresh(sv) || {}).planet || {}; if (pl.ckd === azToday() || todoCount(sv, cls, students, battles)) return;
+    const d = {}; plusDust(sv, CHECK_DUST, d); d.planet.ckd = azToday(); flash("\u2B50 +" + CHECK_DUST + " Stardust for finishing your checklist!", true); return patch(d); }
   if (act === "wheelSeen") { const sw = students.find(x => x.id === me); if (sw && !PREVIEW) await wheelSeen(sw).catch(e => console.error(e)); render(); return; }
   if (act === "vaultSpin") { const idx = vaultFx && vaultFx.prize; vaultFx = null; if (idx != null) openPrizeWheel(idx); else render(); return; }
   if (act === "vaultClose") { vaultFx = null; render(); return; }

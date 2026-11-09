@@ -131,7 +131,7 @@ export function rollPresent(golden, tier) {
   return { id: x.id };
 }
 export const REWARD_XP = { xp25: 25, xp50: 50, xp500: 500 };
-export const DOOR_DUST = 25, WEEK_DOOR_DUST = 100, WHEEL_DUST = 50;   // ⭐ Stardust from doors and event wheels (Nov 9)
+export const DOOR_DUST = 25, WEEK_DOOR_DUST = 100, WHEEL_DUST = 50, DOOR_OPEN_DUST = 10, SECRET_DUST = 25, CHECK_DUST = 10;   // ⭐ Stardust from doors and event wheels (Nov 9)
 export function rewardText(r, S) {
   S = S || SEASON;
   switch (r && r.id) {
