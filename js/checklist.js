@@ -3,22 +3,22 @@
    Each step checks itself off from the student's save; tapping a step opens the tab where it's done.
    The Treasure Vault step is "check your progress", so it counts as done once the student opens it today
    (remembered on this computer only). */
-import { rvStarted, rvStock, rvBeatCount } from "./revenge.js?v=20261109h";
-import { heistTodo } from "./heist.js?v=20261109h";
-import { axoOn } from "./axolotl.js?v=20261109h";
-import { newsKeyOf, shownNews } from "./news.js?v=20261109h";
-import { tbLeft, tbLive } from "./teachbattle.js?v=20261109h";
-import { esc, simulate, companionOf, goalXP } from "./game.js?v=20261109h";
+import { rvStarted, rvStock, rvBeatCount } from "./revenge.js?v=20261109i";
+import { heistTodo } from "./heist.js?v=20261109i";
+import { axoOn } from "./axolotl.js?v=20261109i";
+import { newsKeyOf, shownNews } from "./news.js?v=20261109i";
+import { tbLeft, tbLive } from "./teachbattle.js?v=20261109i";
+import { esc, simulate, companionOf, goalXP } from "./game.js?v=20261109i";
 import { azToday, azNow, todayXP, pullsLeft, legendaryLeft, birthdayLeft, pickleLeft, vaultLegLeft, BOSS2_LIST, boss2EggLeft, candyLegLeft, snowLegLeft,
-  gingerLegLeft, feastLegLeft, brewLegLeft, goalLeft, themeLeft, hasStarter, bankXP, LEVEL_XP } from "./collect.js?v=20261109h";
-import { mqReady } from "./morning.js?v=20261109h";
-import { doorsLive, doorName, goldenReady, weekDoorState, vaultState, vaultGoal, subReq, todayPlan } from "./doors.js?v=20261109h";
-import { soloOn, soloReady, soloCfg } from "./solobrew.js?v=20261109h";
-import { passReady } from "./pass.js?v=20261109h";
-import { pettedToday } from "./bond.js?v=20261109h";
-import { mealsReady } from "./meals.js?v=20261109h";
-import { readyTests } from "./quest.js?v=20261109h";
-import { unthanked } from "./kindness.js?v=20261109h";
+  gingerLegLeft, feastLegLeft, brewLegLeft, goalLeft, themeLeft, hasStarter, bankXP, LEVEL_XP } from "./collect.js?v=20261109i";
+import { mqReady } from "./morning.js?v=20261109i";
+import { doorsLive, doorName, goldenReady, weekDoorState, vaultState, vaultGoal, subReq, todayPlan } from "./doors.js?v=20261109i";
+import { soloOn, soloReady, soloCfg } from "./solobrew.js?v=20261109i";
+import { passReady } from "./pass.js?v=20261109i";
+import { pettedToday } from "./bond.js?v=20261109i";
+import { mealsReady } from "./meals.js?v=20261109i";
+import { readyTests } from "./quest.js?v=20261109i";
+import { unthanked } from "./kindness.js?v=20261109i";
 
 const seenKey = (id, what) => "ck-seen-" + azToday() + "-" + id + "-" + what;
 // 📣 the class announcement (Nov 9): a new one gets a new key, so it shows up on the list again
