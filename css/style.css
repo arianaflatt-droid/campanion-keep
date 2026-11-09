@@ -3120,3 +3120,20 @@ button.cafit{ border:0; background:none; padding:0; cursor:pointer; } button.caf
 .cafwho{ display:flex; flex-wrap:wrap; gap:6px; margin:10px 0 0; }
 .cafwho span{ background:#fff; color:#1A1440; border-radius:99px; padding:3px 10px; font-size:13px; font-weight:700; box-shadow:0 1px 3px rgba(0,0,0,.15); }
 .cafwho span.me{ background:#FFE066; }
+
+/* ---------- 🗂️ Nov 9: fewer tabs, sub-tabs, Announcements, Bubble's Baby arrow ---------- */
+.tabs{ background:rgba(255,255,255,.55); padding:6px; border-radius:16px; box-shadow:0 2px 10px rgba(40,30,90,.12); }
+.tabs .tab{ color:var(--ink); background:#fff; border-color:transparent; box-shadow:0 1px 3px rgba(0,0,0,.08); cursor:pointer; transition:transform .12s, box-shadow .12s; }
+.tabs .tab:hover{ transform:translateY(-1px); box-shadow:0 4px 10px rgba(0,0,0,.12); }
+.tabs .tab.on{ background:linear-gradient(135deg,#5B3FD0,#7A5CF0); color:#fff; border-color:transparent; box-shadow:0 4px 12px rgba(91,63,208,.4); }
+.subtabs{ display:flex; gap:6px; flex-wrap:wrap; margin:-6px 0 14px; }
+.subtab{ font:inherit; font-weight:800; font-size:14px; padding:7px 14px; border-radius:99px; border:2px solid #D9D0FA; background:#fff; color:#2A1F5C; cursor:pointer; }
+.subtab.on{ background:#FFE38A; border-color:#F2B33D; color:#3A2410; }
+.newspill{ display:flex; align-items:center; gap:8px; width:100%; margin:0 0 12px; border:2px solid #F2B33D; background:#FFF6D6; color:#3A2410; border-radius:14px; padding:10px 14px; font:inherit; font-size:15px; cursor:pointer; text-align:left; animation:newsglow 2s ease-in-out infinite; }
+.newspill span{ margin-left:auto; font-weight:800; white-space:nowrap; }
+@keyframes newsglow{ 50%{ box-shadow:0 0 0 4px rgba(242,179,61,.35); } }
+.axoarrow{ display:flex; align-items:center; gap:12px; width:100%; margin:0 0 12px; border:0; border-radius:16px; padding:12px 16px; font:inherit; cursor:pointer; text-align:left; color:#103A4A; background:linear-gradient(135deg,#C9F3FF,#E5D9FF); box-shadow:0 3px 12px rgba(40,90,140,.2); }
+.axoarrow > span{ font-size:34px; line-height:1; } .axoarrow b{ font-size:17px; } .axoarrow small{ display:block; font-size:13px; color:#24485A; }
+.axoarrow i{ margin-left:auto; font-style:normal; font-size:30px; font-weight:900; animation:axonudge 1.2s ease-in-out infinite; }
+@keyframes axonudge{ 50%{ transform:translateX(6px); } }
+@media (prefers-reduced-motion: reduce){ .newspill, .axoarrow i{ animation:none; } }

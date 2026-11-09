@@ -31,7 +31,7 @@ import { planetBar, planetSync, planetBusy, planetTab, planetZone, pjOpen, plane
 import { nebbleSync, nebbleCard } from "./pets.js?v=20261109h";
 import { nebbleCorner } from "./petpark.js?v=20261109h";
 import { playSync } from "./playground.js?v=20261109h";
-import { checklistTab, todoCount, markSeen } from "./checklist.js?v=20261109h";
+import { checklistTab, todoCount, markSeen, newsKey, newsRead } from "./checklist.js?v=20261109h";
 import { PREVIEW, configured, auth, googleStudentSignIn, seatInfo, googleReseat, signOut as gSignOut, SCHOOL_DOMAIN, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc as saveDoc, watchRewardPic, watchNewsPic, claimSeat, mySeat, watchCards, watchMe, saveCard, ck } from "./db.js?v=20261109h";
 import { rewardTab, rewardBadge, rgOf, rgProgress, RG_SUBS } from "./weekgoal.js?v=20261109h";
 import { soloOn, soloSwap, soloCard, brewOne, freeIngredient, soloReady, soloCfg, potNaming, potNameData } from "./solobrew.js?v=20261109h";
@@ -311,7 +311,7 @@ function render(force) {
     app.innerHTML = (flashMsg ? '<div class="banner ' + (flashOk ? "info" : "bad") + '">' + esc(flashMsg) + "</div>" : "") + collectorOverlays(collectorCtx(bcur));
     partySync(Object.assign(collectorCtx(!PREVIEW ? bcur : null), { noTake: true })); axoSync(false); return; }
   const bme = cls && students.find(x => x.id === me);
-  let h = cls ? bannerFor(cls, bme && Number(bme.wkGoal) > 0 ? wkGoalOf(bme, cls) : 0) + countdownHTML(cls) + newsHTML(cls, npic) + boostHTML(cls) + secretBanner(cls) : BANNER;   // Nov 4: the subject wheel was removed
+  let h = cls ? bannerFor(cls, bme && Number(bme.wkGoal) > 0 ? wkGoalOf(bme, cls) : 0) + countdownHTML(cls) + newsPill(bme, cls) + boostHTML(cls) + secretBanner(cls) : BANNER;   // Nov 4: the subject wheel was removed
   if (flashMsg) h += '<div class="banner ' + (flashOk ? "info" : "bad") + '">' + esc(flashMsg) + "</div>";
   if (error) h += '<div class="card"><p class="lede">' + esc(error) + "</p></div>";
   else if ((!loaded.c || !loaded.s) && slowLoad) h += '<div class="card"><h2>Still loading\u2026</h2><p class="lede" style="margin-top:6px;">Your Keep is taking a long time to open. Try these:</p>' +
@@ -407,19 +407,29 @@ function viewMine(s) {
   if (tab === "planet" && !pjOpen(s, cls) && !(PREVIEW && planetOn(cls))) tab = "pet";   // Planet JP closes at 12:55
   const tevs = [];   // team events are turned off (Oct 16) to keep the day simpler
   if (TEAM_EVENTS[tab] && !tevs.includes(TEAM_EVENTS[tab])) tab = "pet";
+  // 🗂️ Nov 9 (Ms. Ariana): fewer tabs. Some tabs hold a few pages, switched with small buttons at the top (subBar).
+  if (tab === "rmap") tab = "morning";   // the Reading Map is off the Keep
+  if (tab === "news" && newsKey(cls)) markSeen(s.id, newsKey(cls));
+  if (tab === "axo") markSeen(s.id, "axo");
+  const B = n => n ? ' <span class="tbadge">' + n + "</span>" : "";
+  const nMq = mqReady(s, cls), nQ = readyTests(s).length, nPass = cls && cls.passOff ? 0 : passReady(s, cls), nChk = todoCount(s, cls, students, battles);
+  const GROUPS = { check: "check", news: "check", morning: "adv", quest: "adv", pass: "tro", badges: "tro", hof: "tro", room: "room", axo: "room" };
+  const grp = GROUPS[tab] || tab; if (GROUPS[tab] && tab !== "axo") lastSub[grp] = tab;
+  const firstOf = g => lastSub[g] || ({ check: "check", adv: "morning", tro: cls && cls.passOff ? "badges" : "pass", room: "room" })[g] || g;
+  const TABS = [["check", "\u2705 Checklist" + B(nChk)], ["pet", "\u{1F43E} My Companion"]]
+    .concat(pjOpen(s, cls) || (PREVIEW && planetOn(cls)) ? [["planet", "\u{1FA90} Planet JP"]] : [])
+    .concat(haunt ? [["haunt", S.icon + " " + S.name]] : []).concat(doorsOn ? [["doors", "\u{1F6AA} " + doorName() + doorBadge(s)]] : [])
+    .concat((s.clubs && Object.keys(s.clubs).length) || (s.clubPick && s.clubPick.length) ? [["clubs", "\u{1F3A8} Clubs" + B(clubsNew(s))]] : [])
+    .concat(tevs.map(E => [E.key, E.tab]))
+    .concat([["adv", "\u{1F392} Adventures" + B(nMq + nQ)], ["collect", "\u{1F95A} Creature Collector"], ["room", "\u{1F6CF}\uFE0F My Room"], ["tro", "\u{1F3C6} Trophies" + B(nPass)]]);
   let h = notYou(s) + planetBar(s, cls, PREVIEW) + '<div class="tabs" role="tablist">' +
-    [["check", "\u2705 Checklist" + (todoCount(s, cls, students, battles) ? ' <span class="tbadge">' + todoCount(s, cls, students, battles) + "</span>" : "")], ["pet", "\u{1F43E} My Companion"]].concat(haunt ? [["haunt", S.icon + " " + S.name]] : []).concat(doorsOn ? [["doors", "\u{1F6AA} " + doorName() + doorBadge(s)]] : [])
-      .concat([["morning", "\u{1F305} Morning Quests" + (mqReady(s, cls) ? ' <span class="tbadge">' + mqReady(s, cls) + "</span>" : "")]])
-      .concat(mapOn(cls) ? [["rmap", "\u{1F4DA} Reading Map" + (mapReady(s, cls) ? ' <span class="tbadge">' + mapReady(s, cls) + "</span>" : "")]] : [])
-      .concat(tevs.map(E => [E.key, E.tab]))
-      .concat([["collect", "\u{1F95A} Creature Collector"], ["badges", "\u{1F3C5} Badges"]])
-      .concat(cls && cls.passOff ? [] : [["pass", "\u{1F39F}\uFE0F Season Pass" + (passReady(s, cls) ? ' <span class="tbadge">' + passReady(s, cls) + "</span>" : "")]])
-      .concat([["hof", "\u{1F3DB}\uFE0F Hall of Fame"], ["room", "\u{1F6CF}\uFE0F My Room"]])
-      .concat(axoOn(cls) ? [["axo", "\u{1FAE7} Bubble\u2019s Baby"]] : [])
-      .concat(pjOpen(s, cls) || (PREVIEW && planetOn(cls)) ? [["planet", "\u{1FA90} Planet JP"]] : [])
-      .concat((s.clubs && Object.keys(s.clubs).length) || (s.clubPick && s.clubPick.length) ? [["clubs", "\u{1F3A8} Clubs" + (clubsNew(s) ? ' <span class="tbadge">' + clubsNew(s) + "</span>" : "")]] : [])
-      .concat([["quest", "\u{1F5FA}\uFE0F Quest" + (readyTests(s).length ? ' <span class="tbadge">' + readyTests(s).length + "</span>" : "")]])
-      .map(([k, t]) => '<button role="tab" class="tab' + (tab === k ? " on" : "") + '" data-tab="' + k + '" aria-selected="' + (tab === k) + '">' + t + "</button>").join("") + "</div>";
+    TABS.map(([k, t]) => { const on = grp === k; return '<button role="tab" class="tab' + (on ? " on" : "") + '" data-tab="' + (on && tab === "axo" ? "room" : firstOf(k)) + '" aria-selected="' + on + '">' + t + "</button>"; }).join("") + "</div>";
+  const SUBS = { check: [["check", "\u2705 Checklist" + B(nChk)], ["news", "\u{1F4E3} Announcements" + (newsRead(s, cls) ? "" : B(1))]],
+    adv: [["morning", "\u{1F305} Morning Quests" + B(nMq)], ["quest", "\u{1F5FA}\uFE0F Quest" + B(nQ)]],
+    tro: (cls && cls.passOff ? [] : [["pass", "\u{1F39F}\uFE0F Season Pass" + B(nPass)]]).concat([["badges", "\u{1F3C5} Badges"], ["hof", "\u{1F3DB}\uFE0F Hall of Fame"]]) };
+  if (SUBS[grp]) h += '<div class="subtabs">' + SUBS[grp].map(([k, t]) => '<button class="subtab' + (tab === k ? " on" : "") + '" data-tab="' + k + '">' + t + "</button>").join("") + "</div>";
+  if (tab === "news") return h + newsTab(cls);
+  if (tab === "axo") { return h + '<div class="row" style="margin:0 0 10px;"><button class="btn ghost small" data-tab="room">\u2190 Back to My Room</button></div>'; }   // the axolotl draws in its own frame right under the tabs (axolotl.js)
   if (tab === "check") return h + checklistTab(s, cls, students, battles);
   if (tab === "collect") return h + tbCard(s, cls, battles, cls && cls.teacher && cls.teacher.name) + collectorTab(collectorCtx(s));
   if (tab === "badges") return h + badgesTab(s, battles, cls);
@@ -427,12 +437,10 @@ function viewMine(s) {
   if (tab === "doors") return h + unwrapAllCard(s) + earlierWeeksHTML(s) + vaultCard(s) + doorsCard(s);   // Nov 3: no Weekly Door card (its rewards are in the vault)
   if (TEAM_EVENTS[tab]) return h + teamCard(TEAM_EVENTS[tab], s, cls, students);
   if (tab === "morning") return h + morningTab(s, cls);
-  if (tab === "rmap" && mapOn(cls)) return h + mapTab(s, cls);
   if (tab === "pass") return h + passTab(s, cls);
   if (tab === "hof") return h + hofTab(s, students, cls);
   if (tab === "quest") return h + questTab(s, petHTML(c, worn, heldWeapon(s)));
   if (tab === "room") return h + roomTab(s, c, worn);
-  if (tab === "axo") return h;
   if (tab === "planet") return h + planetTab(s, cls, students, x => { const c = companionOf(x); return c ? petHTML(c) : ""; }, PREVIEW);
   if (tab === "clubs") return h + clubsTab(s, cls);   // the axolotl draws in its own frame right under the tabs (axolotl.js)
   h += todayCard(s, c);
@@ -541,10 +549,23 @@ function rItemCard(id, opts) {
   return '<button class="ritem' + (o.on ? " on" : "") + (o.locked ? " locked" : "") + '" ' + (o.attr || "") + (o.locked ? " disabled" : "") + ">" + pic +
     "<span>" + esc(tro ? (SEASON_THEMES[p.theme] || "") + " Trophy" : itemName(id)) + "</span>" + (o.price != null ? '<span class="pr">\u2B50 ' + o.price + " CP</span>" : "") + (o.note ? '<small class="muted">' + o.note + "</small>" : "") + "</button>";
 }
+// 📣 Announcements page (Nov 9)
+const seenAxo = s => { try { return localStorage.getItem("ck-seen-" + azToday() + "-" + s.id + "-axo") === "1"; } catch (e) { return false; } };
+const lastSub = {};   // the page each combined tab was last on
+function newsTab(cls) {
+  const n = newsHTML(cls, npic);
+  return n || '<div class="card"><h2>\u{1F4E3} Announcements</h2><p class="lede">No announcements right now. When Ms. Ariana posts one, it shows up here (and on your Checklist).</p></div>';
+}
+function newsPill(st, cls) {
+  if (!st || !newsKey(cls) || newsRead(st, cls) || tab === "news") return "";
+  const t = cls.news.title || "Ms. Ariana posted something new";
+  return '<button class="newspill" data-tab="news">\u{1F4E3} <b>New announcement:</b> ' + esc(t) + ' <span>Read it \u2192</span></button>';
+}
 function roomTab(s, c, worn) {
   if (!ROOMS[roomAt]) roomAt = "bedroom";
   const left = cpLeft(s, cls), have = roomOwned(s), fit = fitIn(s, roomAt), mine0 = hasRoom(s, roomAt), R0 = ROOMS[roomAt];
-  let h = '<div class="card roomwrap"><div class="card-head"><h2>' + R0.icon + " " + esc(s.petName || c.name) + "\u2019s " + (roomAt === "bedroom" ? "Room" : R0.name) + "</h2>" + '<span class="cpwallet">\u2B50 ' + left + " Comfort Points</span></div>" +
+  let h = (axoOn(cls) ? '<button class="axoarrow" data-tab="axo"><span>\u{1FAE7}</span><div><b>Check on Bubble\u2019s Baby</b><small>' + (seenAxo(s) ? "You checked today \u2705" : "Go see how the class baby axolotl is doing!") + '</small></div><i>\u2192</i></button>' : "") +
+    '<div class="card roomwrap"><div class="card-head"><h2>' + R0.icon + " " + esc(s.petName || c.name) + "\u2019s " + (roomAt === "bedroom" ? "Room" : R0.name) + "</h2>" + '<span class="cpwallet">\u2B50 ' + left + " Comfort Points</span></div>" +
     '<div class="slotbar roompick">' + Object.keys(ROOMS).map(r => '<button class="tpill2' + (roomAt === r ? " on" : "") + '" data-roomat="' + r + '">' + ROOMS[r].icon + " " + ROOMS[r].name + (hasRoom(s, r) ? "" : " \u{1F512}") + "</button>").join("") + "</div>" +
     roomHTML(s, petHTML(c, worn, heldWeapon(s)), { room: roomAt === "bedroom" ? null : roomAt, neb: mine0 ? nebbleCorner(s) : "", side: mine0 ? (() => { const k = sidekickToday(s, boardDay(cls, students)); return k ? { kind: k, html: sidekickSVG(k) } : null; })() : null }) +
     (mine0 ? '<div class="slotbar petspots"><span class="muted small">\u{1F43E} Where is ' + esc(s.petName || c.name) + "?</span>" + PET_SPOT_KEYS.map(k => '<button class="tpill2' + (petSpotOf(s, roomAt) === k ? " on" : "") + '" data-petspot="' + k + '">' + petSpotLabel(roomAt, k) + "</button>").join("") + "</div>" : '<div class="roomlock"><b>' + R0.icon + " Unlock the " + R0.name + "</b><span>Comes with all 9 pieces you see here. Themed " + esc(KIND_NAMES["bed_" + roomAt].toLowerCase()) + "s and " + esc(KIND_NAMES["chair_" + roomAt].toLowerCase()) + "s show up in the Themed sets shop once it\u2019s yours.</span>" +

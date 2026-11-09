@@ -5,7 +5,7 @@
    (remembered on this computer only). */
 import { rvStarted, rvStock, rvBeatCount } from "./revenge.js?v=20261109h";
 import { heistTodo } from "./heist.js?v=20261109h";
-import { mapOn, mapState, todayReading, PER_ISLAND } from "./readmap.js?v=20261109h";
+import { axoOn } from "./axolotl.js?v=20261109h";
 import { tbLeft, tbLive } from "./teachbattle.js?v=20261109h";
 import { esc, simulate, companionOf, goalXP } from "./game.js?v=20261109h";
 import { azToday, azNow, todayXP, pullsLeft, legendaryLeft, birthdayLeft, pickleLeft, vaultLegLeft, BOSS2_LIST, boss2EggLeft, candyLegLeft, snowLegLeft,
@@ -20,6 +20,9 @@ import { readyTests } from "./quest.js?v=20261109h";
 import { unthanked } from "./kindness.js?v=20261109h";
 
 const seenKey = (id, what) => "ck-seen-" + azToday() + "-" + id + "-" + what;
+// 📣 the class announcement (Nov 9): a new one gets a new key, so it shows up on the list again
+export const newsKey = cls => { const n = cls && cls.news; if (!n || !n.on || !(n.title || n.text || n.pic)) return ""; let h = 7; for (const ch of String(n.title || "") + "|" + String(n.text || "")) h = (h * 31 + ch.charCodeAt(0)) % 999983; return "news" + h; };
+export const newsRead = (s, cls) => !newsKey(cls) || seen(s && s.id, newsKey(cls));
 export function markSeen(id, what) { try { localStorage.setItem(seenKey(id, what), "1"); } catch (e) {} }
 const seen = (id, what) => { try { return localStorage.getItem(seenKey(id, what)) === "1"; } catch (e) { return false; } };
 const plural = (n, w) => n + " " + w + (n === 1 ? "" : "s");
@@ -41,10 +44,14 @@ export function steps(s, cls, students, battles) {
   const c = companionOf(s), pet = s.petName || (c && c.name) || "your companion", sim = simulate(s, cls);
   const school = !["Sat", "Sun"].includes(azNow().day);
 
+  // 0. 📣 the announcement (Nov 9)
+  if (newsKey(cls)) add("news", "news", "\u{1F4E3}", "Read the announcement", (cls.news.title ? "\u201C" + cls.news.title + "\u201D \u2014 " : "") + "Ms. Ariana posted something new!", newsRead(s, cls));
   // 1. companion
   add("pet", "pet", "\u{1F43E}", "Check on " + pet,
     (sim.alive ? (sim.atRisk ? "⚠️ " + pet + " needs a " + goalXP(cls) + " XP day to heal. " : pet + " is doing great. ") : pet + " needs your help! ")
     + (pettedToday(s) ? "You petted " + pet + " today \u{1F496}" : "Give " + pet + " a pet!"), pettedToday(s));
+  // 🫧 Bubble's Baby (Nov 9): check on it every day
+  if (axoOn(cls)) add("axo", "axo", "\u{1FAE7}", "Check on Bubble\u2019s Baby", "Go see how the class baby axolotl is doing today!", seen(s.id, "axo"));
   // 2. Campfire Kitchen
   { const n = mealsReady(s, cls); add("kitchen", "pet", "\u{1F373}", "Cook in the Campfire Kitchen", n ? (n === 1 ? "A meal is" : n + " meals are") + " ready to cook for a boost!" : "Nothing to cook right now.", !n); }
   // 3. Morning Quests
@@ -70,11 +77,6 @@ export function steps(s, cls, students, battles) {
     add("revenge", "pet", "\u{1F983}", "Chase the Turducken", k.energy ? k.energy + " \u26A1 energy ready \u2014 " + (n >= 5 ? "climb the Tower!" : "chapter " + (n + 1) + " of 5!") : "Earn XP for \u26A1 energy (every 10 XP = 1 round).", !k.energy); }
   // 🎄 the Great Present Heist (Christmas break)
   { const t = heistTodo(s, cls); if (t) add("heist", "pet", "\u{1F384}", "Chase the Grinch-a-Duck", t.text, t.done); }
-  // 📚 Reading Map (when Ms. Ariana has it on)
-  if (mapOn(cls)) { const M = mapState(s, cls), r = todayReading(s, cls);
-    add("rmap", "rmap", "\u{1F4DA}", M.ready.length ? "Claim your Reading Map treasure" : "Read for your Reading Map",
-      M.ready.length ? plural(M.ready.length, "island") + " reached \u2014 tap to claim!" : M.next ? (r >= PER_ISLAND ? "You read today! " : "Read " + (PER_ISLAND - r) + " more Reading XP today. ") + M.toNext + " more to sail to " + M.next.n + "." : "You reached Treasure Isle this week! \u{1F451}",
-      !M.ready.length && (r >= PER_ISLAND || !M.next)); }
   // 9. Season Pass
   if (!(cls && cls.passOff)) { const n = passReady(s, cls); add("pass", "pass", "\u{1F39F}️", "Claim Season Pass rewards", n ? plural(n, "reward") + " ready!" : "No rewards waiting.", !n); }
   // extras (only when there's something to do)
