@@ -21,11 +21,11 @@ import { freshSt, planetSave, planetNow, planetCtx } from "./safari.js?v=2026110
 
 export const PA = "assets/pets/", PP = PA + "place/";
 export const TIERS = [
-  { k: "c", name: "Common", cost: 150, color: "#3E9BE0" },
-  { k: "u", name: "Uncommon", cost: 300, color: "#26A65B" },
-  { k: "r", name: "Rare", cost: 600, color: "#9B4FE0" },
-  { k: "s", name: "Super Rare", cost: 1200, color: "#D99A00" },
-  { k: "e", name: "Seasonal", cost: 500, color: "#E0458A" }];
+  { k: "c", name: "Common", cost: 150, color: "#1F6FB2" },
+  { k: "u", name: "Uncommon", cost: 300, color: "#1C7A43" },
+  { k: "r", name: "Rare", cost: 600, color: "#7A33C2" },
+  { k: "s", name: "Super Rare", cost: 1200, color: "#9A6500" },
+  { k: "e", name: "Seasonal", cost: 500, color: "#B8236A" }];
 export const TIER = {}; TIERS.forEach(t => { TIER[t.k] = t; });
 const N = (k, name, t, m) => ({ k, name, t, m });
 export const NEBBLES = [

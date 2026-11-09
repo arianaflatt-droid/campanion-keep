@@ -1,6 +1,8 @@
+  /* Nov 9: always the light look (students whose computers are in dark mode got light text on the light cards) */
   :root{
+    color-scheme:only light;
     --casing:#E4E8E0; --panel:#F7F9F4; --panel-2:#EDF0E9;
-    --ink:#18221E; --ink-2:#5A6B62; --ink-3:#8A9992;
+    --ink:#111A16; --ink-2:#2F3B35; --ink-3:#4D5953;   /* Nov 9: darker grey text so every student can read it */
     --line:#CBD3C8; --line-2:#DDE3D9;
     --accent:#146A73; --accent-ink:#FFFFFF; --accent-soft:#D8E8E9;
     --good:#377F48; --good-soft:#DCEBDD;
@@ -15,7 +17,7 @@
     --mono:"DM Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
   }
   @media (prefers-color-scheme: dark){
-    :root:not([data-theme="light"]){
+    :root:not([data-theme="light"]):not([data-theme]){
       --casing:#111614; --panel:#1A211F; --panel-2:#212A27;
       --ink:#E8EFEA; --ink-2:#97A79D; --ink-3:#6E7F76;
       --line:#2F3B36; --line-2:#283330;
@@ -3101,3 +3103,20 @@ button.cafit{ border:0; background:none; padding:0; cursor:pointer; } button.caf
 .pgleft{ font-weight:900; font-size:20px; color:#6A3FD0; }
 .pgend{ max-width:420px; text-align:center; } .pgend p{ margin:8px 0 14px; }
 @media (prefers-reduced-motion: reduce){ #pgjoin{ animation:none; } }
+
+/* ---------- Nov 9: easier to read (darker rarity words and labels) ---------- */
+.mycard .lv, .mqrar{ color:color-mix(in srgb, var(--rc,#7A5230) 55%, #000); }
+.nbtag{ background:rgba(255,255,255,.96) !important; color:#1A1440 !important; }
+.mycard .favbtn{ color:#7A5A10; }
+
+/* ---------- Nov 9: café fixes ---------- */
+/* the "max 100%" rule above was shrinking fitted creature pictures, so they floated above their stools */
+.cafseat .cafpet .crbox img.crfit{ max-width:none; max-height:none; }
+/* names: dark letters; only your own name shows on the tables (hover or tap a companion to see whose it is), the full list is under the room */
+.cafseat b{ color:#1A1440; display:none; }
+.cafseat.me b, .cafseat:hover b, .cafseat:focus-within b{ display:block; z-index:9; }
+.cafseat:hover, .cafseat:focus-within{ z-index:8; }
+.cafseat .cafpet{ cursor:pointer; }
+.cafwho{ display:flex; flex-wrap:wrap; gap:6px; margin:10px 0 0; }
+.cafwho span{ background:#fff; color:#1A1440; border-radius:99px; padding:3px 10px; font-size:13px; font-weight:700; box-shadow:0 1px 3px rgba(0,0,0,.15); }
+.cafwho span.me{ background:#FFE066; }

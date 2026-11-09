@@ -337,14 +337,14 @@ export function cafeHTML(st, cls, students, petOf, open) {
     const at = kids.slice(t * SEATS, t * SEATS + SEATS);
     const tp = TABLE_AT[t];
     h += '<div class="caftable ' + (t < 3 ? "far" : "near") + '" style="left:' + tp[0] + "%;top:" + tp[1] + "%;width:" + tp[2] + '%">' + at.map((s, i) => { const sn = SNACK_BY[cafeOf(s).k];
-      return '<div class="cafseat ' + seatPos[i][2] + (st && s.id === st.id ? " me" : "") + '" style="left:' + seatPos[i][0] + "%;top:" + seatPos[i][1] + '%"><span class="cafpet">' + (petOf ? petOf(s) : "") + "</span><b>" + esc(s.name) + "</b>" +
+      return '<div class="cafseat ' + seatPos[i][2] + (st && s.id === st.id ? " me" : "") + '" style="left:' + seatPos[i][0] + "%;top:" + seatPos[i][1] + '%"><span class="cafpet" tabindex="0" title="' + esc(s.name) + '">' + (petOf ? petOf(s) : "") + "</span><b>" + (st && s.id === st.id ? "You" : esc(s.name)) + "</b>" +
         "</div>"; }).join("") +
       '<img class="caftableimg" src="' + im("cafe-table") + '" alt="">' +
       // each companion's snack sits on the glass table top, in front of its seat
       at.map((s, i) => { const tx = tableImgOf(s); return tx ? '<img class="caftx" style="left:' + (SNACK_AT[i][0] + (SNACK_AT[i][0] < 50 ? -7 : 7)) + "%;top:" + (SNACK_AT[i][1] - 1) + '%" src="' + tx + '" alt="">' : ""; }).join("") +   // 🛒 Space Shop table extras
       at.map((s, i) => { const sn = SNACK_BY[cafeOf(s).k]; return sn ? '<img class="cafsn" style="left:' + SNACK_AT[i][0] + "%;top:" + SNACK_AT[i][1] + '%" src="' + sn.img.replace(".webp", "-360.webp") + '" alt="' + esc(sn.name) + '" title="' + esc(s.name) + ": " + esc(sn.name) + '">' : ""; }).join("") + "</div>";
   }
-  h += "</div></div>" + (kids.length > TABLES * SEATS ? '<p class="small">☕ ' + (kids.length - TABLES * SEATS) + " more chefs are at the counter.</p>" : "") +
+  h += "</div></div>" + (kids.length ? '<div class="cafwho"><b class="small" style="align-self:center;">\u2615 At the tables:</b>' + kids.map(s => '<span' + (st && s.id === st.id ? ' class="me"' : "") + ">" + esc(s.name) + "</span>").join("") + "</div>" : "") + (kids.length > TABLES * SEATS ? '<p class="small">☕ ' + (kids.length - TABLES * SEATS) + " more chefs are at the counter.</p>" : "") +
     (kids.length ? "" : '<p class="lede">The tables are empty. Cook a snack to be the first one here!</p>') + "</div>";
   h += snackBoxHTML(st, m);
   return h;

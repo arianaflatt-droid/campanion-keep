@@ -355,8 +355,8 @@ const HUB_PLACES = [
   { k: "shop", name: "\u{1F6CD}\uFE0F Space Shop", x: 62, y: 74, w: 22, html: () => '<img src="' + A + 'shop/space-shop.webp" alt="">' },
   { k: "swap", name: "\u{1F527} Swap Shop", x: 86, y: 63, w: 21, html: () => '<img src="' + A + 'shop/swap-shop.webp" alt="">' },
   { k: "zoo", name: "\u{1F992} Space Zoo", x: 12, y: 35.5, w: 13.5, html: () => '<img src="' + A + 'zoo/zoo-gate.webp" alt="">' },
-  { k: "adopt", name: "\u{1F43E} Adoption Center", x: 42, y: 53, w: 12, html: () => '<img src="' + NEB_PP + 'adopt-building.webp" alt="">' },   // 🐾 Nebbles (Nov 9)
-  { k: "park", name: "\u{1F333} Pet Park", x: 67, y: 57, w: 11, html: () => '<img src="' + NEB_PP + 'park-building.webp" alt="">' },   // 🌳 Nebbles Pet Park (Nov 9)
+  { k: "adopt", name: "\u{1F43E} Adoption Center", x: 41, y: 40, w: 10, html: () => '<img src="' + NEB_PP + 'adopt-building.webp" alt="">' },   // 🐾 Nebbles (Nov 9)
+  { k: "park", name: "\u{1F333} Pet Park", x: 65.5, y: 37, w: 9, html: () => '<img src="' + NEB_PP + 'park-building.webp" alt="">' },   // 🌳 Nebbles Pet Park (Nov 9)
   { k: "hangar", name: "\u{1F527} Duck Hangar", x: 78, y: 41, w: 15, html: () => '<img src="' + A + 'hangar/hangar-building.webp" alt="">' },
   { k: "album", name: "\u{1F4D6} Photo Album", x: 30, y: 44, w: 10, html: () => '<span class="hubbook">\u{1F4D6}</span>' },
   { k: "colony", name: "\u{1F3D5}\uFE0F Class Colony", x: 54, y: 46, w: 14, html: () => '<span class="hubduck">' + duckHTML() + "</span>" }];
