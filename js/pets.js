@@ -44,7 +44,7 @@ export const NEBBLES = [
 export const NEB = {}; NEBBLES.forEach(n => { NEB[n.k] = n; });
 // the "happy" (eyes closed) pictures that are in so far; the others use their normal picture with a bounce
 const HAPPY = new Set(("amethyst aurora blossom candycane checker cherry cloudy cosmic diamond duo ember freckle frost frostbite galaxy glittergold gummy lime magma midnight " +
-  "mint moonbeam crystal radiant clover egg pencil snowball sunbeam sweetheart neon ocean opal phoenix pumpkin rainbow silver sky springflower sprinkle starry starrynight sunny sunset thunder tiger unicorn zig").split(" "));
+  "mint moonbeam crystal radiant prism pie clover egg pencil snowball sunbeam sweetheart neon ocean opal phoenix pumpkin rainbow silver sky springflower sprinkle starry starrynight sunny sunset thunder tiger unicorn zig").split(" "));
 export const PERSONALITIES = [
   { k: "bouncy", name: "Bouncy", e: "\u{1F938}", say: ["Boing boing!", "Wheee!", "Let’s hop!"] },
   { k: "sleepy", name: "Sleepy", e: "\u{1F634}", say: ["*yawn* Hi…", "Five more minutes…", "Zzz… oh, hi!"] },
