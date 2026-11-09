@@ -1,12 +1,14 @@
-import { owned as roomOwned, fitOf as roomFit, FIT_SLOTS, setItems as roomSet } from "./room.js?v=20261107i";
-import { presentsOpened } from "./doors.js?v=20261107i";
-import { PASS_THEMES, passDone } from "./pass.js?v=20261107i";
-import { ZONES as PJ_ZONES, pageCount as pjPage, pageSize as pjSize, aliensFound as pjAl, allAliensFound as pjAllAl, ALIEN_LIST as PJ_ALIENS } from "./safari.js?v=20261107i";
+import { owned as roomOwned, fitOf as roomFit, FIT_SLOTS, setItems as roomSet } from "./room.js?v=20261108a";
+import { presentsOpened } from "./doors.js?v=20261108a";
+import { PASS_THEMES, passDone } from "./pass.js?v=20261108a";
+import { shopBuys, swapBuys, outfitsOwned, cabinOwned } from "./shop-data.js?v=20261108a";
+import { REGULARS as CF_REG, SPECIALS as CF_SP, keptCount as cfKept, perfectTotal as cfPerfect, monthPairs as cfPairs } from "./cafe-data.js?v=20261108a";
+import { ZONES as PJ_ZONES, pageCount as pjPage, pageSize as pjSize, aliensFound as pjAl, allAliensFound as pjAllAl, ALIEN_LIST as PJ_ALIENS } from "./safari.js?v=20261108a";
 // Badges: worked out from each student's saved data, so nothing extra is stored and no rules change.
 // To add a badge: add an entry with a check(st) that returns how far along the student is,
 // and a goal. Put its picture in assets/badges/ (a transparent WEBP or PNG). Without a picture, the emoji shows.
-import { esc, goalXP, candyOf, ghostUnlocked } from "./game.js?v=20261107i";
-import { seenSet, ownedFams, owned, family, formIndex, formOf, STARTERS, CREATURES } from "./collect.js?v=20261107i";
+import { esc, goalXP, candyOf, ghostUnlocked } from "./game.js?v=20261108a";
+import { seenSet, ownedFams, owned, family, formIndex, formOf, STARTERS, CREATURES } from "./collect.js?v=20261108a";
 
 export const hatches = st => (Number(st.pullsUsed) || 0) + (Number(st.legendaryUsed) || 0);
 
@@ -91,7 +93,7 @@ export const candySpentBest = (st, bt, cls) => Math.max(Number(st.spentBest) || 
 export const prizeSpins = st => (st.spinLog || []).filter(e => e.id === "prize" && hauntSpin(e)).length;
 export const steals = (st, bt, cls) => Math.max(Number(st.stolenBest) || 0, hauntLive(cls) ? Number(st.stolen) || 0 : 0, (st.spinLog || []).filter(e => e.id === "steal" && e.amt > 0 && hauntSpin(e)).length);
 // event Legendaries caught (Duckarune, Hexaduck, and any future event creatures)
-const EVENT_FAMS = [...new Set(CREATURES.filter(c => c.event).map(c => c.fam))];
+const EVENT_FAMS = [...new Set(CREATURES.filter(c => c.event && !c.planet).map(c => c.fam))];   // 👽 Planet JP aliens aren't event Legendaries
 /* Battles against Ms. Ariana (the teacher is player id "teacher") */
 const vsTeacher = (st, bt) => finished(st, bt).filter(b => (b.a && b.a.id === "teacher") || (b.b && b.b.id === "teacher"));
 const myTeam = (st, b) => (b.team && b.team[sideOf(st, b)]) || [];
@@ -135,6 +137,7 @@ export const BADGE_GROUPS = [
   { key: "room", title: "\u{1F3E0} Home Sweet Keep" },
   { key: "pass", title: "\u{1F39F}\uFE0F Season Pass" },
   { key: "planet", title: "\u{1FA90} Planet JP Explorer" },
+  { key: "cafe", title: "\u2615 Space Caf\u00e9 + \u{1F6D2} Shops" },
 ];
 
 export const BADGES = [
@@ -215,7 +218,7 @@ export const BADGES = [
   { id: "t-popquiz",       group: "teacher", name: "Pop Quiz", desc: "Beat Ms. Ariana using only Common creatures", goal: 1, img: "assets/badges/t-popquiz.webp", emoji: "\u270F\uFE0F", check: teacherCommonWins },
   { id: "t-legendary",     group: "teacher", name: "Legendary Lesson", desc: "Beat Ms. Ariana when her team has a Legendary and yours doesn\u2019t", goal: 1, img: "assets/badges/t-legendary.webp", emoji: "\u{1F451}", check: teacherLegendWins },
   { id: "t-perfect",       group: "teacher", name: "Perfect Score", desc: "Beat Ms. Ariana without any of your creatures fainting", goal: 1, img: "assets/badges/t-perfect.webp", emoji: "\u{1F4AF}", check: teacherPerfect },
-  { id: "secret-agent", group: "care", name: "Secret Agent", desc: "Win as a Secret Student 3 times", goal: 3, img: "", emoji: "\u{1F575}\uFE0F", check: st => Math.min(3, Number(st.secretWins) || 0) },
+  { id: "secret-agent", group: "care", name: "Secret Agent", desc: "Win as a Secret Student 3 times", goal: 3, img: "assets/badges/secret-agent.webp", emoji: "\u{1F575}\uFE0F", check: st => Math.min(3, Number(st.secretWins) || 0) },
   { id: "turkey-chaser", group: "gobble", name: "Turkey Chaser", desc: "Beat Kitchen Chaos in Turducken\u2019s Revenge", goal: 1, img: "assets/revenge/tk-angry.webp", emoji: "\u{1F983}", check: st => (st.revenge && st.revenge.beat && st.revenge.beat[1] ? 1 : 0) },
   { id: "turkey-tamer", group: "gobble", name: "Turkey Tamer", desc: "Beat MEGA TURDUCKEN in Turducken\u2019s Revenge", goal: 1, img: "assets/revenge/tk-mega.webp", emoji: "\u{1F451}", check: st => (st.revenge && st.revenge.beat && st.revenge.beat[5] ? 1 : 0) },
   { id: "tower-climber", group: "gobble", name: "Tower Climber", desc: "Clear wave 10 of the Turducken Tower", goal: 10, img: "assets/revenge/trophy-golden.webp", emoji: "\u{1F5FC}", check: st => Math.min(10, Number(st.revenge && st.revenge.best) || 0) },
@@ -260,9 +263,25 @@ export const BADGES = [
   { id: "pass-summer", group: "pass", name: "Summer Pass", desc: "Finish the Summer Pass (all 20 tiers)", goal: 1, img: "assets/badges/pass-summer.webp", emoji: "\u2600\uFE0F", check: st => passDone(st, "summer") },
   { id: "pass-school", group: "pass", name: "Back-to-School Pass", desc: "Finish the Back-to-School Pass (all 20 tiers)", goal: 1, img: "assets/badges/pass-school.webp", emoji: "\u{1F4DA}", check: st => passDone(st, "school") },
   // 🪐 Planet JP (Nov 7): a full album page = the zone's badge; all 3 of a zone's aliens = its alien badge; all 21 = Alien Hunter (no pictures yet: emoji)
-  ...PJ_ZONES.map(z => ({ id: "pj-" + z.key, group: "planet", name: z.name + " Explorer", desc: "Fill the " + z.name + " page of your Planet JP photo album (all " + pjSize(z.key) + " photos)", goal: pjSize(z.key), img: null, emoji: z.icon, check: st => pjPage(st, z.key) })),
-  ...PJ_ZONES.map(z => ({ id: "pja-" + z.key, group: "planet", name: z.name + " Alien Spotter", desc: "Photograph all 3 Planet JP aliens in " + z.name, goal: 3, img: null, emoji: "\u{1F47D}", check: st => pjAl(st, z.key) })),
-  { id: "pja-all", group: "planet", name: "Alien Hunter", desc: "Photograph all " + PJ_ALIENS.length + " Planet JP aliens", goal: PJ_ALIENS.length, img: null, emoji: "\u{1F6F8}", check: pjAllAl },
+  ...PJ_ZONES.map(z => ({ id: "pj-" + z.key, group: "planet", name: z.name + " Explorer", desc: "Fill the " + z.name + " page of your Planet JP photo album (all " + pjSize(z.key) + " photos)", goal: pjSize(z.key), img: z.key === "ice" ? null : "assets/badges/pj-" + z.key + ".webp", emoji: z.icon, check: st => pjPage(st, z.key) })),
+  ...PJ_ZONES.map(z => ({ id: "pja-" + z.key, group: "planet", name: z.name + " Alien Spotter", desc: "Photograph all 3 Planet JP aliens in " + z.name, goal: 3, img: "assets/badges/pja-" + z.key + ".webp", emoji: "\u{1F47D}", check: st => pjAl(st, z.key) })),
+  { id: "pja-all", group: "planet", name: "Alien Hunter", desc: "Photograph all " + PJ_ALIENS.length + " Planet JP aliens", goal: PJ_ALIENS.length, img: "assets/badges/pja-all.webp", emoji: "\u{1F6F8}", check: pjAllAl },
+  // 🚀 visiting Planet JP (Nov 7)
+  { id: "pj-visit-1", group: "planet", name: "First Landing", desc: "Land on Planet JP for the first time", goal: 1, img: "assets/badges/pj-visit-1.webp", emoji: "\u{1F680}", check: st => Math.min(1, Number(((st && st.planet) || {}).n) || 0) },
+  { id: "pj-visit-week", group: "planet", name: "Space Week", desc: "Land on Planet JP on all 5 days of one week", goal: 1, img: "assets/badges/pj-visit-week.webp", emoji: "\u{1F6F0}\uFE0F", check: st => (((st && st.planet) || {}).w5 ? 1 : 0) },
+  { id: "pj-visit-4wk", group: "planet", name: "Star Commander", desc: "Land on Planet JP every school day for 4 weeks in a row", goal: 4, img: "assets/badges/pj-visit-4wk.webp", emoji: "\u{1F396}\uFE0F", check: st => Math.min(4, Math.max(Number(((st && st.planet) || {}).wb) || 0, Number(((st && st.planet) || {}).wr) || 0)) },
+  // ☕ Space Café (Nov 7): a snack is kept after 3 perfect (3-star) cooks
+  // 🛒 Space Shop (Nov 8)
+  { id: "shop-first", group: "cafe", name: "First Purchase", desc: "Buy something in the Planet JP Space Shop or Swap Shop", goal: 1, img: "assets/badges/shop-first.webp", emoji: "\u{1F6CD}\uFE0F", check: st => Math.min(1, shopBuys(st)) },
+  { id: "shop-suited", group: "cafe", name: "Fully Suited", desc: "Own all 4 Starship Cadet outfits", goal: 4, img: "assets/badges/shop-suited.webp", emoji: "\u{1F469}\u200D\u{1F680}", check: outfitsOwned },
+  { id: "shop-cabin", group: "cafe", name: "Starship Captain", desc: "Own all 9 Starship Cabin room pieces", goal: 9, img: "assets/badges/shop-cabin.webp", emoji: "\u{1F6CF}\uFE0F", check: cabinOwned },
+  { id: "shop-swap", group: "cafe", name: "Deal Hunter", desc: "Buy 5 Swap Shop deals", goal: 5, img: "assets/badges/shop-swap.webp", emoji: "\u{1F527}", check: st => Math.min(5, swapBuys(st)) },
+  { id: "snack-first", group: "cafe", name: "First Perfect Snack", desc: "Cook your first 3-star snack in the Cosmic Kitchen", goal: 1, img: "assets/badges/snack-first.webp", emoji: "\u{1F469}\u200D\u{1F373}", check: st => Math.min(1, cfPerfect(st)) },
+  { id: "snack-regulars", group: "cafe", name: "Caf\u00e9 Regular", desc: "Keep all 6 everyday snacks (3 perfect cooks each)", goal: CF_REG.length, img: "assets/badges/snack-regulars.webp", emoji: "\u2615", check: st => cfKept(st, CF_REG) },
+  { id: "snack-month", group: "cafe", name: "Snack of the Month", desc: "Keep both special snacks of the same month", goal: 1, img: "assets/badges/snack-month.webp", emoji: "\u{1F5D3}\uFE0F", check: st => Math.min(1, cfPairs(st)) },
+  { id: "snack-season-12", group: "cafe", name: "Seasonal Taster", desc: "Keep 12 special snacks", goal: 12, img: null, emoji: "\u{1F342}", check: st => cfKept(st, CF_SP) },
+  { id: "snack-season-24", group: "cafe", name: "Snack Legend", desc: "Keep all 24 special snacks", goal: CF_SP.length, img: "assets/badges/snack-season-24.webp", emoji: "\u{1F3C6}", check: st => cfKept(st, CF_SP) },
+  { id: "snack-master", group: "cafe", name: "Master Chef", desc: "Cook 25 snacks at 3 stars", goal: 25, img: "assets/badges/snack-master.webp", emoji: "\u{1F451}", check: st => Math.min(25, cfPerfect(st)) },
 ];
 
 /* Earned badges are locked in forever: once earned, the id is saved in st.badges = { id: ISO date }

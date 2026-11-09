@@ -17,10 +17,10 @@
       pty60 / pty120 = { id, in, hat, mv, mn, pops, drop, solo, ch: { k, n }, hits }   (live party state; others read it)
       partyGot = { partyId: true, partyId + "-p": true }   partyAlbum = [ { id, d, who: [{ id, n, p }] } ]   vipDay
    Party music is made in the browser (no sound files); it only starts when someone taps 🎵. */
-import { esc, goalXP, companionOf, petHTML, wornItem, simulate, eventMode, seasonOf, hatHTML, randomHat, onPet, vipToday, partyHat, partyCrown, headFree } from "./game.js?v=20261107i";
-import { azToday } from "./collect.js?v=20261107i";
-import { heldWeapon } from "./quest.js?v=20261107i";
-import { tricksFor } from "./bond.js?v=20261107i";
+import { esc, goalXP, companionOf, petHTML, wornItem, simulate, eventMode, seasonOf, hatHTML, randomHat, onPet, vipToday, partyHat, partyCrown, headFree } from "./game.js?v=20261108a";
+import { azToday } from "./collect.js?v=20261108a";
+import { heldWeapon } from "./quest.js?v=20261108a";
+import { tricksFor } from "./bond.js?v=20261108a";
 
 export const PARTY_MIN = 10, PARTY_XP = 60;
 const DROP_MS = 20000, SOLO_MS = 15000, A = "assets/party/";
@@ -158,7 +158,7 @@ function takeover(ctx) {
   let el = document.getElementById("ptake");
   const me = ctx && ctx.me, cls = ctx && ctx.cls;
   const k = me && cls && !ROOM && !G && !ctx.noTake ? ["120", "60"].find(k => isOn(k, cls) && canEnter(me, k, cls) && !((mine(me, k, cls) || {}).in) && !(k === "120" && got(me, P(k, cls).id))) : null;
-  const busy = document.querySelector("#pjroot .pjover, #safroot .safover");   // Planet JP launch / safari first
+  const busy = document.querySelector("#pjroot .pjover, #safroot .safover, #cafroot .cafover");   // Planet JP launch / safari first
   if (!k || busy) { if (el) el.remove(); return; }
   if (el && el.dataset.k === k) return;
   if (!el) { el = document.createElement("div"); el.id = "ptake"; document.body.appendChild(el); }

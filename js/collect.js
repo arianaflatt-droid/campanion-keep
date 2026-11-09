@@ -1,5 +1,5 @@
 // Creature Collector: pulls, XP bank, levels, evolutions, lorebook and arena battles.
-import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261107i";
+import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261108a";
 
 export const PULL_XP = 120;          // every 120 XP (all-time since the collector started) = 1 pull
 export const LEVEL_XP = 120;         // 120 banked XP = 1 level
@@ -500,25 +500,34 @@ export function moveOk(bt, side, mv) {
 function uxAfterHit(bt, s, o, att, def, f, alt) {
   if (f.fx === "bonus" || Math.random() >= (f.ch || 0)) return;
   const pc = Math.round((f.pct || 0) * 100), mv = alt ? att.alt.name : att.attack;
-  if (f.fx === "defdown" && def.cur > 0 && !def.uxDd) { def.uxDd = true; def.df = Math.max(1, Math.round(def.df * (1 - f.pct))); if (def.dfOrig) def.dfOrig = Math.max(1, Math.round(def.dfOrig * (1 - f.pct))); bt.log.push({ k: "ux", s: o, t: mv + " cracks " + def.name + "'s Defense: -" + pc + "% for the rest of the battle!" }); }
+  if (f.fx === "defdown" && f.turns && def.cur > 0 && !(def.dfT > 0)) { def.dfOrig = def.df; def.dfT = f.turns; def.df = Math.max(1, Math.round(def.df * (1 - f.pct))); bt.log.push({ k: "defdown", s, d: def.name, pct: pc, temp: true }); }
+  else if (f.fx === "defdown" && def.cur > 0 && !def.uxDd) { def.uxDd = true; def.df = Math.max(1, Math.round(def.df * (1 - f.pct))); if (def.dfOrig) def.dfOrig = Math.max(1, Math.round(def.dfOrig * (1 - f.pct))); bt.log.push({ k: "ux", s: o, t: mv + " cracks " + def.name + "'s Defense: -" + pc + "% for the rest of the battle!" }); }
   else if (f.fx === "atkdown" && def.cur > 0 && !def.uxAd) { def.uxAd = true; def.dmg = Math.max(1, Math.round(def.dmg * (1 - f.pct))); bt.log.push({ k: "ux", s, t: "\u{1F4E2} " + mv + " shakes " + def.name + "! Its Attack drops " + pc + "% for the rest of the battle." }); }
   else if (f.fx === "daze" && def.cur > 0) { def.dazed = f.pct; bt.log.push({ k: "daze", s, d: def.name, pct: pc }); }
-  else if ((f.fx === "burn" || f.fx === "poison") && def.cur > 0 && !def.psn) { def.psn = 3; def.burn = f.fx === "burn"; bt.log.push(f.fx === "burn" ? { k: "ux", s: o, t: "\u{1F525} " + def.name + " is burning! It loses a little HP for 3 rounds." } : { k: "poison", s, d: def.name }); }
+  else if ((f.fx === "burn" || f.fx === "poison") && def.cur > 0 && !def.psn) { def.psn = f.turns || 3; def.burn = f.fx === "burn"; bt.log.push(f.fx === "burn" ? { k: "ux", s: o, t: "\u{1F525} " + def.name + " is burning! It loses a little HP for 3 rounds." } : { k: "poison", s, d: def.name }); }
   else if (f.fx === "shield" && att.cur > 0) { att.shielded = f.pct; bt.log.push({ k: "ux", s, t: "\u{1F6E1}\uFE0F " + mv + ": the next hit on " + att.name + " does " + pc + "% less damage." }); }
   else if (f.fx === "boost" && att.cur > 0) { att.uxB = { p: f.pct }; bt.log.push({ k: "ux", s, t: "\u26A1 " + mv + " charges " + att.name + " up: its next attack does +" + pc + "% damage!" }); }
+  // 👽 Planet JP aliens (Nov 7): dodge the next attack, raise own Defense for a few rounds, lower the target's accuracy
+  else if (f.fx === "evade" && att.cur > 0 && !(att.evade > 0)) { att.evade = 1; bt.log.push({ k: "ux", s, t: "\u{1F4A8} " + mv + ": " + att.name + " gets ready to dodge the next attack!" }); }
+  else if (f.fx === "defup" && att.cur > 0 && !(att.dfUpT > 0)) { att.dfUpOrig = att.df; att.dfUpT = (f.turns || 2) + 1; att.df = Math.round(att.df * (1 + f.pct)); bt.log.push({ k: "ux", s, t: "\u{1FAA8} " + mv + ": " + att.name + "'s Defense goes up " + pc + "% for " + (f.turns || 2) + " rounds!" }); }
+  else if (f.fx === "blind" && def.cur > 0 && !def.blind) { def.blind = { p: f.pct, n: (f.turns || 2) + 1 }; bt.log.push({ k: "ux", s, t: "\u2728 " + mv + " dazzles " + def.name + "! It has " + pc + "% less chance to hit for " + (f.turns || 2) + " rounds." }); }
   else if (f.fx === "heal" && att.cur > 0 && att.cur < att.hp) { const amt = Math.min(att.hp - att.cur, Math.round(att.hp * f.pct)); att.cur += amt; bt.log.push({ k: "heal", s, i: bt.active[s], n: att.name, amt, left: att.cur, max: att.hp, alt: true }); }
 }
 // After an Ultra takes damage: its below-50% passive (once) and its below-30% special (once per battle)
 function uxHurt(bt, s, i, f) {
   if (!f || !f.ux || f.cur <= 0) return;
   const p = f.ux.pass, heal = pct => { const amt = Math.min(f.hp - f.cur, Math.round(f.hp * pct)); f.cur += amt; return amt; };
-  if (p && p.fx === "halfBoost" && !f.uxHalf && f.cur < f.hp * 0.5) { f.uxHalf = true; f.uxB = { p: p.pct }; bt.log.push({ k: "ux", s, t: "\u{1F4E3} " + p.name + "! " + f.name + "'s next attack does +" + Math.round(p.pct * 100) + "%." }); }
+  if (p && p.fx === "halfBoost" && !f.uxHalf && f.cur < f.hp * 0.5) { f.uxHalf = true; f.uxB = { p: p.pct, t: p.bt || null, n: p.n || 1 }; bt.log.push({ k: "ux", s, t: "\u{1F4E3} " + p.name + "! " + f.name + "'s next attack does +" + Math.round(p.pct * 100) + "%." }); }
   if (p && p.fx === "halfRandom" && !f.uxHalf && f.cur < f.hp * 0.5) {   // Beakerion: one of 3 reactions at random
     f.uxHalf = true; const r = Math.floor(Math.random() * 3);
     if (r === 0) { const amt = heal(p.heal || 0.15); bt.log.push({ k: "ux", s, i, left: f.cur, max: f.hp, t: "\u{1F9EA} " + p.name + ": Restorative Formula! " + f.name + " heals " + amt + " HP." }); }
     else if (r === 1) { f.df = Math.round(f.df * (1 + (p.def || 0.2))); if (f.dfOrig) f.dfOrig = Math.round(f.dfOrig * (1 + (p.def || 0.2))); bt.log.push({ k: "ux", s, t: "\u{1F9EA} " + p.name + ": Reinforced Glass! " + f.name + "'s Defense goes up " + Math.round((p.def || 0.2) * 100) + "%." }); }
     else { f.uxB = { p: p.boost || 0.25 }; bt.log.push({ k: "ux", s, t: "\u{1F9EA} " + p.name + ": Overcharged Solution! " + f.name + "'s next attack does +" + Math.round((p.boost || 0.25) * 100) + "%." }); }
   }
+  // 👽 aliens: below 50% HP once: the next hit on it does less (halfShield), or heal + Defense up for a few rounds (halfHealDef)
+  if (p && p.fx === "halfShield" && !f.uxHalf && f.cur < f.hp * 0.5) { f.uxHalf = true; f.shielded = p.pct; bt.log.push({ k: "ux", s, t: "\u{1F6E1}\uFE0F " + p.name + "! The next hit on " + f.name + " does " + Math.round(p.pct * 100) + "% less damage." }); }
+  if (p && p.fx === "halfHealDef" && !f.uxHalf && f.cur < f.hp * 0.5) { f.uxHalf = true; const amt = heal(p.pct); if (!(f.dfUpT > 0)) { f.dfUpOrig = f.df; f.dfUpT = (p.turns || 2) + 1; f.df = Math.round(f.df * (1 + (p.def || 0))); }
+    bt.log.push({ k: "ux", s, i, left: f.cur, max: f.hp, t: "\u{1F525} " + p.name + "! " + f.name + " heals " + amt + " HP and its Defense goes up " + Math.round((p.def || 0) * 100) + "%." }); }
   if (p && (p.fx === "halfHeal" || p.fx === "halfDef") && !f.uxHalf && f.cur < f.hp * 0.5) {
     f.uxHalf = true;
     if (p.fx === "halfHeal") { const amt = heal(p.pct); bt.log.push({ k: "ux", s, i, left: f.cur, max: f.hp, t: "\u{1F49A} " + p.name + "! " + f.name + " heals " + amt + " HP." }); }
@@ -560,9 +569,12 @@ export function resolveRound(bt) {
     const SP = MOVES[m.m] && MOVES[m.m].special ? MOVES[m.m] : null, spook = !!SP && (att.sp || []).includes(m.m) && !(att.spUsed || {})[m.m];
     if (spook) att.spUsed = Object.assign({}, att.spUsed || {}, { [m.m]: true });
     const sure = spook && !SP.hit;   // boss moves never miss; Vault Breaker can
-    const pmiss = (m.m === "power" && Math.random() >= MOVES.power.hit) || (spook && SP.hit && Math.random() >= SP.hit), portal = !sure && !pmiss && def.evade > 0;   // Cosmic Whiskers: slips through a portal and dodges this attack
+    // 👽 Radiant Cheer (Starbloop): the first time it acts in a battle, a chance its whole team aims better for a few rounds
+    { const ep = att.ux && att.ux.pass; if (ep && ep.fx === "enterAcc" && !att.uxEnter) { att.uxEnter = true; if (Math.random() < (ep.ch || 0)) { (bt.team[s] || []).forEach(f => { if (f && f.cur > 0) { f.accB = ep.pct; f.accT = (ep.turns || 2) + 1; } }); bt.log.push({ k: "ux", s, t: "\u2B50 " + ep.name + "! " + att.name + "'s team aims " + Math.round(ep.pct * 100) + "% better for " + (ep.turns || 2) + " rounds." }); } } }
+    const acc = att.accT > 0 ? att.accB || 0 : 0, blindMiss = !!att.blind && Math.random() < Math.max(0, att.blind.p - acc);
+    const pmiss = blindMiss || (m.m === "power" && Math.random() >= MOVES.power.hit + acc) || (spook && SP.hit && Math.random() >= SP.hit + acc), portal = !sure && !pmiss && def.evade > 0;   // Cosmic Whiskers: slips through a portal and dodges this attack
     if (portal) def.evade = 0;
-    const dodged = !sure && !pmiss && (portal || (!!def.dodge && Math.random() < def.dodge));   // speedy creatures (Jett) dodge some hits
+    const dodged = !sure && !pmiss && (portal || (!!def.dodge && Math.random() < Math.max(0, def.dodge - acc)));   // speedy creatures (Jett) dodge some hits
     const alt = m.m === "alt" && att.alt;
     const power = m.m === "power", miss = pmiss || dodged, crit = !miss && Math.random() < Math.max(CRIT_CHANCE, alt && att.alt.crit || 0) + (att.uxCrit || 0);   // Confetti Comet: 20% crit; Record Breaker: +crit chance once
     // Boo-nanza (Ghost-olotl): 20% of its normal hits go right through the opponent's Defense
@@ -570,13 +582,13 @@ export function resolveRound(bt) {
     let { dmg, weak } = hitDamage(spook ? Object.assign({}, att, { type: SP.type }) : alt && att.alt.type ? Object.assign({}, att, { type: att.alt.type }) : att, pierced ? Object.assign({}, def, { df: 0 }) : def, crit);   // a second attack can have its own type
     if (spook) dmg = Math.round(dmg * SP.mult);
     if (power) dmg = Math.round(dmg * MOVES.power.mult);
-    if (alt) dmg = Math.max(1, Math.round(dmg * (att.alt.mult || 1)));
+    if (alt) dmg = att.alt.mult === 0 ? 0 : Math.max(1, Math.round(dmg * (att.alt.mult || 1)));   // a move with no damage (Starlit Support: a heal)
     // Candy Crush (Candivora): each landed hit picks one candy: chocolate (heal), a conversation heart (Defense down) or hard candy (+20% damage)
     const candyPick = !miss && m.m === "attack" && att.candyFx ? ["choc", "heart", "hard"][Math.floor(Math.random() * 3)] : null;
     if (candyPick === "hard") dmg = Math.round(dmg * 1.2);
     // 🌈 Ultra: "my next attack does +X%" (from Solar Tempest or a special; a special's boost can be for its own types only)
     const atkType = spook ? SP.type : alt && att.alt.type ? att.alt.type : att.type;
-    if (att.uxB && !miss && (!att.uxB.t || att.uxB.t.includes(atkType))) { dmg = Math.round(dmg * (1 + att.uxB.p)); bt.log.push({ k: "ux", s, t: att.name + "'s power-up: +" + Math.round(att.uxB.p * 100) + "% damage!" }); att.uxB = null; }
+    if (att.uxB && !miss && (!att.uxB.t || att.uxB.t.includes(atkType))) { dmg = Math.round(dmg * (1 + att.uxB.p)); bt.log.push({ k: "ux", s, t: att.name + "'s power-up: +" + Math.round(att.uxB.p * 100) + "% damage!" }); if ((att.uxB.n || 1) > 1) att.uxB = Object.assign({}, att.uxB, { n: att.uxB.n - 1 }); else att.uxB = null; }
     const uxFx = att.ux && !spook ? (alt ? att.ux.alt : (m.m === "attack" || m.m === "power") ? att.ux.main : null) : null;
     if (uxFx && uxFx.fx === "bonus" && !miss && Math.random() < uxFx.ch) { dmg = Math.round(dmg * (1 + uxFx.pct)); bt.log.push({ k: "ux", s, t: "\u{1F48E} " + att.name + "'s " + (alt ? att.alt.name : att.attack) + " hits extra hard: +" + Math.round(uxFx.pct * 100) + "% damage!" }); }
     // 🌈 Ultra passive (Glaciera, Lumirath, Monolyth): the first hit it takes in a battle does less damage
@@ -643,6 +655,11 @@ export function resolveRound(bt) {
   }
   // a temporary defense drop wears off
   ["A", "B"].forEach(s => (bt.team[s] || []).forEach(f => { if (f && f.dfT > 0) { f.dfT -= 1; if (!f.dfT) { f.df = f.dfOrig || f.df; delete f.dfOrig; } } }));
+  // 👽 alien effects that last a few rounds wear off: own Defense up, dazzled (lower accuracy), team aiming better
+  ["A", "B"].forEach(s => (bt.team[s] || []).forEach(f => { if (!f) return;
+    if (f.dfUpT > 0) { f.dfUpT -= 1; if (!f.dfUpT) { f.df = f.dfUpOrig || f.df; delete f.dfUpOrig; } }
+    if (f.blind) { f.blind.n -= 1; if (f.blind.n <= 0) delete f.blind; }
+    if (f.accT > 0) { f.accT -= 1; if (!f.accT) delete f.accB; } }));
   // 4. poison ticks (6% of max HP, at least 1 HP is always left)
   order.forEach(s => { const f = bt.team[s][bt.active[s]]; if (!f || !(f.psn > 0) || f.cur <= 1) { if (f && f.cur <= 1) f.psn = 0; return; }
     const amt = Math.min(f.cur - 1, Math.max(1, Math.round(f.hp * 0.06))); f.cur -= amt; f.psn -= 1;

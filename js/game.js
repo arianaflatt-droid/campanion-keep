@@ -1,11 +1,13 @@
-import { PARTY_SPOT } from "./party-spot.js?v=20261107i";
-import { CREATURE_LAYOUT, CREATURE_FIT_ID, CREATURE_NECK_ID } from "./creature-fit.js?v=20261107i";
-import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261107i";
-import { heldWeapon } from "./quest.js?v=20261107i";
+import { PARTY_SPOT } from "./party-spot.js?v=20261108a";
+import { CREATURE_LAYOUT, CREATURE_FIT_ID, CREATURE_NECK_ID } from "./creature-fit.js?v=20261108a";
+import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261108a";
+import { heldWeapon } from "./quest.js?v=20261108a";
+import { SNACKS as CAFE_SNACKS, snackKept } from "./cafe-data.js?v=20261108a";
+import { orbitImgOf } from "./shop-data.js?v=20261108a";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261107i";
+export const APP_V = "20261108a";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -286,6 +288,8 @@ export const ITEMS = [
   { id: "charmsnack", name: "Lucky Charms", glyph: "\u{1F963}", streak: 3, lucky: true, slot: "snack", img: "assets/lucky/lucky-charms.webp" },
   { id: "cape",   name: "Hero Cape",   glyph: "\u{1F9B8}", revive: true }
 ];
+// ☕ Space Café snacks (Nov 7): a snack a student has KEPT (cooked at 3 stars 3 times) is a 3-day streak snack-spot choice
+CAFE_SNACKS.forEach(s => ITEMS.push({ id: "cf-" + s.k, name: s.name, glyph: "\u{1F369}", streak: 3, slot: "snack", cafe: s.k, img: s.img.replace(".webp", "-360.webp") }));
 // To use a picture instead of an emoji, drop a transparent PNG in assets/gear/ and set img, e.g. img: "assets/gear/cap.png"
 ITEMS.forEach(it => { if (!("img" in it)) it.img = null; });
 export const GEAR = ITEMS.filter(it => it.streak);
@@ -404,7 +408,7 @@ export function simulate(st, cls) {
       else health = HALF_HP;
     }
   }
-  const unlocked = GEAR.filter(g => (bestRun >= g.streak && bossGearOk(g, cls)) || (g.id === "witch" && st.witchHat) || (g.id === "pilgrim" && st.pilgrimHat) || (g.id === "antlers" && st.antlersHat) || (g.id === "earmuffs" && st.earmuffsHat) || (g.id === "cupidcrown" && st.crownHat) || (g.id === "luckyhat" && st.luckyHat)).map(g => g.id);
+  const unlocked = GEAR.filter(g => g.cafe ? bestRun >= g.streak && snackKept(st, g.cafe) : (bestRun >= g.streak && bossGearOk(g, cls)) || (g.id === "witch" && st.witchHat) || (g.id === "pilgrim" && st.pilgrimHat) || (g.id === "antlers" && st.antlersHat) || (g.id === "earmuffs" && st.earmuffsHat) || (g.id === "cupidcrown" && st.crownHat) || (g.id === "luckyhat" && st.luckyHat)).map(g => g.id);
   return {
     health, max: MAX_HP, alive, capeReady, capeSaved, hitRun, bestRun, carry, unlocked,
     atRisk: alive && daysCounted > 0 && missRun === 1,
@@ -416,7 +420,8 @@ export function simulate(st, cls) {
 export function wornItem(st, sim) {
   if (st.equipped === "") return null;
   if (st.equipped && sim.unlocked.includes(st.equipped)) return byId(ITEMS, st.equipped);
-  return sim.unlocked.length ? byId(ITEMS, sim.unlocked[sim.unlocked.length - 1]) : null;
+  const auto = sim.unlocked.filter(id => !String(id).startsWith("cf-"));   // café snacks are only worn when picked
+  return auto.length ? byId(ITEMS, auto[auto.length - 1]) : null;
 }
 
 export function tier(sim) {
@@ -637,7 +642,7 @@ function partyStyle(c, kind) {
    During a mini event every companion also wears that event's random costume (js/mini.js adds it through HEAD_FNS). */
 const OF = (ev, dir, list) => list.map(([k, name]) => ({ id: ev + "-" + k, ev, name, img: "assets/" + dir + "/" + (ev === "tot" ? "costume-" : "outfit-") + k + ".webp", neck: NECK.includes(ev + "-" + k) }));
 // 🧣 Neck pieces (Nov 3): these sit at the companion's neck (under the chin) instead of on the head, so a shop hat can stay on too.
-const NECK = ["leaf-scarf", "orn-lights", "orn-bell", "aur-scarf", "aur-compass", "val-locket", "val-bowtie", "kite-scarf", "kite-whistle"];
+const NECK = ["space-cometscarf", "leaf-scarf", "orn-lights", "orn-bell", "aur-scarf", "aur-compass", "val-locket", "val-bowtie", "kite-scarf", "kite-whistle"];
 const outfitByImg = img => OUTFITS.find(o => o.img === img) || null;
 // The neck spot: worked out from the head spot and the eyes (the chin is about as far below the eyes as the eyes are below the top of the head).
 // NECK_FIT nudges one form (by picture id, or "r:" + id for the basic companions): [move right, move down, size ×]
@@ -653,6 +658,7 @@ function neckStyle(c) {
   return pos(x, y) + "font-size:" + size.toFixed(3) + "em;transform:translate(-50%,-35%);transform-origin:50% 35%;";
 }
 export const OUTFITS = [].concat(
+  OF("space", "planet/shop", [["spacehelmet", "Astronaut Bubble Helmet"], ["captainhat", "Star Captain Hat"], ["antennae", "Alien Antennae"], ["cometscarf", "Comet Scarf"]]),   // 🛒 Planet JP Space Shop (Nov 8)
   OF("tot", "tot", [["pumpkin", "Pumpkin Hat"], ["cat", "Black Cat Ears"], ["bat", "Bat Headband"], ["wizard", "Wizard Hat"], ["mummy", "Mummy Wrap"], ["candycorn", "Candy Corn Hat"], ["spider", "Spider Headband"], ["horns", "Little Devil Horns"]]),
   OF("fest", "fest", [["beanie", "Knit Beanie"], ["scarecrow", "Scarecrow Hat"], ["acorn", "Acorn Cap"], ["leafcrown", "Autumn Leaf Crown"], ["sunflower", "Sunflower Headband"], ["turkey", "Turkey Feathers"], ["apple", "Apple Hat"], ["earmuffs", "Plaid Earmuffs"]]),
   OF("xmas", "xmas", [["elfhat", "Elf Hat"], ["candycane", "Candy Cane Headband"], ["gingerbread", "Gingerbread Hat"], ["ornament", "Ornament Headband"], ["holly", "Holly Crown"], ["bow", "Present Bow"], ["star", "Star Topper"], ["nutcracker", "Nutcracker Hat"]]),
@@ -680,9 +686,11 @@ export const PAINTS = [
 export const paintClass = st => {
   if (!st) return "";
   const p = st.paint && (st.paints || {})[st.paint] ? " pt-" + st.paint : "", sp = st.sparkleDay === azToday() ? " pt-sparkle" : "";
-  return p + sp;
+  const cf = st.planet && st.planet.cf && st.planet.cf.d === azToday() ? " pt-snack" : "";   // ☕ cooked a café snack today: the snack glow
+  return p + sp + cf;
 };
-export const painted = (st, html) => { const k = paintClass(st); return k ? html.replace('class="petwrap', 'class="petwrap' + k) : html; };
+export const painted = (st, html) => { const k = paintClass(st); if (k) html = html.replace('class="petwrap', 'class="petwrap' + k);
+  const ob = orbitImgOf(st); return ob ? onPet(html, '<span class="orbitb"><img src="' + ob + '" alt=""></span>') : html; };   // 🌙 Space Shop orbit buddy
 export const petWithHead = (st, c, worn, held) => { const x = headExtra(st, c), nk = x.includes("phat cos neck"); return painted(st, withVipHat(st, onPet(petHTML(c, x && !nk ? headFree(worn) : vipWorn(st, worn), held), x), c)); };   // a neck piece keeps the shop hat on
 export const partyHat = (c, seed) => hatHTML(seed, "", c ? partyStyle(c, "hat") : "");
 export const partyCrown = c => '<span class="pcrown"' + (c ? ' style="' + partyStyle(c, "crown") + '"' : "") + ">\u{1F451}</span>";

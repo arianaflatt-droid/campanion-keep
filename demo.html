@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Companion Keep · Student demo</title>
+<link rel="icon" href="assets/axolotl.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Karla:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="css/style.css?v=20261108a">
+<!-- 🎮 Student demo (Nov 8): the real student page, but every "./db.js" import uses the pretend database (js/db-demo.js),
+     so nothing is ever saved to Firebase. The clock is set to 11:30 am Arizona time on a school day, so Planet JP is open. -->
+<script type="importmap">{ "imports": { "./js/db.js?v=20261108a": "./js/db-demo.js?v=20261108a" } }</script>
+<script>
+(() => {
+  const now = Date.now(), az = new Date(now - 7 * 3600e3), wd = az.getUTCDay(), back = wd === 6 ? 1 : wd === 0 ? 2 : 0;
+  const t = Date.UTC(az.getUTCFullYear(), az.getUTCMonth(), az.getUTCDate() - back, 18, 30);   // 11:30 am Arizona
+  const R = Date, o = R.now();
+  class D extends R { constructor(...a) { if (a.length) super(...a); else super(t + (R.now() - o)); } static now() { return t + (R.now() - o); } }
+  window.Date = D;
+  if (!new URLSearchParams(location.search).get("s")) history.replaceState(null, "", "?s=demo");
+  try { localStorage.setItem("ck-student", "demo"); } catch (e) {}
+})();
+</script>
+<style>
+.demobar{ position:sticky; top:0; z-index:8800; display:flex; gap:10px; align-items:center; justify-content:center; flex-wrap:wrap; padding:8px 12px; background:#2A1F5C; color:#fff; font:600 14px Karla, sans-serif; }
+.demobar button{ font:inherit; border:0; border-radius:99px; padding:4px 12px; background:#FFE066; color:#2A1F5C; cursor:pointer; }
+</style>
+</head>
+<body>
+<div class="demobar">🎮 <b>Student demo</b> · a pretend student who hit every goal today. Nothing here is saved to your class. <button id="demoReset">↺ Start over</button></div>
+<div class="wrap" style="max-width:860px;">
+  <div id="app"><div class="card"><p class="lede">Loading…</p></div></div>
+</div>
+<script type="module">
+import { resetDemo } from "./js/db-demo.js?v=20261108a";
+document.getElementById("demoReset").onclick = () => { if (confirm("Start the demo over? Everything you did in the demo goes back to the beginning.")) { resetDemo(); location.reload(); } };
+</script>
+<script type="module" src="js/student.js?v=20261108a"></script>
+</body>
+</html>

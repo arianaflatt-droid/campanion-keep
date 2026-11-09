@@ -4,15 +4,15 @@ import {
   formIndex, formOf, statsOf, seenSet, rollRarity, doPull, arenaOpen, arenaOpenFor, lunchHour, hitGoalToday, LUNCH_ARENA, ARENA_HOURS, fighterFrom, teamSize, alive, resolve, resolveRound, moveOk, MOVES, hitDamage,
   birthdayLeft, pickleLeft, PICKLE_FAM, brewLegLeft, BREW_FAM, feastLegLeft, HARVEST_FAM, gingerLegLeft, GINGER_FAM, snowLegLeft, SNOW_FAM, candyLegLeft, CANDY_FAM, ghostEggLeft, GHOST_FAM, BOSS2_LIST, boss2EggLeft, vaultLegLeft, revengeLegLeft, heistLegLeft, goalLeft, nextGoal, rollRareUp, themeLeft, nextTheme, THEME_TYPES, THEME_EGG, WISH_FAM, spares, spareId, releaseXP, releaseProblem, isStarterFam, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
   EVENTS, eventOpen, eventWindow, eventStreak, hasEvent, eventUnlocked, azToday, rollTeacherRarity, teacherPull, TEACHER_ODDS, LIVE, staleBattle
-} from "./collect.js?v=20261107i";
-import { newBattleRef, battleRef, updateDoc, changeBattle as changeBattleRaw, setDoc, liveBattlesNow, ck, ckMessage } from "./db.js?v=20261107i";
+} from "./collect.js?v=20261108a";
+import { newBattleRef, battleRef, updateDoc, changeBattle as changeBattleRaw, setDoc, liveBattlesNow, ck, ckMessage } from "./db.js?v=20261108a";
 // every change to a battle is stamped with the time (upd), so a battle nobody has touched in a while can be ended
 let locking = null, leaving = null;   // battle id while "Lock in team" is saving
 const changeBattle = (id, fn) => changeBattleRaw(id, bt => { const n = fn(bt); if (n) n.upd = new Date().toISOString(); return n; });
 
-import { tradeCard } from "./trade-ui.js?v=20261107i";
-import { ultraLeft, isUltra, trapLegLeft, PRISM_FAM, teacherLegFam } from "./collect.js?v=20261107i";
-import { ultraSection, ultraInfoHTML } from "./ultra.js?v=20261107i";
+import { tradeCard } from "./trade-ui.js?v=20261108a";
+import { ultraLeft, isUltra, trapLegLeft, PRISM_FAM, teacherLegFam } from "./collect.js?v=20261108a";
+import { ultraSection, ultraInfoHTML } from "./ultra.js?v=20261108a";
 
 const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const PER_PAGE = 20;
@@ -419,7 +419,7 @@ function detailPage(c, seen) {
   let h = '<div class="dtop"><button class="btn small ghost" data-cc="back">◀ Back to lorebook</button><span class="num">#' + c.id + "</span></div>" +
     '<div class="dhead">' + img(c, "dimg") + "<div><h2>" + esc(c.name) + "</h2>" + (e && e.nick && cur ? '<p class="dline">Your <b>' + esc(e.nick) + "</b></p>" : "") + rarityPill(c.rarity) + " " + typePills(c) +
     '<p class="dline"><b>Weak to:</b> ' + esc(c.weak.join(", ")) + " (takes double damage)</p>" +
-    (c.title ? '<p class="dline"><i>' + esc(c.title) + "</i>" + (c.ultra ? ' <span class="rpill upill">\u{1F308} Ultra Legendary</span>' : c.event ? ' <span class="rpill" style="background:#2B6FD6">\u{1F986} Limited event</span>' : "") + "</p>" : "") +
+    (c.title ? '<p class="dline"><i>' + esc(c.title) + "</i>" + (c.ultra ? ' <span class="rpill upill">\u{1F308} Ultra Legendary</span>' : c.planet ? ' <span class="rpill" style="background:#5B2A86">\u{1F47D} Planet JP alien · only on the safari</span>' : c.event ? ' <span class="rpill" style="background:#2B6FD6">\u{1F986} Limited event</span>' : "") + "</p>" : "") +
     (c.ux ? ultraInfoHTML(c) : "") +
     '<p class="dline"' + (c.ux ? ' hidden' : "") + '><b>' + (c.move ? "Signature move" : "Attack") + ":</b> " + esc(c.attack) + "</p>" + (c.move ? '<p class="dline muted">' + esc(c.move) + "</p>" : "") +
     (c.dodge ? '<p class="dline"><b>\u{1F4A8} Speedy:</b> dodges ' + Math.round(c.dodge * 100) + "% of attacks in battle</p>" : "") +
@@ -442,7 +442,7 @@ function detailPage(c, seen) {
       '<span class="cf">' + (got ? img(f) + "<small>" + esc(f.name) + "</small>" : '<span class="q">?</span><small>???</small>') + "</span>"; }).join("") + "</div>";
   if (e && e.sparkle) h += '<div class="dalt"><span class="dalt-k">\u2728 Your Sparkle form</span>' + img(c, "dalt-img", true) + "</div>";
   h += '<p class="dlore">' + esc(c.lore) + "</p>";
-  if (cur && s.isTeacher) { if (teacherLegFam(c.fam)) h += '<div class="row" style="justify-content:center;"><button class="btn" data-cc="lvl100" data-fam="' + c.fam + '"' + (lvl >= MAX_LEVEL ? " disabled" : "") + ">" + (lvl >= MAX_LEVEL ? "Lv 100 \u2705" : "\u2B06 Set to Lv 100") + "</button></div>"; }
+  if (cur && ctx.me && ctx.me.isTeacher) { if (teacherLegFam(c.fam)) h += '<div class="row" style="justify-content:center;"><button class="btn" data-cc="lvl100" data-fam="' + c.fam + '"' + (lvl >= MAX_LEVEL ? " disabled" : "") + ">" + (lvl >= MAX_LEVEL ? "Lv 100 \u2705" : "\u2B06 Set to Lv 100") + "</button></div>"; }
   else if (cur) h += '<div class="row" style="justify-content:center;"><button class="btn" data-cc="lvl" data-fam="' + c.fam + '"' + (bank >= LEVEL_XP && lvl < MAX_LEVEL ? "" : " disabled") + ">⬆ Level up · " + LEVEL_XP + " XP</button><span class=\"muted\">Bank: " + bank + " XP</span></div>";
   return h + '<div class="row" style="justify-content:center;margin-top:10px;"><button class="btn ghost small" data-cc="bookClose">Close lorebook</button></div>';
 }

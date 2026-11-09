@@ -7,12 +7,15 @@
    A launch is saved on the student: planet = { n: launches, last: "YYYY-MM-DD", streak, best } (one write a day).
    Wave 2 adds a space minigame between liftoff and landing; Planet JP itself comes later, one piece at a time.
    Pictures live in assets/planet/ — until one is uploaded (ART below) the stand-in drawing is used. */
-import { esc } from "./game.js?v=20261107i";
-import { azToday, azNow } from "./collect.js?v=20261107i";
-import { axoDay, schoolDayFor } from "./axolotl.js?v=20261107i";
-import { addDays } from "./doors.js?v=20261107i";
-import { GAMES, gameOfDay, gameByKey, play, preload } from "./spacegames.js?v=20261107i";
-import { ZONES, safariSync, freshSt, albumHTML, filmLeft, pageCount, pageSize, aliensFound, zoneAliens, FREE_FILM, ROLL_COST } from "./safari.js?v=20261107i";
+import { esc } from "./game.js?v=20261108a";
+import { azToday, azNow } from "./collect.js?v=20261108a";
+import { axoDay, schoolDayFor } from "./axolotl.js?v=20261108a";
+import { addDays } from "./doors.js?v=20261108a";
+import { GAMES, gameOfDay, gameByKey, play, preload } from "./spacegames.js?v=20261108a";
+import { ZONES, safariSync, freshSt, albumHTML, filmLeft, pageCount, pageSize, aliensFound, zoneAliens, FREE_FILM, ROLL_COST, shopHTML, netsOf, NETS, netImg } from "./safari.js?v=20261108a";
+import { cafeHTML } from "./cafe.js?v=20261108a";
+import { shopPageHTML } from "./spaceshop.js?v=20261108a";
+import { duckImgOf, flameFxOf, trailOf } from "./shop-data.js?v=20261108a";
 
 export const PJ_OPEN = 11 * 60, PJ_CLOSE = 12 * 60 + 55;   // minutes after midnight, Arizona time
 const A = "assets/planet/";
@@ -49,8 +52,10 @@ const DUCK_SVG = '<svg class="pjduck-svg" viewBox="0 0 160 100" aria-hidden="tru
   '<path d="M132 40 L156 50 L132 60 C136 54 136 46 132 40 Z" fill="#FF9A2E" stroke="#C25E00" stroke-width="3" stroke-linejoin="round"/>' +
   '<circle cx="92" cy="46" r="13" fill="#8FE3FF" stroke="#5B7A93" stroke-width="4"/><circle cx="87" cy="41" r="4" fill="#fff" opacity=".9"/>' +
   '<path d="M44 58 C54 66 70 66 80 60" fill="none" stroke="#DDE7EF" stroke-width="5" stroke-linecap="round"/><rect x="14" y="42" width="12" height="16" rx="3" fill="#7C8C99"/></svg>';
-const duckHTML = cls => (ART.duck ? '<img class="pjduck-img" src="' + A + 'ss-duck.webp" alt="The S.S. Duck">' : DUCK_SVG);
-const flameHTML = () => (ART.flame ? '<img class="pjflame" src="' + A + 'ss-duck-flame.webp" alt="">' : '<span class="pjflame pjflame-css"></span>');
+// 🛒 Space Shop (Nov 8): the student's own duck paint + flame color (st = whose duck; defaults to the page's student)
+const duckHTML = st => { st = st === undefined ? C && C.st : st; return ART.duck ? '<img class="pjduck-img" src="' + duckImgOf(st) + '" alt="The S.S. Duck">' : DUCK_SVG; };
+const flameHTML = st => { st = st === undefined ? C && C.st : st; const fx = flameFxOf(st);
+  return ART.flame ? '<img class="pjflame' + (fx === "rainbow" ? " rainbowfx" : "") + '" src="' + A + 'ss-duck-flame.webp" alt=""' + (fx && fx !== "rainbow" ? ' style="filter:' + fx + '"' : "") + ">" : '<span class="pjflame pjflame-css"></span>'; };
 const planetHTML = () => (ART.planet ? '<img class="pjplanet-img" src="' + A + 'planet-jp.webp" alt="Planet JP">' : '<span class="pjplanet-css"></span>');
 const bg = k => (ART[k] ? ' style="background-image:url(' + A + { pad: "launch-pad", sky: "space-sky", landing: "jp-landing" }[k] + '.webp)"' : "");
 
@@ -66,7 +71,8 @@ export function planetBar(st, cls, preview) {
   else msg = "\u{1F6D1} Mission scrubbed, try again tomorrow!";
   const tanks = p === "landed" || p === "scrubbed" ? "" : '<div class="pjtanks">' + f.tanks.map(t => '<span class="pjtank' + (t.have >= t.need ? " ok" : "") + '">' + t.icon + " " + esc(t.name) + " <b>" + Math.min(t.have, t.need) + "/" + t.need + "</b>" + (t.have >= t.need ? " ✅" : "") + "</span>").join("") + "</div>";
   return '<div class="pjbar ' + p + '"><div class="pjtrack"><div class="pjfill" style="width:' + (pct * 100).toFixed(1) + '%"></div>' +
-    '<div class="pjship" style="left:' + (pct * 100).toFixed(1) + '%">' + duckHTML(cls) + (p === "go" || p === "ready" ? flameHTML() : "") + "</div>" +
+    (trailOf(st) && pct > 0.02 ? '<div class="pjtrail tr-' + trailOf(st) + '" style="width:' + (pct * 100).toFixed(1) + '%"></div>' : "") +
+    '<div class="pjship" style="left:' + (pct * 100).toFixed(1) + '%">' + duckHTML(st) + (p === "go" || p === "ready" ? flameHTML(st) : "") + "</div>" +
     '<div class="pjgoal">' + planetHTML() + "<small>Planet JP</small></div></div>" +
     '<div class="pjrow"><span class="pjmsg">' + msg + "</span>" + (preview ? '<button class="btn ghost small" data-pj="open">\u{1F440} Preview the launch</button>' : "") + "</div>" + tanks + "</div>";
 }
@@ -133,6 +139,7 @@ function launch() {
     while (!schoolDayFor(C.cls, prev) && i++ < 20) prev = addDays(prev, -1);
     const streak = saved.last === prev ? (Number(saved.streak) || 0) + 1 : 1;
     saved = Object.assign({}, saved, { n: (Number(saved.n) || 0) + 1, last: today, streak, best: Math.max(Number(saved.best) || 0, streak), g: null, gs: null });
+    Object.assign(saved, weekTrack(saved, today, C.cls));
     C.patch({ planet: saved });   // saved right away, so leaving mid-cutscene still counts
   } else if (C.preview) saved = Object.assign({}, saved, { n: (Number(saved.n) || 0) + 1, streak: (Number(saved.streak) || 0) + 1 });
   saved0 = saved;
@@ -146,6 +153,26 @@ function launch() {
   later(3000, () => { setTxt("pjcount", "LIFTOFF!"); say("We have liftoff! \u{1F680}"); beep(880, 0.4); rumble(2.4); const k = document.getElementById("pjrk"); if (k) k.classList.add("up"); const s = document.getElementById("pjsmoke"); if (s) s.classList.add("on"); r.firstChild.classList.add("quake"); });
   if (ART.video) later(3600, playVideo);   // Ms. Ariana's own liftoff video (assets/planet/liftoff.mp4) replaces the flight
   else { later(5400, () => space()); later(8800, intro); }
+}
+/* 🏅 Visit badges (Nov 7): Space Week = launch on 5 days of one week; Star Commander = launch on every school day of a week,
+   4 weeks in a row (weeks with no school are skipped). Saved in planet: wk = { w: that week's Monday, c: launches, f: full },
+   wr = full weeks in a row, wl = Monday of the last full week, wb = best run, w5 = had a 5-launch week. */
+const mondayOf = iso => { const d = new Date(iso + "T12:00:00Z"), k = (d.getUTCDay() + 6) % 7; return addDays(iso, -k); };
+const schoolDays = (cls, mon) => [0, 1, 2, 3, 4].filter(i => schoolDayFor(cls, addDays(mon, i))).length;
+export function weekTrack(pl, today, cls) {
+  const w = mondayOf(today); let wk = pl.wk && pl.wk.w === w ? Object.assign({}, pl.wk) : { w, c: 0 };
+  if (!pl.wk && pl.last && Number(pl.streak) > 0) {   // first time: count this week's earlier launches from the day streak
+    let prior = 0; for (let i = 0, d = addDays(today, -1); i < 5 && d >= w; i++, d = addDays(d, -1)) { if (!schoolDayFor(cls, d)) continue; if (prior < (Number(pl.streak) || 1) - 1) prior++; else break; }
+    wk.c = prior;
+  }
+  wk.c++; const out = { wk };
+  if (wk.c >= 5) out.w5 = 1;
+  if (!wk.f && wk.c >= schoolDays(cls, w)) {
+    wk.f = 1; let ok = false, m = addDays(w, -7);
+    for (let i = 0; i < 6; i++, m = addDays(m, -7)) { if (pl.wl === m) { ok = true; break; } if (schoolDays(cls, m) > 0) break; }
+    out.wr = ok ? (Number(pl.wr) || 0) + 1 : 1; out.wl = w; out.wb = Math.max(Number(pl.wb) || 0, out.wr);
+  }
+  return out;
 }
 function space() {
   rootEl().innerHTML = '<div class="pjover pjspace"' + bg("sky") + '><div class="pjstars"></div><div class="pjstars far"></div><div class="pjstage">' +
@@ -258,7 +285,7 @@ export function keepLaunchWatch(students, active) {
   const today = azToday();
   (students || []).forEach(s => {
     const p = s.planet || {}, n = Number(p.n) || 0;
-    if (kPrimed && seenN[s.id] != null && n > seenN[s.id] && p.last === today && active) kq.push(s.name || "A student");
+    if (kPrimed && seenN[s.id] != null && n > seenN[s.id] && p.last === today && active) kq.push({ name: s.name || "A student", s });
     seenN[s.id] = n;
   });
   kPrimed = true;
@@ -266,10 +293,10 @@ export function keepLaunchWatch(students, active) {
   if (!kBusy) kNext();
 }
 function kNext() {
-  const name = kq.shift(); if (!name) { kBusy = false; return; }
+  const q = kq.shift(); if (!q) { kBusy = false; return; } const name = q.name;
   kBusy = true;
   if (!kRoot) { kRoot = document.createElement("div"); kRoot.id = "pjkeep"; document.body.appendChild(kRoot); }
-  kRoot.innerHTML = '<div class="pjk"><div class="pjktrail"></div><div class="pjkship">' + duckHTML() + flameHTML() + "</div>" +
+  kRoot.innerHTML = '<div class="pjk"><div class="pjktrail"></div><div class="pjkship">' + duckHTML(q.s) + flameHTML(q.s) + "</div>" +
     '<div class="pjkmsg"><span class="pjkplanet">' + planetHTML() + "</span><b>" + esc(name) + "</b> has launched to Planet JP! \u{1F680}</div></div>";
   try { rumble(1.6); setTimeout(sparkle, 1400); } catch (e) {}
   setTimeout(() => { if (kRoot) kRoot.innerHTML = ""; setTimeout(kNext, 500); }, 5600);
@@ -284,6 +311,24 @@ const TYPE_IC = { Fire: "\u{1F525}", Water: "\u{1F4A7}", Nature: "\u{1F343}", Ro
 let zoneOpen = null;
 export function planetZone(k) { zoneOpen = k || null; }
 // petOf(st) → companion HTML (passed in by the page, so this file doesn't need the game's art code)
+// where each place sits on the hub picture (% of a 16:9 scene). Zones = the 7 portholes across the sky.
+const HUB_ZONES = [[8, 17], [21, 13], [35, 11], [50, 10], [65, 11], [79, 13], [92, 17]];
+const HUB_PLACES = [
+  { k: "cafe", name: "\u2615 Space Caf\u00e9", x: 15, y: 62, w: 24, html: () => '<span class="hubcafe"><img class="hubwin" src="' + A + 'cafe/cafe-room.webp" alt=""><img class="hubchef" src="' + A + 'cafe/chef-duck-360.webp" alt=""></span>' },
+  { k: "safari", name: "\u{1F6D2} Safari Shop", x: 37, y: 74, w: 18, html: () => '<img src="' + A + 'safari-shop.webp" alt="">' },
+  { k: "shop", name: "\u{1F6CD}\uFE0F Space Shop", x: 62, y: 74, w: 22, html: () => '<img src="' + A + 'shop/space-shop.webp" alt="">' },
+  { k: "swap", name: "\u{1F527} Swap Shop", x: 86, y: 63, w: 21, html: () => '<img src="' + A + 'shop/swap-shop.webp" alt="">' },
+  { k: "album", name: "\u{1F4D6} Photo Album", x: 30, y: 44, w: 10, html: () => '<span class="hubbook">\u{1F4D6}</span>' },
+  { k: "colony", name: "\u{1F3D5}\uFE0F Class Colony", x: 54, y: 46, w: 14, html: () => '<span class="hubduck">' + duckHTML() + "</span>" }];
+if (typeof document !== "undefined") document.addEventListener("click", ev => { const b = ev.target.closest && ev.target.closest("[data-pjcolony]"); if (!b) return; const c = document.getElementById("pjcolonycard"); if (c) c.scrollIntoView({ behavior: "smooth" }); });
+function hubHTML(st, n) {
+  let h = '<div class="pjhubscroll"><div class="pjhub" style="background-image:url(' + A + 'jp-landing.webp)">';
+  ZONES.forEach((z, i) => { const open = n >= z.at, [x, y] = HUB_ZONES[i];
+    h += '<button class="hubzone' + (open ? "" : " locked") + '" style="left:' + x + "%;top:" + y + '%"' + (open ? ' data-pjzone="' + z.key + '"' : " disabled") + ">" +
+      '<span class="hubport" style="background-image:url(' + A + "zone-" + z.key + '.webp)">' + (open ? "" : "<i>\u{1F512}</i>") + '</span><span class="hublbl">' + z.icon + " " + esc(z.name) + (open ? "" : " \u00b7 " + z.at + " \u{1F680}") + "</span></button>"; });
+  HUB_PLACES.forEach(p => { h += '<button class="hubplace hub-' + p.k + '" style="left:' + p.x + "%;top:" + p.y + "%;width:" + p.w + '%" data-pjzone="' + p.k + '">' + p.html() + '<span class="hublbl">' + p.name + "</span></button>"; });
+  return h + "</div></div>";
+}
 export function planetTab(st, cls, students, petOf, preview) {
   st = freshSt(st);
   const pl = (st && st.planet) || {}, n = Number(pl.n) || 0, today = azToday();
@@ -293,6 +338,10 @@ export function planetTab(st, cls, students, petOf, preview) {
     '</p></div><div class="pjtabstats"><span>\u{1F680} <b>' + n + "</b> launch" + (n === 1 ? "" : "es") + "</span><span>⭐ <b>" + (Number(pl.dust) || 0) + "</b> Stardust</span>" +
     ((pl.streak || 0) > 1 ? "<span>\u{1F525} <b>" + pl.streak + "</b> days in a row</span>" : "") + "</div></div></div>";
   if (zoneOpen === "album") return h + albumHTML(st, n);
+  if (zoneOpen === "safari") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn ghost small" data-pjzone="">← Map</button></div>' + shopHTML(st);
+  if (zoneOpen === "swap") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn ghost small" data-pjzone="">← Map</button></div>' + shopPageHTML(st, cls, pjOpen(st, cls) || !!preview, "swap");
+  if (zoneOpen === "shop") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn ghost small" data-pjzone="">← Map</button></div>' + shopPageHTML(st, cls, pjOpen(st, cls) || !!preview, "shop");
+  if (zoneOpen === "cafe") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn ghost small" data-pjzone="">← Map</button></div>' + cafeHTML(st, cls, students, petOf, pjOpen(st, cls) || !!preview);
   const z = zoneOpen && ZONES.find(x => x.key === zoneOpen && n >= x.at);
   if (z) {
     return h + '<div class="card pjzone"><div class="pjzonescene" style="background-image:url(' + A + "zone-" + z.key + '.webp)">' +
@@ -301,18 +350,17 @@ export function planetTab(st, cls, students, petOf, preview) {
       '<p class="small">Creatures here: ' + z.types.map(t => '<span class="pjtype">' + (TYPE_IC[t] || "") + " " + t + "</span>").join(" ") + "</p>" +
       '<div class="safbox"><div><b>\u{1F4F8} Creature Safari</b><p class="small" style="margin:2px 0 0;">Creatures peek out and hide again. Tap one fast to take its photo! ' +
       "Album page: <b>" + pageCount(st, z.key) + " / " + pageSize(z.key) + "</b> · \u{1F47D} aliens <b>" + aliensFound(st, z.key) + " / 3</b> · \u{1F39E}️ <b>" + filmLeft(st) + "</b> film left today (" + FREE_FILM + " free a day, then " + ROLL_COST + " ⭐ a roll). Only here: " + zoneAliens(z.key).map(a => "<b>" + esc(a.name) + "</b>").join(", ") + " \u{1F47D}</p></div>" +
-      '<button class="btn gold" data-safari="' + z.key + '">\u{1F4F8} Start safari</button></div></div>';
+      '<button class="btn gold" data-safari="' + z.key + '">\u{1F4F8} Start safari</button></div>' +
+      '<p class="small" style="margin:8px 0 0;">\u{1F6D2} Your nets: ' + NETS.map(n => netImg(n, "pjnetimg") + " " + (Number(netsOf(st)[n.k]) || 0)).join(" · ") + ". Switch to a net on the safari to catch a creature!</p></div>" + shopHTML(st);
   }
   const next = ZONES.find(x => n < x.at);
-  h += '<div class="card"><div class="card-head"><h2>\u{1F5FA}️ Explore the map</h2><span class="fact">' + ZONES.filter(x => n >= x.at).length + " of " + ZONES.length + " zones</span></div>" +
-    (next ? '<p class="lede" style="font-size:14px;">Next zone: <b>' + next.icon + " " + esc(next.name) + "</b> in " + (next.at - n) + " more launch" + (next.at - n === 1 ? "" : "es") + ".</p>" : '<p class="lede">\u{1F3C6} You unlocked every zone!</p>') +
-    '<div class="row" style="margin:0 0 10px;"><button class="btn small" data-pjzone="album">\u{1F4D6} Photo album</button></div>' +
-    '<div class="pjmap">' + ZONES.map(x => { const open = n >= x.at;
-      return '<button class="pjzcard' + (open ? "" : " locked") + '"' + (open ? ' data-pjzone="' + x.key + '"' : " disabled") + ' style="background-image:url(' + A + "zone-" + x.key + '.webp)"><span class="pjzname">' + x.icon + " " + esc(x.name) + "</span>" +
-        (open ? '<span class="pjztypes">' + x.types.map(t => TYPE_IC[t] || "").join(" ") + "</span>" : '<span class="pjzlock">\u{1F512} ' + x.at + " launches</span>") + "</button>"; }).join("") + "</div></div>";
+  // 🗺️ The Planet JP hub (Nov 8): one big picture of the landing area. Tap a place to go there.
+  h += '<div class="card pjhubcard"><div class="card-head"><h2>\u{1F5FA}\uFE0F Planet JP</h2><span class="fact">' + ZONES.filter(x => n >= x.at).length + " of " + ZONES.length + " zones open</span></div>" +
+    (next ? '<p class="lede" style="font-size:14px;margin:0 0 8px;">Tap a place to go there! Next zone: <b>' + next.icon + " " + esc(next.name) + "</b> in " + (next.at - n) + " more launch" + (next.at - n === 1 ? "" : "es") + ".</p>" : '<p class="lede" style="margin:0 0 8px;">Tap a place to go there! \u{1F3C6} You unlocked every zone!</p>') +
+    hubHTML(st, n) + '<p class="small muted pjhubhint">\u2194\uFE0F Swipe the picture to see all of Planet JP.</p></div>';
   // the Class Colony: who landed today
   const kids = (students || []).filter(s => s.companionId && !s.isTeacher), landed = kids.filter(s => s.planet && s.planet.last === today);
-  h += '<div class="card"><div class="card-head"><h2>\u{1F3D5}️ Class Colony</h2><span class="fact">' + landed.length + " of " + kids.length + " landed today</span></div>" +
+  h += '<div class="card" id="pjcolonycard"><div class="card-head"><h2>\u{1F3D5}️ Class Colony</h2><span class="fact">' + landed.length + " of " + kids.length + " landed today</span></div>" +
     (landed.length ? '<div class="pjcolony">' + landed.sort((a, b) => String(a.name).localeCompare(String(b.name))).map(s =>
       '<div class="pjcol' + (st && s.id === st.id ? " me" : "") + '"><span class="pjcolpet">' + (petOf ? petOf(s) : "") + "</span><b>" + esc(s.name) + "</b><small>\u{1F680} " + (Number(s.planet.n) || 0) + "</small></div>").join("") + "</div>"
       : '<p class="lede">Nobody has landed yet today.</p>') + "</div>";

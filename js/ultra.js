@@ -8,11 +8,11 @@
      🗺️ finishing all 3 Grade Level Quest tests at their own grade (st.grade = 4 or 5, set by Ms. Ariana; once)
    Saved on the student: ultraEggs, ultraUsed (server), ultraGoals = { st: { s: run start, n: given }, wk: { s, n }, vault: vaults rolled,
      q: true }, ultraLog = [{ why, at }] (newest last). */
-import { esc, weekKey, weekGoal } from "./game.js?v=20261107i";
-import { CLUB_ULTRA_FAMS } from "./collect.js?v=20261107i";
-import { ULTRA_FAMS, ULTRA_DUPE, ultraLeft, owned, formOf, family, creature, statsOf, bankXP, LEVEL_XP, MAX_LEVEL } from "./collect.js?v=20261107i";
-import { doneCount, GRADES } from "./quest.js?v=20261107i";
-import { addDays, mondayOf, histWeekTotal, wkShare } from "./doors.js?v=20261107i";
+import { esc, weekKey, weekGoal } from "./game.js?v=20261108a";
+import { CLUB_ULTRA_FAMS } from "./collect.js?v=20261108a";
+import { ULTRA_FAMS, ULTRA_DUPE, ultraLeft, owned, formOf, family, creature, statsOf, bankXP, LEVEL_XP, MAX_LEVEL } from "./collect.js?v=20261108a";
+import { doneCount, GRADES } from "./quest.js?v=20261108a";
+import { addDays, mondayOf, histWeekTotal, wkShare } from "./doors.js?v=20261108a";
 
 export const STREAK_DAYS = 30, WEEKS_IN_ROW = 4, WEEK_XP = 600, VAULT_ULTRA = 0.25;
 export const ULTRA_GRADES = [4, 5];
@@ -169,6 +169,10 @@ function fxText(f, who) {
 }
 export function ultraInfoHTML(c) {
   const u = c && c.ux; if (!u) return "";
+  // 👽 Planet JP aliens: Ms. Ariana's own move and ability text
+  if (c.moves) return '<div class="uinfo">' + c.moves.map((m, i) => '<p class="dline"><b>' + (i ? "✨ " : "⚔️ ") + esc(m.name) + "</b> (" + esc(m.type) + (m.dmg ? ", " + m.dmg + " base damage" : "") + "): " + esc(m.effect) + "</p>").join("") +
+    (c.ability ? '<p class="dline"><b>\u{1F6E1}️ ' + esc(c.ability.name) + "</b>: " + esc(c.ability.text) + "</p>" : "") + (c.role ? '<p class="dline muted">Battle role: ' + esc(c.role) + "</p>" : "") +
+    (c.evoNote ? '<p class="dline muted">\u{1F31F} ' + esc(c.evoNote) + "</p>" : "") + "</div>";
   const p = u.pass, sp = u.sp || {}, bits = [];
   if (sp.heal) bits.push("heals " + P(sp.heal) + " of its HP"); if (sp.def) bits.push("+" + P(sp.def) + " Defense"); if (sp.atk) bits.push("+" + P(sp.atk) + " Attack");
   if (sp.boost) bits.push("its next " + (sp.bt ? sp.bt.join(" or ") + " " : "") + "attack does +" + P(sp.boost)); if (sp.shield) bits.push("the next hit on it does " + P(sp.shield) + " less"); if (sp.crit) bits.push("that attack has +" + P(sp.crit) + " critical-hit chance");
