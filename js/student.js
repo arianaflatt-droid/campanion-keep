@@ -746,7 +746,7 @@ function vaultOverlay() {
     vaultArt(open, !open) +
     (open ? '<div class="prizewon vaultwon"><b>You cracked the vault!</b>' +
         '<ul class="vaultloot">' + (vaultFx.reward ? '<li>\u{1F381} <b>' + esc(vaultFx.reward) + "</b>! Ms. Ariana will give it to you.</li>" : "") + (vaultFx.ultra ? '<li class="vultra">\u{1F308} An <b>ULTRA LEGENDARY egg</b>! Hatch it in your Creature Collector!</li>' : "") + (vaultFx.golden ? '<li>\u2728 Golden Present: ' + vaultFx.golden.icon + " <b>" + esc(vaultFx.golden.big) + "</b></li>" : "") + '<li>\u{1F48E} A <b>Sparkle Legendary egg</b> — hatch it in your Creature Collector!</li><li>\u{1F510} A <b>Vault Breaker</b> lesson for any creature</li>' +
-        (vaultFx.prize != null ? "<li>\u{1F3C6} A <b>prize spin</b>!</li>" : "") + "</ul>" +
+        (vaultFx.prize != null ? "<li>\u{1F3C6} A <b>prize spin</b>!</li>" : "") + "<li>\u2B50 <b>+" + WEEK_DOOR_DUST + " Stardust</b> for Planet JP!</li></ul>" +
         (vaultFx.prize != null ? '<button class="attackbtn" data-act="vaultSpin">\u{1F3C6} Spin the Prize Wheel!</button>' : '<button class="attackbtn" data-act="vaultClose">Yay! \u{1F389}</button>') + "</div>"
       : '<p class="arena-foot" style="font-size:14px;">Cracking the code…</p>') + "</div></div>";
 }
@@ -759,6 +759,7 @@ async function openVault(wk) {
   // a Golden Present, a Vault Breaker lesson and their Weekly Reward. No more plain Legendary egg, 500 XP or 3 eggs.
   const data = { vault: Object.assign({}, s.vault || {}, { [wk]: "open" }), vaultLegEggs: (Number(s.vaultLegEggs) || 0) + 1 };
   const gotUltra = vaultUltra(s, data);
+  plusDust(s, WEEK_DOOR_DUST, data);   // ⭐ Nov 9 (Ms. Ariana): opening the vault also gives +100 Planet JP Stardust
   const prize = null;   // the vault no longer gives a prize spin (Oct 19)
   // Their own Weekly Reward (Rewards tab) is inside too: it goes on Ms. Ariana's Prize winners list, like a Prize Wheel win
   const rg = rewardFor(s, cls, wk);
@@ -863,8 +864,7 @@ async function openWeekDoor(wkIn) {
   const r = rollPresent(true);
   const data = { weekDoor: Object.assign({}, s.weekDoor || {}, { [wk]: "open" }), legendaryPulls: (Number(s.legendaryPulls) || 0) + 1, weekPresent: { week: wk, r, at: new Date().toISOString() } };
   const prize = presentReward(s, r, data);
-  if (planetOn(cls)) plusDust(Object.assign({}, s, data.planet ? { planet: data.planet } : {}), WEEK_DOOR_DUST, data);   // ⭐ the Weekly Door also gives +100 Stardust (Nov 9)
-  present = { date: wk, k: "w", r, phase: "shake", golden: true, prize, week: true, dust: planetOn(cls) ? WEEK_DOOR_DUST : 0 };
+  present = { date: wk, k: "w", r, phase: "shake", golden: true, prize, week: true };
   render(true);
   const saving = updateDoc(studentRef(me), data).then(() => Object.assign(s, data)).catch(e => { present = null; flash("The Weekly Door didn\u2019t open \u2014 ask Ms. Ariana. (" + (e.code || e.message) + ")"); });
   setTimeout(async () => { await saving; if (present) { present.phase = "open"; render(true); } }, 1600);
