@@ -4,15 +4,15 @@ import {
   formIndex, formOf, statsOf, seenSet, rollRarity, doPull, arenaOpen, arenaOpenFor, lunchHour, hitGoalToday, LUNCH_ARENA, ARENA_HOURS, fighterFrom, teamSize, alive, resolve, resolveRound, moveOk, MOVES, hitDamage,
   birthdayLeft, pickleLeft, PICKLE_FAM, brewLegLeft, BREW_FAM, feastLegLeft, HARVEST_FAM, gingerLegLeft, GINGER_FAM, snowLegLeft, SNOW_FAM, candyLegLeft, CANDY_FAM, ghostEggLeft, GHOST_FAM, BOSS2_LIST, boss2EggLeft, vaultLegLeft, revengeLegLeft, heistLegLeft, goalLeft, nextGoal, rollRareUp, themeLeft, nextTheme, THEME_TYPES, THEME_EGG, WISH_FAM, spares, spareId, releaseXP, releaseProblem, isStarterFam, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
   EVENTS, eventOpen, eventWindow, eventStreak, hasEvent, eventUnlocked, azToday, rollTeacherRarity, teacherPull, TEACHER_ODDS, LIVE, staleBattle
-} from "./collect.js?v=20261109b";
-import { newBattleRef, battleRef, updateDoc, changeBattle as changeBattleRaw, setDoc, liveBattlesNow, ck, ckMessage } from "./db.js?v=20261109b";
+} from "./collect.js?v=20261109e";
+import { newBattleRef, battleRef, updateDoc, changeBattle as changeBattleRaw, setDoc, liveBattlesNow, ck, ckMessage } from "./db.js?v=20261109e";
 // every change to a battle is stamped with the time (upd), so a battle nobody has touched in a while can be ended
 let locking = null, leaving = null;   // battle id while "Lock in team" is saving
 const changeBattle = (id, fn) => changeBattleRaw(id, bt => { const n = fn(bt); if (n) n.upd = new Date().toISOString(); return n; });
 
-import { tradeCard } from "./trade-ui.js?v=20261109b";
-import { ultraLeft, isUltra, trapLegLeft, PRISM_FAM, teacherLegFam } from "./collect.js?v=20261109b";
-import { ultraSection, ultraInfoHTML } from "./ultra.js?v=20261109b";
+import { tradeCard } from "./trade-ui.js?v=20261109e";
+import { ultraLeft, isUltra, trapLegLeft, PRISM_FAM, teacherLegFam } from "./collect.js?v=20261109e";
+import { ultraSection, ultraInfoHTML } from "./ultra.js?v=20261109e";
 
 const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const PER_PAGE = 20;
@@ -416,7 +416,7 @@ function bookOverlay() {
 function detailPage(c, seen) {
   const e = owned(ctx.me)[c.fam], lvl = e ? e.lvl || 1 : 1, cur = e && formOf(c.fam, lvl).id === c.id, st = statsOf(c, cur ? lvl : 1);
   const fam = family(c.fam), bank = bankXP(ctx.me, ctx.cls);
-  let h = '<div class="dtop"><button class="btn small ghost" data-cc="back">◀ Back to lorebook</button><span class="num">#' + c.id + "</span></div>" +
+  let h = '<div class="dtop"><button class="btn small ghost" data-cc="back">◀ Back to ' + (book && book.from ? "the zoo" : "lorebook") + '</button><span class="num">#' + c.id + "</span></div>" +
     '<div class="dhead">' + img(c, "dimg") + "<div><h2>" + esc(c.name) + "</h2>" + (e && e.nick && cur ? '<p class="dline">Your <b>' + esc(e.nick) + "</b></p>" : "") + rarityPill(c.rarity) + " " + typePills(c) +
     '<p class="dline"><b>Weak to:</b> ' + esc(c.weak.join(", ")) + " (takes double damage)</p>" +
     (c.title ? '<p class="dline"><i>' + esc(c.title) + "</i>" + (c.ultra ? ' <span class="rpill upill">\u{1F308} Ultra Legendary</span>' : c.planet ? ' <span class="rpill" style="background:#5B2A86">\u{1F47D} Planet JP alien · only on the safari</span>' : c.event ? ' <span class="rpill" style="background:#2B6FD6">\u{1F986} Limited event</span>' : "") + "</p>" : "") +
@@ -875,9 +875,10 @@ export async function onClick(el, c) {
   if (a === "detail") {
     const id = Number(el.dataset.id);
     if (!book) book = { open: true, page: Math.floor((id - 1) / PER_PAGE) };
-    book.open = true; book.detail = id; book.flip = "in-next"; return c.render(true);
+    book.open = true; book.detail = id; book.from = el.dataset.from || null; book.flip = "in-next"; return c.render(true);
   }
-  if (a === "back") { book.detail = null; book.flip = "in-prev"; return c.render(true); }
+  if (a === "back") { if (book.from) { book = null; return c.render(true); }   // opened from the Space Zoo plaque: Back returns to the zoo
+    book.detail = null; book.flip = "in-prev"; return c.render(true); }
   if (a === "lvl100") {   // teacher only: a Legendary / Ultra jumps straight to Lv 100 (no XP)
     const f = el.dataset.fam, e = owned(s)[f]; if (!s.isTeacher || !e || !teacherLegFam(f) || (e.lvl || 1) >= MAX_LEVEL) return;
     const before = formOf(f, e.lvl || 1), after = formOf(f, MAX_LEVEL);

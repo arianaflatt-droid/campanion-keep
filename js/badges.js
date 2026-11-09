@@ -1,14 +1,14 @@
-import { owned as roomOwned, fitOf as roomFit, FIT_SLOTS, setItems as roomSet } from "./room.js?v=20261109b";
-import { presentsOpened } from "./doors.js?v=20261109b";
-import { PASS_THEMES, passDone } from "./pass.js?v=20261109b";
-import { shopBuys, swapBuys, outfitsOwned, cabinOwned, paintsOwned } from "./shop-data.js?v=20261109b";
-import { REGULARS as CF_REG, SPECIALS as CF_SP, keptCount as cfKept, perfectTotal as cfPerfect, monthPairs as cfPairs } from "./cafe-data.js?v=20261109b";
-import { ZONES as PJ_ZONES, pageCount as pjPage, pageSize as pjSize, aliensFound as pjAl, allAliensFound as pjAllAl, ALIEN_LIST as PJ_ALIENS } from "./safari.js?v=20261109b";
+import { owned as roomOwned, fitOf as roomFit, FIT_SLOTS, setItems as roomSet } from "./room.js?v=20261109e";
+import { presentsOpened } from "./doors.js?v=20261109e";
+import { PASS_THEMES, passDone } from "./pass.js?v=20261109e";
+import { shopBuys, swapBuys, outfitsOwned, cabinOwned, paintsOwned } from "./shop-data.js?v=20261109e";
+import { REGULARS as CF_REG, SPECIALS as CF_SP, keptCount as cfKept, perfectTotal as cfPerfect, monthPairs as cfPairs } from "./cafe-data.js?v=20261109e";
+import { ZONES as PJ_ZONES, pageCount as pjPage, pageSize as pjSize, aliensFound as pjAl, allAliensFound as pjAllAl, ALIEN_LIST as PJ_ALIENS } from "./safari.js?v=20261109e";
 // Badges: worked out from each student's saved data, so nothing extra is stored and no rules change.
 // To add a badge: add an entry with a check(st) that returns how far along the student is,
 // and a goal. Put its picture in assets/badges/ (a transparent WEBP or PNG). Without a picture, the emoji shows.
-import { esc, goalXP, candyOf, ghostUnlocked } from "./game.js?v=20261109b";
-import { seenSet, ownedFams, owned, family, formIndex, formOf, STARTERS, CREATURES } from "./collect.js?v=20261109b";
+import { esc, goalXP, candyOf, ghostUnlocked } from "./game.js?v=20261109e";
+import { seenSet, ownedFams, owned, family, formIndex, formOf, STARTERS, CREATURES } from "./collect.js?v=20261109e";
 
 export const hatches = st => (Number(st.pullsUsed) || 0) + (Number(st.legendaryUsed) || 0);
 
@@ -117,6 +117,7 @@ export const grinchHelped = (st, bt, cls) => (cls && cls.grinchDefeated && (Numb
 export const eventsCaught = st => EVENT_FAMS.filter(f => owned(st)[f]).length;
 const LORE = CREATURES.filter(c => !c.event).length, lore = pct => Math.ceil(LORE * pct / 100);
 
+const zooOf = st => ((st && st.planet) || {}).zoo || {};
 export const BADGE_GROUPS = [
   { key: "hatch", title: "\u{1F95A} Hatching" },
   { key: "morning", title: "\u{1F305} Morning Quests" },
@@ -138,6 +139,7 @@ export const BADGE_GROUPS = [
   { key: "pass", title: "\u{1F39F}\uFE0F Season Pass" },
   { key: "planet", title: "\u{1FA90} Planet JP Explorer" },
   { key: "cafe", title: "\u2615 Space Caf\u00e9 + \u{1F6D2} Shops" },
+  { key: "zoo", title: "\u{1F992} Space Zoo" },
 ];
 
 export const BADGES = [
@@ -263,7 +265,7 @@ export const BADGES = [
   { id: "pass-summer", group: "pass", name: "Summer Pass", desc: "Finish the Summer Pass (all 20 tiers)", goal: 1, img: "assets/badges/pass-summer.webp", emoji: "\u2600\uFE0F", check: st => passDone(st, "summer") },
   { id: "pass-school", group: "pass", name: "Back-to-School Pass", desc: "Finish the Back-to-School Pass (all 20 tiers)", goal: 1, img: "assets/badges/pass-school.webp", emoji: "\u{1F4DA}", check: st => passDone(st, "school") },
   // 🪐 Planet JP (Nov 7): a full album page = the zone's badge; all 3 of a zone's aliens = its alien badge; all 21 = Alien Hunter (no pictures yet: emoji)
-  ...PJ_ZONES.map(z => ({ id: "pj-" + z.key, group: "planet", name: z.name + " Explorer", desc: "Fill the " + z.name + " page of your Planet JP photo album (all " + pjSize(z.key) + " photos)", goal: pjSize(z.key), img: z.key === "ice" ? null : "assets/badges/pj-" + z.key + ".webp", emoji: z.icon, check: st => pjPage(st, z.key) })),
+  ...PJ_ZONES.map(z => ({ id: "pj-" + z.key, group: "planet", name: z.name + " Explorer", desc: "Fill the " + z.name + " page of your Planet JP photo album (all " + pjSize(z.key) + " photos)", goal: pjSize(z.key), img: "assets/badges/pj-" + z.key + ".webp", emoji: z.icon, check: st => pjPage(st, z.key) })),
   ...PJ_ZONES.map(z => ({ id: "pja-" + z.key, group: "planet", name: z.name + " Alien Spotter", desc: "Photograph all 3 Planet JP aliens in " + z.name, goal: 3, img: "assets/badges/pja-" + z.key + ".webp", emoji: "\u{1F47D}", check: st => pjAl(st, z.key) })),
   { id: "pja-all", group: "planet", name: "Alien Hunter", desc: "Photograph all " + PJ_ALIENS.length + " Planet JP aliens", goal: PJ_ALIENS.length, img: "assets/badges/pja-all.webp", emoji: "\u{1F6F8}", check: pjAllAl },
   // 🚀 visiting Planet JP (Nov 7)
@@ -280,8 +282,14 @@ export const BADGES = [
   { id: "snack-first", group: "cafe", name: "First Perfect Snack", desc: "Cook your first 3-star snack in the Cosmic Kitchen", goal: 1, img: "assets/badges/snack-first.webp", emoji: "\u{1F469}\u200D\u{1F373}", check: st => Math.min(1, cfPerfect(st)) },
   { id: "snack-regulars", group: "cafe", name: "Caf\u00e9 Regular", desc: "Keep all 6 everyday snacks (3 perfect cooks each)", goal: CF_REG.length, img: "assets/badges/snack-regulars.webp", emoji: "\u2615", check: st => cfKept(st, CF_REG) },
   { id: "snack-month", group: "cafe", name: "Snack of the Month", desc: "Keep both special snacks of the same month", goal: 1, img: "assets/badges/snack-month.webp", emoji: "\u{1F5D3}\uFE0F", check: st => Math.min(1, cfPairs(st)) },
-  { id: "snack-season-12", group: "cafe", name: "Seasonal Taster", desc: "Keep 12 special snacks", goal: 12, img: null, emoji: "\u{1F342}", check: st => cfKept(st, CF_SP) },
+  { id: "snack-season-12", group: "cafe", name: "Seasonal Taster", desc: "Keep 12 special snacks", goal: 12, img: "assets/badges/snack-season-12.webp", emoji: "\u{1F342}", check: st => cfKept(st, CF_SP) },
   { id: "snack-season-24", group: "cafe", name: "Snack Legend", desc: "Keep all 24 special snacks", goal: CF_SP.length, img: "assets/badges/snack-season-24.webp", emoji: "\u{1F3C6}", check: st => cfKept(st, CF_SP) },
+  { id: "zoo-first", group: "zoo", name: "First Visit", desc: "Finish a tour of the Space Zoo", goal: 1, img: "assets/badges/zoo-first.webp", emoji: "\u{1F992}", check: st => Math.min(1, Number(zooOf(st).v) || 0) },
+  { id: "zoo-all5", group: "zoo", name: "Meet the Animals", desc: "Say hi to all 5 animals in one zoo tour", goal: 1, img: "assets/badges/zoo-all5.webp", emoji: "\u{1F43E}", check: st => zooOf(st).all5 ? 1 : 0 },
+  { id: "zoo-regular", group: "zoo", name: "Zoo Regular", desc: "Fill 3 Zoo Stamp Cards", goal: 3, img: "assets/badges/zoo-regular.webp", emoji: "\u{1F3AB}", check: st => Math.min(3, Number(zooOf(st).cards) || 0) },
+  { id: "zoo-rare", group: "zoo", name: "Rare Find", desc: "Meet a Super Rare animal in your zoo", goal: 1, img: "assets/badges/zoo-rare.webp", emoji: "\u{1F31F}", check: st => zooOf(st).fr ? 1 : 0 },
+  { id: "zoo-alien", group: "zoo", name: "Alien Exhibit", desc: "Meet a Planet JP alien in your zoo", goal: 1, img: "assets/badges/zoo-alien.webp", emoji: "\u{1F47D}", check: st => zooOf(st).fa ? 1 : 0 },
+  { id: "zoo-sparkle", group: "zoo", name: "Sparkle Spotter", desc: "Meet a \u2728 Sparkle animal in your zoo", goal: 1, img: "assets/badges/zoo-sparkle.webp", emoji: "\u2728", check: st => zooOf(st).fs ? 1 : 0 },
   { id: "snack-master", group: "cafe", name: "Master Chef", desc: "Cook 25 snacks at 3 stars", goal: 25, img: "assets/badges/snack-master.webp", emoji: "\u{1F451}", check: st => Math.min(25, cfPerfect(st)) },
 ];
 

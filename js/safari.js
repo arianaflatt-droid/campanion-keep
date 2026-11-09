@@ -2,15 +2,15 @@
    In each unlocked zone a student can go on a safari: the zone scene fills the screen and creatures peek out and
    hide again. Tapping one before it hides takes its photo (1 film). 5 free film a day (was 3 until Nov 7); an extra roll (3 film) costs
    10 Stardust. A photo of a creature that isn't in the album yet is added; a repeat gives +2 Stardust instead.
-   Nov 7 (v20261109b): each zone's page holds EVERY form of every creature of the zone's types (no Legendaries, Ultras or
+   Nov 7 (v20261109e): each zone's page holds EVERY form of every creature of the zone's types (no Legendaries, Ultras or
    events: 387 in all) + 3 Planet JP–only aliens (21 in all). Every 10 new photos = +25 Stardust; a full page = +100 (once)
    and the zone badge; all 3 of a zone's aliens = its alien badge (badges.js works these out from the album).
    Saved on the student in planet: alb = { "c<id>" or alien key: photos }, saf = { d: day, u: film used, b: film bought },
    pg = [zone keys already paid], ms = milestones paid. One write per photo (≤3 a day unless they buy film). Preview saves nothing. */
-import { CREATURES } from "./creatures.js?v=20261109b";
-import { ALIEN_CREATURES, ALIEN_FAM } from "./aliens.js?v=20261109b";
-import { esc } from "./game.js?v=20261109b";
-import { azToday, azNow } from "./collect.js?v=20261109b";
+import { CREATURES } from "./creatures.js?v=20261109e";
+import { ALIEN_CREATURES, ALIEN_FAM } from "./aliens.js?v=20261109e";
+import { esc } from "./game.js?v=20261109e";
+import { azToday, azNow } from "./collect.js?v=20261109e";
 // ✨ Sparkles (Nov 7): now and then a creature shows up in its Sparkle colors. A photo of one = +10 ⭐ (first time) and a ✨ on its album spot;
 // catching one makes that creature Sparkle in the Collector for good (like a Sparkle hatch). Saved as planet.spk = { key: 1 }.
 export const SAF_SPARKLE = 0.04, SPARKLE_DUST = 10;
