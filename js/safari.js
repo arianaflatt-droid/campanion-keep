@@ -22,9 +22,10 @@ export const PJ_CLOSE_M = 12 * 60 + 55;
    (cls.pjWin = { d: today, from, to } in minutes; all: 1 = everyone can launch, even without full tanks), and a student she launches
    by hand (pjGo = today) can launch any time today and explore until 3:30 pm. */
 export const PJ_LATE = 15 * 60 + 30;
-/* 🏖️ Break-day launches (Nov 10, Ms. Ariana): on a weekday marked as a break on the calendar (cls.offDays), a student who
-   has 240 XP for the week so far (Mon through today) AND their core-subject rings closed for the week so far can launch to
-   Planet JP any time that day and explore until 10 pm (Arizona). cls.pjBreakOff = true turns it off; cls.pjBreakXP changes the 240. */
+/* 🏖️ Break-day launches (Nov 10, Ms. Ariana): on a weekday marked as a break on the calendar (cls.offDays), Planet JP is open
+   all day until 10 pm (Arizona). Who can launch (planet.js fuel): if there were school days earlier that week, students who are
+   caught up (the daily goal × those days for the week + core-subject rings closed so far); on a weeklong break, 120 XP that day.
+   cls.pjBreakOff = true turns it off. */
 export const PJ_BREAK_END = 22 * 60, PJ_BREAK_XP = 240;
 export const pjBreakXP = cls => Number(cls && cls.pjBreakXP) || PJ_BREAK_XP;
 export const pjBreakDay = (cls, iso) => { if (!cls || cls.pjBreakOff || !((cls.offDays || {})[iso])) return false;

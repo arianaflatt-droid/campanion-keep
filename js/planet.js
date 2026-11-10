@@ -34,11 +34,17 @@ export function fuel(st, cls) {
   const iso = azToday(), d = axoDay(st, cls, iso), h = ((st && st.xpHist) || {})[iso] || {};
   const xp = Math.max(d.xp, Number(h.mo) || 0), hit = xp >= d.goal || !!h.h || !!h.lh;
   const ICON = { m: "➗", r: "\u{1F4D6}", l: "✏️" };
-  // 🏖️ a break day: 240 XP for the week so far + every core-subject ring closed for the week so far (Nov 10)
+  // 🏖️ a break day (Nov 10, Ms. Ariana):
+  //   - school days earlier this week → caught up: goal × those days for the week (Mon–Tue = 240) + every core-subject ring closed so far
+  //   - no school days yet this week (a weeklong break) → the daily goal (120) today
   if (pjBreakDay(cls, iso) && !schoolDayFor(cls, iso)) {
-    const bx = pjBreakXP(cls), p = todayPlan(st, cls, iso), mon = mondayOf(iso), wx = Math.round(Math.max(histWeekTotal(st, mon), mon === weekKey(cls) ? weekTotal(st, cls) : 0));
-    const bt = [{ icon: "⭐", name: "XP this week", have: wx, need: bx }];
-    if (p) p.rows.forEach(r => { const need = Math.max(0, r.week - r.today + r.target); if (need > 0) bt.push({ icon: ICON[r.src] || "\u{1F4DA}", name: r.name + " this week", have: Math.min(r.week, need), need }); });
+    const mon = mondayOf(iso); let sd = 0; for (let k = addDays(mon, 0); k < iso; k = addDays(k, 1)) if (schoolDayFor(cls, k)) sd++;
+    let bt;
+    if (sd > 0) {
+      const p = todayPlan(st, cls, iso), wx = Math.round(Math.max(histWeekTotal(st, mon), mon === weekKey(cls) ? weekTotal(st, cls) : 0));
+      bt = [{ icon: "⭐", name: "XP this week", have: wx, need: d.goal * sd }];
+      if (p) p.rows.forEach(r => { const need = Math.max(0, r.week - r.today + r.target); if (need > 0) bt.push({ icon: ICON[r.src] || "\u{1F4DA}", name: r.name + " this week", have: Math.min(r.week, need), need }); });
+    } else bt = [{ icon: "⭐", name: "XP today", have: hit ? Math.max(xp, d.goal) : xp, need: d.goal }];
     const bn = bt.reduce((n, t) => n + t.need, 0), bh = bt.reduce((n, t) => n + Math.min(t.have, t.need), 0);
     if (st && (st.pjGo === iso || classOpenAll(cls))) return { tanks: bt.map(t => Object.assign({}, t, { have: Math.max(t.have, t.need) })), pct: 1, full: true, manual: true, brk: true };
     return { tanks: bt, pct: bn ? bh / bn : 0, full: bt.every(t => t.have >= t.need), brk: true };
@@ -81,7 +87,7 @@ export function planetBar(st, cls, preview) {
   const f = fuel(st, cls), pct = p === "landed" ? 1 : Math.min(1, f.pct), pl = st.planet || {};
   const W = pjWindow(st, cls);
   let msg;
-  if (p === "fill" && f.brk) msg = "\u{1F3D6}\uFE0F <b>Break day bonus!</b> Reach <b>" + f.tanks[0].need + " XP this week</b>" + (f.tanks.length > 1 ? " and catch up your subject rings" : "") + " to launch to <b>Planet JP</b> (open until " + hhmm(W.c) + " pm).";
+  if (p === "fill" && f.brk) msg = "\u{1F3D6}\uFE0F <b>Break day bonus!</b> " + (f.tanks[0].name === "XP today" ? "Earn <b>" + f.tanks[0].need + " XP today</b>" : "Reach <b>" + f.tanks[0].need + " XP this week</b>" + (f.tanks.length > 1 ? " and catch up your subject rings" : "")) + " to launch to <b>Planet JP</b> (open until " + hhmm(W.c) + " pm).";
   else if (p === "fill") msg = "Fill all 4 tanks to launch to <b>Planet JP</b>! " + (mins() < W.o ? "Launch window opens at " + hhmm(W.o) + "." : 'Window closes in <b id="pjcd">' + left(W.c) + "</b>");
   else if (p === "ready") msg = "\u{1F389} Ready for liftoff! The launch window opens in <b id=\"pjcd\">" + left(W.o) + "</b>";
   else if (p === "go") msg = '\u{1F680} Fuel tanks full! <button class="btn small gold" data-pj="open">Launch the S.S. Duck!</button>';
