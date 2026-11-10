@@ -4,15 +4,15 @@ import {
   formIndex, formOf, statsOf, seenSet, rollRarity, doPull, arenaOpen, arenaOpenFor, lunchHour, hitGoalToday, LUNCH_ARENA, ARENA_HOURS, fighterFrom, teamSize, alive, resolve, resolveRound, moveOk, MOVES, hitDamage,
   birthdayLeft, pickleLeft, PICKLE_FAM, brewLegLeft, BREW_FAM, feastLegLeft, HARVEST_FAM, gingerLegLeft, GINGER_FAM, snowLegLeft, SNOW_FAM, candyLegLeft, CANDY_FAM, ghostEggLeft, GHOST_FAM, BOSS2_LIST, boss2EggLeft, vaultLegLeft, revengeLegLeft, heistLegLeft, goalLeft, nextGoal, rollRareUp, themeLeft, nextTheme, THEME_TYPES, THEME_EGG, WISH_FAM, spares, spareId, releaseXP, releaseProblem, isStarterFam, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
   EVENTS, eventOpen, eventWindow, eventStreak, hasEvent, eventUnlocked, azToday, rollTeacherRarity, teacherPull, TEACHER_ODDS, LIVE, staleBattle
-} from "./collect.js?v=20261110b";
-import { newBattleRef, battleRef, updateDoc, changeBattle as changeBattleRaw, setDoc, liveBattlesNow, ck, ckMessage } from "./db.js?v=20261110b";
+} from "./collect.js?v=20261110c";
+import { newBattleRef, battleRef, updateDoc, changeBattle as changeBattleRaw, setDoc, liveBattlesNow, ck, ckMessage } from "./db.js?v=20261110c";
 // every change to a battle is stamped with the time (upd), so a battle nobody has touched in a while can be ended
 let locking = null, leaving = null;   // battle id while "Lock in team" is saving
 const changeBattle = (id, fn) => changeBattleRaw(id, bt => { const n = fn(bt); if (n) n.upd = new Date().toISOString(); return n; });
 
-import { tradeCard } from "./trade-ui.js?v=20261110b";
-import { ultraLeft, isUltra, trapLegLeft, PRISM_FAM, teacherLegFam } from "./collect.js?v=20261110b";
-import { ultraSection, ultraInfoHTML } from "./ultra.js?v=20261110b";
+import { tradeCard } from "./trade-ui.js?v=20261110c";
+import { ultraLeft, isUltra, trapLegLeft, PRISM_FAM, teacherLegFam } from "./collect.js?v=20261110c";
+import { ultraSection, ultraInfoHTML } from "./ultra.js?v=20261110c";
 
 const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const PER_PAGE = 20;
@@ -264,9 +264,22 @@ function ideaList(s) {
 }
 
 /* ================= arena ================= */
+/* A finished battle shows once ("See what happened") until the student closes it. Nov 10 fix: a student was stuck on an ended battle
+   (both Close buttons now mark it seen, the save is just that one field, and it's also remembered on this computer), and a finished
+   battle older than 2 days never blocks the arena. */
+const SEEN_LS = "ck-bseen";
+const seenLocal = () => { try { return JSON.parse(localStorage.getItem(SEEN_LS) || "{}") || {}; } catch (e) { return {}; } };
+function markSeenBattle(id, sid) {
+  if (!id) return;
+  try { const m = seenLocal(); m[id] = 1; const ks = Object.keys(m); if (ks.length > 60) delete m[ks[0]]; localStorage.setItem(SEEN_LS, JSON.stringify(m)); } catch (e) {}
+  const bt = (ctx.battles || []).find(b => b.id === id); if (bt) bt["seen_" + sid] = true;
+  updateDoc(battleRef(id), { ["seen_" + sid]: true }).catch(e => console.warn("battle seen", e && (e.code || e.message)));
+}
+const oldBattle = b => { const t = Date.parse(b.upd || b.created || ""); return !isNaN(t) && Date.now() - t > 2 * 864e5; };
 function myBattle(s) {
+  const loc = seenLocal();
   return (ctx.battles || []).filter(b => (b.a.id === s.id || b.b.id === s.id) &&
-    ((LIVE.includes(b.status) && !staleBattle(b)) || (["done", "ended"].includes(b.status) && !b["seen_" + s.id])))
+    ((LIVE.includes(b.status) && !staleBattle(b)) || (["done", "ended"].includes(b.status) && !b["seen_" + s.id] && !loc[b.id] && !oldBattle(b))))
     .sort((x, y) => String(y.created).localeCompare(String(x.created)))[0] || null;
 }
 function busyIds() {
@@ -930,7 +943,7 @@ export async function onClick(el, c) {
   if (a === "leaveCancel") { busyLeave = false; return c.render(true); }
   if (a === "leaveBattle") {
     const bt = (c.battles || []).find(b => b.id === battleOpen);
-    if (!bt || !LIVE.includes(bt.status)) { battleOpen = null; busyLeave = false; return c.render(true); }
+    if (!bt || !LIVE.includes(bt.status)) { if (bt && ["done", "ended", "declined"].includes(bt.status)) markSeenBattle(bt.id, s.id); battleOpen = null; busyLeave = false; return c.render(true); }
     if (leaving) return;   // Leave ends the battle right away for both players (Nov 3: no "are you sure?" step)
     busyLeave = false; const id = battleOpen; leaving = id; c.render(true);
     try {
@@ -1009,7 +1022,7 @@ export async function onClick(el, c) {
   }
   if (a === "closeBattle") {
     const id = battleOpen; battleOpen = null;
-    await changeBattle(id, bt => Object.assign(bt, { ["seen_" + s.id]: true }));
+    markSeenBattle(id, s.id);
     return c.render(true);
   }
 }

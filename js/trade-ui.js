@@ -8,9 +8,9 @@
 // (spares don't count), limited event creatures (Duckarune, Hexaduck) can't be traded, and not during a battle.
 // Trading follows the same schedule as the arena (its own switches in the teacher console), and a player has to
 // tick "I'm ready to trade" (tradeReady) before anyone can send them an offer.
-import { esc } from "./game.js?v=20261110b";
-import { seenSet, owned, ownedFams, family, formOf, creature, RARITY_COLOR, hasStarter, spares, spareId, tradeOpen, tradeOpenFor, lunchHour, hitGoalToday, ARENA_HOURS, LUNCH_ARENA, LIVE, staleBattle, TEACHER_ID } from "./collect.js?v=20261110b";
-import { newTradeRef, changeTrade, setDoc, ck, ckMessage } from "./db.js?v=20261110b";
+import { esc } from "./game.js?v=20261110c";
+import { seenSet, owned, ownedFams, family, formOf, creature, RARITY_COLOR, hasStarter, spares, spareId, tradeOpen, tradeOpenFor, lunchHour, hitGoalToday, ARENA_HOURS, LUNCH_ARENA, LIVE, staleBattle, TEACHER_ID } from "./collect.js?v=20261110c";
+import { newTradeRef, changeTrade, setDoc, ck, ckMessage } from "./db.js?v=20261110c";
 
 let pick = { who: "", theirs: "", mine: "" };
 let settling = {};
@@ -112,9 +112,17 @@ export function tradeCard(ctx) {
   // Up for trade: what other ready players marked, tap one to start an offer for it
   const board = others.map(x => ({ x, keys: offerable(x).filter(k => forTrade(x, k)) })).filter(r => r.keys.length);
   const mineMarked = offerable(s).filter(k => forTrade(s, k)).length;
+  // Nov 10 (Ms. Ariana): the board was huge with everyone's creatures showing, so it's a drop-down of who is trading; pick one to see theirs
+  if (pick.board && !board.some(r => r.x.id === pick.board)) pick.board = "";
+  const bsel = board.find(r => r.x.id === (pick.board || pick.who)) || null;
+  const bopt = (v, txt, on) => '<option value="' + esc(v) + '"' + (on ? " selected" : "") + ">" + esc(txt) + "</option>";
   h += '<div class="trboard"><b>\u{1F504} Up for trade</b>' + (board.length
-    ? board.map(r => '<div class="trbrow"><span class="trbwho">' + esc(r.x.name) + '</span><div class="trbitems">' +
-        r.keys.map(k => { const t = snap(r.x, k); return '<button class="trbitem' + (pick.who === r.x.id && pick.theirs === k ? " on" : "") + '" data-tr="want" data-who="' + r.x.id + '" data-key="' + esc(k) + '">' + pic(t) + "<small>" + esc(label(t)) + "</small>" + (newFor(s, t) ? NEW_TAG : "") + "</button>"; }).join("") + "</div></div>").join("")
+    ? '<div class="field" style="margin:6px 0;"><label for="trBoard">See what someone has up for trade (' + board.length + (board.length === 1 ? " player" : " players") + ')</label>' +
+        '<select id="trBoard" data-trsel="board">' + bopt("", "Choose a player") +
+        board.map(r => bopt(r.x.id, r.x.name + " \u00B7 " + r.keys.length + (r.keys.length === 1 ? " creature" : " creatures") + (r.keys.some(k => newFor(s, snap(r.x, k))) ? " \u00B7 \u{1F4D6} NEW for you" : ""), bsel && bsel.x.id === r.x.id)).join("") + "</select></div>" +
+      (bsel ? '<div class="trbrow"><span class="trbwho">' + esc(bsel.x.name) + '</span><div class="trbitems">' +
+        bsel.keys.map(k => { const t = snap(bsel.x, k); return '<button class="trbitem' + (pick.who === bsel.x.id && pick.theirs === k ? " on" : "") + '" data-tr="want" data-who="' + bsel.x.id + '" data-key="' + esc(k) + '">' + pic(t) + "<small>" + esc(label(t)) + "</small>" + (newFor(s, t) ? NEW_TAG : "") + "</button>"; }).join("") + "</div></div>" +
+        '<p class="muted small" style="margin:4px 0;">Tap one to start an offer for it.</p>' : "")
     : '<p class="muted small" style="margin:4px 0;">Nobody has marked anything up for trade yet.</p>') +
     '<p class="muted small" style="margin-top:4px;">' + (mineMarked ? "You have <b>" + mineMarked + "</b> up for trade." : "Tap \u{1F504} on a creature in My creatures to put it up for trade.") + "</p></div>";
   const opt = (v, t, on) => '<option value="' + esc(v) + '"' + (on ? " selected" : "") + ">" + esc(t) + "</option>";
@@ -136,6 +144,7 @@ export function onTradeReady(el, ctx) { return ctx.patch({ tradeReady: !!el.chec
 export function onTradeChange(el, ctx) {
   const k = el.dataset.trsel; pick[k] = el.value;
   if (k === "who") { pick.theirs = ""; pick.mine = ""; }
+  if (k === "board" && el.value && pick.who !== el.value) { pick.who = el.value; pick.theirs = ""; pick.mine = ""; }   // also picks them under Make an offer
   ctx.render(true);
 }
 
