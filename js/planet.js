@@ -7,20 +7,20 @@
    A launch is saved on the student: planet = { n: launches, last: "YYYY-MM-DD", streak, best } (one write a day).
    Wave 2 adds a space minigame between liftoff and landing; Planet JP itself comes later, one piece at a time.
    Pictures live in assets/planet/ — until one is uploaded (ART below) the stand-in drawing is used. */
-import { esc } from "./game.js?v=20261110e";
-import { azToday, azNow } from "./collect.js?v=20261110e";
-import { axoDay, schoolDayFor } from "./axolotl.js?v=20261110e";
-import { addDays } from "./doors.js?v=20261110e";
-import { GAMES, gameOfDay, gameByKey, play, preload } from "./spacegames.js?v=20261110e";
-import { ZONES, safariSync, freshSt, albumHTML, filmLeft, pageCount, pageSize, aliensFound, zoneAliens, FREE_FILM, ROLL_COST, shopHTML, netsOf, NETS, netImg, pjWindow, classOpenAll, PJ_LATE } from "./safari.js?v=20261110e";
-import { cafeHTML } from "./cafe.js?v=20261110e";
-import { shopPageHTML } from "./spaceshop.js?v=20261110e";
-import { hangarHTML } from "./hangar.js?v=20261110e";
-import { zooHTML } from "./zoo.js?v=20261110e";
-import { adoptHTML, PP as NEB_PP } from "./pets.js?v=20261110e";
-import { parkHTML } from "./petpark.js?v=20261110e";
-import { missionsHTML, placeBang } from "./missions.js?v=20261110e";
-import { duckImgOf, flameFxOf, trailOf } from "./shop-data.js?v=20261110e";
+import { esc, weekKey } from "./game.js?v=20261109l";
+import { azToday, azNow } from "./collect.js?v=20261109l";
+import { axoDay, schoolDayFor } from "./axolotl.js?v=20261109l";
+import { addDays, todayPlan, weekTotal, histWeekTotal } from "./doors.js?v=20261109l";
+import { GAMES, gameOfDay, gameByKey, play, preload } from "./spacegames.js?v=20261109l";
+import { ZONES, safariSync, freshSt, albumHTML, filmLeft, pageCount, pageSize, aliensFound, zoneAliens, FREE_FILM, ROLL_COST, shopHTML, netsOf, NETS, netImg, pjWindow, classOpenAll, PJ_LATE, pjBreakDay, pjBreakXP } from "./safari.js?v=20261109l";
+import { cafeHTML } from "./cafe.js?v=20261109l";
+import { shopPageHTML } from "./spaceshop.js?v=20261109l";
+import { hangarHTML } from "./hangar.js?v=20261109l";
+import { zooHTML } from "./zoo.js?v=20261109l";
+import { adoptHTML, PP as NEB_PP } from "./pets.js?v=20261109l";
+import { parkHTML } from "./petpark.js?v=20261109l";
+import { missionsHTML, placeBang } from "./missions.js?v=20261109l";
+import { duckImgOf, flameFxOf, trailOf } from "./shop-data.js?v=20261109l";
 
 export const PJ_OPEN = 11 * 60, PJ_CLOSE = 12 * 60 + 55;   // minutes after midnight, Arizona time
 const A = "assets/planet/";
@@ -34,6 +34,15 @@ export function fuel(st, cls) {
   const iso = azToday(), d = axoDay(st, cls, iso), h = ((st && st.xpHist) || {})[iso] || {};
   const xp = Math.max(d.xp, Number(h.mo) || 0), hit = xp >= d.goal || !!h.h || !!h.lh;
   const ICON = { m: "➗", r: "\u{1F4D6}", l: "✏️" };
+  // 🏖️ a break day: 240 XP for the week so far + every core-subject ring closed for the week so far (Nov 10)
+  if (pjBreakDay(cls, iso) && !schoolDayFor(cls, iso)) {
+    const bx = pjBreakXP(cls), p = todayPlan(st, cls, iso), mon = mondayOf(iso), wx = Math.round(Math.max(histWeekTotal(st, mon), mon === weekKey(cls) ? weekTotal(st, cls) : 0));
+    const bt = [{ icon: "⭐", name: "XP this week", have: wx, need: bx }];
+    if (p) p.rows.forEach(r => { const need = Math.max(0, r.week - r.today + r.target); if (need > 0) bt.push({ icon: ICON[r.src] || "\u{1F4DA}", name: r.name + " this week", have: Math.min(r.week, need), need }); });
+    const bn = bt.reduce((n, t) => n + t.need, 0), bh = bt.reduce((n, t) => n + Math.min(t.have, t.need), 0);
+    if (st && (st.pjGo === iso || classOpenAll(cls))) return { tanks: bt.map(t => Object.assign({}, t, { have: Math.max(t.have, t.need) })), pct: 1, full: true, manual: true, brk: true };
+    return { tanks: bt, pct: bn ? bh / bn : 0, full: bt.every(t => t.have >= t.need), brk: true };
+  }
   const tanks = [{ icon: "⭐", name: "XP", have: hit ? Math.max(xp, d.goal) : xp, need: d.goal }].concat(d.rows.map(r => ({ icon: ICON[r.src] || "\u{1F4DA}", name: r.name, have: r.have, need: r.need })));
   const need = tanks.reduce((n, t) => n + t.need, 0), have = tanks.reduce((n, t) => n + Math.min(t.have, t.need), 0);
   // Nov 7: Ms. Ariana can launch a student by hand (tech trouble, work done somewhere else): pjGo = today's date
@@ -43,7 +52,7 @@ export function fuel(st, cls) {
 const launchedToday = st => !!(st && st.planet && st.planet.last === azToday());
 // "off" | "fill" | "ready" (full, before 11) | "go" (full, window open) | "landed" | "scrubbed"
 export function phase(st, cls) {
-  if (!planetOn(cls) || !st || !schoolDayFor(cls, azToday())) return "off";
+  if (!planetOn(cls) || !st || !(schoolDayFor(cls, azToday()) || pjBreakDay(cls, azToday()))) return "off";
   if (launchedToday(st)) return "landed";
   const m = mins(), f = fuel(st, cls);
   const W = pjWindow(st, cls);
@@ -72,7 +81,8 @@ export function planetBar(st, cls, preview) {
   const f = fuel(st, cls), pct = p === "landed" ? 1 : Math.min(1, f.pct), pl = st.planet || {};
   const W = pjWindow(st, cls);
   let msg;
-  if (p === "fill") msg = "Fill all 4 tanks to launch to <b>Planet JP</b>! " + (mins() < W.o ? "Launch window opens at " + hhmm(W.o) + "." : 'Window closes in <b id="pjcd">' + left(W.c) + "</b>");
+  if (p === "fill" && f.brk) msg = "\u{1F3D6}\uFE0F <b>Break day bonus!</b> Reach <b>" + f.tanks[0].need + " XP this week</b>" + (f.tanks.length > 1 ? " and catch up your subject rings" : "") + " to launch to <b>Planet JP</b> (open until " + hhmm(W.c) + " pm).";
+  else if (p === "fill") msg = "Fill all 4 tanks to launch to <b>Planet JP</b>! " + (mins() < W.o ? "Launch window opens at " + hhmm(W.o) + "." : 'Window closes in <b id="pjcd">' + left(W.c) + "</b>");
   else if (p === "ready") msg = "\u{1F389} Ready for liftoff! The launch window opens in <b id=\"pjcd\">" + left(W.o) + "</b>";
   else if (p === "go") msg = '\u{1F680} Fuel tanks full! <button class="btn small gold" data-pj="open">Launch the S.S. Duck!</button>';
   else if (p === "landed") msg = (mins() < W.c ? '<button class="btn small gold" data-pj="tab">\u{1FA90} Explore Planet JP</button> ' : "") + "\u{1FA90} You landed on <b>Planet JP</b>! Launch #" + (pl.n || 1) + ((pl.streak || 0) > 1 ? " · \u{1F525} " + pl.streak + " days in a row" : "") + (pl.dust ? " · ⭐ " + pl.dust + " Stardust" : "");
@@ -145,12 +155,14 @@ function launch() {
   if (!C.preview && !launchedToday(st)) {
     const today = azToday(); let prev = addDays(today, -1), i = 0;
     while (!schoolDayFor(C.cls, prev) && i++ < 20) prev = addDays(prev, -1);
-    const streak = saved.last === prev ? (Number(saved.streak) || 0) + 1 : 1;
-    saved = Object.assign({}, saved, { n: (Number(saved.n) || 0) + 1, last: today, streak, best: Math.max(Number(saved.best) || 0, streak), g: null, gs: null });
-    const wt = weekTrack(saved, today, C.cls); Object.assign(saved, wt);
+    // 🏖️ Nov 10: a break-day launch is a bonus: it doesn't change the day streak or the Space Week. ls = the last SCHOOL-day launch.
+    const brk = !schoolDayFor(C.cls, today) && pjBreakDay(C.cls, today), base = saved.ls || saved.last;
+    const streak = brk ? (Number(saved.streak) || 0) : base === prev ? (Number(saved.streak) || 0) + 1 : 1;
+    saved = Object.assign({}, saved, { n: (Number(saved.n) || 0) + 1, last: today, ls: brk ? (base || null) : today, streak, best: Math.max(Number(saved.best) || 0, streak), g: null, gs: null });
+    const wt = brk ? {} : weekTrack(saved, today, C.cls); Object.assign(saved, wt);
     // ⭐ launch bonuses (Nov 9): streak +2 a day in a row (max +10), +1 per 10 XP over the goal (max +20), +50 for a full Space Week
     const dx = axoDay(st, C.cls, today), hx = ((st.xpHist || {})[today]) || {}, xp = Math.max(Number(dx.xp) || 0, Number(hx.mo) || 0);
-    const lb = { d: today, s: Math.min(STREAK_MAX, STREAK_EACH * streak), x: Math.min(XP_MAX, Math.floor(Math.max(0, xp - (Number(dx.goal) || 120)) / 10)), w: wt.wr != null ? WEEK_DUST : 0 };
+    const lb = { d: today, s: brk ? 0 : Math.min(STREAK_MAX, STREAK_EACH * streak), x: Math.min(XP_MAX, Math.floor(Math.max(0, xp - (Number(dx.goal) || 120)) / 10)), w: wt.wr != null ? WEEK_DUST : 0 };
     saved.dust = (Number(saved.dust) || 0) + lb.s + lb.x + lb.w; saved.lb = lb;
     C.patch({ planet: saved });   // saved right away, so leaving mid-cutscene still counts
   } else if (C.preview) saved = Object.assign({}, saved, { n: (Number(saved.n) || 0) + 1, streak: (Number(saved.streak) || 0) + 1 });
@@ -340,7 +352,7 @@ export function nebbleOut(st, cls) {
   if (["ready", "go"].includes(phase(st, cls))) return true;
   let prev = addDays(today, -1), i = 0;
   while (!schoolDayFor(cls, prev) && i++ < 20) prev = addDays(prev, -1);
-  return !!pl.last && pl.last === prev;
+  return !!(pl.ls || pl.last) && (pl.ls || pl.last) === prev;
 }
 export const pjOpen = (st, cls) => phase(st, cls) === "landed" && mins() < pjWindow(st, cls).c;
 const TYPE_IC = { Fire: "\u{1F525}", Water: "\u{1F4A7}", Nature: "\u{1F343}", Rock: "\u{1FAA8}", Earth: "⛰️", Air: "\u{1F32A}️", Electric: "⚡", Ice: "❄️", Light: "✨", Dark: "\u{1F311}", Ghost: "\u{1F47B}", Poison: "\u{1F9EA}", Steel: "⚙️", Normal: "\u{1F4AB}", Arcane: "\u{1F52E}", Crystal: "\u{1F48E}", Dragon: "\u{1F409}" };
@@ -351,14 +363,15 @@ export const planetZoneNow = () => zoneOpen;
 // where each place sits on the hub picture (% of a 16:9 scene). Zones = the 7 portholes across the sky.
 const HUB_ZONES = [[8, 17], [21, 13], [35, 11], [50, 10], [65, 11], [79, 13], [92, 17]];
 const HUB_PLACES = [
-  { k: "cafe", name: "\u2615 Space Caf\u00e9", x: 15, y: 73, w: 22, html: () => '<span class="hubcafe"><img class="hubwin" src="' + A + 'cafe/cafe-room.webp" alt=""><img class="hubchef" src="' + A + 'cafe/chef-duck-360.webp" alt=""></span>' },
+  { k: "cafe", name: "\u2615 Space Caf\u00e9", x: 15, y: 62, w: 24, html: () => '<span class="hubcafe"><img class="hubwin" src="' + A + 'cafe/cafe-room.webp" alt=""><img class="hubchef" src="' + A + 'cafe/chef-duck-360.webp" alt=""></span>' },
   { k: "safari", name: "\u{1F6D2} Safari Shop", x: 37, y: 74, w: 18, html: () => '<img src="' + A + 'safari-shop.webp" alt="">' },
   { k: "shop", name: "\u{1F6CD}\uFE0F Space Shop", x: 62, y: 74, w: 22, html: () => '<img src="' + A + 'shop/space-shop.webp" alt="">' },
-  { k: "swap", name: "\u{1F527} Swap Shop", x: 87, y: 68, w: 20, html: () => '<img src="' + A + 'shop/swap-shop.webp" alt="">' },
-  { k: "zoo", name: "\u{1F992} Space Zoo", x: 13.5, y: 40.5, w: 15, html: () => '<img src="' + A + 'zoo/zoo-gate.webp" alt="">' },
+  { k: "swap", name: "\u{1F527} Swap Shop", x: 86, y: 63, w: 21, html: () => '<img src="' + A + 'shop/swap-shop.webp" alt="">' },
+  { k: "zoo", name: "\u{1F992} Space Zoo", x: 12, y: 35.5, w: 13.5, html: () => '<img src="' + A + 'zoo/zoo-gate.webp" alt="">' },
   { k: "adopt", name: "\u{1F43E} Adoption Center", x: 41, y: 40, w: 10, html: () => '<img src="' + NEB_PP + 'adopt-building.webp" alt="">' },   // 🐾 Nebbles (Nov 9)
   { k: "park", name: "\u{1F333} Pet Park", x: 65.5, y: 37, w: 9, html: () => '<img src="' + NEB_PP + 'park-building.webp" alt="">' },   // 🌳 Nebbles Pet Park (Nov 9)
-  { k: "hangar", name: "\u{1F527} Duck Hangar", x: 81, y: 38, w: 13.5, html: () => '<img src="' + A + 'hangar/hangar-building.webp" alt="">' },
+  { k: "hangar", name: "\u{1F527} Duck Hangar", x: 78, y: 41, w: 15, html: () => '<img src="' + A + 'hangar/hangar-building.webp" alt="">' },
+  { k: "album", name: "\u{1F4D6} Photo Album", x: 30, y: 44, w: 10, html: () => '<span class="hubbook">\u{1F4D6}</span>' },
   { k: "colony", name: "\u{1F3D5}\uFE0F Class Colony", x: 54, y: 46, w: 14, html: () => '<span class="hubduck">' + duckHTML() + "</span>" }];
 if (typeof document !== "undefined") document.addEventListener("click", ev => { const b = ev.target.closest && ev.target.closest("[data-pjcolony]"); if (!b) return; const c = document.getElementById("pjcolonycard"); if (c) c.scrollIntoView({ behavior: "smooth" }); });
 function hubHTML(st, n) {
