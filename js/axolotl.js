@@ -10,13 +10,13 @@
    EVERY school day of that week as a feed day, so missed days earlier in the week are made up (and don't make it sick).
    Sick: 1 missed school day = slow, 2 = sick. Weekends, school breaks (cls.offDays) and excused days don't count.
    The save is s.axo (private: not on the public card, so classmates' pages don't re-read anything). */
-import { azToday } from "./collect.js?v=20261110a";
-import { goalXP, arr5, dateOfDay } from "./game.js?v=20261110a";
-import { subFor, SUB_NAMES } from "./teams.js?v=20261110a";
-import { addDays } from "./doors.js?v=20261110a";
-import { subRuleOn, SUB_DAY, SUB_REQ, ringDay, subReq, weekTotal, histWeekTotal, mondayOf, VAULT_MIN, vaultMinOf } from "./doors.js?v=20261110a";
-import { weekKey } from "./game.js?v=20261110a";
-import { APP_V } from "./game.js?v=20261110a";
+import { azToday } from "./collect.js?v=20261110b";
+import { goalXP, arr5, dateOfDay } from "./game.js?v=20261110b";
+import { subFor, SUB_NAMES } from "./teams.js?v=20261110b";
+import { addDays } from "./doors.js?v=20261110b";
+import { subRuleOn, SUB_DAY, SUB_REQ, ringDay, subReq, weekTotal, histWeekTotal, mondayOf, VAULT_MIN, vaultMinOf } from "./doors.js?v=20261110b";
+import { weekKey } from "./game.js?v=20261110b";
+import { APP_V } from "./game.js?v=20261110b";
 
 export const axoOn = cls => !!(cls && cls.axoOn);
 export const axoFrom = cls => (cls && cls.axoFrom) || azToday();

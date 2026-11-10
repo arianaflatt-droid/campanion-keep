@@ -3,23 +3,23 @@
    Each step checks itself off from the student's save; tapping a step opens the tab where it's done.
    The Treasure Vault step is "check your progress", so it counts as done once the student opens it today
    (remembered on this computer only). */
-import { rvStarted, rvStock, rvBeatCount } from "./revenge.js?v=20261110a";
-import { heistTodo } from "./heist.js?v=20261110a";
-import { axoOn } from "./axolotl.js?v=20261110a";
-import { newsKeyOf, shownNews } from "./news.js?v=20261110a";
-import { freeReady } from "./pets.js?v=20261110a";
-import { tbLeft, tbLive } from "./teachbattle.js?v=20261110a";
-import { esc, simulate, companionOf, goalXP } from "./game.js?v=20261110a";
+import { rvStarted, rvStock, rvBeatCount } from "./revenge.js?v=20261110b";
+import { heistTodo } from "./heist.js?v=20261110b";
+import { axoOn } from "./axolotl.js?v=20261110b";
+import { newsKeyOf, shownNews } from "./news.js?v=20261110b";
+import { freeReady } from "./pets.js?v=20261110b";
+import { tbLeft, tbLive } from "./teachbattle.js?v=20261110b";
+import { esc, simulate, companionOf, goalXP } from "./game.js?v=20261110b";
 import { azToday, azNow, todayXP, pullsLeft, legendaryLeft, birthdayLeft, pickleLeft, vaultLegLeft, BOSS2_LIST, boss2EggLeft, candyLegLeft, snowLegLeft,
-  gingerLegLeft, feastLegLeft, brewLegLeft, goalLeft, themeLeft, hasStarter, bankXP, LEVEL_XP } from "./collect.js?v=20261110a";
-import { mqReady } from "./morning.js?v=20261110a";
-import { doorsLive, doorName, goldenReady, weekDoorState, vaultState, vaultGoal, subReq, todayPlan } from "./doors.js?v=20261110a";
-import { soloOn, soloReady, soloCfg } from "./solobrew.js?v=20261110a";
-import { passReady } from "./pass.js?v=20261110a";
-import { pettedToday } from "./bond.js?v=20261110a";
-import { mealsReady } from "./meals.js?v=20261110a";
-import { readyTests } from "./quest.js?v=20261110a";
-import { unthanked } from "./kindness.js?v=20261110a";
+  gingerLegLeft, feastLegLeft, brewLegLeft, goalLeft, themeLeft, hasStarter, bankXP, LEVEL_XP } from "./collect.js?v=20261110b";
+import { mqReady } from "./morning.js?v=20261110b";
+import { doorsLive, doorName, goldenReady, weekDoorState, vaultState, vaultGoal, subReq, todayPlan, SUBJECT_KEYS } from "./doors.js?v=20261110b";
+import { soloOn, soloReady, soloCfg } from "./solobrew.js?v=20261110b";
+import { passReady } from "./pass.js?v=20261110b";
+import { pettedToday } from "./bond.js?v=20261110b";
+import { mealsReady } from "./meals.js?v=20261110b";
+import { readyTests } from "./quest.js?v=20261110b";
+import { unthanked } from "./kindness.js?v=20261110b";
 
 const seenKey = (id, what) => "ck-seen-" + azToday() + "-" + id + "-" + what;
 // 📣 the class announcement (Nov 9): a new one gets a new key, so it shows up on the list again
@@ -108,6 +108,23 @@ function workCard(s, cls) {
         '<small class="ckwweek">This week: ' + Math.min(r.week, r.need) + " / " + r.need + "</small></div>"; }).join("") +
     (all ? '<span class="small"><b>\u{1F389} All your subjects are done' + (p.weekend ? "" : " for today") + "!</b></span>" : "") + "</div>";
 }
+/* 🎯 Goal Subject test bar (Nov 10): XP left in the course for the student's Goal Subject, from Timeback (the feeder → testXp, saved by
+   the teacher console). Timeback updates its number now and then, so XP earned in that subject on days AFTER that update counts down here. */
+export function testLeftNow(s, today) {
+  const x = s && s.testXp; if (!x || !(x.tot > 0)) return null;
+  const k = SUBJECT_KEYS[String(x.sub || "").toLowerCase()], hist = (s && s.xpHist) || {};
+  let since = 0; if (k && x.at) Object.keys(hist).forEach(d => { if (d > x.at && d <= today) since += Number(((hist[d] || {}).sub || {})[k]) || 0; });
+  const left = Math.max(0, Math.round((Number(x.left) || 0) - since));
+  return { sub: x.sub, left, tot: x.tot, done: x.tot - left, t: x.t, k, tbDone: !(Number(x.left) > 0) };
+}
+function testCard(s) {
+  const x = testLeftNow(s, azToday()); if (!x) return "";
+  const pct = Math.min(100, Math.max(0, x.done / x.tot * 100));
+  return '<div class="ckgoal cktest"><b>' + (SUB_IC[x.k] || "\u{1F4D8}") + " " + esc(x.sub) + " goal: " +
+    (x.left ? x.left.toLocaleString() + " XP left until your test!" : x.tbDone ? "\u{1F389} You finished! Your test is next." : "\u{1F525} Almost there! Your test is very close.") + "</b>" +
+    '<span class="pbar"><span style="width:' + pct + '%"></span></span>' +
+    '<small class="muted">' + esc(x.t) + " \u00B7 " + Math.round(x.done).toLocaleString() + " / " + x.tot.toLocaleString() + " XP</small></div>";
+}
 export function checklistTab(s, cls, students, battles) {
   const list = steps(s, cls, students, battles), left = list.filter(x => !x.done).length, goal = goalXP(cls), xp = todayXP(s, cls);
   const hi = azNow().h < 12 ? "Good morning" : "Welcome back";
@@ -120,7 +137,7 @@ export function checklistTab(s, cls, students, battles) {
         (((s.planet || {}).ckd === azToday()) ? '<small>\u2B50 You got your <b>+10 Stardust</b> for today!</small>' : '<button class="btn gold" data-act="ckClaim" style="margin-top:8px;">\u2B50 Claim +10 Stardust</button>') + "</div>") +
     '<div class="ckgoal"><b>\u{1F3AF} Then: earn ' + goal + " XP today!</b> " + (xp >= goal ? "You did it — every 120 more earns another egg! \u{1F389}" : xp.toLocaleString() + " / " + goal + " so far") +
     '<span class="pbar"><span style="width:' + Math.min(100, xp / goal * 100) + '%"></span></span></div>' +
-    workCard(s, cls) +
+    workCard(s, cls) + testCard(s) +
     "</div>";
   return h;
 }

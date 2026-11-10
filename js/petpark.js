@@ -9,13 +9,13 @@
    Each finished activity is ONE save (so at most 3 a day): planet.pets.care = { d: date, f, p, b: done today (1),
    st: full-care days in a row, last: last full-care date, cards: full streaks, n: full-care days } through planetSave.
    The 🐾 My Room pet corner (Phase 3) also lives here: the buddy sits on its bed in My Room (display only). */
-import { esc } from "./game.js?v=20261110a";
-import { azToday } from "./collect.js?v=20261110a";
-import { schoolDayFor } from "./axolotl.js?v=20261110a";
-import { addDays } from "./doors.js?v=20261110a";
-import { freshSt, planetSave, planetNow, planetCtx } from "./safari.js?v=20261110a";
-import { playOpen, playgroundHTML } from "./playground.js?v=20261110a";
-import { NEB, PP, PERS, PERSONALITIES, ownedOf, petsOf, nebHTML, nebImg, nebHappy } from "./pets.js?v=20261110a";
+import { esc } from "./game.js?v=20261110b";
+import { azToday } from "./collect.js?v=20261110b";
+import { schoolDayFor } from "./axolotl.js?v=20261110b";
+import { addDays } from "./doors.js?v=20261110b";
+import { freshSt, planetSave, planetNow, planetCtx } from "./safari.js?v=20261110b";
+import { playOpen, playgroundHTML } from "./playground.js?v=20261110b";
+import { NEB, PP, PERS, PERSONALITIES, ownedOf, petsOf, nebHTML, nebImg, nebHappy } from "./pets.js?v=20261110b";
 
 export const CARE_EACH = 3, CARE_ALL = 3, CARE_STREAK = 5, CARE_STREAK_BONUS = 25;
 const FETCH_N = 3, FEED_N = 5, SCRUB_N = 100;

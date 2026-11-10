@@ -1,36 +1,79 @@
 rules_version = '2';
-// Companion Keep rules, version 3.1 (Oct 25, 2026: + announcement picture, Battle Ms. Ariana). Tests: tests/rules.test.mjs (run with the Firebase emulator).
+// Companion Keep rules, version 4.2 (Nov 10, 2026: testXp, the Goal Subject XP left, is teacher-only and private. 4.1 Nov 7: wkGoal + pjGo are teacher-only. 4.0 Nov 6: many classes: admins, classDir, per-class teachers; 3.3 Google sign-in only). Earlier: 3.1 (Oct 25). Tests: tests/rules.test.mjs (run with the Firebase emulator).
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Put your school Google email here too (same as js/firebase-config.js).
-    function isTeacher() {
-      return request.auth != null
-        && request.auth.token.get("email_verified", false) == true
-        && request.auth.token.get("email", "") in ["ariana.flatt@unbound.school"];
+    // ---- 🏫 Who's who (Nov 6, Step B: many classes) ----
+    // Built-in school admins (same as ADMIN_EMAILS in js/firebase-config.js); more admins live in admins/{email}.
+    function verified() { return request.auth != null && request.auth.token.get("email_verified", false) == true; }
+    function myEmail() { return request.auth.token.get("email", "").lower(); }
+    function isAdmin() {
+      return verified() && (myEmail() in ["ariana.flatt@unbound.school"]
+        || exists(/databases/$(database)/documents/admins/$(myEmail())));
+    }
+    // A teacher of class cid = their email is in classDir/{cid}.teachers (or they're an admin, who can help in any class).
+    function teaches(cid) {
+      let dir = /databases/$(database)/documents/classDir/$(cid);
+      return verified() && ((exists(dir) && myEmail() in get(dir).data.get("teachers", [])) || isAdmin());
+    }
+
+    match /admins/{email} {
+      allow read: if verified() && (myEmail() == email || isAdmin());
+      allow write: if isAdmin();
+    }
+    // The list of classes: names + teacher emails. Any signed-in page may read it; only admins change who teaches,
+    // a class's own teacher may rename it / change the teacher name shown to students.
+    match /classDir/{cid} {
+      allow read: if request.auth != null;
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin() || (teaches(cid) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(["teachers"]));
+    }
+
+    // 🔑 School Google sign-in roster (Nov 6): roster/{school email} = { classId, sid, name }.
+    // That class's teacher writes it; a signed-in student can read only their own (to find their class and save).
+    match /roster/{email} {
+      allow get: if (verified() && myEmail() == email) || teaches(resource.data.classId);
+      allow list: if isAdmin();
+      allow create: if teaches(request.resource.data.classId);
+      allow update: if teaches(resource.data.classId) && teaches(request.resource.data.classId);
+      allow delete: if teaches(resource.data.classId);
     }
 
     match /classes/{classId} {
+      // Everything inside a class is for that class's teacher(s) (and admins): see teaches() above.
+      function isTeacher() { return teaches(classId); }
       // The class doc holds settings (events, goal, banner), nothing about any one student.
-      // Every visitor's page needs it (even before it is linked) to know whether personal links are required.
       allow read: if request.auth != null;
-      allow write: if isTeacher();
+      allow create, delete: if isAdmin();
+      allow update: if isTeacher();
 
       // ---- Personal links ----
       // Each student's personal link carries a code. The first device to open it saves seats/{its sign-in id} = { sid, k, at }.
       // k must match private/keys[sid], which only the teacher can read. A device is then a member of the class, as that one student.
       function seatPath() { return /databases/$(database)/documents/classes/$(classId)/seats/$(request.auth.uid); }
-      function seated() { return request.auth != null && exists(seatPath()); }
+      function seated() { return request.auth != null && exists(seatPath()) && get(seatPath()).data.get("email", "") != ""; }   // Nov 6: Google seats only (personal links retired)
       function mySid() { return get(seatPath()).data.sid; }
-      function member() { return isTeacher() || seated(); }
+      function member() { return seated() || isTeacher(); }   // students first: fewer lookups
 
       match /seats/{uid} {
         allow read: if isTeacher() || (request.auth != null && request.auth.uid == uid);
-        allow create, update: if request.auth != null && request.auth.uid == uid
-          && request.resource.data.keys().hasOnly(["sid", "k", "at"])
-          && request.resource.data.sid is string && request.resource.data.k is string && request.resource.data.k.size() >= 8
-          && request.resource.data.k == get(/databases/$(database)/documents/classes/$(classId)/private/keys).data.get(request.resource.data.sid, "")
-          && exists(/databases/$(database)/documents/classes/$(classId)/students/$(request.resource.data.sid));
+        allow create, update: if request.auth != null && request.auth.uid == uid && googleSeatOk();   // Nov 6: personal links can no longer create seats
+        // a personal link: the code has to match private/keys
+        function linkSeatOk() {
+          return request.resource.data.keys().hasOnly(["sid", "k", "at"])
+            && request.resource.data.sid is string && request.resource.data.k is string && request.resource.data.k.size() >= 8
+            && request.resource.data.k == get(/databases/$(database)/documents/classes/$(classId)/private/keys).data.get(request.resource.data.sid, "")
+            && exists(/databases/$(database)/documents/classes/$(classId)/students/$(request.resource.data.sid));
+        }
+        // 🔑 school Google sign-in (Nov 6): a verified @unbound.school account whose roster doc says this class + this student
+        function googleSeatOk() {
+          let em = request.auth.token.get("email", "").lower();
+          let r = /databases/$(database)/documents/roster/$(em);
+          return request.auth.token.get("email_verified", false) == true && em.matches(".*@unbound[.]school")
+            && request.resource.data.keys().hasOnly(["sid", "email", "at"]) && request.resource.data.email == em
+            && exists(r) && get(r).data.classId == classId && get(r).data.sid == request.resource.data.sid
+            && exists(/databases/$(database)/documents/classes/$(classId)/students/$(request.resource.data.sid));
+        }
         allow delete: if isTeacher();
       }
       // Personal-link codes, the feeder key: teacher only.
@@ -166,11 +209,11 @@ service cloud.firestore {
       // so nobody can show fake creatures, levels or badges. Keep PRIVATE in step with js/card.js.
       match /cards/{sid} {
         function privateKeys() { return ["name", "fullName", "questPass", "questDone", "questXP", "reward", "goalSubject",
-          "birthdayEggs", "birthdayUsed", "bdaySeen", "ideas", "spinLog"]; }
+          "birthdayEggs", "birthdayUsed", "bdaySeen", "ideas", "spinLog", "axo", "axoReset", "clubs", "clubSeen", "clubUltra", "clubPick", "wkGoal", "pjGo", "testXp"]; }
         function cardOk() {
           let st = get(/databases/$(database)/documents/classes/$(classId)/students/$(sid)).data;
           let c = request.resource.data;
-          return !c.keys().hasAny(["fullName", "questPass", "questDone", "questXP", "reward", "goalSubject", "birthdayEggs", "birthdayUsed", "bdaySeen", "ideas", "spinLog"])
+          return !c.keys().hasAny(["fullName", "questPass", "questDone", "questXP", "reward", "goalSubject", "birthdayEggs", "birthdayUsed", "bdaySeen", "ideas", "spinLog", "axo", "axoReset", "clubs", "clubSeen", "clubUltra", "clubPick", "wkGoal", "pjGo", "testXp"])
             && c.get("name", "") == st.get("pubName", "")
             && c.diff(st).affectedKeys().hasOnly(privateKeys());
         }
@@ -190,8 +233,8 @@ service cloud.firestore {
           && !request.resource.data.diff(resource.data).affectedKeys().hasAny([
                "name", "order", "goalSubject", "xp", "lunchXp", "status", "early", "xpHist", "deaths", "items",
                "streakCarry", "streakWeek", "candyBank", "bonusXP", "bonusPulls", "cpEarned", "questPass",
-               "birthdayEggs", "pickleEggs", "ghostEggs", "ghost2", "turkeyEggs", "turkey2", "grinchEggs", "grinch2", "yetiEggs", "yeti2", "heartEggs", "heart2", "potionLegEggs", "feastLegEggs", "gingerLegEggs", "snowmanLegEggs", "candyboxLegEggs",
-               "potionDays", "feastDays", "gingerDays", "snowmanDays", "candyboxDays", "isTeacher", "reward", "pubName", "tbUsed", "secretWin", "secretWins", "grade", "ultraUsed"])
+               "birthdayEggs", "pickleEggs", "ghostEggs", "ghost2", "turkeyEggs", "turkey2", "grinchEggs", "grinch2", "yetiEggs", "yeti2", "heartEggs", "heart2", "luckyEggs", "lucky2", "trapLegEggs", "trapDays", "potionLegEggs", "feastLegEggs", "gingerLegEggs", "snowmanLegEggs", "candyboxLegEggs",
+               "potionDays", "feastDays", "gingerDays", "snowmanDays", "candyboxDays", "isTeacher", "reward", "pubName", "tbUsed", "secretWin", "secretWins", "grade", "ultraUsed", "axoReset", "clubs", "clubUltra", "clubPick", "wkGoal", "pjGo", "testXp"])
           && collOk() && countsOk(request.resource.data.diff(resource.data).affectedKeys()));
 
         // ---- Rewards and counters ----
@@ -204,7 +247,7 @@ service cloud.firestore {
         function listUp(ch, k) { return !(k in ch) || (request.resource.data.get(k, []) is list && request.resource.data.get(k, []).size() <= wasLen(k) + 1); }
         function countsOk(ch) {
           return upTo(ch, "doorEggs", 3) && upTo(ch, "legendaryPulls", 1) && upTo(ch, "vaultLegEggs", 1) && upTo(ch, "revengeLeg", 1) && notDown(ch, "revengeLegUsed") && upTo(ch, "heistLeg", 1) && notDown(ch, "heistLegUsed") && upTo(ch, "ultraEggs", 1)
-            && upTo(ch, "soloBrewLeg", 1) && upTo(ch, "soloFeastLeg", 1) && upTo(ch, "soloGingerLeg", 1) && upTo(ch, "soloSnowLeg", 1) && upTo(ch, "soloBoxLeg", 1)
+            && upTo(ch, "soloBrewLeg", 1) && upTo(ch, "soloFeastLeg", 1) && upTo(ch, "soloGingerLeg", 1) && upTo(ch, "soloSnowLeg", 1) && upTo(ch, "soloBoxLeg", 1) && upTo(ch, "soloTrapLeg", 1)
             && upTo(ch, "doorXP", 600) && upTo(ch, "questXP", 250) && upTo(ch, "xpPrize", 500) && upTo(ch, "xpReleased", 300)
             && upTo(ch, "candyBonus", 200) && upTo(ch, "stolen", 50) && upTo(ch, "cpBonus", 200)
             && upTo(ch, "spins", 1) && upTo(ch, "extraAttacks", 1) && upTo(ch, "brews", 1) && upTo(ch, "starterLvl", 5)
@@ -212,7 +255,7 @@ service cloud.firestore {
             && notDown(ch, "pullsUsed") && notDown(ch, "legendaryUsed") && notDown(ch, "birthdayUsed") && notDown(ch, "pickleUsed")
             && notDown(ch, "potionLegUsed") && notDown(ch, "feastLegUsed") && notDown(ch, "gingerLegUsed") && notDown(ch, "snowmanLegUsed")
             && notDown(ch, "candyboxLegUsed") && notDown(ch, "vaultLegUsed") && notDown(ch, "themeUsed") && notDown(ch, "goalUsed")
-            && notDown(ch, "ghostEggsUsed") && notDown(ch, "turkeyEggsUsed") && notDown(ch, "grinchEggsUsed") && notDown(ch, "yetiEggsUsed") && notDown(ch, "heartEggsUsed")
+            && notDown(ch, "ghostEggsUsed") && notDown(ch, "turkeyEggsUsed") && notDown(ch, "grinchEggsUsed") && notDown(ch, "yetiEggsUsed") && notDown(ch, "heartEggsUsed") && notDown(ch, "luckyEggsUsed") && notDown(ch, "trapLegUsed")
             && notDown(ch, "xpSpent") && notDown(ch, "candySpent") && notDown(ch, "cpSpent")
             // the companion level bar: its start day is set once, and the last counted day only moves forward
             && (!("compStart" in ch) || resource.data.get("compStart", null) == null)

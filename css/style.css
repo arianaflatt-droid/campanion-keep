@@ -3276,3 +3276,5 @@ body.pjmode .card{ box-shadow:0 12px 40px rgba(0,0,0,.35); }
 .nbfreebox .nbpapers{ box-shadow:none; border:0; background:none; padding:0; margin:0; }
 .pjtabs{ display:flex; gap:6px; } .pjmapbtn.on{ background:linear-gradient(135deg,#7AE7FF,#8B7BFF); color:#10123A; border-color:transparent; box-shadow:0 0 14px rgba(122,231,255,.6); }
 .pjtop .pjback{ position:static; }
+/* 🎯 Goal Subject test bar (Nov 10) */
+.cktest{ background:#eefaf3; border-color:#9fdcb8; color:#17402a; } .cktest .pbar{ background:#cfeedd; } .cktest .pbar span{ background:linear-gradient(90deg,#3FBF7F,#2E9E6B); } .cktest small{ color:#3d6b52; }

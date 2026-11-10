@@ -6,6 +6,9 @@
      · reads each student's name once (fetchUser) and keeps only first name + last initial ("Jamie R.")
      · writes ONE small doc to Companion Keep: classes/{class}/live/xp = { json, at, key }, only when a number changed
        (plus a heartbeat every 30 minutes during school hours)
+     · 🎯 (Nov 10) about once an hour, reads each student's courses (getUserEnrollmentsUnfiltered) and, for each subject, the XP left
+       in the course they're working in now (Lalilo is skipped: the class doesn't use it). Sent as tx = { name: { subject: [left, total, course, date] } }.
+       The console keeps only each student's Goal Subject (testXp).
    It signs in to Companion Keep anonymously; the rules only let it write that one doc, and only with the class's feeder key.
    The teacher console turns live/xp into morning, lunch and end-of-day numbers (teacher.js, autoLive). */
 function feederMain(CFG) {
@@ -25,11 +28,14 @@ function feederMain(CFG) {
   const ids = LS.get("ids") || [];
   const FN = {
     metrics: "src_features_learning-metrics_actions_getActivityMetrics_ts--getActivityMetrics_createServerFn_handler",
-    user: "src_features_learning-metrics_components_fast-student-search_actions_client_ts--fetchUser_createServerFn_handler"
+    user: "src_features_learning-metrics_components_fast-student-search_actions_client_ts--fetchUser_createServerFn_handler",
+    enroll: "src_features_learning-metrics_actions_getUserEnrollmentsUnfiltered_ts--getUserEnrollmentsUnfiltered_createServerFn_handler"
   };
+  const SKIP_COURSE = /lalilo/i;   // an old course still stuck on some students (Ms. Ariana, Nov 10)
+  const ENROLL_EVERY = 60 * 60000;
   const HEAD = ["Student", "Total XP", "Goal", "Math", "FastMath", "Reading", "Writing", "Language", "Vocabulary", "Science", "Social Studies"];
   const SUBKEY = HEAD.slice(3).map(h => h.toLowerCase().replace(/\s+/g, ""));
-  const S = { state: "Starting…", n: ids.length, names: 0, lastCheck: 0, lastSend: 0, problem: "none", busy: false, next: 0, today: 0 };
+  const S = { state: "Starting…", n: ids.length, names: 0, goals: 0, lastCheck: 0, lastSend: 0, problem: "none", busy: false, next: 0, today: 0 };
   const cache = LS.get("cache") || {};      // id -> { days: { date: { subj: xp } } }
   const names = LS.get("names") || {};      // id -> "Jamie R."
 
@@ -45,6 +51,7 @@ function feederMain(CFG) {
     const ok = S.problem === "none";
     card.innerHTML = "<div style='font-size:20px;font-weight:800;margin-bottom:6px'>\u{1F4E1} " + S.state + "</div>" +
       "<div>Students: <b>" + S.n + "</b> (" + S.names + " names)</div>" +
+      "<div>🎯 XP left in courses: <b>" + S.goals + "</b> students</div>" +
       "<div>Today’s XP so far: <b>" + S.today + "</b> total for the class</div>" +
       "<div>Last check of Timeback: <b>" + ago(S.lastCheck) + "</b></div>" +
       "<div>Last sent to Companion Keep: <b>" + ago(S.lastSend) + "</b></div>" +
@@ -66,6 +73,14 @@ function feederMain(CFG) {
     if (!r.ok || !j || j.result === undefined) throw new Error("busy");
     return j.result;
   }
+  async function tbGet(fn, data) {
+    const r = await fetch("/_serverFn/" + fn + "?payload=" + encodeURIComponent(JSON.stringify({ data, context: {} })) + "&createServerFn", { credentials: "include",
+      headers: { accept: "application/json", "content-type": "application/json", "x-tsr-redirect": "manual" } });
+    const t = await r.text(); let j = null; try { j = JSON.parse(t); } catch (e) {}
+    if (r.status === 401 || r.status === 403) throw new Error("signedout");
+    if (!r.ok || !j || j.result === undefined) throw new Error("busy");
+    return j.result;
+  }
   const azDate = off => new Date(Date.now() - 7 * 3600e3 + off * 864e5).toISOString().slice(0, 10);
   async function readStudent(id) {
     if (!names[id]) {
@@ -81,7 +96,36 @@ function feederMain(CFG) {
       days[d] = {};
       Object.entries(subs || {}).forEach(([sub, m]) => { days[d][sub.toLowerCase().replace(/\s+/g, "")] = Number(m && m.activityMetrics && m.activityMetrics.xpEarned) || 0; });
     });
-    cache[id] = { days };
+    // XP per course over these days (to tell which course a student is working in now)
+    const byCourse = {};
+    Object.values(res.data.allFactsByCourse || {}).forEach(cs => Object.entries(cs || {}).forEach(([cid, subs]) => Object.values(subs || {}).forEach(apps => Object.values(apps || {}).forEach(m => {
+      byCourse[cid] = (byCourse[cid] || 0) + (Number(m && m.activityMetrics && m.activityMetrics.xpEarned) || 0); }))));
+    const old = cache[id] || {};
+    cache[id] = { days, byCourse, crs: old.crs, crsAt: old.crsAt };
+    if (!old.crsAt || Date.now() - old.crsAt > ENROLL_EVERY) { try { await readCourses(id); } catch (e) { if (e.message === "signedout") throw e; } }
+  }
+  // 🎯 XP left in the course a student is on now, for each subject
+  const subKeyOf = s => String(s || "").toLowerCase().replace(/\s+/g, "");
+  const azDay = iso => { const t = Date.parse(iso || ""); return isNaN(t) ? "" : new Date(t - 7 * 3600e3).toISOString().slice(0, 10); };
+  async function readCourses(id) {
+    const res = await tbGet(FN.enroll, { onerosterUserId: id });
+    const list = Array.isArray(res && res.data) ? res.data : Array.isArray(res) ? res : null; if (!list) throw new Error("busy");
+    const used = (cache[id] || {}).byCourse || {}, best = {};
+    list.forEach(e => {
+      if (!e || e.endDate || SKIP_COURSE.test(String(e.courseTitle || "")) || SKIP_COURSE.test(String(e.primaryApp || ""))) return;
+      const md = e.metadata || {}, ix = md.inceptXp || (e.courseMetadata || {}).inceptXp;
+      let tot = 0, done = null, at = "";
+      if (ix && Number(ix.courseTotalXp) > 0) { tot = Number(ix.courseTotalXp); done = Number(ix.courseEarnedXp) || 0; at = azDay(ix.computedAt); }
+      else { tot = Number((md.metrics || {}).totalXp) || 0; if (typeof md.pctCompleteApp === "number") { done = tot * md.pctCompleteApp / 100; at = azDay(md.pctCompleteAppUpdatedAt); } }
+      if (!(tot > 0) || done == null) return;
+      const left = Math.max(0, Math.round(tot - done)), xp = Number(used[e.courseId]) || 0, begin = String(e.beginDate || "");
+      (e.courseSubjects || []).forEach(s => { const k = subKeyOf(s); if (!SUBKEY.includes(k)) return;
+        const b = best[k], c = { left, tot: Math.round(tot), t: String(e.courseTitle || "").slice(0, 60), at, xp, begin };
+        // the course with the most XP these last days wins; then the one started most recently
+        if (!b || xp > b.xp || (xp === b.xp && begin > b.begin)) best[k] = c; });
+    });
+    const crs = {}; Object.entries(best).forEach(([k, c]) => { crs[k] = [c.left, c.tot, c.t, c.at]; });
+    cache[id].crs = crs; cache[id].crsAt = Date.now();
   }
 
   // ----- Companion Keep -----
@@ -132,8 +176,10 @@ function feederMain(CFG) {
         });
       });
       S.today = todayTot;
+      const tx = {}; ids.forEach(id => { const c = (cache[id] || {}).crs; if (names[id] && c && Object.keys(c).length) tx[names[id]] = c; });
+      S.goals = Object.keys(tx).length;
       LS.set("cache", cache);
-      const json = JSON.stringify({ h: HEAD, days, v: 1 });
+      const json = JSON.stringify({ h: HEAD, days, tx, v: 2 });
       const beat = schoolHours() && Date.now() - S.lastSend > 30 * 60000;
       if (json !== LS.get("lastJson") || beat) { await ckSend(json); LS.set("lastJson", json); S.lastSend = Date.now(); }
       S.state = "Feeder running";

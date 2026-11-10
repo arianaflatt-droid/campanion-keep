@@ -7,20 +7,20 @@
    A launch is saved on the student: planet = { n: launches, last: "YYYY-MM-DD", streak, best } (one write a day).
    Wave 2 adds a space minigame between liftoff and landing; Planet JP itself comes later, one piece at a time.
    Pictures live in assets/planet/ — until one is uploaded (ART below) the stand-in drawing is used. */
-import { esc } from "./game.js?v=20261110a";
-import { azToday, azNow } from "./collect.js?v=20261110a";
-import { axoDay, schoolDayFor } from "./axolotl.js?v=20261110a";
-import { addDays } from "./doors.js?v=20261110a";
-import { GAMES, gameOfDay, gameByKey, play, preload } from "./spacegames.js?v=20261110a";
-import { ZONES, safariSync, freshSt, albumHTML, filmLeft, pageCount, pageSize, aliensFound, zoneAliens, FREE_FILM, ROLL_COST, shopHTML, netsOf, NETS, netImg, pjWindow, classOpenAll, PJ_LATE } from "./safari.js?v=20261110a";
-import { cafeHTML } from "./cafe.js?v=20261110a";
-import { shopPageHTML } from "./spaceshop.js?v=20261110a";
-import { hangarHTML } from "./hangar.js?v=20261110a";
-import { zooHTML } from "./zoo.js?v=20261110a";
-import { adoptHTML, PP as NEB_PP } from "./pets.js?v=20261110a";
-import { parkHTML } from "./petpark.js?v=20261110a";
-import { missionsHTML, placeBang } from "./missions.js?v=20261110a";
-import { duckImgOf, flameFxOf, trailOf } from "./shop-data.js?v=20261110a";
+import { esc } from "./game.js?v=20261110b";
+import { azToday, azNow } from "./collect.js?v=20261110b";
+import { axoDay, schoolDayFor } from "./axolotl.js?v=20261110b";
+import { addDays } from "./doors.js?v=20261110b";
+import { GAMES, gameOfDay, gameByKey, play, preload } from "./spacegames.js?v=20261110b";
+import { ZONES, safariSync, freshSt, albumHTML, filmLeft, pageCount, pageSize, aliensFound, zoneAliens, FREE_FILM, ROLL_COST, shopHTML, netsOf, NETS, netImg, pjWindow, classOpenAll, PJ_LATE } from "./safari.js?v=20261110b";
+import { cafeHTML } from "./cafe.js?v=20261110b";
+import { shopPageHTML } from "./spaceshop.js?v=20261110b";
+import { hangarHTML } from "./hangar.js?v=20261110b";
+import { zooHTML } from "./zoo.js?v=20261110b";
+import { adoptHTML, PP as NEB_PP } from "./pets.js?v=20261110b";
+import { parkHTML } from "./petpark.js?v=20261110b";
+import { missionsHTML, placeBang } from "./missions.js?v=20261110b";
+import { duckImgOf, flameFxOf, trailOf } from "./shop-data.js?v=20261110b";
 
 export const PJ_OPEN = 11 * 60, PJ_CLOSE = 12 * 60 + 55;   // minutes after midnight, Arizona time
 const A = "assets/planet/";
