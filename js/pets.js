@@ -15,9 +15,10 @@
      page-only (localStorage), no database writes.
    Saved in planet.pets = { o: { key: { n: name, p: personality, h: outfit id or "", at: date adopted } }, buddy: key, rel: releases }
    through safari.js planetSave, so the other Planet JP saves aren't overwritten. */
-import { esc, OUTFITS } from "./game.js?v=20261110d";
-import { azToday } from "./collect.js?v=20261110d";
-import { freshSt, planetSave, planetNow, planetCtx } from "./safari.js?v=20261110d";
+import { esc, OUTFITS } from "./game.js?v=20261110e";
+import { azToday } from "./collect.js?v=20261110e";
+import { freshSt, planetSave, planetNow, planetCtx } from "./safari.js?v=20261110e";
+import { shopTab, shopTabs, bedShopHTML } from "./nebshop.js?v=20261110e";
 
 export const PA = "assets/pets/", PP = PA + "place/";
 export const TIERS = [
@@ -200,7 +201,9 @@ function collectionHTML(st) {
   return h + "</div>";
 }
 export function adoptHTML(st, cls, open) {
-  st = freshSt(st); const d = azToday(), cubs = cubbies(st, d), dust = Number(plOf(st).dust) || 0, n = ownedCount(st);
+  st = freshSt(st);
+  // 🛏️ Nov 10: the Bed Shop is a tab in the Adoption Center
+  if (shopTab() === "beds") { const own = ownedOf(st), b = petsOf(st).buddy; return shopTabs() + bedShopHTML(st, b && own[b] && NEB[b] ? nebHTML(b, { hat: own[b].h, cls: "nbbob" }) : ""); } const d = azToday(), cubs = cubbies(st, d), dust = Number(plOf(st).dust) || 0, n = ownedCount(st);
   if (papers && !ownedOf(st)[papers]) papers = null;
   if (open1 && !ownedOf(st)[open1]) open1 = null;
   const duck = papers ? "ad-cheer" : sel ? "ad-hold" : "ad-wave";
@@ -208,7 +211,7 @@ export function adoptHTML(st, cls, open) {
   if (sel) { const s = NEB[sel]; line = ownedOf(st)[sel] ? "That’s your " + esc(s.name) + "! Pick a different cubby to meet someone new." : "This is <b>" + esc(s.name) + "</b>! Isn’t it cute? Give it a name and adopt it below!"; }
   else if (!n) line = "Welcome to the <b>Adoption Center</b>, Captain! These Nebbles need a home. Tap a cubby to meet one!";
   else line = "Welcome back! New Nebbles move into the cubbies <b>every day</b>. Tap one to say hi!";
-  let h = '<div class="card nbcard"><div class="card-head"><h2>\u{1F43E} Adoption Center</h2><span class="fact">⭐ ' + dust.toLocaleString() + " Stardust</span></div>" +
+  let h = shopTabs() + '<div class="card nbcard"><div class="card-head"><h2>\u{1F43E} Adoption Center</h2><span class="fact">⭐ ' + dust.toLocaleString() + " Stardust</span></div>" +
     '<div class="nbscene" style="background-image:url(' + PP + 'adopt-bg.webp)">' + cubs.map((k, i) => cubbyHTML(st, k, i, d)).join("") +
     '<img class="nbduck" src="' + PP + duck + '.webp" alt="Alien Duck"><div class="nbsay">' + line + '</div></div><p class="nbsaym">\u{1F986} ' + line + "</p>";
   if (msg) h += '<div class="banner ' + (msg.bad ? "bad" : "info") + '" style="margin-top:10px;">' + esc(msg.text) + "</div>";

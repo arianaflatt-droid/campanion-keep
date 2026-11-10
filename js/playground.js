@@ -8,10 +8,10 @@
    on every tab (Planet JP doesn't have to be open). Everyone sees everyone's Nebble move for real.
    Each student's spot is saved on their own save as nbr = { id: recess id, x, y, e: emote, et: emote time }:
    at most one save every 3 seconds and at most 50 per recess (so a recess costs at most ~100 writes per student, card included). */
-import { esc } from "./game.js?v=20261110d";
-import { azToday } from "./collect.js?v=20261110d";
-import { freshSt } from "./safari.js?v=20261110d";
-import { NEB, PP, ownedOf, petsOf, nebHTML, nebImg, nebHappy } from "./pets.js?v=20261110d";
+import { esc } from "./game.js?v=20261110e";
+import { azToday } from "./collect.js?v=20261110e";
+import { freshSt } from "./safari.js?v=20261110e";
+import { NEB, PP, ownedOf, petsOf, nebHTML, nebImg, nebHappy } from "./pets.js?v=20261110e";
 
 export const RECESS_MIN = 10, SAVE_GAP = 3000, SAVE_MAX = 50;
 const EMOTES = [["wave", "\u{1F44B}"], ["love", "\u{1F496}"], ["star", "⭐"], ["lol", "\u{1F604}"], ["music", "\u{1F3B5}"]];

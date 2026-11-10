@@ -3278,3 +3278,23 @@ body.pjmode .card{ box-shadow:0 12px 40px rgba(0,0,0,.35); }
 .pjtop .pjback{ position:static; }
 /* 🎯 Goal Subject test bar (Nov 10) */
 .cktest{ background:#eefaf3; border-color:#9fdcb8; color:#17402a; } .cktest .pbar{ background:#cfeedd; } .cktest .pbar span{ background:linear-gradient(90deg,#3FBF7F,#2E9E6B); } .cktest small{ color:#3d6b52; }
+/* 🛏️ Nebble Bed Shop (Nov 10) */
+.nbtabs{ display:flex; gap:8px; margin:0 0 10px; }
+.nbtab{ font:inherit; font-weight:800; font-size:15px; padding:9px 16px; border-radius:12px; border:2px solid #d9cff3; background:#fff; color:#4a3b78; cursor:pointer; }
+.nbtab.on{ background:linear-gradient(135deg,#8B7BFF,#C77DFF); color:#fff; border-color:transparent; box-shadow:0 3px 10px rgba(123,63,228,.3); }
+.nbbed{ position:relative; width:100%; }
+.nbbedimg{ width:100%; height:auto; display:block; }
+.nbbedpet{ position:absolute; }
+.nbshoptop{ display:flex; gap:20px; align-items:center; flex-wrap:wrap; background:linear-gradient(180deg,#F3EEFF,#FFF6EC); border-radius:18px; padding:16px; }
+.nbshowcase{ width:min(230px,60vw); margin:0; }
+.nbshowinfo{ flex:1; min-width:200px; display:flex; flex-direction:column; gap:6px; align-items:flex-start; }
+.nbshowinfo h3{ margin:0; font-size:22px; }
+.nbusing{ font-weight:800; color:#2E9E6B; margin:0; } .nbseason{ font-weight:700; color:#B55A12; margin:0; }
+.nbbeds{ display:grid; grid-template-columns:repeat(auto-fill,minmax(118px,1fr)); gap:10px; margin-top:12px; }
+.nbbedcard{ position:relative; font:inherit; background:#fff; border:2px solid #e8e2f3; border-radius:16px; padding:8px 6px 8px; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:3px; }
+.nbbedcard img{ width:92px; height:74px; object-fit:contain; }
+.nbbedcard b{ font-size:12.5px; line-height:1.15; text-align:center; } .nbbedcard small{ font-size:12px; font-weight:800; color:#B07A12; }
+.nbbedcard.have small{ color:#5b4f86; } .nbbedcard.using{ border-color:#3FBF7F; background:#EEFAF3; } .nbbedcard.using small{ color:#2E9E6B; }
+.nbbedcard.peek{ box-shadow:0 0 0 3px #8B7BFF; } .nbbedcard.gone img{ filter:grayscale(.7) opacity(.6); } .nbbedcard.gone small{ color:#888; }
+.nbhol{ position:absolute; top:4px; right:6px; font-style:normal; font-size:16px; }
+.rneb .nbbed{ width:100%; }

@@ -8,10 +8,10 @@
      student only photographed it and never caught it (Ms. Ariana, Nov 9). Back returns to the zoo.
    Saved in planet.zoo = { d: last tour date, m: [keys met that day], v: tour days, st: stamps on the card, cards: full cards, cd: date a card was completed,
    all5, fr (saw a Super Rare), fa (saw an alien), fs (saw a Sparkle) } through safari.js planetSave, so the other Planet JP saves aren't overwritten. */
-import { esc } from "./game.js?v=20261110d";
-import { azToday } from "./collect.js?v=20261110d";
-import { ALIEN_CREATURES, ALIEN_FAM } from "./aliens.js?v=20261110d";
-import { freshSt, album, PAGES, ALIENS, entryArt, planetSave, planetNow, planetCtx } from "./safari.js?v=20261110d";
+import { esc } from "./game.js?v=20261110e";
+import { azToday } from "./collect.js?v=20261110e";
+import { ALIEN_CREATURES, ALIEN_FAM } from "./aliens.js?v=20261110e";
+import { freshSt, album, PAGES, ALIENS, entryArt, planetSave, planetNow, planetCtx } from "./safari.js?v=20261110e";
 
 const A = "assets/planet/", Z = A + "zoo/";
 export const ZOO_PICKS = 5, ZOO_FIRST = 5, ZOO_EACH = 1, ZOO_CARD = 5, ZOO_CARD_BONUS = 25;

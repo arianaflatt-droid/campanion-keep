@@ -9,13 +9,14 @@
    Each finished activity is ONE save (so at most 3 a day): planet.pets.care = { d: date, f, p, b: done today (1),
    st: full-care days in a row, last: last full-care date, cards: full streaks, n: full-care days } through planetSave.
    The 🐾 My Room pet corner (Phase 3) also lives here: the buddy sits on its bed in My Room (display only). */
-import { esc } from "./game.js?v=20261110d";
-import { azToday } from "./collect.js?v=20261110d";
-import { schoolDayFor } from "./axolotl.js?v=20261110d";
-import { addDays } from "./doors.js?v=20261110d";
-import { freshSt, planetSave, planetNow, planetCtx } from "./safari.js?v=20261110d";
-import { playOpen, playgroundHTML } from "./playground.js?v=20261110d";
-import { NEB, PP, PERS, PERSONALITIES, ownedOf, petsOf, nebHTML, nebImg, nebHappy } from "./pets.js?v=20261110d";
+import { esc } from "./game.js?v=20261110e";
+import { azToday } from "./collect.js?v=20261110e";
+import { schoolDayFor } from "./axolotl.js?v=20261110e";
+import { addDays } from "./doors.js?v=20261110e";
+import { freshSt, planetSave, planetNow, planetCtx } from "./safari.js?v=20261110e";
+import { playOpen, playgroundHTML } from "./playground.js?v=20261110e";
+import { bedOf, bedWithPet } from "./nebshop.js?v=20261110e";
+import { NEB, PP, PERS, PERSONALITIES, ownedOf, petsOf, nebHTML, nebImg, nebHappy } from "./pets.js?v=20261110e";
 
 export const CARE_EACH = 5, CARE_ALL = 3,   // Nov 10 (Ms. Ariana): +5 each, was +3
                    CARE_STREAK = 5, CARE_STREAK_BONUS = 25;
@@ -154,5 +155,6 @@ export function parkHTML(st, cls, open, students) {
 // 🐾 My Room pet corner (Phase 3): the buddy sleeps on its bed (display only)
 export function nebbleCorner(st) {
   st = freshSt(st); const own = ownedOf(st), b = petsOf(st).buddy; if (!b || !own[b] || !NEB[b]) return "";
-  return '<div class="rneb" title="' + esc(own[b].n) + '"><img class="rnebbed" src="' + PP + 'pet-bed.webp" alt=""><span class="rnebpet">' + nebHTML(b, { hat: own[b].h, cls: "nbbob" }) + "</span></div>";
+  // 🛏️ Nov 10: on the bed picked in the Bed Shop (the Classic bed until then)
+  return '<div class="rneb" title="' + esc(own[b].n) + '">' + bedWithPet(bedOf(st).k, nebHTML(b, { hat: own[b].h, cls: "nbbob" })) + "</div>";
 }
