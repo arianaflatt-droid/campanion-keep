@@ -6,12 +6,12 @@
      About 1 day in 10 it's a ✨ Lucky Find: a holiday or event set piece.
    Every buy is one write (planet + the thing bought: outfits / roomOwned / coll), through safari.js planetSave so the safari, the café
    and the shop never overwrite each other. Teacher preview and the student demo save nothing to the class. Catalog: shop-data.js. */
-import { esc } from "./game.js?v=20261110c";
-import { azToday } from "./collect.js?v=20261110c";
-import { planetNow, planetSave, planetCtx, freshSt } from "./safari.js?v=20261110c";
-import { TYPE_THEMES, SEASON_THEMES, KINDS, itemName, itemArt, owned as roomOwnedList } from "./room.js?v=20261110c";
-import { ALIEN_CREATURES, ALIEN_FAMILIES } from "./aliens.js?v=20261110c";
-import { HANGAR_CATS, HANGAR_OPEN, SHOP_ITEMS, SHOP_BY, CATS, CRATE_COST, SHOP_ART, COLLECTIONS, shopOf, hasItem, wearing } from "./shop-data.js?v=20261110c";
+import { esc } from "./game.js?v=20261110d";
+import { azToday } from "./collect.js?v=20261110d";
+import { planetNow, planetSave, planetCtx, freshSt } from "./safari.js?v=20261110d";
+import { TYPE_THEMES, SEASON_THEMES, KINDS, itemName, itemArt, owned as roomOwnedList } from "./room.js?v=20261110d";
+import { ALIEN_CREATURES, ALIEN_FAMILIES } from "./aliens.js?v=20261110d";
+import { HANGAR_CATS, HANGAR_OPEN, SHOP_ITEMS, SHOP_BY, CATS, CRATE_COST, SHOP_ART, COLLECTIONS, shopOf, hasItem, wearing } from "./shop-data.js?v=20261110d";
 
 const WEAR_CATS = ["duck", "flame", "trail", "orbit", "table"];
 let msg = null, extra = null;   // the last message, and the last non-planet fields saved (so the page shows them before the save comes back)

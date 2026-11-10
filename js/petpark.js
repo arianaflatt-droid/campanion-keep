@@ -4,20 +4,21 @@
    - ⚽ Fetch: throw the ball 3 times; the Nebble hops after it and brings it back.
    - 🍬 Feed: tap the bowl to toss 5 alien pellets.
    - 🛁 Bath: scrub the Nebble in the tub with the sponge until it's all bubbles, then rinse.
-   Each one pays +3 ⭐ the first time today, all three = +3 more (up to 12 a day). Doing all three on 5 school days
+   Each one pays +5 ⭐ the first time today (was +3 until Nov 10), all three = +3 more (up to 18 a day). Doing all three on 5 school days
    in a row = +25 ⭐ (Pet Pro streak), then it starts over. (Ms. Ariana, Nov 9.)
    Each finished activity is ONE save (so at most 3 a day): planet.pets.care = { d: date, f, p, b: done today (1),
    st: full-care days in a row, last: last full-care date, cards: full streaks, n: full-care days } through planetSave.
    The 🐾 My Room pet corner (Phase 3) also lives here: the buddy sits on its bed in My Room (display only). */
-import { esc } from "./game.js?v=20261110c";
-import { azToday } from "./collect.js?v=20261110c";
-import { schoolDayFor } from "./axolotl.js?v=20261110c";
-import { addDays } from "./doors.js?v=20261110c";
-import { freshSt, planetSave, planetNow, planetCtx } from "./safari.js?v=20261110c";
-import { playOpen, playgroundHTML } from "./playground.js?v=20261110c";
-import { NEB, PP, PERS, PERSONALITIES, ownedOf, petsOf, nebHTML, nebImg, nebHappy } from "./pets.js?v=20261110c";
+import { esc } from "./game.js?v=20261110d";
+import { azToday } from "./collect.js?v=20261110d";
+import { schoolDayFor } from "./axolotl.js?v=20261110d";
+import { addDays } from "./doors.js?v=20261110d";
+import { freshSt, planetSave, planetNow, planetCtx } from "./safari.js?v=20261110d";
+import { playOpen, playgroundHTML } from "./playground.js?v=20261110d";
+import { NEB, PP, PERS, PERSONALITIES, ownedOf, petsOf, nebHTML, nebImg, nebHappy } from "./pets.js?v=20261110d";
 
-export const CARE_EACH = 3, CARE_ALL = 3, CARE_STREAK = 5, CARE_STREAK_BONUS = 25;
+export const CARE_EACH = 5, CARE_ALL = 3,   // Nov 10 (Ms. Ariana): +5 each, was +3
+                   CARE_STREAK = 5, CARE_STREAK_BONUS = 25;
 const FETCH_N = 3, FEED_N = 5, SCRUB_N = 100;
 const ACTS = [
   { k: "f", key: "fetch", icon: "⚽", name: "Play fetch", how: "Throw the ball 3 times" },
