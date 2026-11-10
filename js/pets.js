@@ -15,10 +15,10 @@
      page-only (localStorage), no database writes.
    Saved in planet.pets = { o: { key: { n: name, p: personality, h: outfit id or "", at: date adopted } }, buddy: key, rel: releases }
    through safari.js planetSave, so the other Planet JP saves aren't overwritten. */
-import { esc, OUTFITS } from "./game.js?v=20261110e";
-import { azToday } from "./collect.js?v=20261110e";
-import { freshSt, planetSave, planetNow, planetCtx } from "./safari.js?v=20261110e";
-import { shopTab, shopTabs, bedShopHTML } from "./nebshop.js?v=20261110e";
+import { esc, OUTFITS } from "./game.js?v=20261110h";
+import { azToday } from "./collect.js?v=20261110h";
+import { freshSt, planetSave, planetNow, planetCtx } from "./safari.js?v=20261110h";
+import { shopTab, shopTabs, bedShopHTML, careShopHTML } from "./nebshop.js?v=20261110h";
 
 export const PA = "assets/pets/", PP = PA + "place/";
 export const TIERS = [
@@ -203,7 +203,7 @@ function collectionHTML(st) {
 export function adoptHTML(st, cls, open) {
   st = freshSt(st);
   // 🛏️ Nov 10: the Bed Shop is a tab in the Adoption Center
-  if (shopTab() === "beds") { const own = ownedOf(st), b = petsOf(st).buddy; return shopTabs() + bedShopHTML(st, b && own[b] && NEB[b] ? nebHTML(b, { hat: own[b].h, cls: "nbbob" }) : ""); } const d = azToday(), cubs = cubbies(st, d), dust = Number(plOf(st).dust) || 0, n = ownedCount(st);
+  if (shopTab() !== "adopt") { const own = ownedOf(st), b = petsOf(st).buddy, bh = b && own[b] && NEB[b] ? nebHTML(b, { hat: own[b].h, cls: "nbbob" }) : ""; return shopTabs() + (shopTab() === "beds" ? bedShopHTML(st, bh) : careShopHTML(st, bh)); } const d = azToday(), cubs = cubbies(st, d), dust = Number(plOf(st).dust) || 0, n = ownedCount(st);
   if (papers && !ownedOf(st)[papers]) papers = null;
   if (open1 && !ownedOf(st)[open1]) open1 = null;
   const duck = papers ? "ad-cheer" : sel ? "ad-hold" : "ad-wave";

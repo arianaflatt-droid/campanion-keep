@@ -3298,3 +3298,27 @@ body.pjmode .card{ box-shadow:0 12px 40px rgba(0,0,0,.35); }
 .nbbedcard.peek{ box-shadow:0 0 0 3px #8B7BFF; } .nbbedcard.gone img{ filter:grayscale(.7) opacity(.6); } .nbbedcard.gone small{ color:#888; }
 .nbhol{ position:absolute; top:4px; right:6px; font-style:normal; font-size:16px; }
 .rneb .nbbed{ width:100%; }
+/* 🪥🛁 Nebble care items (Nov 10) */
+.pkbrush{ position:absolute; left:70%; top:45%; width:10%; transform:translate(-50%,-50%) rotate(-20deg); pointer-events:none; z-index:6; filter:drop-shadow(0 .4cqw .5cqw rgba(0,0,0,.3)); }
+.pkspark{ position:absolute; z-index:5; pointer-events:none; font-size:max(14px,2.4cqw); transform:translate(-50%,-50%); animation:pkspark 1.1s ease-out forwards; }
+@keyframes pkspark{ from{ opacity:1; transform:translate(-50%,-50%) scale(.4); } to{ opacity:0; transform:translate(-50%,-160%) scale(1.3); } }
+.pktubtoy{ position:absolute; left:58%; top:54%; width:7%; z-index:5; pointer-events:none; animation:pkbob 2.4s ease-in-out infinite; }
+@keyframes pkbob{ 0%,100%{ transform:translateY(0) rotate(-6deg); } 50%{ transform:translateY(-8%) rotate(6deg); } }
+.nbtabs{ flex-wrap:wrap; }
+.nbcshow{ position:relative; width:100%; aspect-ratio:1.15; }
+.nbcpet{ position:absolute; left:6%; bottom:8%; width:52%; }
+.nbcbowl{ position:absolute; right:2%; bottom:4%; width:52%; }
+.nbcitem{ position:absolute; right:4%; bottom:10%; width:44%; }
+.nbcitem.toy{ width:34%; } .nbcitem.nbemo{ font-size:64px; width:auto; }
+.nbcbub{ position:absolute; aspect-ratio:1; border-radius:50%; border:1.5px solid rgba(255,255,255,.7); opacity:.9; }
+.nbbubsw{ display:block; width:70px; height:70px; border-radius:50%; margin:2px auto 4px; border:2px solid rgba(255,255,255,.8); box-shadow:inset -6px -8px 14px rgba(0,0,0,.12); }
+.nbemo{ display:block; font-size:44px; line-height:74px; }
+/* 🛍️ one Nebble Shop with arrows (Nov 10) */
+.nbcatbar{ display:flex; align-items:center; gap:10px; margin:0 0 10px; background:linear-gradient(135deg,#8B7BFF,#C77DFF); border-radius:16px; padding:8px; color:#fff; }
+.nbarrow{ font:inherit; font-size:22px; font-weight:900; width:52px; height:52px; border-radius:14px; border:0; background:#fff; color:#6a4bc4; cursor:pointer; box-shadow:0 3px 0 rgba(0,0,0,.15); flex:none; }
+.nbarrow:hover{ transform:translateY(-1px); }
+.nbcatmid{ flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; }
+.nbcatmid b{ font-size:22px; }
+.nbdots{ display:flex; gap:6px; }
+.nbdot{ font:inherit; font-size:16px; width:34px; height:30px; border-radius:10px; border:0; background:rgba(255,255,255,.25); cursor:pointer; }
+.nbdot.on{ background:#fff; box-shadow:0 0 0 2px #FFD966; }

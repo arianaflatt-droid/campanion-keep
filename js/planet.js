@@ -7,20 +7,20 @@
    A launch is saved on the student: planet = { n: launches, last: "YYYY-MM-DD", streak, best } (one write a day).
    Wave 2 adds a space minigame between liftoff and landing; Planet JP itself comes later, one piece at a time.
    Pictures live in assets/planet/ — until one is uploaded (ART below) the stand-in drawing is used. */
-import { esc, weekKey } from "./game.js?v=20261109l";
-import { azToday, azNow } from "./collect.js?v=20261109l";
-import { axoDay, schoolDayFor } from "./axolotl.js?v=20261109l";
-import { addDays, todayPlan, weekTotal, histWeekTotal } from "./doors.js?v=20261109l";
-import { GAMES, gameOfDay, gameByKey, play, preload } from "./spacegames.js?v=20261109l";
-import { ZONES, safariSync, freshSt, albumHTML, filmLeft, pageCount, pageSize, aliensFound, zoneAliens, FREE_FILM, ROLL_COST, shopHTML, netsOf, NETS, netImg, pjWindow, classOpenAll, PJ_LATE, pjBreakDay, pjBreakXP } from "./safari.js?v=20261109l";
-import { cafeHTML } from "./cafe.js?v=20261109l";
-import { shopPageHTML } from "./spaceshop.js?v=20261109l";
-import { hangarHTML } from "./hangar.js?v=20261109l";
-import { zooHTML } from "./zoo.js?v=20261109l";
-import { adoptHTML, PP as NEB_PP } from "./pets.js?v=20261109l";
-import { parkHTML } from "./petpark.js?v=20261109l";
-import { missionsHTML, placeBang } from "./missions.js?v=20261109l";
-import { duckImgOf, flameFxOf, trailOf } from "./shop-data.js?v=20261109l";
+import { esc, weekKey } from "./game.js?v=20261110h";
+import { azToday, azNow } from "./collect.js?v=20261110h";
+import { axoDay, schoolDayFor } from "./axolotl.js?v=20261110h";
+import { addDays, todayPlan, weekTotal, histWeekTotal } from "./doors.js?v=20261110h";
+import { GAMES, gameOfDay, gameByKey, play, preload } from "./spacegames.js?v=20261110h";
+import { ZONES, safariSync, freshSt, albumHTML, filmLeft, pageCount, pageSize, aliensFound, zoneAliens, FREE_FILM, ROLL_COST, shopHTML, netsOf, NETS, netImg, pjWindow, classOpenAll, PJ_LATE, pjBreakDay, pjBreakXP } from "./safari.js?v=20261110h";
+import { cafeHTML } from "./cafe.js?v=20261110h";
+import { shopPageHTML } from "./spaceshop.js?v=20261110h";
+import { hangarHTML } from "./hangar.js?v=20261110h";
+import { zooHTML } from "./zoo.js?v=20261110h";
+import { adoptHTML, PP as NEB_PP } from "./pets.js?v=20261110h";
+import { parkHTML } from "./petpark.js?v=20261110h";
+import { missionsHTML, placeBang } from "./missions.js?v=20261110h";
+import { duckImgOf, flameFxOf, trailOf } from "./shop-data.js?v=20261110h";
 
 export const PJ_OPEN = 11 * 60, PJ_CLOSE = 12 * 60 + 55;   // minutes after midnight, Arizona time
 const A = "assets/planet/";
@@ -369,15 +369,14 @@ export const planetZoneNow = () => zoneOpen;
 // where each place sits on the hub picture (% of a 16:9 scene). Zones = the 7 portholes across the sky.
 const HUB_ZONES = [[8, 17], [21, 13], [35, 11], [50, 10], [65, 11], [79, 13], [92, 17]];
 const HUB_PLACES = [
-  { k: "cafe", name: "\u2615 Space Caf\u00e9", x: 15, y: 62, w: 24, html: () => '<span class="hubcafe"><img class="hubwin" src="' + A + 'cafe/cafe-room.webp" alt=""><img class="hubchef" src="' + A + 'cafe/chef-duck-360.webp" alt=""></span>' },
+  { k: "cafe", name: "\u2615 Space Caf\u00e9", x: 15, y: 73, w: 22, html: () => '<span class="hubcafe"><img class="hubwin" src="' + A + 'cafe/cafe-room.webp" alt=""><img class="hubchef" src="' + A + 'cafe/chef-duck-360.webp" alt=""></span>' },
   { k: "safari", name: "\u{1F6D2} Safari Shop", x: 37, y: 74, w: 18, html: () => '<img src="' + A + 'safari-shop.webp" alt="">' },
   { k: "shop", name: "\u{1F6CD}\uFE0F Space Shop", x: 62, y: 74, w: 22, html: () => '<img src="' + A + 'shop/space-shop.webp" alt="">' },
-  { k: "swap", name: "\u{1F527} Swap Shop", x: 86, y: 63, w: 21, html: () => '<img src="' + A + 'shop/swap-shop.webp" alt="">' },
-  { k: "zoo", name: "\u{1F992} Space Zoo", x: 12, y: 35.5, w: 13.5, html: () => '<img src="' + A + 'zoo/zoo-gate.webp" alt="">' },
+  { k: "swap", name: "\u{1F527} Swap Shop", x: 87, y: 68, w: 20, html: () => '<img src="' + A + 'shop/swap-shop.webp" alt="">' },
+  { k: "zoo", name: "\u{1F992} Space Zoo", x: 13.5, y: 40.5, w: 15, html: () => '<img src="' + A + 'zoo/zoo-gate.webp" alt="">' },
   { k: "adopt", name: "\u{1F43E} Adoption Center", x: 41, y: 40, w: 10, html: () => '<img src="' + NEB_PP + 'adopt-building.webp" alt="">' },   // 🐾 Nebbles (Nov 9)
   { k: "park", name: "\u{1F333} Pet Park", x: 65.5, y: 37, w: 9, html: () => '<img src="' + NEB_PP + 'park-building.webp" alt="">' },   // 🌳 Nebbles Pet Park (Nov 9)
-  { k: "hangar", name: "\u{1F527} Duck Hangar", x: 78, y: 41, w: 15, html: () => '<img src="' + A + 'hangar/hangar-building.webp" alt="">' },
-  { k: "album", name: "\u{1F4D6} Photo Album", x: 30, y: 44, w: 10, html: () => '<span class="hubbook">\u{1F4D6}</span>' },
+  { k: "hangar", name: "\u{1F527} Duck Hangar", x: 81, y: 38, w: 13.5, html: () => '<img src="' + A + 'hangar/hangar-building.webp" alt="">' },
   { k: "colony", name: "\u{1F3D5}\uFE0F Class Colony", x: 54, y: 46, w: 14, html: () => '<span class="hubduck">' + duckHTML() + "</span>" }];
 if (typeof document !== "undefined") document.addEventListener("click", ev => { const b = ev.target.closest && ev.target.closest("[data-pjcolony]"); if (!b) return; const c = document.getElementById("pjcolonycard"); if (c) c.scrollIntoView({ behavior: "smooth" }); });
 function hubHTML(st, n) {
