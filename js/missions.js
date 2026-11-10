@@ -4,11 +4,11 @@
    has photographed an animal, so there is something in the zoo).  Optional: 🛍️ a Swap Shop deal is waiting (never required: buying costs Stardust).
    All required done = a "Claim +5 ⭐" button (ONE save: planet.mb = { d: date claimed, n: days claimed }).
    The map shows a bouncing "!" on a place while it has something to do today (placeBang).  */
-import { azToday } from "./collect.js?v=20261109j";
-import { freshSt, planetSave, planetNow, planetCtx, filmLeft } from "./safari.js?v=20261109j";
-import { zooPicks } from "./zoo.js?v=20261109j";
-import { swapDeal } from "./spaceshop.js?v=20261109j";
-import { careDone, hasNebble } from "./petpark.js?v=20261109j";
+import { azToday } from "./collect.js?v=20261109l";
+import { freshSt, planetSave, planetNow, planetCtx, filmLeft } from "./safari.js?v=20261109l";
+import { zooPicks } from "./zoo.js?v=20261109l";
+import { swapDeal } from "./spaceshop.js?v=20261109l";
+import { careDone, hasNebble } from "./petpark.js?v=20261109l";
 
 export const MISSION_BONUS = 5;
 const plOf = st => (st && st.planet) || {};
@@ -41,15 +41,18 @@ export function missionList(st) {
 }
 
 export function missionsHTML(st, open) {
-  st = freshSt(st); const list = missionList(st), left = list.filter(x => !x.done).length, claimed = (plOf(st).mb || {}).d === today();
-  let h = '<div class="card pjmissions"><div class="card-head"><h2>\u{1F9ED} Today\u2019s missions</h2><span class="fact">' + (left ? list.length - left + " of " + list.length + " done" : "all done! \u{1F389}") + "</span></div>" +
-    '<ul class="pjmlist">' + list.map(x => '<li class="' + (x.done ? "done" : "") + '"><span class="pjmtick">' + (x.done ? "\u2705" : "\u2B1C") + "</span><span>" + x.icon + " " + x.text + "</span>" +
-      (x.done || !open ? "" : '<button class="btn small ghost" data-pjzone="' + x.go + '">Go \u279C</button>') + "</li>").join("");
-  if (swapWaiting(st)) h += '<li class="opt"><span class="pjmtick">\u2728</span><span>\u{1F6CD}\uFE0F A Swap Shop deal is waiting <small class="muted">(optional)</small></span>' + (open ? '<button class="btn small ghost" data-pjzone="swap">Look \u279C</button>' : "") + "</li>";
+  // 🛰️ Nov 9: a spacey "mission log" console panel (Planet JP mode puts it in the side space)
+  st = freshSt(st); const list = missionList(st), left = list.filter(x => !x.done).length, claimed = (plOf(st).mb || {}).d === today(), done = list.length - left;
+  const d = new Date(), stamp = "STARDATE " + d.getFullYear() + "." + String(Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 864e5)).padStart(3, "0");
+  let h = '<div class="mlog"><div class="mloghead"><span class="mlogdot"></span><b>MISSION LOG</b><span class="mlogstamp">' + stamp + "</span></div>" +
+    '<div class="mlogbar">' + list.map(x => '<i class="' + (x.done ? "on" : "") + '"></i>').join("") + '</div><div class="mlogcount">' + (left ? done + " / " + list.length + " COMPLETE" : "ALL MISSIONS COMPLETE") + "</div>" +
+    '<ul class="mloglist">' + list.map(x => '<li class="' + (x.done ? "done" : "") + '"><span class="mlogbox">' + (x.done ? "\u2713" : "") + '</span><span class="mlogtxt">' + x.icon + " " + x.text + "</span>" +
+      (x.done || !open ? "" : '<button class="mloggo" data-pjzone="' + x.go + '">GO \u25B8</button>') + "</li>").join("");
+  if (swapWaiting(st)) h += '<li class="opt"><span class="mlogbox opt">\u2726</span><span class="mlogtxt">\u{1F6CD}\uFE0F Swap Shop deal waiting <small>(optional)</small></span>' + (open ? '<button class="mloggo" data-pjzone="swap">LOOK \u25B8</button>' : "") + "</li>";
   h += "</ul>";
-  if (!left) h += claimed ? '<p class="pjmdone">\u{1F31F} Mission complete! You got <b>+' + MISSION_BONUS + " \u2B50</b> today.</p>"
-    : '<div class="row" style="justify-content:center;margin-top:6px;"><button class="btn gold" data-msclaim="1">\u{1F389} Mission complete! Claim +' + MISSION_BONUS + " \u2B50</button></div>";
-  else h += '<p class="small muted" style="margin:6px 0 0;">Finish them all for <b>+' + MISSION_BONUS + " \u2B50</b>. Places with a red <b>!</b> on the map still need a visit.</p>";
+  if (!left) h += claimed ? '<p class="mlogdone">\u2605 REWARD RECEIVED: +' + MISSION_BONUS + " \u2B50</p>"
+    : '<button class="mlogclaim" data-msclaim="1">\u25B6 CLAIM +' + MISSION_BONUS + " \u2B50 STARDUST</button>";
+  else h += '<p class="mlognote">Finish all for <b>+' + MISSION_BONUS + ' \u2B50</b>. A red <b>!</b> on the map = still to do.</p>';
   return h + "</div>";
 }
 

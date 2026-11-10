@@ -15,9 +15,9 @@
      page-only (localStorage), no database writes.
    Saved in planet.pets = { o: { key: { n: name, p: personality, h: outfit id or "", at: date adopted } }, buddy: key, rel: releases }
    through safari.js planetSave, so the other Planet JP saves aren't overwritten. */
-import { esc, OUTFITS } from "./game.js?v=20261109j";
-import { azToday } from "./collect.js?v=20261109j";
-import { freshSt, planetSave, planetNow, planetCtx } from "./safari.js?v=20261109j";
+import { esc, OUTFITS } from "./game.js?v=20261109l";
+import { azToday } from "./collect.js?v=20261109l";
+import { freshSt, planetSave, planetNow, planetCtx } from "./safari.js?v=20261109l";
 
 export const PA = "assets/pets/", PP = PA + "place/";
 export const TIERS = [
@@ -286,4 +286,55 @@ export function nebbleSync(c) {
   if (!side.st || !side.out || popOff() || !sidekickOf(side.st, side.cls)) { clearTimeout(timer); timer = null; hideNow(); return; }
   if (showing && showing !== sidekickOf(side.st, side.cls)) hideNow();
   if (!timer || was !== side.st.id) schedule(was === side.st.id ? null : 4000);
+}
+
+/* ---------- 🎁 Free starter Nebble (Nov 9) ----------
+   Ms. Ariana turns it on in the console (cls.nebFree = { on: true, at }). Every student who doesn't own a Nebble yet
+   (and never got the free one) gets a pop-up on their Keep, any tab, even when Planet JP is closed: pick one of the
+   10 Common colors, name it, adopt it for free. ONE save (planet.pets, with pets.free = date so it can't be taken twice,
+   even after a release). "Later" hides the pop-up until the page is opened again; the checklist step brings it back. */
+let freeSel = "", freeHide = false, freeJust = "";
+export const freeOn = cls => !!(cls && cls.nebFree && cls.nebFree.on);
+export const freeReady = (st, cls) => freeOn(cls) && !!st && !petsOf(st).free && !Object.keys(ownedOf(st)).some(k => NEB[k]);
+export const showFree = () => { freeHide = false; };
+export function freeOverlay(st, cls) {
+  st = st ? freshSt(st) : st;
+  if (freeJust && ownedOf(st)[freeJust]) return '<div class="prizeover nbfreeover" role="dialog"><div class="prizebox nbfreebox">' + papersHTML(st, freeJust).replace(/data-nb="close"/g, 'data-nb="fyay"') + "</div></div>";   // 🎉 its adoption papers
+  if (!freeReady(st, cls) || freeHide) return "";
+  const commons = NEBBLES.filter(n => n.t === "c"), k = freeSel && NEB[freeSel] ? freeSel : "";
+  return '<div class="prizeover nbfreeover" role="dialog" aria-label="Pick your free Nebble"><div class="prizebox nbfreebox">' +
+    '<img class="nbfreeduck" src="' + PP + (k ? "ad-hold" : "ad-wave") + '.webp" alt="">' +
+    "<h2>\u{1F381} A FREE Nebble for you!</h2><p class=\"lede\">Alien Duck brought a Nebble for everyone in class. Pick the color you like best!</p>" +
+    '<div class="nbfreegrid">' + commons.map(n => '<button class="nbfreepick' + (k === n.k ? " on" : "") + '" data-nb="fpick:' + n.k + '">' + nebHTML(n.k, { cls: k === n.k ? "nbbob" : "" }) + "<small>" + esc(n.name) + "</small></button>").join("") + "</div>" +
+    (k ? '<label class="nblabel" style="justify-content:center;">Name it: <input id="nbfreename" maxlength="' + NAME_MAX + '" value="' + esc(NEB[k].name) + '" autocomplete="off"></label>' +
+      '<button class="attackbtn" data-nb="fgo:' + k + '">\u{1F43E} Adopt ' + esc(NEB[k].name) + " for FREE!</button>" : '<p class="small muted">Tap a Nebble to pick it.</p>') +
+    '<button class="btn ghost small" data-nb="flater" style="margin-top:8px;">Later</button></div></div>';
+}
+function freeAdopt(k) {
+  const c = planetCtx(); if (!c || !c.st || c.preview) return;
+  const st = freshSt(c.st), n = NEB[k]; if (!n || n.t !== "c" || !freeReady(st, c.cls)) return;
+  const inp = document.getElementById("nbfreename"), name = cleanName(inp && inp.value, k), pl = planetNow();
+  const pets = JSON.parse(JSON.stringify(pl.pets || {})); pets.o = pets.o || {};
+  pets.o[k] = { n: name, p: PERSONALITIES[Math.floor(Math.random() * PERSONALITIES.length)].k, h: "", at: azToday() };
+  pets.buddy = k; pets.free = azToday(); pl.pets = pets;
+  planetSave(pl); freeSel = ""; freeJust = k; freeHide = true; rer();
+}
+// the "it's yours" card after a free adoption (shown on the My Companion tab once)
+export const freeDoneCard = () => "";
+if (typeof document !== "undefined") document.addEventListener("click", ev => {
+  const t = ev.target.closest && ev.target.closest("[data-nb]"); if (!t) return;
+  const [a, k] = t.dataset.nb.split(":");
+  if (a === "fpick") { freeSel = k; return rer(); }
+  if (a === "fgo") return freeAdopt(k);
+  if (a === "flater") { freeHide = true; return rer(); }
+  if (a === "fyay") { freeJust = ""; return rer(); }
+});
+
+/* console card */
+export function nebbleAdmin(students, cls) {
+  const kids = (students || []).filter(s => s.companionId && !s.isTeacher), have = kids.filter(s => Object.keys(ownedOf(s)).some(k => NEB[k])).length, on = freeOn(cls);
+  return '<div class="card"><div class="card-head"><h2>\u{1F43E} Nebbles</h2><span class="fact">' + have + " of " + kids.length + " have a Nebble</span></div>" +
+    '<p class="lede" style="font-size:13.5px;">Turn on the <b>free starter Nebble</b> and every student without a Nebble gets a pop-up on their Keep (any tab, Planet JP doesn’t have to be open) to pick one of the 10 Common colors for free. Each student can only get the free one once.</p>' +
+    '<div class="row" style="gap:8px;margin-top:8px;"><button class="btn' + (on ? " ghost" : "") + '" data-act="' + (on ? "nebFreeOff" : "nebFreeOn") + '">' + (on ? "Turn the free Nebble off" : "\u{1F381} Turn on the free starter Nebble") + "</button>" +
+    (on ? '<span class="small" style="align-self:center;">✅ On · ' + (kids.length - have) + " still to pick</span>" : "") + "</div></div>";
 }

@@ -7,20 +7,20 @@
    A launch is saved on the student: planet = { n: launches, last: "YYYY-MM-DD", streak, best } (one write a day).
    Wave 2 adds a space minigame between liftoff and landing; Planet JP itself comes later, one piece at a time.
    Pictures live in assets/planet/ — until one is uploaded (ART below) the stand-in drawing is used. */
-import { esc } from "./game.js?v=20261109j";
-import { azToday, azNow } from "./collect.js?v=20261109j";
-import { axoDay, schoolDayFor } from "./axolotl.js?v=20261109j";
-import { addDays } from "./doors.js?v=20261109j";
-import { GAMES, gameOfDay, gameByKey, play, preload } from "./spacegames.js?v=20261109j";
-import { ZONES, safariSync, freshSt, albumHTML, filmLeft, pageCount, pageSize, aliensFound, zoneAliens, FREE_FILM, ROLL_COST, shopHTML, netsOf, NETS, netImg, pjWindow, classOpenAll, PJ_LATE } from "./safari.js?v=20261109j";
-import { cafeHTML } from "./cafe.js?v=20261109j";
-import { shopPageHTML } from "./spaceshop.js?v=20261109j";
-import { hangarHTML } from "./hangar.js?v=20261109j";
-import { zooHTML } from "./zoo.js?v=20261109j";
-import { adoptHTML, PP as NEB_PP } from "./pets.js?v=20261109j";
-import { parkHTML } from "./petpark.js?v=20261109j";
-import { missionsHTML, placeBang } from "./missions.js?v=20261109j";
-import { duckImgOf, flameFxOf, trailOf } from "./shop-data.js?v=20261109j";
+import { esc } from "./game.js?v=20261109l";
+import { azToday, azNow } from "./collect.js?v=20261109l";
+import { axoDay, schoolDayFor } from "./axolotl.js?v=20261109l";
+import { addDays } from "./doors.js?v=20261109l";
+import { GAMES, gameOfDay, gameByKey, play, preload } from "./spacegames.js?v=20261109l";
+import { ZONES, safariSync, freshSt, albumHTML, filmLeft, pageCount, pageSize, aliensFound, zoneAliens, FREE_FILM, ROLL_COST, shopHTML, netsOf, NETS, netImg, pjWindow, classOpenAll, PJ_LATE } from "./safari.js?v=20261109l";
+import { cafeHTML } from "./cafe.js?v=20261109l";
+import { shopPageHTML } from "./spaceshop.js?v=20261109l";
+import { hangarHTML } from "./hangar.js?v=20261109l";
+import { zooHTML } from "./zoo.js?v=20261109l";
+import { adoptHTML, PP as NEB_PP } from "./pets.js?v=20261109l";
+import { parkHTML } from "./petpark.js?v=20261109l";
+import { missionsHTML, placeBang } from "./missions.js?v=20261109l";
+import { duckImgOf, flameFxOf, trailOf } from "./shop-data.js?v=20261109l";
 
 export const PJ_OPEN = 11 * 60, PJ_CLOSE = 12 * 60 + 55;   // minutes after midnight, Arizona time
 const A = "assets/planet/";
@@ -79,8 +79,8 @@ export function planetBar(st, cls, preview) {
   else msg = "\u{1F6D1} Mission scrubbed, try again tomorrow!";
   const tanks = p === "landed" || p === "scrubbed" ? "" : '<div class="pjtanks">' + f.tanks.map(t => '<span class="pjtank' + (t.have >= t.need ? " ok" : "") + '">' + t.icon + " " + esc(t.name) + " <b>" + Math.min(t.have, t.need) + "/" + t.need + "</b>" + (t.have >= t.need ? " ✅" : "") + "</span>").join("") + "</div>";
   return '<div class="pjbar ' + p + '"><div class="pjtrack"><div class="pjfill" style="width:' + (pct * 100).toFixed(1) + '%"></div>' +
-    (trailOf(st) && pct > 0.02 ? '<div class="pjtrail tr-' + trailOf(st) + '" style="width:' + (pct * 100).toFixed(1) + '%"></div>' : "") +
-    '<div class="pjship" style="left:' + (pct * 100).toFixed(1) + '%">' + duckHTML(st) + (p === "go" || p === "ready" ? flameHTML(st) : "") + "</div>" +
+    (trailOf(st) && pct > 0.02 ? '<div class="pjtrail tr-' + trailOf(st) + '" style="width:calc(' + (pct * 100).toFixed(1) + '% - ' + (pct * 74 - 12).toFixed(0) + 'px)"></div>' : "") +
+    '<div class="pjship" style="left:' + (pct * 100).toFixed(1) + '%;transform:translateX(-' + (pct * 100).toFixed(1) + '%)">' + duckHTML(st) + (p === "go" || p === "ready" ? flameHTML(st) : "") + "</div>" +
     '<div class="pjgoal">' + planetHTML() + "<small>Planet JP</small></div></div>" +
     '<div class="pjrow"><span class="pjmsg">' + msg + "</span>" + (preview ? '<button class="btn ghost small" data-pj="open">\u{1F440} Preview the launch</button>' : "") + "</div>" + tanks + "</div>";
 }
@@ -346,6 +346,7 @@ export const pjOpen = (st, cls) => phase(st, cls) === "landed" && mins() < pjWin
 const TYPE_IC = { Fire: "\u{1F525}", Water: "\u{1F4A7}", Nature: "\u{1F343}", Rock: "\u{1FAA8}", Earth: "⛰️", Air: "\u{1F32A}️", Electric: "⚡", Ice: "❄️", Light: "✨", Dark: "\u{1F311}", Ghost: "\u{1F47B}", Poison: "\u{1F9EA}", Steel: "⚙️", Normal: "\u{1F4AB}", Arcane: "\u{1F52E}", Crystal: "\u{1F48E}", Dragon: "\u{1F409}" };
 let zoneOpen = null;
 export function planetZone(k) { zoneOpen = k || null; }
+export const planetZoneNow = () => zoneOpen;
 // petOf(st) → companion HTML (passed in by the page, so this file doesn't need the game's art code)
 // where each place sits on the hub picture (% of a 16:9 scene). Zones = the 7 portholes across the sky.
 const HUB_ZONES = [[8, 17], [21, 13], [35, 11], [50, 10], [65, 11], [79, 13], [92, 17]];
@@ -398,7 +399,6 @@ export function planetTab(st, cls, students, petOf, preview) {
       '<p class="small" style="margin:8px 0 0;">\u{1F6D2} Your nets: ' + NETS.map(n => netImg(n, "pjnetimg") + " " + (Number(netsOf(st)[n.k]) || 0)).join(" · ") + ". Switch to a net on the safari to catch a creature!</p></div>" + shopHTML(st);
   }
   const next = ZONES.find(x => n < x.at);
-  h += missionsHTML(st, pjOpen(st, cls) || !!preview);   // 🧭 Today's missions (Nov 9)
   // 🗺️ The Planet JP hub (Nov 8): one big picture of the landing area. Tap a place to go there.
   h += '<div class="card pjhubcard"><div class="card-head"><h2>\u{1F5FA}\uFE0F Planet JP</h2><span class="fact">' + ZONES.filter(x => n >= x.at).length + " of " + ZONES.length + " zones open</span></div>" +
     (next ? '<p class="lede" style="font-size:14px;margin:0 0 8px;">Tap a place to go there! Next zone: <b>' + next.icon + " " + esc(next.name) + "</b> in " + (next.at - n) + " more launch" + (next.at - n === 1 ? "" : "es") + ".</p>" : '<p class="lede" style="margin:0 0 8px;">Tap a place to go there! \u{1F3C6} You unlocked every zone!</p>') +

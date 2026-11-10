@@ -3,22 +3,23 @@
    Each step checks itself off from the student's save; tapping a step opens the tab where it's done.
    The Treasure Vault step is "check your progress", so it counts as done once the student opens it today
    (remembered on this computer only). */
-import { rvStarted, rvStock, rvBeatCount } from "./revenge.js?v=20261109j";
-import { heistTodo } from "./heist.js?v=20261109j";
-import { axoOn } from "./axolotl.js?v=20261109j";
-import { newsKeyOf, shownNews } from "./news.js?v=20261109j";
-import { tbLeft, tbLive } from "./teachbattle.js?v=20261109j";
-import { esc, simulate, companionOf, goalXP } from "./game.js?v=20261109j";
+import { rvStarted, rvStock, rvBeatCount } from "./revenge.js?v=20261109l";
+import { heistTodo } from "./heist.js?v=20261109l";
+import { axoOn } from "./axolotl.js?v=20261109l";
+import { newsKeyOf, shownNews } from "./news.js?v=20261109l";
+import { freeReady } from "./pets.js?v=20261109l";
+import { tbLeft, tbLive } from "./teachbattle.js?v=20261109l";
+import { esc, simulate, companionOf, goalXP } from "./game.js?v=20261109l";
 import { azToday, azNow, todayXP, pullsLeft, legendaryLeft, birthdayLeft, pickleLeft, vaultLegLeft, BOSS2_LIST, boss2EggLeft, candyLegLeft, snowLegLeft,
-  gingerLegLeft, feastLegLeft, brewLegLeft, goalLeft, themeLeft, hasStarter, bankXP, LEVEL_XP } from "./collect.js?v=20261109j";
-import { mqReady } from "./morning.js?v=20261109j";
-import { doorsLive, doorName, goldenReady, weekDoorState, vaultState, vaultGoal, subReq, todayPlan } from "./doors.js?v=20261109j";
-import { soloOn, soloReady, soloCfg } from "./solobrew.js?v=20261109j";
-import { passReady } from "./pass.js?v=20261109j";
-import { pettedToday } from "./bond.js?v=20261109j";
-import { mealsReady } from "./meals.js?v=20261109j";
-import { readyTests } from "./quest.js?v=20261109j";
-import { unthanked } from "./kindness.js?v=20261109j";
+  gingerLegLeft, feastLegLeft, brewLegLeft, goalLeft, themeLeft, hasStarter, bankXP, LEVEL_XP } from "./collect.js?v=20261109l";
+import { mqReady } from "./morning.js?v=20261109l";
+import { doorsLive, doorName, goldenReady, weekDoorState, vaultState, vaultGoal, subReq, todayPlan } from "./doors.js?v=20261109l";
+import { soloOn, soloReady, soloCfg } from "./solobrew.js?v=20261109l";
+import { passReady } from "./pass.js?v=20261109l";
+import { pettedToday } from "./bond.js?v=20261109l";
+import { mealsReady } from "./meals.js?v=20261109l";
+import { readyTests } from "./quest.js?v=20261109l";
+import { unthanked } from "./kindness.js?v=20261109l";
 
 const seenKey = (id, what) => "ck-seen-" + azToday() + "-" + id + "-" + what;
 // 📣 the class announcement (Nov 9): a new one gets a new key, so it shows up on the list again
@@ -47,6 +48,8 @@ export function steps(s, cls, students, battles) {
 
   // 0. 📣 the announcement (Nov 9)
   if (newsKey(cls)) { const L = shownNews(cls); add("news", "news", "\u{1F4E3}", L.length > 1 ? "Read the announcements" : "Read the announcement", (L.length > 1 ? L.length + " announcements: " : "") + (L[0].title ? "\u201C" + L[0].title + "\u201D" : "Something new from the teacher!"), newsRead(s, cls)); }
+  // 🎁 the free starter Nebble (when Ms. Ariana has it on)
+  if (freeReady(s, cls)) add("nebfree", "check", "\u{1F381}", "Pick your FREE Nebble!", "Alien Duck brought a Nebble for you. Tap to pick your color!", false);
   // 1. companion
   add("pet", "pet", "\u{1F43E}", "Check on " + pet,
     (sim.alive ? (sim.atRisk ? "⚠️ " + pet + " needs a " + goalXP(cls) + " XP day to heal. " : pet + " is doing great. ") : pet + " needs your help! ")

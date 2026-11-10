@@ -2848,9 +2848,30 @@ button.cafit{ border:0; background:none; padding:0; cursor:pointer; } button.caf
 /* rocket flame colors + trails on the launch bar */
 .pjflame.rainbowfx{ animation:rbfx 1.2s linear infinite; } @keyframes rbfx{ to{ filter:hue-rotate(360deg) saturate(1.5); } }
 .pjtrail{ position:absolute; left:0; top:50%; height:14px; transform:translateY(-50%); border-radius:99px; pointer-events:none; z-index:1; }
-.pjtrail.tr-sparkle{ background:radial-gradient(circle,#fff 0 2px,transparent 3px) 0 0/16px 14px, radial-gradient(circle,#FFE066 0 2px,transparent 3px) 8px 4px/16px 14px; animation:trmove 1s linear infinite; }
-.pjtrail.tr-comet{ background:linear-gradient(90deg,transparent,rgba(140,220,255,.4) 60%,#E8FBFF); box-shadow:0 0 12px #8CDCFF; }
-.pjtrail.tr-rainbow{ height:12px; background:linear-gradient(#FF5A5A 0 17%,#FFB347 17% 33%,#FFE45C 33% 50%,#6FE07A 50% 67%,#5BB8FF 67% 83%,#B07BFF 83%); opacity:.85; }
+/* ✨ Nov 9: new trails (the old sparkle was a row of even dots) */
+.pjtrail.tr-sparkle{ height:40px; border-radius:0; background:none; overflow:visible; }
+.pjtrail.tr-sparkle::before, .pjtrail.tr-sparkle::after{ content:""; position:absolute; inset:0; pointer-events:none;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 30%); mask-image:linear-gradient(90deg,transparent,#000 30%); }
+.pjtrail.tr-sparkle::before{ background:
+    radial-gradient(circle,#fff 0 1.6px,rgba(255,255,255,.5) 2.4px,transparent 4px) 6px 5px/53px 40px,
+    radial-gradient(circle,#FFE38A 0 1.4px,rgba(255,227,138,.5) 2.4px,transparent 4px) 31px 27px/67px 40px,
+    radial-gradient(circle,#FF9ACB 0 1.2px,transparent 3px) 18px 33px/41px 40px,
+    radial-gradient(circle,#BFF6FF 0 1.3px,transparent 3.4px) 44px 10px/79px 40px;
+  background-repeat:repeat-x; filter:drop-shadow(0 0 3px #fff); animation:trtwinkle 1.6s ease-in-out infinite alternate, trdrift 6s linear infinite; }
+.pjtrail.tr-sparkle::after{ background:
+    radial-gradient(circle,#fff 0 2px,rgba(255,255,255,.4) 3px,transparent 5px) 26px 13px/61px 40px,
+    radial-gradient(circle,#FFE38A 0 1.6px,transparent 3.6px) 9px 30px/47px 40px,
+    radial-gradient(circle,#C9A8FF 0 1.4px,transparent 3.4px) 38px 2px/71px 40px;
+  background-repeat:repeat-x; filter:drop-shadow(0 0 4px #FFE38A); animation:trtwinkle 1.6s ease-in-out -.8s infinite alternate, trdrift 9s linear infinite reverse; }
+@keyframes trtwinkle{ from{ opacity:.25; } to{ opacity:1; } }
+@keyframes trdrift{ to{ background-position-x:-318px, -335px, -205px, -316px; } }
+.pjtrail.tr-comet{ height:22px; border-radius:0; background:linear-gradient(90deg,transparent,rgba(122,231,255,.25) 35%,rgba(191,246,255,.8) 80%,#fff);
+  clip-path:polygon(0 46%,100% 0,100% 100%,0 54%); filter:drop-shadow(0 0 8px #7AE7FF); animation:trcomet 1.2s ease-in-out infinite alternate; }
+@keyframes trcomet{ to{ filter:drop-shadow(0 0 14px #BFF6FF); } }
+.pjtrail.tr-rainbow{ height:20px; border-radius:0; opacity:.95;
+  background:linear-gradient(#FF5A5A 0 17%,#FFB347 17% 33%,#FFE45C 33% 50%,#6FE07A 50% 67%,#5BB8FF 67% 83%,#B07BFF 83%);
+  clip-path:polygon(0 42%,100% 0,100% 100%,0 58%); -webkit-mask-image:linear-gradient(90deg,transparent,#000 25%); mask-image:linear-gradient(90deg,transparent,#000 25%);
+  filter:drop-shadow(0 0 6px rgba(255,255,255,.6)); }
 @keyframes trmove{ to{ background-position:16px 0, 24px 4px; } }
 .caftable .caftx{ position:absolute; width:9%; height:auto; transform:translate(-50%,-85%); z-index:3; filter:drop-shadow(0 2px 2px rgba(0,0,0,.3)); }
 
@@ -3177,3 +3198,79 @@ button.cafit{ border:0; background:none; padding:0; cursor:pointer; } button.caf
 .newstop .newscard h2{ font-size:17px; margin:0 0 2px; } .newstop .newscard p{ font-size:14px; }
 .newstop .newsdate{ display:none; } .newstop .newsemos{ margin-top:6px; } .newstop .newsemo{ font-size:16px; padding:3px 8px; }
 @media (max-width:560px){ .newstop .newscard.haspic{ flex-direction:row; text-align:left; } .newstop .newscard.haspic .newsbig{ width:84px; max-height:84px; } }
+
+/* ---------- 🪐 Immersive Planet JP mode (Nov 9) ---------- */
+body.pjmode{ background:radial-gradient(ellipse at 20% 10%, rgba(120,80,255,.45), transparent 55%), radial-gradient(ellipse at 85% 90%, rgba(255,90,180,.3), transparent 55%), url(../assets/planet/space-sky.webp) center/cover fixed, #0B0830; }
+body.pjmode::before{ content:""; position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.7;
+  background-image:radial-gradient(1.5px 1.5px at 10% 20%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 30% 70%, #fff 50%, transparent 51%), radial-gradient(1.5px 1.5px at 55% 35%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 75% 15%, #fff 50%, transparent 51%), radial-gradient(1.5px 1.5px at 90% 60%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 45% 90%, #fff 50%, transparent 51%);
+  background-size:420px 420px; animation:pjtwinkle 6s ease-in-out infinite alternate; }
+@keyframes pjtwinkle{ to{ opacity:.35; } }
+/* full screen: the page uses the whole width, the map grows with it */
+body.pjmode .wrap{ max-width:none !important; padding-inline:16px; position:relative; z-index:1; }
+body.pjmode #app > .row:first-child{ max-width:1600px; margin-left:auto; margin-right:auto; }
+body.pjmode #app > .row:first-child .lede, body.pjmode #app > .row:first-child b{ color:#EAF6FF; }
+.pjtop{ position:sticky; top:8px; z-index:30; display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:8px 10px; margin:0 auto 14px; max-width:1600px; border-radius:16px;
+  background:rgba(12,10,48,.82); backdrop-filter:blur(8px); border:1.5px solid rgba(122,231,255,.45); box-shadow:0 0 24px rgba(122,231,255,.18), 0 10px 30px rgba(0,0,0,.4); color:#EAF6FF; }
+.pjback, .pjmapbtn{ font:inherit; font-weight:800; font-size:15px; border:0; border-radius:12px; padding:9px 14px; cursor:pointer; }
+.pjback{ background:linear-gradient(135deg,#FFD966,#F2B33D); color:#2A1A00; box-shadow:0 3px 0 #B07A12; }
+.pjback:hover{ transform:translateY(-1px); }
+.pjmapbtn{ background:rgba(255,255,255,.12); color:#fff; border:1.5px solid rgba(255,255,255,.35); }
+.pjbardust{ margin-left:auto; font-family:var(--mono); font-weight:500; font-size:15px; background:rgba(255,227,138,.14); border:1px solid rgba(255,227,138,.5); color:#FFE38A; border-radius:99px; padding:5px 12px; }
+.pjlayout{ max-width:1600px; margin:0 auto; transition:padding .3s ease; }
+.pjmain{ min-width:0; }
+body.pjmode .pjhub{ min-width:760px; }
+body.pjmode .card{ box-shadow:0 12px 40px rgba(0,0,0,.35); }
+/* the mission drawer + its glowing tab on the right edge */
+.pjside{ position:fixed; top:84px; right:12px; width:min(310px, calc(100vw - 70px)); max-height:calc(100vh - 100px); overflow:auto; z-index:40; transform:translateX(calc(100% + 30px)); transition:transform .35s cubic-bezier(.3,1.2,.5,1); }
+.pjside.open{ transform:none; }
+.pjlogtab{ position:fixed; right:0; top:50%; transform:translateY(-50%); z-index:41; display:flex; flex-direction:column; align-items:center; gap:4px; padding:12px 8px; border:1.5px solid rgba(122,231,255,.7); border-right:0; border-radius:14px 0 0 14px;
+  background:linear-gradient(180deg,#0E1547,#0A0A2E); color:#7AE7FF; font-family:var(--mono); cursor:pointer; box-shadow:0 0 20px rgba(122,231,255,.35); transition:right .35s cubic-bezier(.3,1.2,.5,1); }
+.pjlogtab span{ font-size:22px; } .pjlogtab b{ writing-mode:vertical-rl; letter-spacing:3px; font-size:12px; } .pjlogtab i{ font-style:normal; font-size:12px; color:#8FE8B0; }
+.pjlogtab.todo i{ color:#FFE38A; } .pjlogtab.todo{ animation:pjtabglow 1.8s ease-in-out infinite; }
+@keyframes pjtabglow{ 50%{ box-shadow:0 0 34px rgba(255,227,138,.6); } }
+.pjlogtab.open{ right:min(322px, calc(100vw - 58px)); }
+@media (min-width:1500px){ .pjlayout.logopen{ padding-right:330px; } }
+@media (prefers-reduced-motion: reduce){ .pjlogtab.todo{ animation:none; } }
+/* the mission log: a glowing ship console */
+.mlog{ font-family:var(--mono); color:#CFF7FF; background:linear-gradient(160deg,#0E1547,#0A0A2E 70%); border:1.5px solid rgba(122,231,255,.65); border-radius:18px; padding:14px 14px 12px; position:relative; overflow:hidden;
+  box-shadow:0 0 0 4px rgba(122,231,255,.08), 0 0 30px rgba(122,231,255,.25), inset 0 0 40px rgba(80,140,255,.15); }
+.mlog::after{ content:""; position:absolute; inset:0; pointer-events:none; background:repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0 1px, transparent 1px 4px); }
+.mlog::before{ content:""; position:absolute; left:0; right:0; height:40%; top:-40%; pointer-events:none; background:linear-gradient(transparent, rgba(122,231,255,.12), transparent); animation:mlogscan 4s linear infinite; }
+@keyframes mlogscan{ to{ top:110%; } }
+.mloghead{ display:flex; align-items:center; gap:8px; font-size:13px; letter-spacing:2px; }
+.mloghead b{ color:#7AE7FF; text-shadow:0 0 8px rgba(122,231,255,.8); }
+.mlogdot{ width:9px; height:9px; border-radius:50%; background:#3BE37A; box-shadow:0 0 8px #3BE37A; animation:mlogblink 1.4s steps(2) infinite; }
+@keyframes mlogblink{ 50%{ opacity:.25; } }
+.mlogstamp{ margin-left:auto; font-size:10px; color:#8FB3D9; letter-spacing:1px; }
+.mlogbar{ display:flex; gap:5px; margin:12px 0 4px; } .mlogbar i{ flex:1; height:8px; border-radius:3px; background:rgba(122,231,255,.15); border:1px solid rgba(122,231,255,.35); }
+.mlogbar i.on{ background:linear-gradient(90deg,#3BE37A,#7AE7FF); box-shadow:0 0 10px rgba(59,227,122,.7); }
+.mlogcount{ font-size:11px; letter-spacing:2px; color:#8FE8B0; margin-bottom:8px; }
+.mloglist{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:7px; }
+.mloglist li{ display:flex; align-items:center; gap:9px; padding:8px 9px; border-radius:10px; background:rgba(122,231,255,.06); border:1px solid rgba(122,231,255,.18); font-size:13px; line-height:1.25; }
+.mloglist li.done{ opacity:.7; } .mloglist li.done .mlogtxt{ text-decoration:line-through; text-decoration-color:rgba(59,227,122,.8); }
+.mlogbox{ flex:none; width:20px; height:20px; border-radius:5px; border:2px solid #7AE7FF; display:grid; place-items:center; font-weight:800; color:#0A0A2E; box-shadow:0 0 6px rgba(122,231,255,.5); }
+.mloglist li.done .mlogbox{ background:#3BE37A; border-color:#3BE37A; box-shadow:0 0 10px #3BE37A; }
+.mlogbox.opt{ border-color:#FFE38A; color:#FFE38A; box-shadow:none; }
+.mlogtxt{ flex:1; font-family:var(--body); font-weight:700; color:#EAF6FF; } .mlogtxt small{ color:#9FB6D8; font-weight:500; }
+.mloggo{ flex:none; font:inherit; font-family:var(--mono); font-size:11px; font-weight:500; letter-spacing:1px; color:#0A0A2E; background:#7AE7FF; border:0; border-radius:7px; padding:5px 8px; cursor:pointer; box-shadow:0 0 10px rgba(122,231,255,.6); }
+.mloggo:hover{ background:#BFF6FF; }
+.mlogclaim{ width:100%; margin-top:10px; font:inherit; font-family:var(--mono); font-weight:500; letter-spacing:1px; color:#0A0A2E; background:linear-gradient(90deg,#FFE38A,#3BE37A); border:0; border-radius:10px; padding:10px; cursor:pointer; box-shadow:0 0 16px rgba(255,227,138,.7); animation:mlogpulse 1.4s ease-in-out infinite; }
+@keyframes mlogpulse{ 50%{ box-shadow:0 0 28px rgba(59,227,122,.9); } }
+.mlogdone{ margin:10px 0 0; text-align:center; color:#FFE38A; font-size:13px; letter-spacing:1px; }
+.mlognote{ margin:10px 0 0; font-family:var(--body); font-size:12px; color:#A9C4E8; } .mlognote b{ color:#FFE38A; }
+@media (prefers-reduced-motion: reduce){ .mlog::before, .mlogdot, .mlogclaim, body.pjmode::before{ animation:none; } }
+
+/* Nov 9: the S.S. Duck stops in front of Planet JP instead of sliding behind it */
+.pjship{ z-index:3; } .pjgoal{ z-index:1; }
+
+/* ---------- 🎁 free starter Nebble pop-up (Nov 9) ---------- */
+.nbfreebox{ max-width:640px; width:calc(100vw - 32px); text-align:center; position:relative; padding-top:18px; }
+.nbfreeduck{ width:110px; height:auto; display:block; margin:-70px auto 4px; filter:drop-shadow(0 8px 10px rgba(0,0,0,.3)); }
+.nbfreebox h2{ margin:0 0 4px; }
+.nbfreegrid{ display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin:12px 0; }
+.nbfreepick{ border:3px solid #E2DBFA; background:#fff; border-radius:16px; padding:6px 4px 4px; cursor:pointer; font:inherit; display:flex; flex-direction:column; align-items:center; transition:transform .12s; }
+.nbfreepick:hover{ transform:translateY(-2px); border-color:#F2B33D; }
+.nbfreepick.on{ border-color:#F2B33D; background:#FFF6D6; box-shadow:0 0 0 4px rgba(242,179,61,.3); }
+.nbfreepick .neb{ width:84%; } .nbfreepick small{ font-weight:800; font-size:12px; color:#2A1F5C; }
+@media (max-width:560px){ .nbfreegrid{ grid-template-columns:repeat(3,1fr); } }
+.nbfreebox .nbpapers{ box-shadow:none; border:0; background:none; padding:0; margin:0; }
