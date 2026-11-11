@@ -1,5 +1,5 @@
 /* ---------- 📡 Companion Keep feeder (a Chrome bookmark that runs on Timeback) ----------
-   Click 1, on Learning Metrics → My Class: remembers the class list (?studentIds=...) and opens alpha.timeback.com/robots.txt
+   One click on Learning Metrics → My Class (Nov 11: it runs right there now, as a card on top; it used to move to robots.txt)
    (a quiet page, so Timeback's app can't reload over it). Click 2, on that page: starts the feeder.
    Every 5 minutes on school days (6:00 AM to 4:30 PM Arizona), every 30 minutes otherwise, it:
      · reads each student's XP per subject for the last 8 days (getActivityMetrics, Arizona days), read-only
@@ -20,11 +20,10 @@ function feederMain(CFG) {
   };
   const ids0 = (new URLSearchParams(location.search).get("studentIds") || "").split(",").map(s => s.trim()).filter(Boolean);
   if (ids0.length) LS.set("ids", ids0);
-  if (!/robots\.txt$/.test(location.pathname)) {
-    if (!(LS.get("ids") || []).length) { alert("Companion Keep feeder: open Learning Metrics, choose My Class, then click this bookmark."); return; }
-    location.href = location.origin + "/robots.txt";
-    return;
-  }
+  // Nov 11: Timeback now turns away calls from the quiet robots.txt page (a "serialized redirect"), so the feeder runs
+  // right on the Learning Metrics page, as a card on top of it (ONE click). The robots.txt page still works if Timeback allows it.
+  const onRobots = /robots\.txt$/.test(location.pathname);
+  if (!onRobots && !(LS.get("ids") || []).length) { alert("Companion Keep feeder: open Learning Metrics, choose My Class, then click this bookmark."); return; }
   const ids = LS.get("ids") || [];
   const FN = {
     metrics: "src_features_learning-metrics_actions_getActivityMetrics_ts--getActivityMetrics_createServerFn_handler",
@@ -41,11 +40,15 @@ function feederMain(CFG) {
 
   // ----- page -----
   document.title = "\u{1F4E1} Companion Keep feeder";
-  document.documentElement.innerHTML = "<head><meta charset='utf-8'><title>\u{1F4E1} Companion Keep feeder</title></head><body></body>";
   const card = document.createElement("div");
-  card.style.cssText = "max-width:460px;margin:40px auto;background:#1f1b2e;color:#fff;font:15px/1.5 system-ui,sans-serif;padding:20px 24px;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.3)";
-  document.body.style.cssText = "margin:0;background:#efeaf9;min-height:100vh";
+  if (onRobots) {
+    document.documentElement.innerHTML = "<head><meta charset='utf-8'><title>\u{1F4E1} Companion Keep feeder</title></head><body></body>";
+    card.style.cssText = "max-width:460px;margin:40px auto;background:#1f1b2e;color:#fff;font:15px/1.5 system-ui,sans-serif;padding:20px 24px;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.3)";
+    document.body.style.cssText = "margin:0;background:#efeaf9;min-height:100vh";
+  } else card.style.cssText = "position:fixed;right:16px;bottom:16px;z-index:2147483647;width:420px;max-width:calc(100vw - 32px);background:#1f1b2e;color:#fff;font:14px/1.45 system-ui,sans-serif;padding:16px 20px;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.35)";
   document.body.appendChild(card);
+  // if Timeback's page redraws itself, put the card back
+  if (!onRobots) setInterval(() => { if (!document.body.contains(card)) document.body.appendChild(card); document.title = "\u{1F4E1} Companion Keep feeder"; }, 3000);
   const esc = v => String(v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
   const ago = t => !t ? "not yet" : Math.round((Date.now() - t) / 60000) < 1 ? "just now" : Math.round((Date.now() - t) / 60000) + " min ago";
   const draw = () => {
@@ -58,12 +61,12 @@ function feederMain(CFG) {
       "<div>Last sent to Companion Keep: <b>" + ago(S.lastSend) + "</b></div>" +
       "<div>Next check: <b>" + (S.busy ? "checking now…" : S.next ? Math.max(0, Math.round((S.next - Date.now()) / 60000)) + " min" : "—") + "</b></div>" +
       "<div style='margin-top:8px;color:" + (ok ? "#b8f5c4" : "#ffd27a") + "'>Last problem: " + S.problem + "</div>" +
-      "<div style='margin-top:12px;font-size:13px;color:#bdb6d6'>Feeder version: Nov 11. Leave this tab open all day. It only reads from Timeback. If the laptop sleeps, click the feeder bookmark again.</div>";
+      "<div style='margin-top:12px;font-size:13px;color:#bdb6d6'>Feeder version: Nov 11b. Leave this tab open all day (don\u2019t click to other Timeback pages in it). It only reads from Timeback. If the laptop sleeps, click the feeder bookmark again.</div>";
   };
   setInterval(draw, 1000); draw();
   try { navigator.locks && navigator.locks.request("ck-feeder", () => new Promise(() => {})); } catch (e) {}   // keeps Chrome from freezing this tab
   W.__ckFeeder = { show: () => { card.style.display = "block"; } };
-  if (!ids.length) { S.state = "No class list"; S.problem = "Open Learning Metrics → My Class, then click the bookmark twice."; return; }
+  if (!ids.length) { S.state = "No class list"; S.problem = "Open Learning Metrics → My Class, then click the bookmark."; return; }
 
   // ----- Timeback (read-only) -----
   async function tb(fn, data) {

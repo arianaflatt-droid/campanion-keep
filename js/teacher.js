@@ -29,7 +29,7 @@ import { wheelTab, wheelClick } from "./subwheel.js?v=20261110i";
 import { tbRequestsCard, tbInvite, tbToSettle } from "./teachbattle.js?v=20261110i";
 import { rewardAdmin, rgWaiting, rgOf, shrinkImage } from "./weekgoal.js?v=20261110i";
 import { soloAdmin, soloCfg, soloOn, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261110i";
-import { feederLink } from "./feeder.js?v=20261111a";
+import { feederLink } from "./feeder.js?v=20261111b";
 import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261110i";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
@@ -1862,10 +1862,10 @@ async function applyTestXp(P) {
 }
 function feederBox() {
   if (!busy.feeder) return '<button class="btn small' + (live ? " ghost" : "") + '" data-act="feederMake">\u{1F4F2} ' + (live ? "Make a new feeder button" : "Set up live XP: make my feeder button") + "</button>";
-  return '<div class="pastebox" style="margin-top:8px;"><b>\u{1F4F2} Your feeder button is ready.</b> <span class="muted small">(feeder version Nov 11)</span><ol style="margin:6px 0 6px 18px;padding:0;">' +
+  return '<div class="pastebox" style="margin-top:8px;"><b>\u{1F4F2} Your feeder button is ready.</b> <span class="muted small">(feeder version Nov 11b)</span><ol style="margin:6px 0 6px 18px;padding:0;">' +
     "<li>Show your bookmarks bar (<code>Ctrl + Shift + B</code>). If you have an older \u{1F4E1} CK Feeder bookmark, delete it.</li>" +
     '<li><b>Drag this button up to the bookmarks bar:</b> <a class="btn gold small" data-feeder="1" href="' + busy.feeder + '">\u{1F4E1} CK Feeder</a></li>' +
-    "<li>Each school morning: Timeback \u2192 <b>Learning Metrics</b> \u2192 <b>My Class</b> \u2192 click <b>CK Feeder</b>. The page changes to a nearly empty one, so click <b>CK Feeder</b> once more. A dark card says <b>Feeder running</b>. Leave that tab open.</li></ol>" +
+    "<li>Each school morning: Timeback \u2192 <b>Learning Metrics</b> \u2192 <b>My Class</b> \u2192 click <b>CK Feeder</b> once. A dark card shows up in the corner and says <b>Feeder running</b>. Leave that tab open on that page (don\u2019t click to other pages in it).</li></ol>" +
     '<p class="muted small" style="margin:0;">Making a new button turns the old one off. The feeder only reads from Timeback, and can only drop off XP numbers here.</p><button class="btn ghost small" data-act="feederHide">Done</button></div>';
 }
 function liveCard() {
@@ -1878,7 +1878,7 @@ function liveCard() {
   return '<div class="banner ' + (cls.liveOff || stale || busy.liveErr ? "warn" : "info") + '" style="margin-bottom:12px;">' +
     (cls.liveOff ? "⏸️ <b>Live XP is paused.</b> Numbers aren’t being saved." : "\u{1F4E1} <b>Live XP from Timeback is on.</b> Last update: " + when + ". " + phase) +
     (liveSaved ? ' <span class="muted small">Saved ' + liveSaved.n + " change" + (liveSaved.n === 1 ? "" : "s") + " at " + liveSaved.at.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) + ".</span>" : "") +
-    (stale && !cls.liveOff ? "<br>⚠️ No new numbers for a while. Check that the CK Feeder tab on Timeback is still open (on Learning Metrics \u2192 My Class, click CK Feeder twice)." : "") +
+    (stale && !cls.liveOff ? "<br>⚠️ No new numbers for a while. Check that the CK Feeder tab on Timeback is still open (on Learning Metrics \u2192 My Class, click CK Feeder once)." : "") +
     (busy.liveErr ? "<br>⚠️ Last save failed: " + esc(busy.liveErr) : "") +
         (um.length ? '<div class="small" style="margin-top:6px;"><b>Who is this?</b> These names from Timeback didn\u2019t match your roster. Pick the student once and Companion Keep remembers.' +
       um.map(n => '<div class="row" style="gap:6px;align-items:center;margin-top:4px;"><span class="chip">' + esc(n) + '</span> = <select class="linkpick" data-link="' + esc(n) + '"><option value="">Pick a student\u2026</option><option value="__gone">\u{1F6AB} Not in my class anymore (hide this name)</option>' +
