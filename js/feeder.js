@@ -46,6 +46,7 @@ function feederMain(CFG) {
   card.style.cssText = "max-width:460px;margin:40px auto;background:#1f1b2e;color:#fff;font:15px/1.5 system-ui,sans-serif;padding:20px 24px;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.3)";
   document.body.style.cssText = "margin:0;background:#efeaf9;min-height:100vh";
   document.body.appendChild(card);
+  const esc = v => String(v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
   const ago = t => !t ? "not yet" : Math.round((Date.now() - t) / 60000) < 1 ? "just now" : Math.round((Date.now() - t) / 60000) + " min ago";
   const draw = () => {
     const ok = S.problem === "none";
@@ -57,7 +58,7 @@ function feederMain(CFG) {
       "<div>Last sent to Companion Keep: <b>" + ago(S.lastSend) + "</b></div>" +
       "<div>Next check: <b>" + (S.busy ? "checking now…" : S.next ? Math.max(0, Math.round((S.next - Date.now()) / 60000)) + " min" : "—") + "</b></div>" +
       "<div style='margin-top:8px;color:" + (ok ? "#b8f5c4" : "#ffd27a") + "'>Last problem: " + S.problem + "</div>" +
-      "<div style='margin-top:12px;font-size:13px;color:#bdb6d6'>Leave this tab open all day. It only reads from Timeback. If the laptop sleeps, click the feeder bookmark again.</div>";
+      "<div style='margin-top:12px;font-size:13px;color:#bdb6d6'>Feeder version: Nov 11. Leave this tab open all day. It only reads from Timeback. If the laptop sleeps, click the feeder bookmark again.</div>";
   };
   setInterval(draw, 1000); draw();
   try { navigator.locks && navigator.locks.request("ck-feeder", () => new Promise(() => {})); } catch (e) {}   // keeps Chrome from freezing this tab
@@ -69,8 +70,9 @@ function feederMain(CFG) {
     const r = await fetch("/_serverFn/" + fn + "?createServerFn", { method: "POST", credentials: "include",
       headers: { accept: "application/json", "content-type": "application/json", "x-tsr-redirect": "manual" }, body: JSON.stringify({ data, context: {} }) });
     const t = await r.text(); let j = null; try { j = JSON.parse(t); } catch (e) {}
-    if (r.status === 401 || r.status === 403 || (j && (j.isRedirect || j.redirect || j.href) && j.result === undefined) || (!j && /login|sign in/i.test(t))) throw new Error("signedout");
-    if (!r.ok || !j || j.result === undefined) throw new Error("busy");
+    const why = fn.split("--").pop().replace("_createServerFn_handler", "") + " " + r.status + " " + t.replace(/\s+/g, " ").slice(0, 70);
+    if (r.status === 401 || r.status === 403 || (j && (j.isRedirect || j.redirect || j.href) && j.result === undefined) || (!j && /login|sign in/i.test(t))) { S.why = why; throw new Error("signedout"); }
+    if (!r.ok || !j || j.result === undefined) { S.why = why; throw new Error("busy"); }
     return j.result;
   }
   async function tbGet(fn, data) {
@@ -94,7 +96,7 @@ function feederMain(CFG) {
       if (first) { names[id] = first + (last ? " " + last[0].toUpperCase() + "." : ""); LS.set("names", names); }
     }
     const res = await tb(FN.metrics, { startDate: azDate(-7) + "T07:00:00.000Z", endDate: azDate(1) + "T06:59:59.999Z", studentId: id,
-      timezone: "America/Phoenix", activeCourseWindows: { $undefined: 0 }, scopeMode: { $undefined: 0 } });
+      timezone: "America/Phoenix", activeCourseWindows: { $undefined: 0 }, scopeMode: { $undefined: 0 }, splitIseeByApp: true });   // Nov 11: matches what the Learning Report page sends
     if (!res || res.success === false || !res.data) throw new Error("busy");
     const days = {};
     Object.entries(res.data.facts || {}).forEach(([d, subs]) => {
@@ -161,13 +163,14 @@ function feederMain(CFG) {
   const schoolHours = () => { const t = new Date(Date.now() - 7 * 3600e3), wd = t.getUTCDay(), h = t.getUTCHours() + t.getUTCMinutes() / 60; return wd >= 1 && wd <= 5 && h >= 6 && h < 16.5; };
   async function cycle() {
     if (S.busy) return; S.busy = true; S.state = "Checking Timeback…";
-    let failed = 0, signedOut = false;
+    let failed = 0, signedOut = 0;
     try {
       const queue = ids.slice();
-      const worker = async () => { while (queue.length) { const id = queue.shift(); try { await readStudent(id); } catch (e) { if (e.message === "signedout") signedOut = true; failed++; } } };
+      const worker = async () => { while (queue.length) { const id = queue.shift(); try { await readStudent(id); } catch (e) { if (e.message === "signedout") signedOut++; failed++; } } };
       await Promise.all([worker(), worker(), worker()]);
       S.lastCheck = Date.now(); S.names = Object.keys(names).filter(i => ids.includes(i)).length;
-      if (signedOut) { S.state = "Signed out of Timeback"; S.problem = "Sign in to Timeback in another tab, then click the feeder bookmark again."; return; }
+      // Nov 11: only "signed out" when EVERY student failed that way; otherwise send the students that worked
+      if (signedOut && signedOut >= ids.length) { S.state = "Signed out of Timeback"; S.problem = "Sign in to Timeback in another tab, then click the feeder bookmark again. (Timeback said: " + esc(S.why || "?") + ")"; return; }
       // rows for every school day that has XP (and always today)
       const today = azDate(0), dates = new Set([today]);
       ids.forEach(id => Object.entries((cache[id] || {}).days || {}).forEach(([d, s]) => { if (Object.values(s).some(v => v > 0)) dates.add(d); }));
@@ -188,7 +191,7 @@ function feederMain(CFG) {
       const beat = schoolHours() && Date.now() - S.lastSend > 30 * 60000;
       if (json !== LS.get("lastJson") || beat) { await ckSend(json); LS.set("lastJson", json); S.lastSend = Date.now(); }
       S.state = "Feeder running";
-      S.problem = failed ? "Timeback was busy for " + failed + " student" + (failed === 1 ? "" : "s") + " (they update next check)." : "none";
+      S.problem = failed ? "Timeback was busy for " + failed + " student" + (failed === 1 ? "" : "s") + " (they update next check). (" + esc(S.why || "") + ")" : "none";
     } catch (e) {
       S.state = "Feeder running (with a problem)";
       S.problem = e.message === "ckkey" ? "Companion Keep didn’t accept this feeder. Make a new feeder button in your teacher console." :
