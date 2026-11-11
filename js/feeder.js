@@ -20,6 +20,7 @@ function feederMain(CFG) {
   };
   const ids0 = (new URLSearchParams(location.search).get("studentIds") || "").split(",").map(s => s.trim()).filter(Boolean);
   if (ids0.length) LS.set("ids", ids0);
+  const idsFrom = ids0.length ? "this page" : "saved earlier";   // Nov 11 check: where the class list came from
   // Nov 11: Timeback now turns away calls from the quiet robots.txt page (a "serialized redirect"), so the feeder runs
   // right on the Learning Metrics page, as a card on top of it (ONE click). The robots.txt page still works if Timeback allows it.
   const onRobots = /robots\.txt$/.test(location.pathname);
@@ -61,7 +62,7 @@ function feederMain(CFG) {
       "<div>Last sent to Companion Keep: <b>" + ago(S.lastSend) + "</b></div>" +
       "<div>Next check: <b>" + (S.busy ? "checking now…" : S.next ? Math.max(0, Math.round((S.next - Date.now()) / 60000)) + " min" : "—") + "</b></div>" +
       "<div style='margin-top:8px;color:" + (ok ? "#b8f5c4" : "#ffd27a") + "'>Last problem: " + S.problem + "</div>" +
-      "<div style='margin-top:12px;font-size:13px;color:#bdb6d6'>Feeder version: Nov 11b. Leave this tab open all day (don\u2019t click to other Timeback pages in it). It only reads from Timeback. If the laptop sleeps, click the feeder bookmark again.</div>";
+      "<div style='margin-top:12px;font-size:13px;color:#bdb6d6'>Feeder version: Nov 11c \u00B7 class list from " + idsFrom + " \u00B7 page: " + esc(location.pathname + (location.search ? "?" + location.search.slice(1, 30) + "\u2026" : "")) + "."+" Leave this tab open all day (don\u2019t click to other Timeback pages in it). It only reads from Timeback. If the laptop sleeps, click the feeder bookmark again.</div>";
   };
   setInterval(draw, 1000); draw();
   try { navigator.locks && navigator.locks.request("ck-feeder", () => new Promise(() => {})); } catch (e) {}   // keeps Chrome from freezing this tab
@@ -73,7 +74,7 @@ function feederMain(CFG) {
     const r = await fetch("/_serverFn/" + fn + "?createServerFn", { method: "POST", credentials: "include",
       headers: { accept: "application/json", "content-type": "application/json", "x-tsr-redirect": "manual" }, body: JSON.stringify({ data, context: {} }) });
     const t = await r.text(); let j = null; try { j = JSON.parse(t); } catch (e) {}
-    const why = fn.split("--").pop().replace("_createServerFn_handler", "") + " " + r.status + " " + t.replace(/\s+/g, " ").slice(0, 70);
+    const why = fn.split("--").pop().replace("_createServerFn_handler", "") + " " + r.status + " " + t.replace(/\s+/g, " ").slice(0, 220);
     if (r.status === 401 || r.status === 403 || (j && (j.isRedirect || j.redirect || j.href) && j.result === undefined) || (!j && /login|sign in/i.test(t))) { S.why = why; throw new Error("signedout"); }
     if (!r.ok || !j || j.result === undefined) { S.why = why; throw new Error("busy"); }
     return j.result;
@@ -98,8 +99,12 @@ function feederMain(CFG) {
       const first = String(u.givenName || u.preferredFirstName || "").trim().split(/\s+/)[0], last = String(u.familyName || "").trim();
       if (first) { names[id] = first + (last ? " " + last[0].toUpperCase() + "." : ""); LS.set("names", names); }
     }
-    const res = await tb(FN.metrics, { startDate: azDate(-7) + "T07:00:00.000Z", endDate: azDate(1) + "T06:59:59.999Z", studentId: id,
-      timezone: "America/Phoenix", activeCourseWindows: { $undefined: 0 }, scopeMode: { $undefined: 0 }, splitIseeByApp: true });   // Nov 11: matches what the Learning Report page sends
+    // Nov 11: if Timeback turns away the 8-day ask, try just today (what Timeback's own page asks for), and remember what works
+    const ask = days => tb(FN.metrics, { startDate: azDate(-days) + "T07:00:00.000Z", endDate: azDate(1) + "T06:59:59.999Z", studentId: id,
+      timezone: "America/Phoenix", activeCourseWindows: { $undefined: 0 }, scopeMode: { $undefined: 0 }, splitIseeByApp: true });
+    let res;
+    if (S.oneDay) res = await ask(0);
+    else { try { res = await ask(7); } catch (e) { if (e.message !== "signedout") throw e; res = await ask(0); S.oneDay = true; } }
     if (!res || res.success === false || !res.data) throw new Error("busy");
     const days = {};
     Object.entries(res.data.facts || {}).forEach(([d, subs]) => {
