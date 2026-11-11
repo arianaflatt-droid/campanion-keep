@@ -35,7 +35,7 @@ function feederMain(CFG) {
   const ENROLL_EVERY = 60 * 60000;
   const HEAD = ["Student", "Total XP", "Goal", "Math", "FastMath", "Reading", "Writing", "Language", "Vocabulary", "Science", "Social Studies"];
   const SUBKEY = HEAD.slice(3).map(h => h.toLowerCase().replace(/\s+/g, ""));
-  const S = { state: "Starting…", n: ids.length, names: 0, goals: 0, lastCheck: 0, lastSend: 0, problem: "none", busy: false, next: 0, today: 0 };
+  const S = { state: "Starting…", n: ids.length, names: 0, goals: 0, crsErr: "", lastCheck: 0, lastSend: 0, problem: "none", busy: false, next: 0, today: 0 };
   const cache = LS.get("cache") || {};      // id -> { days: { date: { subj: xp } } }
   const names = LS.get("names") || {};      // id -> "Jamie R."
 
@@ -51,7 +51,7 @@ function feederMain(CFG) {
     const ok = S.problem === "none";
     card.innerHTML = "<div style='font-size:20px;font-weight:800;margin-bottom:6px'>\u{1F4E1} " + S.state + "</div>" +
       "<div>Students: <b>" + S.n + "</b> (" + S.names + " names)</div>" +
-      "<div>🎯 XP left in courses: <b>" + S.goals + "</b> students</div>" +
+      "<div>🎯 XP left in courses: <b>" + S.goals + "</b> students" + (S.crsErr ? " <span style='color:#ffd27a'>(" + S.crsErr + ")</span>" : "") + "</div>" +
       "<div>Today’s XP so far: <b>" + S.today + "</b> total for the class</div>" +
       "<div>Last check of Timeback: <b>" + ago(S.lastCheck) + "</b></div>" +
       "<div>Last sent to Companion Keep: <b>" + ago(S.lastSend) + "</b></div>" +
@@ -77,9 +77,14 @@ function feederMain(CFG) {
     const r = await fetch("/_serverFn/" + fn + "?payload=" + encodeURIComponent(JSON.stringify({ data, context: {} })) + "&createServerFn", { credentials: "include",
       headers: { accept: "application/json", "content-type": "application/json", "x-tsr-redirect": "manual" } });
     const t = await r.text(); let j = null; try { j = JSON.parse(t); } catch (e) {}
-    if (r.status === 401 || r.status === 403) throw new Error("signedout");
-    if (!r.ok || !j || j.result === undefined) throw new Error("busy");
+    // Nov 11: a course-lookup problem must never stop the regular XP, so it has its own error (never "signedout")
+    if (!r.ok || !j || j.result === undefined) throw new Error("crs " + r.status + (j && j.error && j.error.message ? " " + String(j.error.message).slice(0, 60) : ""));
     return j.result;
+  }
+  // GET first (what the Learning Report page uses), then POST (like the other Timeback calls)
+  async function tbCourses(id) {
+    try { return await tbGet(FN.enroll, { onerosterUserId: id }); }
+    catch (e) { try { return await tb(FN.enroll, { onerosterUserId: id }); } catch (e2) { throw new Error(e.message + " / post " + e2.message); } }
   }
   const azDate = off => new Date(Date.now() - 7 * 3600e3 + off * 864e5).toISOString().slice(0, 10);
   async function readStudent(id) {
@@ -102,13 +107,13 @@ function feederMain(CFG) {
       byCourse[cid] = (byCourse[cid] || 0) + (Number(m && m.activityMetrics && m.activityMetrics.xpEarned) || 0); }))));
     const old = cache[id] || {};
     cache[id] = { days, byCourse, crs: old.crs, crsAt: old.crsAt };
-    if (!old.crsAt || Date.now() - old.crsAt > ENROLL_EVERY) { try { await readCourses(id); } catch (e) { if (e.message === "signedout") throw e; } }
+    if (!old.crsAt || Date.now() - old.crsAt > ENROLL_EVERY) { try { await readCourses(id); S.crsErr = ""; } catch (e) { S.crsErr = String(e.message || e).slice(0, 90); cache[id].crsAt = Date.now() - ENROLL_EVERY + 15 * 60000; } }   // try again in 15 min
   }
   // 🎯 XP left in the course a student is on now, for each subject
   const subKeyOf = s => String(s || "").toLowerCase().replace(/\s+/g, "");
   const azDay = iso => { const t = Date.parse(iso || ""); return isNaN(t) ? "" : new Date(t - 7 * 3600e3).toISOString().slice(0, 10); };
   async function readCourses(id) {
-    const res = await tbGet(FN.enroll, { onerosterUserId: id });
+    const res = await tbCourses(id);
     const list = Array.isArray(res && res.data) ? res.data : Array.isArray(res) ? res : null; if (!list) throw new Error("busy");
     const used = (cache[id] || {}).byCourse || {}, best = {};
     list.forEach(e => {
