@@ -29,7 +29,7 @@ import { wheelTab, wheelClick } from "./subwheel.js?v=20261110i";
 import { tbRequestsCard, tbInvite, tbToSettle } from "./teachbattle.js?v=20261110i";
 import { rewardAdmin, rgWaiting, rgOf, shrinkImage } from "./weekgoal.js?v=20261110i";
 import { soloAdmin, soloCfg, soloOn, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261110i";
-import { feederLink } from "./feeder.js?v=20261111c";
+import { feederLink } from "./feeder.js?v=20261111e";
 import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261110i";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
@@ -1862,7 +1862,7 @@ async function applyTestXp(P) {
 }
 function feederBox() {
   if (!busy.feeder) return '<button class="btn small' + (live ? " ghost" : "") + '" data-act="feederMake">\u{1F4F2} ' + (live ? "Make a new feeder button" : "Set up live XP: make my feeder button") + "</button>";
-  return '<div class="pastebox" style="margin-top:8px;"><b>\u{1F4F2} Your feeder button is ready.</b> <span class="muted small">(feeder version Nov 11c)</span><ol style="margin:6px 0 6px 18px;padding:0;">' +
+  return '<div class="pastebox" style="margin-top:8px;"><b>\u{1F4F2} Your feeder button is ready.</b> <span class="muted small">(feeder version Nov 11e)</span><ol style="margin:6px 0 6px 18px;padding:0;">' +
     "<li>Show your bookmarks bar (<code>Ctrl + Shift + B</code>). If you have an older \u{1F4E1} CK Feeder bookmark, delete it.</li>" +
     '<li><b>Drag this button up to the bookmarks bar:</b> <a class="btn gold small" data-feeder="1" href="' + busy.feeder + '">\u{1F4E1} CK Feeder</a></li>' +
     "<li>Each school morning: Timeback \u2192 <b>Learning Metrics</b> \u2192 <b>My Class</b> \u2192 click <b>CK Feeder</b> once. A dark card shows up in the corner and says <b>Feeder running</b>. Leave that tab open on that page (don\u2019t click to other pages in it).</li></ol>" +

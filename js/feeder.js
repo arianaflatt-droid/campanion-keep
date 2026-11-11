@@ -62,7 +62,7 @@ function feederMain(CFG) {
       "<div>Last sent to Companion Keep: <b>" + ago(S.lastSend) + "</b></div>" +
       "<div>Next check: <b>" + (S.busy ? "checking now…" : S.next ? Math.max(0, Math.round((S.next - Date.now()) / 60000)) + " min" : "—") + "</b></div>" +
       "<div style='margin-top:8px;color:" + (ok ? "#b8f5c4" : "#ffd27a") + "'>Last problem: " + S.problem + "</div>" +
-      "<div style='margin-top:12px;font-size:13px;color:#bdb6d6'>Feeder version: Nov 11c \u00B7 class list from " + idsFrom + " \u00B7 page: " + esc(location.pathname + (location.search ? "?" + location.search.slice(1, 30) + "\u2026" : "")) + "."+" Leave this tab open all day (don\u2019t click to other Timeback pages in it). It only reads from Timeback. If the laptop sleeps, click the feeder bookmark again.</div>";
+      "<div style='margin-top:12px;font-size:13px;color:#bdb6d6'>Feeder version: Nov 11e (new Timeback calls) \u00B7 class list from " + idsFrom + " \u00B7 page: " + esc(location.pathname + (location.search ? "?" + location.search.slice(1, 30) + "\u2026" : "")) + "."+" Leave this tab open all day (don\u2019t click to other Timeback pages in it). It only reads from Timeback. If the laptop sleeps, click the feeder bookmark again.</div>";
   };
   setInterval(draw, 1000); draw();
   try { navigator.locks && navigator.locks.request("ck-feeder", () => new Promise(() => {})); } catch (e) {}   // keeps Chrome from freezing this tab
@@ -70,27 +70,73 @@ function feederMain(CFG) {
   if (!ids.length) { S.state = "No class list"; S.problem = "Open Learning Metrics → My Class, then click the bookmark."; return; }
 
   // ----- Timeback (read-only) -----
-  async function tb(fn, data) {
-    const r = await fetch("/_serverFn/" + fn + "?createServerFn", { method: "POST", credentials: "include",
-      headers: { accept: "application/json", "content-type": "application/json", "x-tsr-redirect": "manual" }, body: JSON.stringify({ data, context: {} }) });
-    const t = await r.text(); let j = null; try { j = JSON.parse(t); } catch (e) {}
-    const why = fn.split("--").pop().replace("_createServerFn_handler", "") + " " + r.status + " " + t.replace(/\s+/g, " ").slice(0, 220);
-    if (r.status === 401 || r.status === 403 || (j && (j.isRedirect || j.redirect || j.href) && j.result === undefined) || (!j && /login|sign in/i.test(t))) { S.why = why; throw new Error("signedout"); }
+  /* Nov 11: on Nov 10 Timeback moved to a newer TanStack Start. Server functions are now called with
+     POST /_serverFn/<name> (nothing after it), header x-tsr-serverfn: true, and a "seroval"-packed body
+     { t: <packed { data }>, f: 127, m: [] }; the answer comes back packed the same way. Some functions are GET-only
+     (?payload=<packed body>). Adapted from a fellow Novatio teacher's working bookmark (Kyle Coleman). */
+  const SV = (() => {
+    const B = String.fromCharCode(92), L = String.fromCharCode(0x2028), P = String.fromCharCode(0x2029);
+    const OUT = {}, IN = { n: "\n", r: "\r", b: "\b", t: "\t", f: "\f", x3C: "<", u2028: L, u2029: P };
+    OUT[B] = B + B; OUT['"'] = B + '"'; OUT["\n"] = B + "n"; OUT["\r"] = B + "r"; OUT["\b"] = B + "b"; OUT["\t"] = B + "t"; OUT["\f"] = B + "f"; OUT["<"] = B + "x3C";
+    OUT[L] = B + "u2028"; OUT[P] = B + "u2029"; IN[B] = B; IN['"'] = '"';
+    const OUT_RE = new RegExp("[" + B + B + '"' + B + "n" + B + "r" + B + "b" + B + "t" + B + "f<" + B + "u2028" + B + "u2029]", "g");
+    const IN_RE = new RegExp(B + B + "(" + B + B + '|"|n|r|b|t|f|x3C|u2028|u2029)', "g");
+    const str = s => String(s).replace(OUT_RE, c => OUT[c]), unstr = s => String(s).replace(IN_RE, (m, c) => IN[c]);
+    function pack(value) {
+      let next = 0;
+      const one = v => {
+        if (v === null) return { t: 2, s: 0 }; if (v === undefined) return { t: 2, s: 1 }; if (v === true) return { t: 2, s: 2 }; if (v === false) return { t: 2, s: 3 };
+        if (typeof v === "number") { if (v !== v) return { t: 2, s: 7 }; if (v === Infinity) return { t: 2, s: 5 }; if (v === -Infinity) return { t: 2, s: 6 }; if (v === 0 && 1 / v < 0) return { t: 2, s: 4 }; return { t: 0, s: v }; }
+        if (typeof v === "string") return { t: 1, s: str(v) };
+        if (v instanceof Date) return { t: 5, i: next++, s: v.toISOString() };
+        if (Array.isArray(v)) { const ai = next++; return { t: 9, i: ai, a: v.map(one), o: 0 }; }
+        const oi = next++, keys = Object.keys(v).filter(k => v[k] !== undefined);
+        return { t: 10, i: oi, p: { k: keys.map(str), v: keys.map(k => one(v[k])) }, o: 0 };
+      };
+      return { t: one(value), f: 127, m: [] };
+    }
+    function unpack(node) {
+      const seen = {};
+      const one = n => {
+        if (n === null || n === undefined) return undefined;
+        switch (n.t) {
+          case 0: return n.s; case 1: return unstr(n.s); case 2: return [null, undefined, true, false, -0, Infinity, -Infinity, NaN][n.s]; case 3: return Number(n.s);
+          case 4: return seen[n.i]; case 5: return (seen[n.i] = n.s);
+          case 7: { const set = seen[n.i] = []; (n.a || []).forEach(x => set.push(one(x))); return set; }
+          case 8: { const map = seen[n.i] = {}, e = n.e || { k: [], v: [] }; e.k.forEach((k, j) => { map[String(one(k))] = one(e.v[j]); }); return map; }
+          case 9: { const arr = seen[n.i] = []; (n.a || []).forEach((x, j) => { arr[j] = x === null ? undefined : one(x); }); return arr; }
+          case 10: case 11: { const obj = seen[n.i] = {}, p = n.p || { k: [], v: [] }; p.k.forEach((k, j) => { obj[unstr(k)] = one(p.v[j]); }); return obj; }
+          default: return (seen[n.i] = { unknownSerovalType: n.t });
+        }
+      };
+      return one(node);
+    }
+    return { pack, unpack };
+  })();
+  const getOnly = {};   // functions that answered 405 "expected GET"
+  const short = fn => fn.split("--").pop().replace("_createServerFn_handler", "");
+  async function tbCall(fn, data, useGet) {
+    useGet = useGet || !!getOnly[fn];
+    const body = JSON.stringify(SV.pack({ data })), ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 30000);
+    const init = { method: useGet ? "GET" : "POST", credentials: "same-origin", signal: ctl.signal, headers: { accept: "application/json", "x-tsr-serverfn": "true" } };
+    if (!useGet) { init.headers["content-type"] = "application/json"; init.body = body; }
+    let r, txt;
+    try { r = await fetch("/_serverFn/" + fn + (useGet ? "?payload=" + encodeURIComponent(body) : ""), init); txt = await r.text(); }
+    catch (e) { S.why = short(fn) + (e && e.name === "AbortError" ? " no answer in 30 s" : " " + (e.message || e)); throw new Error("busy"); }
+    finally { clearTimeout(timer); }
+    if (r.status === 405 && !useGet && /GET/.test(txt)) { getOnly[fn] = true; return tbCall(fn, data, true); }
+    let j = null; try { j = JSON.parse(txt); } catch (e) {}
+    if (j && j.t && typeof j.t === "object" && "f" in j) j = SV.unpack(j.t);   // packed { t, f, m }
+    else if (j && typeof j.t === "number") j = SV.unpack(j);              // a bare packed value
+    const why = short(fn) + " " + r.status + " " + String(txt).replace(/\s+/g, " ").slice(0, 160);
+    if (r.status === 401 || r.status === 403 || (j && j.isSerializedRedirect && /login|sign/i.test(String(j.href)))) { S.why = why; throw new Error("signedout"); }
+    if (j && j.isSerializedRedirect) { S.why = "Timeback sent a redirect instead of numbers (it may have changed again): " + why; throw new Error("busy"); }
     if (!r.ok || !j || j.result === undefined) { S.why = why; throw new Error("busy"); }
     return j.result;
   }
-  async function tbGet(fn, data) {
-    const r = await fetch("/_serverFn/" + fn + "?payload=" + encodeURIComponent(JSON.stringify({ data, context: {} })) + "&createServerFn", { credentials: "include",
-      headers: { accept: "application/json", "content-type": "application/json", "x-tsr-redirect": "manual" } });
-    const t = await r.text(); let j = null; try { j = JSON.parse(t); } catch (e) {}
-    // Nov 11: a course-lookup problem must never stop the regular XP, so it has its own error (never "signedout")
-    if (!r.ok || !j || j.result === undefined) throw new Error("crs " + r.status + (j && j.error && j.error.message ? " " + String(j.error.message).slice(0, 60) : ""));
-    return j.result;
-  }
-  // GET first (what the Learning Report page uses), then POST (like the other Timeback calls)
+  const tb = (fn, data) => tbCall(fn, data);
   async function tbCourses(id) {
-    try { return await tbGet(FN.enroll, { onerosterUserId: id }); }
-    catch (e) { try { return await tb(FN.enroll, { onerosterUserId: id }); } catch (e2) { throw new Error(e.message + " / post " + e2.message); } }
+    try { return await tbCall(FN.enroll, { onerosterUserId: id }); } catch (e) { throw new Error("crs " + (S.why || e.message)); }
   }
   const azDate = off => new Date(Date.now() - 7 * 3600e3 + off * 864e5).toISOString().slice(0, 10);
   async function readStudent(id) {
@@ -101,7 +147,7 @@ function feederMain(CFG) {
     }
     // Nov 11: if Timeback turns away the 8-day ask, try just today (what Timeback's own page asks for), and remember what works
     const ask = days => tb(FN.metrics, { startDate: azDate(-days) + "T07:00:00.000Z", endDate: azDate(1) + "T06:59:59.999Z", studentId: id,
-      timezone: "America/Phoenix", activeCourseWindows: { $undefined: 0 }, scopeMode: { $undefined: 0 }, splitIseeByApp: true });
+      timezone: "America/Phoenix", splitIseeByApp: true });
     let res;
     if (S.oneDay) res = await ask(0);
     else { try { res = await ask(7); } catch (e) { if (e.message !== "signedout") throw e; res = await ask(0); S.oneDay = true; } }
@@ -178,7 +224,7 @@ function feederMain(CFG) {
       await Promise.all([worker(), worker(), worker()]);
       S.lastCheck = Date.now(); S.names = Object.keys(names).filter(i => ids.includes(i)).length;
       // Nov 11: only "signed out" when EVERY student failed that way; otherwise send the students that worked
-      if (signedOut && signedOut >= ids.length) { S.state = "Signed out of Timeback"; S.problem = "Sign in to Timeback in another tab, then click the feeder bookmark again. (Timeback said: " + esc(S.why || "?") + ")"; return; }
+      if (signedOut && signedOut >= ids.length) { S.state = "Signed out of Timeback"; S.problem = "Sign in to Timeback in another tab, then click the feeder bookmark again. (Timeback said: " + esc((S.why || "?").slice(0, 160)) + ")"; return; }
       // rows for every school day that has XP (and always today)
       const today = azDate(0), dates = new Set([today]);
       ids.forEach(id => Object.entries((cache[id] || {}).days || {}).forEach(([d, s]) => { if (Object.values(s).some(v => v > 0)) dates.add(d); }));
@@ -205,7 +251,7 @@ function feederMain(CFG) {
       S.problem = e.message === "ckkey" ? "Companion Keep didn’t accept this feeder. Make a new feeder button in your teacher console." :
         e.message === "cksignin" || e.message === "cksave" ? "Couldn’t reach Companion Keep. It will try again next check." : "Something went wrong (" + e.message + "). It will try again.";
     } finally {
-      S.busy = false; S.next = Date.now() + (schoolHours() ? 5 : 30) * 60000;
+      S.busy = false; S.next = Date.now() + (S.retry || (schoolHours() ? 5 : 30) * 60000); S.retry = 0;
       setTimeout(cycle, S.next - Date.now());
     }
   }
