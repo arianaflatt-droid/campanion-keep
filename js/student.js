@@ -746,7 +746,8 @@ function vaultCard(s) {
   return '<div class="card vaultcard v-' + st + '"><h2 style="text-align:center;">\u{1F48E} Treasure Vault \u{1F48E}</h2>' +
     (v.reward ? '<div class="vaultreward">' + (rpic ? '<img src="' + rpic + '" alt="">' : '<span class="rgemo">\u{1F381}</span>') + '<div><span class="small">This week\u2019s vault holds your reward:</span><b>' + esc(v.reward.name || "A special reward from Ms. Ariana!") + "</b></div></div>" : "") +
     '<p class="lede" style="text-align:center;margin:4px 0 8px;">Earn <b>' + goal.toLocaleString() + " " + unit + " in one week</b>" + (vaultNeedsMin(v) ? " and <b>" + v.min + " XP total</b>" : "") + " (weekend work counts!) to open it.</p>" +
-    '<div class="vaultbar' + (pct >= 100 ? " full" : "") + '"><span style="width:' + pct + '%"></span><b>' + tot.toLocaleString() + " / " + goal.toLocaleString() + " " + unit + "</b></div>" +
+    '<div class="vaultbar' + (pct >= 100 ? " full" : "") + (kdOn(cls) ? " kdsubbar" : "") + '"><span style="width:' + pct + '%"></span><b>' + tot.toLocaleString() + " / " + goal.toLocaleString() + " " + unit + "</b>" +
+      (kdOn(cls) ? '<img class="vbsub" src="assets/kingdom/duck-sub.webp" alt="" style="left:' + pct + '%"><i class="vbcastle" title="The Axolotl Kingdom">\u{1F3F0}</i>' : "") + "</div>" +   // 🦆 Nov 12: the duck sub rides the vault bar to the Kingdom
     (vaultNeedsMin(v) && st !== "open" ? '<div class="vaultbar' + (v.tot >= v.min ? " full" : "") + '"><span style="width:' + Math.min(100, v.tot / v.min * 100) + '%"></span><b>' + v.tot.toLocaleString() + " / " + v.min + " XP total</b></div>" : "") +
     (st === "open" ? "" : subReqHTML(s, cls)) +
     vaultArt(st === "open", false) +

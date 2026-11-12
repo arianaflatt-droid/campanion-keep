@@ -3476,3 +3476,9 @@ body.pjmode .card{ box-shadow:0 12px 40px rgba(0,0,0,.35); }
 .stnboom span{ color:#fff; }
 .stnpop{ width:60px; vertical-align:middle; }
 @media (max-width:640px){ .stntop{ flex-direction:column; } .stnside{ width:100%; flex-direction:row; } .stntank{ width:70px; } }
+/* 🦆 the duck sub on the Treasure Vault bar when the Kingdom is on (Nov 12) */
+.vaultbar.kdsubbar{ overflow:visible; margin:30px auto 12px; }
+.vaultbar.kdsubbar span{ border-radius:12px; }
+.vbsub{ position:absolute; top:50%; width:64px; transform:translate(-50%,-62%); z-index:2; filter:drop-shadow(0 3px 4px rgba(0,0,0,.4)); animation:vbbob 2.4s ease-in-out infinite; pointer-events:none; }
+@keyframes vbbob{ 50%{ transform:translate(-50%,-72%) rotate(-4deg); } }
+.vbcastle{ position:absolute; right:-14px; top:50%; transform:translateY(-55%); font-style:normal; font-size:26px; z-index:1; filter:drop-shadow(0 2px 3px rgba(0,0,0,.4)); }

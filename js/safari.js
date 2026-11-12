@@ -30,7 +30,19 @@ export const PJ_BREAK_END = 22 * 60, PJ_BREAK_XP = 240;
 export const pjBreakXP = cls => Number(cls && cls.pjBreakXP) || PJ_BREAK_XP;
 export const pjBreakDay = (cls, iso) => { if (!cls || cls.pjBreakOff || !((cls.offDays || {})[iso])) return false;
   const [y, m, d] = String(iso).split("-").map(Number), w = new Date(y, m - 1, d).getDay(); return w >= 1 && w <= 5; };
+/* 🌇 Afternoon launch (Nov 12, Ms. Ariana): on a school day, anyone who hits 120 XP that day can launch (or go back) after 2 pm,
+   until 10 pm (Arizona). planet.js tells this file who hit 120 (setHitCheck). cls.pjAfterOff = true turns it off. */
+export const PJ_AFTER = 14 * 60, PJ_AFTER_END = 22 * 60;
+let hitCheck = null; export const setHitCheck = f => { hitCheck = f; };
+export const afterOn = cls => !(cls && cls.pjAfterOff);
+export const afterHit = (st, cls) => !!(afterOn(cls) && st && hitCheck && !pjBreakDay(cls, azToday()) && hitCheck(st, cls));
 export function pjWindow(st, cls) {
+  const W = pjWindow0(st, cls), m = minsNow();
+  if (m >= W.c && afterHit(st, cls)) return m < PJ_AFTER ? { o: PJ_AFTER, c: PJ_AFTER_END, after: true } : { o: Math.min(W.o, PJ_AFTER), c: Math.max(W.c, PJ_AFTER_END), after: true };
+  if (m >= PJ_AFTER && W.c < PJ_AFTER_END && afterHit(st, cls)) return { o: W.o, c: PJ_AFTER_END, after: true };
+  return W;
+}
+function pjWindow0(st, cls) {
   const today = azToday(); let o = 11 * 60, c = PJ_CLOSE_M; const w = cls && cls.pjWin;
   if (pjBreakDay(cls, today)) { o = 0; c = PJ_BREAK_END; }
   if (w && w.d === today) { o = Math.min(o, Number(w.from) || 0); c = Math.max(c, Number(w.to) || c); }
