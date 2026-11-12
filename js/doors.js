@@ -319,7 +319,8 @@ export function vaultGoal(st, cls, wk) {
     if (g.sub === "all") n = wk === weekKey(cls) ? weekTotal(st, cls) : histWeekTotal(st, wk);   // a total-XP goal (like 600)
     else for (let i = 0; i < 7; i++) { const h = ((st.xpHist || {})[addDays(wk, i)]) || {}; n += Number((h.sub || {})[g.sub]) || 0; }
     const tot = g.sub === "all" ? Math.round(n) : wk === weekKey(cls) ? weekTotal(st, cls) : histWeekTotal(st, wk);
-    return { xp: Number(g.xp), n: Math.round(n), sub: g.sub, reward: g, tot, min: vaultMinOf(st, cls) };
+    // Nov 12 (Ms. Ariana): when she sets the week's Vault prize goal, that goal is ALL they need (no 600 XP minimum), e.g. 480 on a short week
+    return { xp: Number(g.xp), n: Math.round(n), sub: g.sub, reward: g, tot, min: 0 };
   }
   const tot = wk === weekKey(cls) ? weekTotal(st, cls) : histWeekTotal(st, wk);
   const own = Number(st && st.wkGoal) > 0 ? Math.round(VAULT_XP * wkShare(st, cls)) : VAULT_XP;
@@ -329,8 +330,8 @@ export function vaultGoal(st, cls, wk) {
 export const vaultMet = (st, cls, wk) => { const v = vaultGoal(st, cls, wk); return v.n >= v.xp && v.tot >= v.min && subReq(st, cls, wk).ok; };
 // The 600-XP rule needs its own line when the goal itself doesn't already cover it (a subject goal, or a total under 600)
 // A week that's over: its saved "ready" stands (its goal may have changed since), but it still needs VAULT_MIN XP total
-export const vaultMinOk = (st, cls, wk) => (wk === weekKey(cls) ? weekTotal(st, cls) : histWeekTotal(st, wk)) >= vaultMinOf(st, cls) && subReq(st, cls, wk).ok;
-export const vaultNeedsMin = v => (v.sub && v.sub !== "all") || v.xp < v.min;
+export const vaultMinOk = (st, cls, wk) => (rewardFor(st, cls, wk) || (wk === weekKey(cls) ? weekTotal(st, cls) : histWeekTotal(st, wk)) >= vaultMinOf(st, cls)) && subReq(st, cls, wk).ok;
+export const vaultNeedsMin = v => v.min > 0 && ((v.sub && v.sub !== "all") || v.xp < v.min);
 export function vaultState(st, cls) {
   const v = ((st && st.vault) || {})[weekKey(cls)];
   if (v === "open") return v;

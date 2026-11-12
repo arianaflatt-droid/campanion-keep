@@ -32,9 +32,8 @@ const now = () => (typeof window !== "undefined" && window.__pjNow ? new Date(wi
 const mins = () => { const t = azNow(now()); return t.h * 60 + t.m; };
 
 // Today's 4 fuel tanks (XP + the core subjects, swaps merged) and the overall fill (0–1)
-// 🌇 did the student hit their daily goal (120) today? (the afternoon launch uses this)
-export function hitToday(st, cls) { const iso = azToday(), d = axoDay(st, cls, iso), h = ((st && st.xpHist) || {})[iso] || {}; return Math.max(d.xp, Number(h.mo) || 0) >= d.goal || !!h.h || !!h.lh; }
-setHitCheck(hitToday);
+// Nov 12 (Ms. Ariana): the afternoon launch needs the same 4 full tanks as lunch (120 XP + the core-subject rings)
+setHitCheck((st, cls) => fuel(st, cls).full);
 export function fuel(st, cls) {
   const iso = azToday(), d = axoDay(st, cls, iso), h = ((st && st.xpHist) || {})[iso] || {};
   const xp = Math.max(d.xp, Number(h.mo) || 0), hit = xp >= d.goal || !!h.h || !!h.lh;
@@ -54,17 +53,13 @@ export function fuel(st, cls) {
     if (st && (st.pjGo === iso || classOpenAll(cls))) return { tanks: bt.map(t => Object.assign({}, t, { have: Math.max(t.have, t.need) })), pct: 1, full: true, manual: true, brk: true };
     return { tanks: bt, pct: bn ? bh / bn : 0, full: bt.every(t => t.have >= t.need), brk: true };
   }
-  // 🌇 after the lunch window closes, only the 120 XP tank counts (it opens again at 2 pm)
-  const pw = cls && cls.pjWin, lunchEnd = Math.max(PJ_CLOSE, pw && pw.d === iso ? Number(pw.to) || 0 : 0);
-  if (afterOn(cls) && mins() >= lunchEnd && !(st && (st.pjGo === iso || classOpenAll(cls)))) {
-    const t0 = [{ icon: "⭐", name: "XP today", have: hit ? Math.max(xp, d.goal) : xp, need: d.goal }];
-    return { tanks: t0, pct: hit ? 1 : Math.min(1, xp / d.goal), full: hit, after: true };
-  }
   const tanks = [{ icon: "⭐", name: "XP", have: hit ? Math.max(xp, d.goal) : xp, need: d.goal }].concat(d.rows.map(r => ({ icon: ICON[r.src] || "\u{1F4DA}", name: r.name, have: r.have, need: r.need })));
   const need = tanks.reduce((n, t) => n + t.need, 0), have = tanks.reduce((n, t) => n + Math.min(t.have, t.need), 0);
   // Nov 7: Ms. Ariana can launch a student by hand (tech trouble, work done somewhere else): pjGo = today's date
   if (st && (st.pjGo === iso || classOpenAll(cls))) return { tanks: tanks.map(t => Object.assign({}, t, { have: Math.max(t.have, t.need) })), pct: 1, full: true, manual: true };
-  return { tanks, pct: need ? have / need : 0, full: tanks.every(t => t.have >= t.need) };
+  // 🌇 after the lunch window closes, the same 4 tanks open the afternoon launch (2–10 pm)
+  const pw = cls && cls.pjWin, lunchEnd = Math.max(PJ_CLOSE, pw && pw.d === iso ? Number(pw.to) || 0 : 0);
+  return { tanks, pct: need ? have / need : 0, full: tanks.every(t => t.have >= t.need), after: afterOn(cls) && mins() >= lunchEnd };
 }
 const launchedToday = st => !!(st && st.planet && st.planet.last === azToday());
 // "off" | "fill" | "ready" (full, before 11) | "go" (full, window open) | "landed" | "scrubbed"
@@ -100,13 +95,13 @@ export function planetBar(st, cls, preview) {
   const W = pjWindow(st, cls);
   let msg;
   if (p === "fill" && f.brk) msg = "\u{1F3D6}\uFE0F <b>Break day bonus!</b> " + (f.tanks[0].name === "XP today" ? "Earn <b>" + f.tanks[0].need + " XP today</b>" : "Reach <b>" + f.tanks[0].need + " XP this week</b>" + (f.tanks.length > 1 ? " and catch up your subject rings" : "")) + " to launch to <b>Planet JP</b> (open until " + hhmm(W.c) + " pm).";
-  else if (p === "fill" && f.after) msg = "\u{1F307} <b>Afternoon launch!</b> Earn <b>" + f.tanks[0].need + " XP today</b> and you can launch to <b>Planet JP</b>" + (mins() < PJ_AFTER ? " after 2:00 pm." : " (open until 10 pm).");
-  else if (p === "ready" && W.after) msg = "\u{1F307} You hit " + f.tanks[0].need + " XP! The <b>afternoon launch</b> opens in <b id=\"pjcd\">" + left(W.o) + "</b> (2:00 pm).";
+  else if (p === "fill" && f.after) msg = "\u{1F307} <b>Afternoon launch!</b> Fill all 4 tanks today and you can launch to <b>Planet JP</b>" + (mins() < PJ_AFTER ? " after 2:00 pm." : " (open until 10 pm).");
+  else if (p === "ready" && W.after) msg = "\u{1F307} Tanks full! The <b>afternoon launch</b> opens in <b id=\"pjcd\">" + left(W.o) + "</b> (2:00 pm).";
   else if (p === "fill") msg = "Fill all 4 tanks to launch to <b>Planet JP</b>! " + (mins() < W.o ? "Launch window opens at " + hhmm(W.o) + "." : 'Window closes in <b id="pjcd">' + left(W.c) + "</b>");
   else if (p === "ready") msg = "\u{1F389} Ready for liftoff! The launch window opens in <b id=\"pjcd\">" + left(W.o) + "</b>";
   else if (p === "go") msg = '\u{1F680} Fuel tanks full! <button class="btn small gold" data-pj="open">Launch the S.S. Duck!</button>';
   else if (p === "landed") msg = (pjOpen(st, cls) ? '<button class="btn small gold" data-pj="tab">\u{1FA90} Explore Planet JP</button> ' : W.after && mins() < W.o ? "\u{1F307} Planet JP opens again at <b>2:00 pm</b>. " : "") + "\u{1FA90} You landed on <b>Planet JP</b>! Launch #" + (pl.n || 1) + ((pl.streak || 0) > 1 ? " · \u{1F525} " + pl.streak + " days in a row" : "") + (pl.dust ? " · ⭐ " + pl.dust + " Stardust" : "");
-  else msg = afterOn(cls) && mins() < PJ_AFTER ? "\u{1F6D1} You missed the lunch launch. Hit your XP today and you can launch after 2:00 pm!" : "\u{1F6D1} Mission scrubbed, try again tomorrow!";
+  else msg = afterOn(cls) && mins() < PJ_AFTER ? "\u{1F6D1} You missed the lunch launch. Fill all 4 tanks today and you can launch after 2:00 pm!" : "\u{1F6D1} Mission scrubbed, try again tomorrow!";
   const tanks = p === "landed" || p === "scrubbed" ? "" : '<div class="pjtanks">' + f.tanks.map(t => '<span class="pjtank' + (t.have >= t.need ? " ok" : "") + '">' + t.icon + " " + esc(t.name) + " <b>" + Math.min(t.have, t.need) + "/" + t.need + "</b>" + (t.have >= t.need ? " ✅" : "") + "</span>").join("") + "</div>";
   return '<div class="pjbar ' + p + '"><div class="pjtrack"><div class="pjfill" style="width:' + (pct * 100).toFixed(1) + '%"></div>' +
     (trailOf(st) && pct > 0.02 ? '<div class="pjtrail tr-' + trailOf(st) + '" style="width:calc(' + (pct * 100).toFixed(1) + '% - ' + (pct * 74 - 12).toFixed(0) + 'px)"></div>' : "") +
@@ -329,7 +324,7 @@ export function planetAdmin(students, cls) {
   return '<div class="card" id="pjCard"><div class="card-head"><h2>\u{1F680} Planet JP</h2><span class="fact">' + (on ? (schoolDayFor(cls, today) ? went.length + " launched today" : "no school today") : "off") + "</span></div>" +
     '<p class="lede" style="font-size:13.5px;">A launch bar across the top of every student’s Keep. It fills with <b>120 XP + 25 Math, Reading and Language</b>. Full tanks can launch the S.S. Duck from <b>11:00 to 12:55</b> (Arizona time); not full by 12:55 = “Mission scrubbed”. School days only (your calendar breaks are skipped). To try it yourself, open a student’s page in preview and press “Preview the launch”.</p>' +
     '<div class="row" style="margin:10px 0;gap:8px;"><button class="btn' + (on ? " ghost" : "") + '" data-act="pjToggle">' + (on ? "Turn Planet JP off" : "\u{1F680} Turn Planet JP on") + "</button></div>" +
-    (on ? winRow(cls) + stationAdminLine(kids, cls) + (afterOn(cls) ? '<p class="small" style="margin:4px 0 0;">\u{1F307} <b>Afternoon launch:</b> on school days, anyone who hits 120 XP can launch (or go back) from 2:00 to 10:00 pm.</p>' : "") : "") +
+    (on ? winRow(cls) + stationAdminLine(kids, cls) + (afterOn(cls) ? '<p class="small" style="margin:4px 0 0;">\u{1F307} <b>Afternoon launch:</b> on school days, anyone with all 4 tanks full (120 XP + the core-subject rings) can launch (or go back) from 2:00 to 10:00 pm.</p>' : "") : "") +
     (on && schoolDayFor(cls, today) ? manualRows(kids, cls, went) : "") +
     (on && (went.length || ready.length) ? '<p class="small" style="margin:4px 0;">' + (went.length ? "\u{1FA90} <b>Landed:</b> " + went.map(s => esc(s.name)).join(", ") : "") + (ready.length ? (went.length ? "<br>" : "") + "⛽ <b>Tanks full, not launched yet:</b> " + ready.map(s => esc(s.name)).join(", ") : "") + "</p>" : "") + "</div>";
 }

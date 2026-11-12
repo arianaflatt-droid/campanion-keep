@@ -30,8 +30,8 @@ export const PJ_BREAK_END = 22 * 60, PJ_BREAK_XP = 240;
 export const pjBreakXP = cls => Number(cls && cls.pjBreakXP) || PJ_BREAK_XP;
 export const pjBreakDay = (cls, iso) => { if (!cls || cls.pjBreakOff || !((cls.offDays || {})[iso])) return false;
   const [y, m, d] = String(iso).split("-").map(Number), w = new Date(y, m - 1, d).getDay(); return w >= 1 && w <= 5; };
-/* 🌇 Afternoon launch (Nov 12, Ms. Ariana): on a school day, anyone who hits 120 XP that day can launch (or go back) after 2 pm,
-   until 10 pm (Arizona). planet.js tells this file who hit 120 (setHitCheck). cls.pjAfterOff = true turns it off. */
+/* 🌇 Afternoon launch (Nov 12, Ms. Ariana): on a school day, anyone with all 4 tanks full that day (120 XP + rings) can launch (or go back)
+   after 2 pm, until 10 pm (Arizona). planet.js tells this file whose tanks are full (setHitCheck). cls.pjAfterOff = true turns it off. */
 export const PJ_AFTER = 14 * 60, PJ_AFTER_END = 22 * 60;
 let hitCheck = null; export const setHitCheck = f => { hitCheck = f; };
 export const afterOn = cls => !(cls && cls.pjAfterOff);
