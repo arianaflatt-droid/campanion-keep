@@ -15,10 +15,10 @@
      page-only (localStorage), no database writes.
    Saved in planet.pets = { o: { key: { n: name, p: personality, h: outfit id or "", at: date adopted } }, buddy: key, rel: releases }
    through safari.js planetSave, so the other Planet JP saves aren't overwritten. */
-import { esc, OUTFITS } from "./game.js?v=20261110h";
-import { azToday } from "./collect.js?v=20261110h";
-import { freshSt, planetSave, planetNow, planetCtx } from "./safari.js?v=20261110h";
-import { shopTab, shopTabs, bedShopHTML, careShopHTML } from "./nebshop.js?v=20261110h";
+import { esc, OUTFITS } from "./game.js?v=20261111k";
+import { azToday } from "./collect.js?v=20261111k";
+import { freshSt, planetSave, planetNow, planetCtx } from "./safari.js?v=20261111k";
+import { shopTab, shopTabs, bedShopHTML, careShopHTML } from "./nebshop.js?v=20261111k";
 
 export const PA = "assets/pets/", PP = PA + "place/";
 export const TIERS = [
@@ -26,7 +26,8 @@ export const TIERS = [
   { k: "u", name: "Uncommon", cost: 300, color: "#1C7A43" },
   { k: "r", name: "Rare", cost: 600, color: "#7A33C2" },
   { k: "s", name: "Super Rare", cost: 1200, color: "#9A6500" },
-  { k: "e", name: "Seasonal", cost: 500, color: "#B8236A" }];
+  { k: "e", name: "Seasonal", cost: 500, color: "#B8236A" },
+  { k: "x", name: "Special", cost: 0, color: "#2B6F8F", note: "Space Station reward" }];   // 🛰️ Astro (Nov 11): only from the finished Space Station
 export const TIER = {}; TIERS.forEach(t => { TIER[t.k] = t; });
 const N = (k, name, t, m) => ({ k, name, t, m });
 export const NEBBLES = [
@@ -41,11 +42,12 @@ export const NEBBLES = [
   // Seasonal: only in the cubbies during their month(s) (Arizona time). They come back the same month next year.
   N("pumpkin", "Pumpkin", "e", [10]), N("pie", "Pie", "e", [11]), N("candycane", "Candy Cane", "e", [12]), N("snowball", "Snowball", "e", [1]),
   N("sweetheart", "Sweetheart", "e", [2]), N("clover", "Clover", "e", [3]), N("egg", "Egg", "e", [4]), N("springflower", "Blossom Spring", "e", [5]),
-  N("sunbeam", "Sunbeam", "e", [6, 7]), N("pencil", "Pencil", "e", [8, 9])];
+  N("sunbeam", "Sunbeam", "e", [6, 7]), N("pencil", "Pencil", "e", [8, 9]),
+  N("astro", "Astro", "x")];
 export const NEB = {}; NEBBLES.forEach(n => { NEB[n.k] = n; });
 // the "happy" (eyes closed) pictures that are in so far; the others use their normal picture with a bounce
 const HAPPY = new Set(("amethyst aurora blossom candycane checker cherry cloudy cosmic diamond duo ember freckle frost frostbite galaxy glittergold gummy lime magma midnight " +
-  "mint moonbeam crystal radiant prism pie clover egg pencil snowball sunbeam sweetheart neon ocean opal phoenix pumpkin rainbow silver sky springflower sprinkle starry starrynight sunny sunset thunder tiger unicorn zig").split(" "));
+  "astro mint moonbeam crystal radiant prism pie clover egg pencil snowball sunbeam sweetheart neon ocean opal phoenix pumpkin rainbow silver sky springflower sprinkle starry starrynight sunny sunset thunder tiger unicorn zig").split(" "));
 export const PERSONALITIES = [
   { k: "bouncy", name: "Bouncy", e: "\u{1F938}", say: ["Boing boing!", "Wheee!", "Let’s hop!"] },
   { k: "sleepy", name: "Sleepy", e: "\u{1F634}", say: ["*yawn* Hi…", "Five more minutes…", "Zzz… oh, hi!"] },
@@ -63,7 +65,7 @@ const NAME_MAX = 14;
 const plOf = st => (st && st.planet) || {};
 export const petsOf = st => plOf(st).pets || {};
 export const ownedOf = st => petsOf(st).o || {};
-export const ownedCount = st => Object.keys(ownedOf(st)).filter(k => NEB[k]).length;
+export const ownedCount = st => Object.keys(ownedOf(st)).filter(k => NEB[k] && NEB[k].t !== "x").length;   // the 50 (Astro is extra)
 export const nebImg = k => PA + k + ".webp";
 export const nebHappy = k => PA + k + (HAPPY.has(k) ? "-happy" : "") + ".webp";
 function hash01(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } h ^= h >>> 15; h = Math.imul(h, 2246822507); h ^= h >>> 13; return ((h >>> 0) + 1) / 4294967297; }
@@ -121,6 +123,7 @@ function savePets(fn) {
   pl.pets = pets; planetSave(pl); rer();
 }
 function release(k) {
+  if (k === "astro") return;   // Astro can't be released (there's only one way to get it)
   const n = NEB[k], own = ownedOf(freshSt((planetCtx() || {}).st))[k]; if (!n || !own) return;
   if (typeof confirm === "function" && !confirm("Release " + own.n + " back to the Adoption Center?\n\nAlien Duck will find it a new home. You won’t get Stardust back, but you can adopt " + n.name + " again (with a new personality) when it’s in a cubby.")) return;
   savePets(pets => { delete pets.o[k]; pets.rel = (Number(pets.rel) || 0) + 1;
@@ -184,19 +187,19 @@ function petPanel(st, k, open) {
     '<button class="nbhatbtn' + (own.h ? "" : " on") + '" data-nb="hat:' + k + ':">\u{1F6AB}<small>None</small></button>' +
     hats.map(o => '<button class="nbhatbtn' + (own.h === o.id ? " on" : "") + '" data-nb="hat:' + k + ":" + o.id + '" title="' + esc(o.name) + '"><img src="' + o.img + '" alt=""><small>' + esc(o.name) + "</small></button>").join("") + "</div>" +
     (hats.length ? "" : '<p class="small muted" style="margin:4px 0 0;">You don’t own any hats or outfits yet. Get them in the Space Shop and event shops!</p>') +
-    '<div class="row" style="gap:8px;margin-top:12px;"><button class="btn ghost small" data-nb="close">Done</button><button class="btn ghost small nbrelbtn" data-nb="rel:' + k + '">\u{1F44B} Release</button></div>' +
+    '<div class="row" style="gap:8px;margin-top:12px;"><button class="btn ghost small" data-nb="close">Done</button>' + (k === "astro" ? "" : '<button class="btn ghost small nbrelbtn" data-nb="rel:' + k + '">\u{1F44B} Release</button>') + '</div>' +
     '<p class="small muted" style="margin:6px 0 0;">Not the right personality? Release it back to the Adoption Center, then adopt it again from a cubby for a new one.</p>';
   return h + "</div></div>";
 }
 function collectionHTML(st) {
   const own = ownedOf(st), buddy = petsOf(st).buddy;
-  let h = '<div class="card nbcoll"><div class="card-head"><h2>\u{1F43E} My Nebbles</h2><span class="fact">' + ownedCount(st) + " / " + NEBBLES.length + "</span></div>" +
+  let h = '<div class="card nbcoll"><div class="card-head"><h2>\u{1F43E} My Nebbles</h2><span class="fact">' + ownedCount(st) + " / " + NEBBLES.filter(n => n.t !== "x").length + "</span></div>" +
     '<p class="lede" style="margin:0 0 8px;font-size:14px;">One of each to find! Tap a Nebble you’ve adopted to rename it, give it a hat or make it your buddy.</p>';
   TIERS.forEach(t => {
-    h += '<div class="nbrow"><div class="nbrowname" style="color:' + t.color + '">' + t.name + " <small>" + t.cost.toLocaleString() + " ⭐</small></div><div class=\"nbslots\">";
+    h += '<div class="nbrow"><div class="nbrowname" style="color:' + t.color + '">' + t.name + " <small>" + (t.note || t.cost.toLocaleString() + " ⭐") + "</small></div><div class=\"nbslots\">";
     NEBBLES.filter(n => n.t === t.k).forEach(n => { const o = own[n.k];
       h += o ? '<button class="nbslot have' + (open1 === n.k ? " on" : "") + '" data-nb="open:' + n.k + '" title="' + esc(o.n) + '">' + nebHTML(n.k, { hat: o.h }) + "<small>" + esc(o.n) + "</small>" + (buddy === n.k ? '<i class="nbstar">⭐</i>' : "") + "</button>"
-        : '<span class="nbslot" title="' + (n.t === "e" ? esc(n.name) + " (seasonal)" : "???") + '">' + nebHTML(n.k) + "<small>" + (n.t === "e" ? esc(n.name) : "???") + "</small></span>"; });
+        : '<span class="nbslot" title="' + (n.t === "e" ? esc(n.name) + " (seasonal)" : n.t === "x" ? "Finish the class Space Station to get Astro!" : "???") + '">' + nebHTML(n.k) + "<small>" + (n.t === "e" || n.t === "x" ? esc(n.name) : "???") + "</small></span>"; });
     h += "</div></div>"; });
   return h + "</div>";
 }

@@ -1,5 +1,5 @@
 // Creature Collector: pulls, XP bank, levels, evolutions, lorebook and arena battles.
-import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261104k";
+import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js";
 
 export const PULL_XP = 120;          // every 120 XP (all-time since the collector started) = 1 pull
 export const LEVEL_XP = 120;         // 120 banked XP = 1 level
@@ -7,7 +7,7 @@ export const MAX_LEVEL = 100;
 export const TEAM_MAX = 4;
 export const CRIT_CHANCE = 0.01, CRIT_MULT = 1.5;
 export const ODDS = [["Common", 0.70], ["Uncommon", 0.20], ["Rare", 0.08], ["Super Rare", 0.02]];
-export const RARITY_COLOR = { "Common": "#8FA39A", "Uncommon": "#3FA46A", "Rare": "#3D7FE0", "Super Rare": "#A259E6", "Legendary": "#E9A91C", "Ultra": "#D13BE8" };
+export const RARITY_COLOR = { "Common": "#8FA39A", "Uncommon": "#3FA46A", "Rare": "#3D7FE0", "Super Rare": "#A259E6", "Legendary": "#E9A91C" };
 export const STARTERS = ["C-01", "C-02", "C-03"];
 // Sparkle: a rare colour variant. Any hatched creature has a 0.05% (1 in 2,000) chance to be a Sparkle.
 export const SPARKLE_CHANCE = 0.0005;
@@ -36,11 +36,7 @@ export function xpTotal(st, cls) {
   let n = 0;
   Object.keys(hist).forEach(date => {
     if (date < start) return;
-    // The best number saved for that day: end-of-day, lunch or morning paste (XP only goes up during a day, so a
-    // student who hits 120 in the morning or at lunch gets their eggs right away). A day Ms. Ariana marked as a hit
-    // by hand (h) or as Lunch Hero (lh) counts as at least the goal.
-    const h = hist[date] || {}, goal = (cls && Number(cls.goal)) || 120;
-    const v = Math.max(Number(h.d) || 0, Number(h.l) || 0, Number(h.mo) || 0, h.h || h.lh ? goal : 0);
+    const h = hist[date] || {}, v = h.d != null ? h.d : h.l != null ? h.l : 0;
     n += Math.max(0, Number(v) || 0);
   });
   return Math.round(n);
@@ -51,11 +47,7 @@ export function dayXPs(st, cls) {
   const start = (cls && cls.collectorStart) || "0000-00-00", hist = st.xpHist || {}, out = [];
   Object.keys(hist).sort().forEach(date => {
     if (date < start) return;
-    // The best number saved for that day: end-of-day, lunch or morning paste (XP only goes up during a day, so a
-    // student who hits 120 in the morning or at lunch gets their eggs right away). A day Ms. Ariana marked as a hit
-    // by hand (h) or as Lunch Hero (lh) counts as at least the goal.
-    const h = hist[date] || {}, goal = (cls && Number(cls.goal)) || 120;
-    const v = Math.max(Number(h.d) || 0, Number(h.l) || 0, Number(h.mo) || 0, h.h || h.lh ? goal : 0);
+    const h = hist[date] || {}, v = h.d != null ? h.d : h.l != null ? h.l : 0;
     out.push({ date, xp: Math.max(0, Math.round(Number(v) || 0)) });
   });
   return out;
@@ -75,79 +67,19 @@ export function pullsEarned(st, cls) {
 }
 // How much more XP today (the latest day with data) until the next egg.
 export function todayXP(st, cls) {
-  const iso = azToday();
+  const t = new Date(), iso = t.getFullYear() + "-" + String(t.getMonth() + 1).padStart(2, "0") + "-" + String(t.getDate()).padStart(2, "0");
   const d = dayXPs(st, cls).find(x => x.date === iso); return d ? d.xp : 0;
 }
 export function pullsLeft(st, cls) { return Math.max(0, pullsEarned(st, cls) - (Number(st.pullsUsed) || 0)); }
 // Birthday eggs: the teacher sends one on a student's birthday; it always hatches Wisholotl.
 export const WISH_FAM = "L-28";
-// Cluckledill (exclusive event Legendary): the teacher gives an egg to students who came to the real-life event.
-// Once a student has Cluckledill, it can also hatch from their Legendary eggs. Students who never got one can't hatch it.
-export const PICKLE_FAM = "L-31";
-export const BREW_FAM = "L-33";
-// ✨ Sparkle Turducken egg: beating MEGA TURDUCKEN in Turducken's Revenge (js/revenge.js, Nov 2026). Hatched by the server (kind "revenge").
-export const REVENGE_FAM = "L-42";
-// ✨ Sparkle Grinch-a-Duck egg: beating MEGA GRINCH-A-DUCK in the Great Present Heist (js/heist.js, Dec 2026). Hatched by the server (kind "heist").
-export const HEIST_FAM = "L-43";
-/* ---------- 🌈 Ultra Legendaries (Nov 3) ----------
-   17 dual-type Ultras (L-46 to L-62, rarity "Ultra"). They only come from Ultra eggs, earned from the Ultra goals (ultra.js):
-   ultraEggs = earned (the page adds 1 per goal reached), ultraUsed = hatched (the server). A new one joins at level 1;
-   one the student already has goes up ULTRA_DUPE levels instead. Never Sparkle, can't be traded or released. */
-export const ULTRA_FAMS = FAMILIES.filter(f => f.ultra).map(f => f.id);
-export const ULTRA_DUPE = 5;
-export const isUltra = fam => ULTRA_FAMS.includes(fam);
-export function ultraLeft(st) { return Math.max(0, (Number(st && st.ultraEggs) || 0) - (Number(st && st.ultraUsed) || 0)); }
-export function ultraPull(st) {
-  const fam = ULTRA_FAMS[Math.floor(Math.random() * ULTRA_FAMS.length)];
-  const coll = Object.assign({}, owned(st)), had = coll[fam];
-  coll[fam] = had ? Object.assign({}, had, { lvl: Math.min(MAX_LEVEL, (had.lvl || 1) + ULTRA_DUPE) }) : { lvl: 1, at: new Date().toISOString() };
-  const lvl = coll[fam].lvl;
-  return { coll, fam, prev: had ? Object.assign({}, had) : null, rarity: "Ultra", event: "ultra", ultra: true, dupe: !!had, lvl, gained: had ? lvl - (had.lvl || 1) : 0, sparkle: false, newSparkle: false, id: formOf(fam, lvl).id, evolved: false };
-}
-export function heistLegLeft(st) { return Math.max(0, (Number(st && st.heistLeg) || 0) - (Number(st && st.heistLegUsed) || 0)); }
-export function revengeLegLeft(st) { return Math.max(0, (Number(st && st.revengeLeg) || 0) - (Number(st && st.revengeLegUsed) || 0)); }   // Brewraith: the top Potion Brewing Team's special egg
-export function brewLegLeft(st) { return Math.max(0, (Number(st && st.potionLegEggs) || 0) + (Number(st && st.soloBrewLeg) || 0) - (Number(st && st.potionLegUsed) || 0)); }   // soloBrewLeg: 15 solo potions
-export const SNOW_FAM = "L-38";   // Snowmorrow: the top Build-a-Snowman team's special egg
-/* ---------- 2nd boss wins ----------
-   Beat an event boss a 2nd time and Ms. Ariana gives every student who attacked it (stu = true):
-   that boss as a Legendary egg (eggs / used), the "II" badge, and a special battle move to teach one companion (move = family).
-   The class (flag) unlocks the Sparkle sidekick (side) and the boss joins the normal Legendary pool for good.
-   atk counts attacks on the 2nd boss. Keyed by season (game.js SEASONS). */
-export const BOSS2 = {
-  haunt:  { fam: "L-41", boss: "Ghost-olotl", icon: "\u{1F47B}", defeat: "ghostDefeated", flag: "ghost2Done", stu: "ghost2", eggs: "ghostEggs", used: "ghostEggsUsed", atk: "ghost2Atk", move: "ghostMove", mv: "ghost", side: "ghostsp", badge: "ghost-2", badgeName: "Ghost Buster II", prize: "choose a costume for Ms. Ariana" },
-  gobble: { fam: "L-42", boss: "Turducken", icon: "\u{1F983}", defeat: "turkeyDefeated", flag: "turkey2Done", stu: "turkey2", eggs: "turkeyEggs", used: "turkeyEggsUsed", atk: "turkey2Atk", move: "turkeyMove", mv: "feast", side: "turkeysp", badge: "turkey-2", badgeName: "Turkey Takedown II", prize: "make Ms. Ariana dress up as a turkey for class" },
-  jingle: { fam: "L-43", boss: "Grinch-a-Duck", icon: "\u{1F986}", defeat: "grinchDefeated", flag: "grinch2Done", stu: "grinch2", eggs: "grinchEggs", used: "grinchEggsUsed", atk: "grinch2Atk", move: "grinchMove", mv: "sack", side: "grinchsp", badge: "grinch-2", badgeName: "Grinch Grabber II", prize: "pick Ms. Ariana\u2019s holiday sweater" },
-  frost:  { fam: "L-44", boss: "Snowlotl", icon: "\u26C4", defeat: "yetiDefeated", flag: "yeti2Done", stu: "yeti2", eggs: "yetiEggs", used: "yetiEggsUsed", atk: "yeti2Atk", move: "yetiMove", mv: "blizzard", side: "yetisp", badge: "yeti-2", badgeName: "Snowlotl Smasher II", prize: "have a class pajama day" },
-  heart:  { fam: "L-45", boss: "Heartbreaker-otl", icon: "\u{1F494}", defeat: "heartDefeated", flag: "heart2Done", stu: "heart2", eggs: "heartEggs", used: "heartEggsUsed", atk: "heart2Atk", move: "heartMove", mv: "shatter", side: "heartsp", badge: "heart-2", badgeName: "Heart Mender II", prize: "pick Ms. Ariana\u2019s outfit for a day" },
-  lucky:  { fam: "L-63", boss: "Lepre-quack", icon: "\u{1F340}", defeat: "luckyDefeated", flag: "lucky2Done", stu: "lucky2", eggs: "luckyEggs", used: "luckyEggsUsed", atk: "lucky2Atk", move: "luckyMove", mv: "goldrush", side: "leprsp", badge: "lucky-2", badgeName: "Leprechaun Catcher II", prize: "dress Ms. Ariana like a leprechaun for a day" }
-};
-export const BOSS2_LIST = Object.keys(BOSS2).map(k => Object.assign({ key: k }, BOSS2[k]));
-export function boss2EggLeft(st, B) { return Math.max(0, (Number(st && st[B.eggs]) || 0) - (Number(st && st[B.used]) || 0)); }
-export const GHOST_FAM = "L-41";
-export function vaultLegLeft(st) { return Math.max(0, (Number(st && st.vaultLegEggs) || 0) - (Number(st && st.vaultLegUsed) || 0)); }   // Treasure Vault: Sparkle Legendary eggs
-export function ghostEggLeft(st) { return boss2EggLeft(st, BOSS2.haunt); }
-export const CANDY_FAM = "L-40";   // Candivora: the top Candy Box team's special egg
-export const PRISM_FAM = "L-65";   // Prismalotl: the top Leprechaun Trap team's special egg
-export function trapLegLeft(st) { return Math.max(0, (Number(st && st.trapLegEggs) || 0) + (Number(st && st.soloTrapLeg) || 0) - (Number(st && st.trapLegUsed) || 0)); }
-export function candyLegLeft(st) { return Math.max(0, (Number(st && st.candyboxLegEggs) || 0) + (Number(st && st.soloBoxLeg) || 0) - (Number(st && st.candyboxLegUsed) || 0)); }
-export function snowLegLeft(st) { return Math.max(0, (Number(st && st.snowmanLegEggs) || 0) + (Number(st && st.soloSnowLeg) || 0) - (Number(st && st.snowmanLegUsed) || 0)); }
-export const GINGER_FAM = "L-36";   // Gingermischief: the top Gingerbread House team's special egg
-export function gingerLegLeft(st) { return Math.max(0, (Number(st && st.gingerLegEggs) || 0) + (Number(st && st.soloGingerLeg) || 0) - (Number(st && st.gingerLegUsed) || 0)); }
-export const HARVEST_FAM = "L-35";   // Cornucopia: the top Feast Table Team's special egg
-export function feastLegLeft(st) { return Math.max(0, (Number(st && st.feastLegEggs) || 0) + (Number(st && st.soloFeastLeg) || 0) - (Number(st && st.feastLegUsed) || 0)); }
-export function pickleLeft(st) { return Math.max(0, (Number(st && st.pickleEggs) || 0) - (Number(st && st.pickleUsed) || 0)); }
 export function birthdayLeft(st) { return Math.max(0, (Number(st.birthdayEggs) || 0) - (Number(st.birthdayUsed) || 0)); }
 export function legendaryLeft(st) { return Math.max(0, (Number(st.legendaryPulls) || 0) - (Number(st.legendaryUsed) || 0)); }
-export function bankXP(st, cls) { return Math.max(0, xpTotal(st, cls) + (Number(st.bonusXP) || 0) + (Number(st.xpReleased) || 0) + (Number(st.xpPrize) || 0) + (Number(st.doorXP) || 0) + (Number(st.questXP) || 0) - (Number(st.xpSpent) || 0)); }
+export function bankXP(st, cls) { return Math.max(0, xpTotal(st, cls) + (Number(st.bonusXP) || 0) + (Number(st.xpReleased) || 0) + (Number(st.xpPrize) || 0) + (Number(st.doorXP) || 0) - (Number(st.xpSpent) || 0)); }
 // Event eggs (from a Golden Present): st.themeEggs = ["jingle", ...], st.themeUsed = how many are hatched.
 // Each one hatches a creature of that event's types (normal rarity odds).
-export const THEME_TYPES = { haunt: ["Ghost"], gobble: ["Nature"], jingle: ["Ice", "Light"], frost: ["Ice"], heart: ["Light", "Nature"], lucky: ["Nature", "Earth"] };
-export const THEME_EGG = { haunt: "Haunt-O-Ween egg", gobble: "Gobble-Palooza egg", jingle: "Jingle egg", frost: "Frostbite egg", heart: "Sweetheart egg", lucky: "Lucky egg" };
-// Goal eggs (from a 125 XP Goal Subject door): st.goalEggs = ["rare" | event Legendary family id], st.goalUsed = hatched.
-export function goalLeft(st) { return Math.max(0, ((st && st.goalEggs) || []).length - (Number(st && st.goalUsed) || 0)); }
-export function nextGoal(st) { return ((st && st.goalEggs) || [])[Number(st && st.goalUsed) || 0] || null; }
-// Rare or better: Rare 80%, Super Rare 20% (the same 8:2 split as normal eggs).
-export function rollRareUp() { return Math.random() < 0.8 ? "Rare" : "Super Rare"; }
+export const THEME_TYPES = { haunt: ["Ghost"], gobble: ["Nature"], jingle: ["Ice", "Light"] };
+export const THEME_EGG = { haunt: "Haunt-O-Ween egg", gobble: "Gobble-Palooza egg", jingle: "Jingle egg" };
 export function themeLeft(st) { return Math.max(0, ((st && st.themeEggs) || []).length - (Number(st && st.themeUsed) || 0)); }
 export function nextTheme(st) { return ((st && st.themeEggs) || [])[Number(st && st.themeUsed) || 0] || null; }
 /* ---------- releasing ----------
@@ -156,14 +88,6 @@ export function nextTheme(st) { return ((st && st.themeEggs) || [])[Number(st &&
 export const RELEASE_XP = { "Common": 20, "Uncommon": 40, "Rare": 80, "Super Rare": 150, "Legendary": 300 };
 export function releaseXP(fam) { const f = FAMILIES.find(x => x.id === fam); return (f && RELEASE_XP[f.rarity]) || 0; }
 // Why this creature can't be released right now (null = it can). key is "m:FAM" (collection) or "s:ID" (spare).
-// Same as game.js starterFam (kept here so collect.js doesn't import game.js)
-function starterOf(st) {
-  const coll = (st && st.coll) || {};
-  if (st && st.starter && coll[st.starter]) return st.starter;
-  const s0 = ["C-01", "C-02", "C-03"].find(f => coll[f]); if (s0) return s0;
-  return Object.keys(coll).sort((a, b) => String(coll[a].at || "").localeCompare(String(coll[b].at || "")))[0] || null;
-}
-export const isStarterFam = (st, fam) => starterOf(st) === fam;
 export function releaseProblem(st, key, battles, trades) {
   const isSpare = String(key).startsWith("s:");
   const sp = isSpare ? spares(st).find(x => x.id === key.slice(2)) : null, fam = isSpare ? sp && sp.fam : String(key).replace(/^m:/, "");
@@ -172,15 +96,12 @@ export function releaseProblem(st, key, battles, trades) {
   if (f && f.event) return "Limited event Legendaries can\u2019t be released.";
   if (!isSpare) {
     if (Object.keys(owned(st)).length < 2) return "You can\u2019t release your last creature.";
-    if (starterOf(st) === fam) {   // the starter can go once another creature is the companion
-      const pc = st.petCreature, e = pc && pc !== fam && owned(st)[pc], pf = e && FAMILIES.find(x => x.id === pc);
-      if (!e || !((Number(e.lvl) || 1) >= 5 || (pf && pf.rarity === "Legendary"))) return "Make another creature your companion first (any Legendary or a level 5+ creature). Then you can release your starter.";
-    }
+    if (st.starter === fam) return "Your starter creature stays with you.";
     if (st.petCreature === fam) return "That creature is your companion right now.";
   }
   // only a battle started in the last hour counts (old challenges nobody answered don't block releasing)
   const recent = b => !b.created || Date.now() - new Date(b.created).getTime() < 3600e3;
-  if ((battles || []).some(b => LIVE.includes(b.status) && !staleBattle(b) && ((b.a && b.a.id === st.id) || (b.b && b.b.id === st.id)))) return "Finish your battle first!";
+  if ((battles || []).some(b => ["invite", "team", "lead"].includes(b.status) && recent(b) && ((b.a && b.a.id === st.id) || (b.b && b.b.id === st.id)))) return "Finish your battle first!";
   const inTrade = (trades || []).some(t => t.status === "offer" && [t.give, t.get].some(x => x && (isSpare ? x.spare === sp.id : !x.spare && x.fam === fam)) && ((t.a && t.a.id === st.id) || (t.b && t.b.id === st.id)));
   if (inTrade) return "That creature is in a trade offer. Cancel the offer first.";
   return null;
@@ -229,23 +150,12 @@ export const EVENTS = [
   // Thanksolotl: all of November (Gobble-Palooza). The streak only counts November days. Arizona dates.
   { key: "thanks", fam: "L-29", icon: "\u{1F983}", from: "2026-11-01", to: "2026-11-30", label: "Gobble-Palooza", boss: "turkeyDefeated", bossName: "Turducken", streak: 5, first: 0.95, again: 0.01, againAfter: true },
   // Jinglotl: all of December (Jingle Jam). Unlocks for everyone once the class defeats the Grinch-a-Duck.
-  // Midniduck: Frostbite Festival (January). On while the teacher has Frostbite Festival switched on. Unlocks for everyone once the class defeats the Abominable Snowlotl.
-  { key: "frost", fam: "L-37", icon: "\u{1F386}", frost: true, label: "Frostbite Festival", boss: "yetiDefeated", bossName: "Abominable Snowlotl", streak: 5, first: 0.95, again: 0.01, againAfter: true },
-  // Amorduck: Sweetheart Showdown (February). On while the teacher has Sweetheart Showdown switched on. Unlocks for everyone once the class defeats the Heartbreaker-otl.
-  { key: "heart", fam: "L-39", icon: "\u{1F498}", heart: true, label: "Sweetheart Showdown", boss: "heartDefeated", bossName: "Heartbreaker-otl", streak: 5, first: 0.95, again: 0.01, againAfter: true },
-  // 🍀 Cloverduck: Lucky Leprechaun Hunt (March). On while the teacher has it switched on. Unlocks for everyone once the class defeats Lepre-quack.
-  { key: "lucky", fam: "L-64", icon: "\u{1F340}", lucky: true, label: "Lucky Leprechaun Hunt", boss: "luckyDefeated", bossName: "Lepre-quack", streak: 5, first: 0.95, again: 0.01, againAfter: true },
   { key: "jingle", fam: "L-30", icon: "\u{1F384}", from: "2026-12-01", to: "2026-12-31", label: "Jingle Jam", boss: "grinchDefeated", bossName: "Grinch-a-Duck", streak: 5, first: 0.95, again: 0.01, againAfter: true },
 ];
 export const DUCK = EVENTS[0], HEX = EVENTS[1];
 const isoDate = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-// Date formatters are slow to make, so each one is made once and reused (Nov 3: this was a big part of the battle lag).
-const AZ_DAY = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Phoenix", year: "numeric", month: "2-digit", day: "2-digit" });
-const AZ_NOW = new Intl.DateTimeFormat("en-US", { timeZone: "America/Phoenix", weekday: "short", hour: "numeric", minute: "numeric", hour12: false });
-let dayMemo = { k: -1, v: "" };
 export function azToday(date) {
-  if (!date) { const k = Math.floor(Date.now() / 1000); if (k !== dayMemo.k) dayMemo = { k, v: AZ_DAY.format(new Date()) }; return dayMemo.v; }
-  return AZ_DAY.format(date);   // YYYY-MM-DD
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Phoenix", year: "numeric", month: "2-digit", day: "2-digit" }).format(date || new Date());   // YYYY-MM-DD
 }
 export function duckWindow(cls) {
   const start = (cls && cls.duckStart) || DUCK.start;
@@ -256,17 +166,11 @@ export function duckWindow(cls) {
 export function eventWindow(ev, cls) {
   if (ev.from) { const d = new Date(ev.from + "T12:00:00"), days = []; while (isoDate(d) <= ev.to) { if (d.getDay() > 0 && d.getDay() < 6) days.push(isoDate(d)); d.setDate(d.getDate() + 1); } return { start: ev.from, end: ev.to, days }; }
   if (ev.haunt) return { start: (cls && cls.hauntSince) || "0000-00-00", end: null };
-  if (ev.frost) return { start: (cls && cls.frostSince) || "0000-00-00", end: null };
-  if (ev.heart) return { start: (cls && cls.heartSince) || "0000-00-00", end: null };
-  if (ev.lucky) return { start: (cls && cls.luckySince) || "0000-00-00", end: null };
   return duckWindow(cls);
 }
 export function eventOpen(ev, cls, date) {
   if (ev.from) { if (cls && cls[ev.key + "Off"]) return false; const t = azToday(date); return t >= ev.from && t <= ev.to; }
   if (ev.haunt) return !!(cls && cls.haunt);
-  if (ev.frost) return !!(cls && cls.frost && !cls.heart && !cls.lucky);
-  if (ev.heart) return !!(cls && cls.heart && !cls.lucky);
-  if (ev.lucky) return !!(cls && cls.lucky);
   if (cls && cls.duckOff) return false;
   const w = duckWindow(cls), t = azToday(date);
   return t >= w.start && t <= w.end;   // weekends in the middle count too, so eggs can still be hatched
@@ -276,10 +180,10 @@ export const duckOpen = (cls, date) => eventOpen(DUCK, cls, date);
 export function streaks(st, cls, since) {
   const goal = (cls && Number(cls.goal)) || 120, h = st.xpHist || {};
   let best = 0, run = 0;
-  Object.keys(h).sort().forEach(date => { if (since && date < since) return; const x = h[date] || {}, v = x.h && !(Number(x.d) >= goal) ? goal : Number(x.d != null ? x.d : x.l) || 0; if (x.e && v < goal) return; run = v >= goal ? run + 1 : 0; best = Math.max(best, run); });
+  Object.keys(h).sort().forEach(date => { if (since && date < since) return; const x = h[date] || {}, v = Number(x.d != null ? x.d : x.l) || 0; run = v >= goal ? run + 1 : 0; best = Math.max(best, run); });
   return { best, current: run };
 }
-export const eventStreak = (ev, st, cls) => streaks(st, cls, ev.haunt || ev.frost || ev.heart || ev.lucky || ev.from ? eventWindow(ev, cls).start : null);
+export const eventStreak = (ev, st, cls) => streaks(st, cls, ev.haunt || ev.from ? eventWindow(ev, cls).start : null);
 export const hasEvent = (ev, st) => !!owned(st)[ev.fam];
 export const hasDuck = st => hasEvent(DUCK, st);
 // Boss events (Hexaduck, Thanksolotl) unlock for everyone once the class has defeated that event's boss (no streak needed).
@@ -305,22 +209,14 @@ function rollEvent(st, cls) {
 /* ---------- the teacher's own collection ----------
    Saved on the class doc (cls.teacher). Each finalized day gives the teacher 1 egg for every student who hit 120 XP,
    and TEACHER_XP_PER_MISS banked XP for every student who didn't (excused days don't count).
-   Her eggs hatch a Legendary 25% of the time. She shows up in the arena as "Ms. Ariana" and can battle students. */
+   Her eggs can also hatch Legendaries (0.05%). She shows up in the arena as "Ms. Ariana" and can battle students. */
 export const TEACHER_ID = "teacher";
 export const TEACHER_XP_PER_MISS = 120;   // one level per student who missed 120
-// The teacher's eggs: a 25% chance at a Legendary (the rest keeps the normal 70:20:8:2 split).
-export const TEACHER_ODDS = [["Common", 0.525], ["Uncommon", 0.15], ["Rare", 0.06], ["Super Rare", 0.015], ["Legendary", 0.25]];
-export const teacherLegFam = f => { const fm = family(f); return !!fm && (fm.rarity === "Legendary" || fm.rarity === "Ultra"); };
-// Nov 4: the teacher doesn't earn or spend XP. Her Legendaries (and Ultras) can be set to Lv 100; every other creature stays Lv 1.
-export function teacherColl(coll) {
-  const out = {};
-  Object.keys(coll || {}).forEach(f => { const e = coll[f] || {}; out[f] = Object.assign({}, e, { lvl: teacherLegFam(f) ? Math.min(MAX_LEVEL, e.lvl || 1) : 1 }); });
-  return out;
-}
+export const TEACHER_ODDS = [["Common", 0.6995], ["Uncommon", 0.20], ["Rare", 0.08], ["Super Rare", 0.02], ["Legendary", 0.0005]];
 export function teacherPlayer(cls, name) {
   const t = (cls && cls.teacher) || {};
-  return { id: TEACHER_ID, isTeacher: true, name: name || t.name || "Ms. Ariana", companionId: "teacher", coll: teacherColl(t.coll),
-    pullsUsed: Number(t.pullsUsed) || 0, xpSpent: Number(t.xpSpent) || 0, bonusPulls: Number(t.eggsEarned) || 0, bonusXP: 0, xpReleased: Number(t.xpReleased) || 0,
+  return { id: TEACHER_ID, isTeacher: true, name: name || t.name || "Ms. Ariana", companionId: "teacher", coll: t.coll || {},
+    pullsUsed: Number(t.pullsUsed) || 0, xpSpent: Number(t.xpSpent) || 0, bonusPulls: Number(t.eggsEarned) || 0, bonusXP: Number(t.xpEarned) || 0, xpReleased: Number(t.xpReleased) || 0,
     legendaryPulls: 0, legendaryUsed: 0, arenaReady: !!t.arenaReady, tradeReady: t.tradeReady !== false, xpHist: {}, spares: t.spares || [], dex: t.dex || [] };
 }
 export function rollTeacherRarity() {
@@ -331,10 +227,10 @@ export function rollTeacherRarity() {
 // What finalizing day d gives the teacher.
 export function teacherReward(students, d) {
   const arr = (a, i) => (Array.isArray(a) ? a[i] : undefined);
-  const team = students.filter(s => s.companionId), hit = team.filter(s => arr(s.status, d) === "c" || (arr(s.status, d) === "e" && ((Number(arr(s.xp, d)) || 0) >= 120 || (Number(arr(s.lunchXp, d)) || 0) >= 120))).length;
+  const team = students.filter(s => s.companionId), hit = team.filter(s => arr(s.status, d) === "c").length;
   const missed = team.filter(s => { const v = arr(s.status, d); return v !== "c" && v !== "e"; }).length;
   // a day when everyone hit 120 still gives the teacher one level's worth of XP
-  return { eggs: hit, xp: 0, hit, missed };   // the teacher no longer earns XP (Nov 4)
+  return { eggs: hit, xp: missed > 0 ? missed * TEACHER_XP_PER_MISS : TEACHER_XP_PER_MISS, hit, missed };
 }
 
 /* ---------- gacha ---------- */
@@ -349,17 +245,16 @@ export function rollRarity() {
 // Wisholotl is also in the pool for teacher-sent legendary eggs.
 export function doPull(st, rarity, cls, opts) {
   opts = opts || {};
-  let pool = FAMILIES.filter(f => f.rarity === rarity && (!f.event || (opts.legendaryEgg && f.id === WISH_FAM && cls && cls.wishInPool)
-    || (f.id === PICKLE_FAM && owned(st)[PICKLE_FAM]) || BOSS2_LIST.some(B => f.id === B.fam && cls && cls[B.flag])));   // Cluckledill: only for students who already have one   // event creatures never come from normal eggs
+  let pool = FAMILIES.filter(f => f.rarity === rarity && (!f.event || (opts.legendaryEgg && f.id === WISH_FAM && cls && cls.wishInPool)));   // event creatures never come from normal eggs
   if (opts.types) {   // an event egg: only creatures of those types (falls back to the whole pool if none at that rarity)
     const typed = pool.filter(f => { const c0 = CREATURES.find(c => c.id === f.forms[0]); return c0 && c0.types.some(t => opts.types.includes(t)); });
     if (typed.length) pool = typed;
   }
-  const ev = opts.force || opts.noEvent ? null : rollEvent(st, cls);
+  const ev = opts.force ? null : rollEvent(st, cls);
   const event = opts.force ? (family(opts.force) || {}).event || null : ev ? ev.key : null;
   const fam = opts.force || (ev ? ev.fam : pick(pool).id);
   const coll = Object.assign({}, owned(st));
-  const had = coll[fam], sparkle = !!opts.sparkle || Math.random() < (opts.sparkleChance || SPARKLE_CHANCE);   // opts.sparkle: the Treasure Vault's Sparkle Legendary egg
+  const had = coll[fam], sparkle = Math.random() < SPARKLE_CHANCE;
   if (had) coll[fam] = Object.assign({}, had, { lvl: Math.min(MAX_LEVEL, (had.lvl || 1) + 1) });
   else coll[fam] = { lvl: 1, at: new Date().toISOString() };
   // a Sparkle hatch turns the family Sparkle for good (a duplicate Sparkle still levels up too)
@@ -371,7 +266,8 @@ export function doPull(st, rarity, cls, opts) {
 
 /* ---------- arena schedule (Arizona time: no daylight saving) ---------- */
 export function azNow(date) {
-  const parts = AZ_NOW.formatToParts(date || new Date());
+  const parts = new Intl.DateTimeFormat("en-US", { timeZone: "America/Phoenix", weekday: "short", hour: "numeric", minute: "numeric", hour12: false })
+    .formatToParts(date || new Date());
   const get = t => (parts.find(p => p.type === t) || {}).value;
   return { day: get("weekday"), h: Number(get("hour")) % 24, m: Number(get("minute")) };
 }
@@ -428,23 +324,10 @@ export function arenaOpenFor(st, cls, date) {
    A battle doc: { a:{id,name}, b:{id,name}, status: invite|team|lead|done|declined, n, turn:"A"|"B",
      team:{A:[fighter],B:[fighter]}, active:{A:idx|null,B:idx|null}, log:[event], winner }
    fighter = { fam, id, lvl, name, img, type, weak, attack, hp, df, dmg, cur } */
-// Campfire Kitchen meal boosts (meals.js) for today: Power Up +20% damage, Shield +25% Defense, Hearty Meal +20% health
-export function mealBoostsToday(st) { const d = ((st && st.meals) || {})[azToday()] || {}; return ["b", "l"].map(k => d[k] && d[k].boost).filter(Boolean); }
 export function fighterFrom(st, fam) {
-  const f = fighterBase(st, fam); if (!f) return f;
-  const b = mealBoostsToday(st);
-  if (b.includes("power")) f.dmg = Math.round(f.dmg * 1.2);
-  if (b.includes("shield")) f.df = Math.round(f.df * 1.25);
-  if (b.includes("hearty")) { f.hp = Math.round(f.hp * 1.2); f.cur = f.hp; }
-  if (b.length) f.boosts = b.filter(x => ["power", "shield", "hearty"].includes(x));
-  return f;
-}
-function fighterBase(st, fam) {
   const e = owned(st)[fam]; if (!e) return null;
   const c = formOf(fam, e.lvl || 1), s = statsOf(c, e.lvl || 1);
-  return { fam, id: c.id, lvl: e.lvl || 1, name: e.nick || c.name, species: c.name, img: e.sparkle ? sparkleImg(c) : c.img, sparkle: !!e.sparkle, face: c.face || "R", type: c.atkType || c.types[0], ux: c.ux ? JSON.parse(JSON.stringify(c.ux)) : null, types: c.types, weak: c.weak, attack: c.attack, hp: s.hp, df: s.df, dmg: s.dmg, cur: s.hp, dodge: c.dodge || 0,
-    daze: c.daze || 0, dazePct: c.dazePct || 0, poison: c.poison || 0, atkHeal: c.atkHeal || 0, brewFx: !!c.brewFx, candyFx: !!c.candyFx, atkDefDown: c.atkDefDown || 0, atkDefPct: c.atkDefPct || 0, pierce: c.atkPierce || 0, sp: BOSS2_LIST.filter(B => st && st[B.move] === fam).map(B => B.mv).concat(((st && st.vaultMoves) || []).includes(fam) ? ["vault"] : []), spUsed: {}, teamHeal: c.teamHeal || 0, cheer: c.cheer || 0,
-    alt: c.alt ? { name: c.alt.name, mult: c.alt.mult || 1, heal: c.alt.heal || 0, type: c.alt.type || "", defDown: c.alt.defDown || 0, defPct: c.alt.defPct || 0, defTemp: !!c.alt.defTemp, evade: c.alt.evade || 0, daze: c.alt.daze || 0, dazePct: c.alt.dazePct || 0, crit: c.alt.crit || 0, shield: c.alt.shield || 0, teamHeal: c.alt.teamHeal || 0 } : null };
+  return { fam, id: c.id, lvl: e.lvl || 1, name: e.nick || c.name, species: c.name, img: e.sparkle ? sparkleImg(c) : c.img, sparkle: !!e.sparkle, face: c.face || "R", type: c.types[0], types: c.types, weak: c.weak, attack: c.attack, hp: s.hp, df: s.df, dmg: s.dmg, cur: s.hp };
 }
 export function teamSize(a, b) { return Math.max(0, Math.min(TEAM_MAX, ownedFams(a).length, ownedFams(b).length)); }
 export function hitDamage(att, def, crit) {
@@ -453,189 +336,6 @@ export function hitDamage(att, def, crit) {
   if (weak) d *= 2;
   if (crit) d *= CRIT_MULT;
   return { dmg: Math.max(1, Math.round(d)), weak };
-}
-/* A battle in progress. 15 minutes with no moves (upd = last change) and it no longer holds anyone up. */
-export const LIVE = ["invite", "team", "lead", "fight"];
-export const STALE_MS = 15 * 60 * 1000;
-export const staleBattle = b => LIVE.includes(b.status) && Date.now() - new Date(b.upd || b.created || 0).getTime() > STALE_MS;
-/* ---------- battle moves (both players pick, then the round plays out) ----------
-   attack = normal hit · power = 1.5x damage but 75% to hit · guard = take half damage this round
-   heal = +35% HP (once per creature) · swap = switch to another creature on your team (uses your turn) */
-export const MOVES = {
-  attack: { icon: "\u2694\uFE0F", name: "Attack" },
-  power:  { icon: "\u{1F4A5}", name: "Power Move", mult: 1.5, hit: 0.75 },
-  guard:  { icon: "\u{1F6E1}\uFE0F", name: "Guard" },
-  heal:   { icon: "\u{1F49A}", name: "Heal", pct: 0.35 },
-  swap:   { icon: "\u{1F504}", name: "Swap" },
-  alt:    { icon: "\u2728", name: "Special" },   // a creature's own second attack (e.g. Cinnamon's Sugar Rush)
-  // 2nd-boss moves (BOSS2): each is taught once to one companion. 1.75x damage of its type, never misses
-  // (not even dodges or portals), once per battle.
-  ghost:    { icon: "\u{1F47B}", name: "Spectral Strike", mult: 1.75, type: "Ghost", special: true },
-  feast:    { icon: "\u{1F983}", name: "Feast Frenzy", mult: 1.75, type: "Nature", special: true },
-  sack:     { icon: "\u{1F381}", name: "Sack Smash", mult: 1.75, type: "Dark", special: true },
-  blizzard: { icon: "\u2744\uFE0F", name: "Blizzard Burst", mult: 1.75, type: "Ice", special: true },
-  shatter:  { icon: "\u{1F494}", name: "Shatter Strike", mult: 1.75, type: "Crystal", special: true },
-  goldrush: { icon: "\u{1F308}", name: "Rainbow Gold Rush", mult: 1.75, type: "Light", special: true },
-  // Treasure Vault move: any creature can learn it (one lesson per Vault opened). Steel, 2x damage, goes right through
-  // Defense, 85% to hit, once per battle.
-  vault:    { icon: "\u{1F48E}", name: "Vault Breaker", mult: 2, type: "Steel", special: true, hit: 0.85, pierce: true }
-};
-export function moveOk(bt, side, mv) {
-  const team = bt.team && bt.team[side], cur = team && team[bt.active[side]];
-  if (!mv || !MOVES[mv.m] || !cur || cur.cur <= 0) return false;
-  if (mv.m === "heal") return !cur.healed && cur.cur < cur.hp;
-  if (mv.m === "alt") return !!cur.alt;
-  if (MOVES[mv.m].special) return (cur.sp || []).includes(mv.m) && !(cur.spUsed || {})[mv.m];
-  if (mv.m === "swap") return Number.isInteger(mv.to) && mv.to !== bt.active[side] && team[mv.to] && team[mv.to].cur > 0;
-  return true;
-}
-/* ---------- 🌈 Ultra Legendary battle effects ----------
-   ux = { main: fx, alt: fx, pass: { name, fx: "first" | "halfHeal" | "halfDef", pct }, sp: { name, heal, def, atk, boost, bt: [types], shield } }
-   fx = { fx: "defdown" | "daze" | "burn" | "poison" | "shield" | "boost" | "bonus" | "heal", ch: chance, pct }
-   Log lines are { k: "ux", s, t: text } (plus i/left/max when HP changes). */
-function uxAfterHit(bt, s, o, att, def, f, alt) {
-  if (f.fx === "bonus" || Math.random() >= (f.ch || 0)) return;
-  const pc = Math.round((f.pct || 0) * 100), mv = alt ? att.alt.name : att.attack;
-  if (f.fx === "defdown" && def.cur > 0 && !def.uxDd) { def.uxDd = true; def.df = Math.max(1, Math.round(def.df * (1 - f.pct))); if (def.dfOrig) def.dfOrig = Math.max(1, Math.round(def.dfOrig * (1 - f.pct))); bt.log.push({ k: "ux", s: o, t: mv + " cracks " + def.name + "'s Defense: -" + pc + "% for the rest of the battle!" }); }
-  else if (f.fx === "daze" && def.cur > 0) { def.dazed = f.pct; bt.log.push({ k: "daze", s, d: def.name, pct: pc }); }
-  else if ((f.fx === "burn" || f.fx === "poison") && def.cur > 0 && !def.psn) { def.psn = 3; def.burn = f.fx === "burn"; bt.log.push(f.fx === "burn" ? { k: "ux", s: o, t: "\u{1F525} " + def.name + " is burning! It loses a little HP for 3 rounds." } : { k: "poison", s, d: def.name }); }
-  else if (f.fx === "shield" && att.cur > 0) { att.shielded = f.pct; bt.log.push({ k: "ux", s, t: "\u{1F6E1}\uFE0F " + mv + ": the next hit on " + att.name + " does " + pc + "% less damage." }); }
-  else if (f.fx === "boost" && att.cur > 0) { att.uxB = { p: f.pct }; bt.log.push({ k: "ux", s, t: "\u26A1 " + mv + " charges " + att.name + " up: its next attack does +" + pc + "% damage!" }); }
-  else if (f.fx === "heal" && att.cur > 0 && att.cur < att.hp) { const amt = Math.min(att.hp - att.cur, Math.round(att.hp * f.pct)); att.cur += amt; bt.log.push({ k: "heal", s, i: bt.active[s], n: att.name, amt, left: att.cur, max: att.hp, alt: true }); }
-}
-// After an Ultra takes damage: its below-50% passive (once) and its below-30% special (once per battle)
-function uxHurt(bt, s, i, f) {
-  if (!f || !f.ux || f.cur <= 0) return;
-  const p = f.ux.pass, heal = pct => { const amt = Math.min(f.hp - f.cur, Math.round(f.hp * pct)); f.cur += amt; return amt; };
-  if (p && (p.fx === "halfHeal" || p.fx === "halfDef") && !f.uxHalf && f.cur < f.hp * 0.5) {
-    f.uxHalf = true;
-    if (p.fx === "halfHeal") { const amt = heal(p.pct); bt.log.push({ k: "ux", s, i, left: f.cur, max: f.hp, t: "\u{1F49A} " + p.name + "! " + f.name + " heals " + amt + " HP." }); }
-    else { f.df = Math.round(f.df * (1 + p.pct)); if (f.dfOrig) f.dfOrig = Math.round(f.dfOrig * (1 + p.pct)); bt.log.push({ k: "ux", s, t: "\u{1FAA8} " + p.name + "! " + f.name + "'s Defense goes up " + Math.round(p.pct * 100) + "%." }); }
-  }
-  const sp = f.ux.sp;
-  if (sp && !f.uxSp && f.cur > 0 && f.cur < f.hp * 0.3) {
-    f.uxSp = true;
-    const amt = sp.heal ? heal(sp.heal) : 0, bits = [];
-    if (amt) bits.push("heals " + amt + " HP");
-    if (sp.def) { f.df = Math.round(f.df * (1 + sp.def)); if (f.dfOrig) f.dfOrig = Math.round(f.dfOrig * (1 + sp.def)); bits.push("+" + Math.round(sp.def * 100) + "% Defense"); }
-    if (sp.atk) { f.dmg = Math.round(f.dmg * (1 + sp.atk)); bits.push("+" + Math.round(sp.atk * 100) + "% Attack"); }
-    if (sp.boost) { f.uxB = { p: sp.boost, t: sp.bt || null }; bits.push("next " + (sp.bt ? sp.bt.join(" or ") + " " : "") + "attack +" + Math.round(sp.boost * 100) + "%"); }
-    if (sp.shield) { f.shielded = sp.shield; bits.push("next hit on it -" + Math.round(sp.shield * 100) + "%"); }
-    bt.log.push({ k: "ux", s, i, left: f.cur, max: f.hp, sp: true, t: "\u{1F308} ULTRA SPECIAL: " + sp.name + "! " + f.name + " " + bits.join(", ") + "!" });
-  }
-}
-// Play one round once both moves are in. Mutates and returns the battle.
-export function resolveRound(bt) {
-  const other = s => (s === "A" ? "B" : "A"), mv = bt.moves || {};
-  const first = bt.turn || "A", order = [first, other(first)], who = s => (s === "A" ? bt.a.name : bt.b.name);
-  bt.round = (Number(bt.round) || 0) + 1;
-  const guard = {};
-  // 1. swaps
-  order.forEach(s => { const m = mv[s]; if (m && m.m === "swap" && moveOk(bt, s, m)) {
-    const from = bt.team[s][bt.active[s]]; bt.active[s] = m.to;
-    bt.log.push({ k: "swap", s, i: m.to, n: bt.team[s][m.to].name, from: from.name, who: who(s) }); } });
-  // 2. heals and guards
-  order.forEach(s => { const m = mv[s], f = bt.team[s][bt.active[s]]; if (!m || !f) return;
-    if (m.m === "heal" && !f.healed && f.cur < f.hp) { const amt = Math.min(f.hp - f.cur, Math.round(f.hp * MOVES.heal.pct)); f.cur += amt; f.healed = true;
-      bt.log.push({ k: "heal", s, i: bt.active[s], n: f.name, amt, left: f.cur, max: f.hp }); }
-    if (m.m === "guard") { guard[s] = true; bt.log.push({ k: "guard", s, i: bt.active[s], n: f.name }); } });
-  // 3. attacks, in order; a creature that faints first doesn't get to hit
-  for (const s of order) {
-    const m = mv[s], o = other(s); if (!m || (m.m !== "attack" && m.m !== "power" && m.m !== "alt" && !(MOVES[m.m] && MOVES[m.m].special))) continue;
-    const att = bt.team[s][bt.active[s]], def = bt.team[o][bt.active[o]];
-    if (!att || !def || att.cur <= 0 || def.cur <= 0) continue;
-    const SP = MOVES[m.m] && MOVES[m.m].special ? MOVES[m.m] : null, spook = !!SP && (att.sp || []).includes(m.m) && !(att.spUsed || {})[m.m];
-    if (spook) att.spUsed = Object.assign({}, att.spUsed || {}, { [m.m]: true });
-    const sure = spook && !SP.hit;   // boss moves never miss; Vault Breaker can
-    const pmiss = (m.m === "power" && Math.random() >= MOVES.power.hit) || (spook && SP.hit && Math.random() >= SP.hit), portal = !sure && !pmiss && def.evade > 0;   // Cosmic Whiskers: slips through a portal and dodges this attack
-    if (portal) def.evade = 0;
-    const dodged = !sure && !pmiss && (portal || (!!def.dodge && Math.random() < def.dodge));   // speedy creatures (Jett) dodge some hits
-    const alt = m.m === "alt" && att.alt;
-    const power = m.m === "power", miss = pmiss || dodged, crit = !miss && Math.random() < Math.max(CRIT_CHANCE, alt && att.alt.crit || 0);   // Confetti Comet: 20% crit
-    // Boo-nanza (Ghost-olotl): 20% of its normal hits go right through the opponent's Defense
-    const pierced = !miss && ((m.m === "attack" && att.pierce && Math.random() < att.pierce) || (spook && SP.pierce));
-    let { dmg, weak } = hitDamage(spook ? Object.assign({}, att, { type: SP.type }) : alt && att.alt.type ? Object.assign({}, att, { type: att.alt.type }) : att, pierced ? Object.assign({}, def, { df: 0 }) : def, crit);   // a second attack can have its own type
-    if (spook) dmg = Math.round(dmg * SP.mult);
-    if (power) dmg = Math.round(dmg * MOVES.power.mult);
-    if (alt) dmg = Math.max(1, Math.round(dmg * (att.alt.mult || 1)));
-    // Candy Crush (Candivora): each landed hit picks one candy: chocolate (heal), a conversation heart (Defense down) or hard candy (+20% damage)
-    const candyPick = !miss && m.m === "attack" && att.candyFx ? ["choc", "heart", "hard"][Math.floor(Math.random() * 3)] : null;
-    if (candyPick === "hard") dmg = Math.round(dmg * 1.2);
-    // 🌈 Ultra: "my next attack does +X%" (from Solar Tempest or a special; a special's boost can be for its own types only)
-    const atkType = spook ? SP.type : alt && att.alt.type ? att.alt.type : att.type;
-    if (att.uxB && !miss && (!att.uxB.t || att.uxB.t.includes(atkType))) { dmg = Math.round(dmg * (1 + att.uxB.p)); bt.log.push({ k: "ux", s, t: att.name + "'s power-up: +" + Math.round(att.uxB.p * 100) + "% damage!" }); att.uxB = null; }
-    const uxFx = att.ux && !spook ? (alt ? att.ux.alt : (m.m === "attack" || m.m === "power") ? att.ux.main : null) : null;
-    if (uxFx && uxFx.fx === "bonus" && !miss && Math.random() < uxFx.ch) { dmg = Math.round(dmg * (1 + uxFx.pct)); bt.log.push({ k: "ux", s, t: "\u{1F48E} " + att.name + "'s " + (alt ? att.alt.name : att.attack) + " hits extra hard: +" + Math.round(uxFx.pct * 100) + "% damage!" }); }
-    // 🌈 Ultra passive (Glaciera, Lumirath, Monolyth): the first hit it takes in a battle does less damage
-    const dp = def.ux && def.ux.pass;
-    if (dp && dp.fx === "first" && !def.uxFirst && !miss) { dmg = Math.max(1, Math.round(dmg * (1 - dp.pct))); def.uxFirst = true; bt.log.push({ k: "ux", s: o, t: def.name + "'s " + dp.name + " blocks " + Math.round(dp.pct * 100) + "% of the first hit!" }); }
-    if (def.shielded && !miss) { dmg = Math.max(1, Math.round(dmg * (1 - def.shielded))); def.shielded = 0; }   // Wishful Winter snow barrier: this hit does 20% less
-    const cheered = !!att.cheered;
-    if (cheered) { dmg = Math.max(1, Math.round(dmg * (1 + att.cheered))); att.cheered = 0; }   // Midnight Finale cheer from a teammate: +10% this attack
-    const wasDazed = !!att.dazed;
-    if (wasDazed) { dmg = Math.max(1, Math.round(dmg * (1 - (att.dazed || 0)))); att.dazed = 0; }   // dazzled last round: weaker hit
-    if (guard[o]) dmg = Math.max(1, Math.round(dmg / 2));
-    if (miss) dmg = 0;
-    def.cur = Math.max(0, def.cur - dmg);
-    bt.log.push({ k: "hit", s, ai: bt.active[s], di: bt.active[o], a: att.name, atk: spook ? SP.name : power ? att.attack + " (Power)" : alt ? att.alt.name : att.attack, pierced: !!pierced, d: def.name, dmg, crit, weak: weak && !miss, miss, dodged, portal, power, dazedHit: wasDazed, guarded: !!guard[o], left: def.cur, max: def.hp });
-    if (uxFx && !miss) uxAfterHit(bt, s, o, att, def, uxFx, alt);
-    // Cinnamon Swirl: a chance to dazzle the target so its next attack is weaker
-    if (!miss && m.m === "attack" && att.daze && def.cur > 0 && Math.random() < att.daze) { def.dazed = att.dazePct || 0.15; bt.log.push({ k: "daze", s, d: def.name, pct: Math.round((att.dazePct || 0.15) * 100) }); }
-    // Pickle Peckle: a chance to poison (loses a little HP at the end of each of the next 3 rounds; poison never knocks out)
-    if (!miss && m.m === "attack" && att.poison && def.cur > 0 && !def.psn && Math.random() < att.poison) { def.psn = 3; bt.log.push({ k: "poison", s, d: def.name }); }
-    // Brine Bomb: a chance to lower the target's defense for the rest of the battle
-    if (!miss && alt && att.alt.defDown && def.cur > 0 && !(def.dfT > 0) && Math.random() < att.alt.defDown) {
-      if (att.alt.defTemp) { def.dfOrig = def.df; def.dfT = 2; }   // Blossom Barrage: only until the end of the next round
-      def.df = Math.max(1, Math.round(def.df * (1 - (att.alt.defPct || 0.2)))); bt.log.push({ k: "defdown", s, d: def.name, pct: Math.round((att.alt.defPct || 0.2) * 100), temp: !!att.alt.defTemp }); }
-    // Orchard Burst: the attacker heals a little after hitting
-    // Event Horizon (Voidwhisker): a chance to lower the opponent's Defense until the end of the next round
-    if (!miss && m.m === "attack" && att.atkDefDown && def.cur > 0 && !(def.dfT > 0) && Math.random() < att.atkDefDown) {
-      def.dfOrig = def.df; def.dfT = 2; def.df = Math.max(1, Math.round(def.df * (1 - (att.atkDefPct || 0.15))));
-      bt.log.push({ k: "defdown", s, d: def.name, pct: Math.round((att.atkDefPct || 0.15) * 100), temp: true, src: att.fam === "L-36" ? "crumble" : "void" });
-    }
-    // Cosmic Whiskers (Voidwhisker): a chance to dodge the opponent's next attack
-    if (!miss && alt && att.alt.evade && att.cur > 0 && !(att.evade > 0) && Math.random() < att.alt.evade) { att.evade = 1; bt.log.push({ k: "evade", s, n: att.name }); }
-    // Witch's Brew (Brewraith): every hit that lands does one random thing: poison, a short Defense drop, or a small heal
-    if (!miss && m.m === "attack" && att.brewFx && def.cur > 0) {
-      const opts = []; if (!def.psn) opts.push("psn"); if (!(def.dfT > 0)) opts.push("def"); if (att.cur < att.hp) opts.push("heal");
-      const pick = opts[Math.floor(Math.random() * opts.length)];
-      if (pick === "psn") { def.psn = 3; bt.log.push({ k: "poison", s, d: def.name }); }
-      else if (pick === "def") { def.dfOrig = def.df; def.dfT = 2; def.df = Math.max(1, Math.round(def.df * 0.8)); bt.log.push({ k: "defdown", s, d: def.name, pct: 20, temp: true, src: "brew" }); }
-      else if (pick === "heal") { const amt = Math.min(att.hp - att.cur, Math.round(att.hp * 0.08)); att.cur += amt; bt.log.push({ k: "heal", s, i: bt.active[s], n: att.name, amt, left: att.cur, max: att.hp, alt: true }); }
-    }
-    if (candyPick === "hard") bt.log.push({ k: "candy", s, n: att.name, c: "hard" });
-    if (candyPick === "choc") { const amt = Math.min(att.hp - att.cur, Math.round(att.hp * 0.1)); att.cur += amt; bt.log.push({ k: "candy", s, n: att.name, c: "choc", amt }); }
-    if (candyPick === "heart" && def.cur > 0) { if (!(def.dfT > 0)) { def.dfOrig = def.df; def.dfT = 2; def.df = Math.max(1, Math.round(def.df * 0.85)); } bt.log.push({ k: "candy", s, n: att.name, d: def.name, c: "heart" }); }
-    if (!miss && m.m === "attack" && att.atkHeal && att.cur < att.hp) { const amt = Math.min(att.hp - att.cur, Math.round(att.hp * att.atkHeal)); att.cur += amt; bt.log.push({ k: "heal", s, i: bt.active[s], n: att.name, amt, left: att.cur, max: att.hp, alt: true }); }
-    // Sugar Rush: heals the attacker a little
-    // Wishful Winter (Snowmorrow): a snow barrier that takes 20% off the next hit it gets
-    if (!miss && alt && att.alt.shield && att.cur > 0) { att.shielded = att.alt.shield; bt.log.push({ k: "shield", s, n: att.name, pct: Math.round(att.alt.shield * 100) }); }
-    // Midnight Finale (Midniduck): every teammate still standing gets +10% damage on its next attack
-    if (!miss && m.m === "attack" && att.cheer) { (bt.team[s] || []).forEach(f => { if (f && f.cur > 0) f.cheered = att.cheer; }); bt.log.push({ k: "cheer", s, n: att.name, pct: Math.round(att.cheer * 100) }); }
-    // Feastfall (Cornucopia): also heals every teammate still standing by 10%
-    if (!miss && m.m === "attack" && att.teamHeal) (bt.team[s] || []).forEach((f, i) => { if (f && f !== att && f.cur > 0 && f.cur < f.hp) { const amt = Math.min(f.hp - f.cur, Math.round(f.hp * att.teamHeal)); f.cur += amt; bt.log.push({ k: "heal", s, i, n: f.name, amt, left: f.cur, max: f.hp, alt: true, team: true }); } });
-    // Pie in the Sky (Cornucopia): a chance to dazzle, so the opponent's next attack is weaker
-    if (!miss && alt && att.alt.daze && def.cur > 0 && Math.random() < att.alt.daze) { def.dazed = att.alt.dazePct || 0.2; bt.log.push({ k: "daze", s, d: def.name, pct: Math.round((att.alt.dazePct || 0.2) * 100), pie: att.fam === "L-35", gum: att.fam === "L-36" }); }
-    if (!miss && alt && att.alt.teamHeal) (bt.team[s] || []).forEach((f, i) => { if (f && f !== att && f.cur > 0 && f.cur < f.hp) { const amt = Math.min(f.hp - f.cur, Math.round(f.hp * att.alt.teamHeal)); f.cur += amt; bt.log.push({ k: "heal", s, i, n: f.name, amt, left: f.cur, max: f.hp, alt: true, team: true }); } });   // Rainbow Bridge (Prismalotl)
-    if (alt && att.alt.heal && att.cur < att.hp) { const amt = Math.min(att.hp - att.cur, Math.round(att.hp * att.alt.heal)); att.cur += amt; bt.log.push({ k: "heal", s, i: bt.active[s], n: att.name, amt, left: att.cur, max: att.hp, alt: true }); }
-    if (!miss && dmg > 0) uxHurt(bt, o, bt.active[o], def);
-    if (def.cur <= 0) {
-      bt.log.push({ k: "faint", s: o, i: bt.active[o], n: def.name });
-      bt.active[o] = null;
-      if (!alive(bt.team[o])) { bt.status = "done"; bt.winner = s; bt.log.push({ k: "win", s }); bt.moves = { A: null, B: null }; return bt; }
-    }
-  }
-  // a temporary defense drop wears off
-  ["A", "B"].forEach(s => (bt.team[s] || []).forEach(f => { if (f && f.dfT > 0) { f.dfT -= 1; if (!f.dfT) { f.df = f.dfOrig || f.df; delete f.dfOrig; } } }));
-  // 4. poison ticks (6% of max HP, at least 1 HP is always left)
-  order.forEach(s => { const f = bt.team[s][bt.active[s]]; if (!f || !(f.psn > 0) || f.cur <= 1) { if (f && f.cur <= 1) f.psn = 0; return; }
-    const amt = Math.min(f.cur - 1, Math.max(1, Math.round(f.hp * 0.06))); f.cur -= amt; f.psn -= 1;
-    bt.log.push(Object.assign({ k: "psn", s, i: bt.active[s], n: f.name, amt, left: f.cur, max: f.hp }, f.burn ? { burn: true } : {})); if (!f.psn) f.burn = false;
-    uxHurt(bt, s, bt.active[s], f); });
-  bt.moves = { A: null, B: null };
-  bt.turn = other(first);   // the other player goes first next round
-  bt.status = bt.active.A != null && bt.active.B != null ? "fight" : "lead";
-  return bt;
 }
 export function alive(team) { return (team || []).filter(f => f.cur > 0).length; }
 // Fight until one active creature faints (or the battle ends). Mutates and returns the battle.

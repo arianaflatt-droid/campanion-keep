@@ -8,9 +8,8 @@
    Saved on the student: doors = { "YYYY-MM-DD": { "0": { st: "wait"|"ok"|"no"|"open", at, r }, g: { st: "open", r } } }
    plus lastDoor = "YYYY-MM-DD/<door>" (which door the last save touched; the save rules check it).
    Class: doorsOn (on/off), doorList (default list), doorDays = { "YYYY-MM-DD": [..] } (one-day lists). */
-import { azToday } from "./collect.js?v=20261104k";
-import { SEASON, eventMode, esc, dayXP, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261104k";
-import { subFor, SUB_NAMES } from "./teams.js?v=20261104k";
+import { azToday } from "./collect.js";
+import { SEASON, eventMode, esc } from "./game.js";
 
 // A door that starts with "!" is always open (not locked behind the first doors). The "!" isn't shown.
 export const DOOR_DEFAULT = [
@@ -18,45 +17,26 @@ export const DOOR_DEFAULT = [
   "Get 25 Math XP",
   "Get 25 Reading XP",
   "Get 25 Language XP",
-  "!Show Ms. Ariana you have your notebook or whiteboard",
-  "Earn 50 XP in your Goal Subject",
-  "Earn 75 XP in your Goal Subject",
-  "Earn 100 XP in your Goal Subject",
-  "Earn 125 XP in your Goal Subject",
-  "Earn 150 XP today"
+  "Close your Fast Math Ring",
+  "Close your Vocab Ring",
+  "Close your Science or Writing Ring",
+  "Earn 240 XP today",
+  "Close all Rings",
+  "Earn 25 extra XP in Math, Language or Reading (close ALL 3 first)"
 ];
-// Earlier default lists: a class still using one of these gets the new default automatically.
-const OLD_DEFAULTS = [
-  ["!Earn 25 XP Before School Starts", "Get 25 Math XP", "Get 25 Reading XP", "Get 25 Language XP", "Show Ms. Ariana your math notes!", "Earn 50 XP in your Goal Subject", "Earn 75 XP in your Goal Subject", "Earn 100 XP in your Goal Subject", "Earn 125 XP in your Goal Subject", "Earn 150 XP today"],
-  ["!Earn 25 XP Before School Starts", "Get 25 Math XP", "Get 25 Reading XP", "Get 25 Language XP", "Close your Fast Math Ring", "Earn 50 XP in your Goal Subject", "Earn 75 XP in your Goal Subject", "Earn 100 XP in your Goal Subject", "Earn 125 XP in your Goal Subject", "Earn 240 XP today"],
-  ["!Earn 25 XP Before School Starts", "Get 25 Math XP", "Get 25 Reading XP", "Get 25 Language XP", "Close your Fast Math Ring", "Earn 60 XP in your Goal Subject", "Earn 75 XP in your Goal Subject", "Earn 100 XP in your Goal Subject", "Earn 125 XP in your Goal Subject", "Earn 240 XP today"],
-  ["!Earn 25 XP Before School Starts", "Get 25 Math XP", "Get 25 Reading XP", "Get 25 Language XP", "Close your Fast Math Ring", "Close your Vocab Ring", "Close your Science or Writing Ring", "Earn 240 XP today", "Close all Rings", "Earn 25 extra XP in Math, Language or Reading (close ALL 3 first)"],
-  ["Get 25 Math XP", "Get 25 Reading XP", "Get 25 Language XP", "Close your Fast Math Ring", "Close your Vocab Ring", "Close your Science or Writing Ring", "Earn 240 XP today", "Close all Rings", "Earn 25 extra XP in Math, Language or Reading (close ALL 3 first)"]
-].map(l => JSON.stringify(l));
-// Each student's Goal Subject (set by the teacher). "your Goal Subject" in a door fills in with it.
-export const GOAL_SUBJECTS = ["Math", "Reading", "Language", "Science", "Writing", "Vocabulary", "Fast Math"];
 export const DOOR_GATE = 3;   // the first 3 doors that aren't always-open ones unlock the rest
-// Doors Ms. Ariana checks herself (e.g. "Show Ms. Ariana ..."): the console has a one-tap roster for these.
-export const isTeacherCheck = task => /show\s+ms\.?\s+ariana/i.test(String(task || ""));
 export const isFree = task => String(task || "").trim().startsWith("!");
-export const doorText = (task, st, cls) => {
-  let t = String(task || "").trim().replace(/^!\s*/, ""); const g = st && st.goalSubject;
-  if (g) t = t.replace(/\byour goal subject\b/gi, g).replace(/\bgoal subject\b/gi, g);
-  // a student with their own plan (Ms. Ariana's subject swaps): "Get 25 Math XP" becomes "Get 25 Science XP"
-  if (cls && st) t = t.replace(/\b(\d+)\s+(Math|Reading|Language)\s+XP\b/gi, (all, n, w) => { const k = { math: "m", reading: "r", language: "l" }[w.toLowerCase()], to = subFor(cls, st, k); return to !== k ? n + " " + SUB_NAMES[to] + " XP" : all; });
-  return t;
-};
-export const DOOR_NAMES = { haunt: "Haunted Doors", gobble: "Harvest Doors", jingle: "Advent Calendar", frost: "Frozen Doors", heart: "Mailbox Doors", lucky: "Rainbow Doors" };
-export const DOOR_ICON = { haunt: "\u{1F6AA}", gobble: "\u{1F6AA}", jingle: "\u{1F4C5}", frost: "\u{1F6AA}", heart: "\u{1F4EC}", lucky: "\u{1F308}" };
-export const DOOR_ART = { haunt: "assets/doors/door-haunt.webp", gobble: "assets/doors/door-gobble.webp", jingle: "assets/doors/door-jingle.webp", frost: "assets/doors/door-frost.webp", heart: "assets/doors/door-heart.webp", lucky: "assets/doors/door-lucky.webp" };
+export const doorText = task => String(task || "").trim().replace(/^!\s*/, "");
+export const DOOR_NAMES = { haunt: "Haunted Doors", gobble: "Harvest Doors", jingle: "Advent Calendar" };
+export const DOOR_ICON = { haunt: "\u{1F6AA}", gobble: "\u{1F6AA}", jingle: "\u{1F4C5}" };
+export const DOOR_ART = { haunt: "assets/doors/door-haunt.webp", gobble: "assets/doors/door-gobble.webp", jingle: "assets/doors/door-jingle.webp" };
 export const doorName = () => DOOR_NAMES[SEASON.key] || "Daily Doors";
 
 export function doorsLive(cls) { return !!(cls && cls.doorsOn) && eventMode(cls); }
 export function doorsFor(cls, date) {
   const d = cls && cls.doorDays && cls.doorDays[date];
   if (Array.isArray(d) && d.length) return d;
-  const l = Array.isArray(cls && cls.doorList) && cls.doorList.length ? cls.doorList : null;
-  return l && !OLD_DEFAULTS.includes(JSON.stringify(l)) ? l : DOOR_DEFAULT;
+  return Array.isArray(cls && cls.doorList) && cls.doorList.length ? cls.doorList : DOOR_DEFAULT;
 }
 export function dayDoors(st, date) { return ((st && st.doors) || {})[date] || {}; }
 export const doorState = (st, date, i) => (dayDoors(st, date)[String(i)] || {}).st || "";
@@ -86,45 +66,23 @@ export function goldenReady(st, cls, date) { return allDone(st, cls, date) && !d
 /* ---------- rewards ---------- */
 // A regular present gives one of these. cur = the event's currency (candy / corn / presents).
 export const PRESENT_ODDS = [
-  { id: "xp25",   p: 0.34, xp: 25 },
+  { id: "xp25",   p: 0.32, xp: 25 },
   { id: "xp50",   p: 0.23, xp: 50 },
   { id: "cur20",  p: 0.20 },
   { id: "brew",   p: 0.12 },
   { id: "attack", p: 0.06 },
   { id: "egg",    p: 0.04 },
-  { id: "prize",  p: 0.01 }   // was 3%: prize spins were coming up too often
+  { id: "prize",  p: 0.03 }
 ];
-// A Golden Present gives one of three: 500 XP (45%), an egg (45%) or a prize spin (10%; it was 1 in 3).
-// The egg is an event egg 1 time in 5, otherwise a regular egg.
+// A Golden Present gives one of three (1 in 3 each). The egg is an event egg 1 time in 5, otherwise a regular egg.
 export const GOLDEN_ODDS = [
-  { id: "xp500", p: 0.45, xp: 500 },
-  { id: "gegg",  p: 0.45 },
-  { id: "prize", p: 0.10 }
+  { id: "xp500", p: 1 / 3, xp: 500 },
+  { id: "gegg",  p: 1 / 3 },
+  { id: "prize", p: 1 / 3 }
 ];
 export const THEME_EGG_CHANCE = 0.2;
-/* Goal Subject doors: a guaranteed "Goal Present" instead of a random one. The tier comes from the XP in the door's text
-   ("Earn 50 XP in your Goal Subject" = tier 1 ... 125 = tier 4).
-   g1: +75 candy, +20 CP · g2: event snack, +25 candy, +20 CP · g3: extra boss attack, an egg, +20 CP
-   g4: a Rare-or-better egg (1% chance it's the season's event Legendary instead), +40 CP */
-export function goalTier(task) {
-  const m = /(\d+)\s*XP\s+in\s+your\s+goal\s+subject/i.exec(String(task || ""));
-  if (!m) return 0;
-  const n = Number(m[1]);
-  return n >= 125 ? 4 : n >= 100 ? 3 : n >= 75 ? 2 : 1;
-}
-export const GOAL_CP = { g1: 20, g2: 20, g3: 20, g4: 40, g2i: 20, g3i: 20 };   // g2i/g3i = g2/g3 in potion mode (a free ingredient instead of the brew/attack)
-export const GOAL_CANDY = { g1: 75, g2: 25, g2i: 25 };
-export const GOAL_LEG_CHANCE = 0.01;
-export const SEASON_LEGENDARY = { haunt: "L-27", gobble: "L-29", jingle: "L-30", frost: "L-37", heart: "L-39", lucky: "L-64" };
-// Comfort Points from opened Goal Presents (added to Comfort Points by the teacher console).
-export function goalCP(st) {
-  let n = 0;
-  Object.values((st && st.doors) || {}).forEach(day => Object.values(day || {}).forEach(e => { if (e && e.st === "open" && e.r && GOAL_CP[e.r.id]) n += GOAL_CP[e.r.id]; }));
-  return n;
-}
 function roll(list) { let r = Math.random(); for (const x of list) { if (r < x.p) return x; r -= x.p; } return list[list.length - 1]; }
-export function rollPresent(golden, tier) {
-  if (!golden && tier) return tier === 4 ? { id: "g4", leg: Math.random() < GOAL_LEG_CHANCE } : { id: "g" + tier };
+export function rollPresent(golden) {
   const x = roll(golden ? GOLDEN_ODDS : PRESENT_ODDS);
   if (x.id === "gegg") return { id: Math.random() < THEME_EGG_CHANCE ? "tegg" : "egg" };
   return { id: x.id };
@@ -140,15 +98,6 @@ export function rewardText(r, S) {
     case "egg": return { icon: "\u{1F95A}", big: "A creature egg!", sub: "Hatch it in the Creature Collector." };
     case "tegg": return { icon: "✨", big: "An event egg!", sub: "Hatch it in the Creature Collector — it’s a special " + S.name + " creature!" };
     case "prize": return { icon: "\u{1F3C6}", big: "A Prize Wheel spin!", sub: "Spinning the Prize Wheel…" };
-    case "g1": return { icon: S.coin, big: "+75 " + S.Cur + " & +20 Comfort Points", sub: "Candy is in your " + S.basket + ". Comfort Points are for your room!" };
-    case "g2": return { icon: S.brewIcon, big: S.brewName + ", +25 " + S.Cur + " & +20 Comfort Points", sub: "Your next attack does +10 damage. Comfort Points are for your room!" };
-    case "g3": return { icon: "⚔️", big: "Extra attack, an egg & +20 Comfort Points", sub: "One more attack on the " + S.boss + " and an egg to hatch in the Creature Collector!" };
-    case "ing": return { icon: r.ing.icon, big: "Free ingredient: " + r.ing.name, sub: "+1 " + r.ing.name + " for your " + r.ing.where + "!" };
-    case "g2i": return { icon: r.ing.icon, big: "Free " + r.ing.name + ", +25 " + S.Cur + " & +20 Comfort Points", sub: "+1 " + r.ing.name + " for your " + r.ing.where + ". Comfort Points are for your room!" };
-    case "g3i": return { icon: r.ing.icon, big: "Free " + r.ing.name + ", an egg & +20 Comfort Points", sub: "+1 " + r.ing.name + " for your " + r.ing.where + " and an egg to hatch in the Creature Collector!" };
-    case "g4": return r.leg
-      ? { icon: "\u{1F31F}", big: "A LEGENDARY egg!!", sub: "WOW \u2014 1 in 100! It hatches the " + S.name + " Legendary early. +40 Comfort Points too!" }
-      : { icon: "\u{1F3AF}", big: "A Rare-or-better egg & +40 Comfort Points", sub: "Hatch your Goal egg in the Creature Collector \u2014 it\u2019s at least Rare!" };
     default: return { icon: "\u{1F381}", big: "A present", sub: "" };
   }
 }
@@ -163,7 +112,7 @@ export function waitingDoors(students, cls) {
   const out = [];
   students.forEach(s => Object.keys((s && s.doors) || {}).forEach(date => {
     const day = s.doors[date] || {};
-    Object.keys(day).forEach(k => { if (k !== "g" && (day[k] || {}).st === "wait") out.push({ s, date, i: Number(k), task: doorText(doorsFor(cls, date)[Number(k)] || "Door " + (Number(k) + 1), s, cls), at: day[k].at }); });
+    Object.keys(day).forEach(k => { if (k !== "g" && (day[k] || {}).st === "wait") out.push({ s, date, i: Number(k), task: doorText(doorsFor(cls, date)[Number(k)] || "Door " + (Number(k) + 1)), at: day[k].at }); });
   }));
   return out.sort((a, b) => String(a.at).localeCompare(String(b.at)));
 }
@@ -177,153 +126,4 @@ export function doorXPRows(students) {
   return out;
 }
 export const doorToday = date => date || azToday();
-
-/* ---------- auto-approve from subject XP ----------
-   sub = { m, f, r, w, l, v, sc, ss } (Math, FastMath, Reading, Writing, Language, Vocabulary, Science, Social Studies), total = day XP.
-   Returns true / false if the door can be checked from the data, or null if it can't (e.g. "before school"). */
-export const SUBJECT_KEYS = { "math": "m", "fast math": "f", "fastmath": "f", "reading": "r", "writing": "w", "language": "l", "vocabulary": "v", "vocab": "v", "science": "sc", "social studies": "ss" };
-export const FAST_RING = 109;
-export function doorMet(task, st, sub, total, cls) {
-  const t = doorText(task, st, cls).toLowerCase();
-  if (!sub || /before school/.test(t)) return null;
-  let m = /(\d+)\s*xp\s+in\s+your\s+goal\s+subject/.exec(String(task || "").toLowerCase());
-  if (m) { const k = SUBJECT_KEYS[String((st && st.goalSubject) || "").toLowerCase()]; return k ? (Number(sub[k]) || 0) >= Number(m[1]) : null; }
-  m = /(\d+)\s+(math|fast ?math|reading|writing|language|vocabulary|vocab|science|social studies)\s+xp/.exec(t) || /(\d+)\s*xp\s+in\s+(math|fast ?math|reading|writing|language|vocabulary|vocab|science|social studies)\b/.exec(t);
-  if (m) return (Number(sub[SUBJECT_KEYS[m[2].replace("fast math", "fastmath")] || SUBJECT_KEYS[m[2]]]) || 0) >= Number(m[1]);
-  if (/fast ?math ring/.test(t)) return (Number(sub.f) || 0) >= (Number(cls && cls.fastRing) || FAST_RING);
-  m = /earn\s+(\d+)\s*xp\s+today/.exec(t);
-  if (m) return (Number(total) || 0) >= Number(m[1]);
-  return null;
-}
-// The doors map for one student and day after auto-approving everything the data shows as done.
-// Doors already approved/opened or marked "Not yet" by the teacher are left alone. Locked doors only open once the first ones are approved.
-export function autoDoors(st, cls, date, sub, total) {
-  const list = doorsFor(cls, date), doors = JSON.parse(JSON.stringify((st && st.doors) || {})), day = Object.assign({}, doors[date] || {});
-  let n = 0;
-  const tryDoor = i => { const cur = (day[String(i)] || {}).st || ""; if (approved(cur) || cur === "no") return;
-    if (doorMet(list[i], st, sub, total, cls) === true) { day[String(i)] = { st: "ok", at: (day[String(i)] || {}).at || new Date().toISOString(), auto: true, checked: new Date().toISOString() }; n++; } };
-  const gate = gateDoors(cls, date);
-  list.forEach((t, i) => { if (isFree(t) || gate.includes(i)) tryDoor(i); });
-  const sim = Object.assign({}, st, { doors: Object.assign({}, doors, { [date]: day }) });
-  if (gateOpen(sim, cls, date)) list.forEach((t, i) => { if (!isFree(t) && !gate.includes(i)) tryDoor(i); });
-  if (!n) return null;
-  doors[date] = day; return { doors, n };
-}
-/* ---------- Weekly Door ----------
-   One extra door each week, separate from the daily doors: reach WEEK_DOOR_XP XP this week (Mon–Fri) and it unlocks.
-   When the teacher pastes XP that puts a student at the goal, the console marks it ready (weekDoor[week] = "ready");
-   the student opens it for a Legendary egg (weekDoor[week] = "open", legendaryPulls + 1). week = the Monday the week's XP belongs to. */
-export { WEEK_DOOR_XP, weekKey, weekGoal };
-// Weekend work (pasted on Monday as "Last Sat" / "Last Sun") counts toward the week just finished: it lives only in
-// xpHist, on the Saturday and Sunday after that week's Monday.
-export function addDays(iso, n) { const [y, m, d] = String(iso).split("-").map(Number), x = new Date(y, m - 1, d + n);
-  return x.getFullYear() + "-" + String(x.getMonth() + 1).padStart(2, "0") + "-" + String(x.getDate()).padStart(2, "0"); }
-export function mondayOf(iso) { const [y, m, d] = String(iso).split("-").map(Number), wd = new Date(y, m - 1, d).getDay(); return addDays(iso, wd === 0 ? -6 : 1 - wd); }
-const histXP = (st, date) => { const h = ((st && st.xpHist) || {})[date] || {}; return Number(h.d != null ? h.d : h.l != null ? h.l : 0) || 0; };
-// This week (cls.weekStart): Mon-Fri from the week's boxes + the weekend from the history
-export function weekTotal(st, cls) { let n = 0; for (let d = 0; d < 5; d++) n += dayXP(st, d);
-  if (cls) { const mon = weekKey(cls); n += histXP(st, addDays(mon, 5)) + histXP(st, addDays(mon, 6)); } return Math.round(n); }
-// Any week, Mon-Sun, from the history only (used for a week that's already over)
-export function histWeekTotal(st, mon) { let n = 0; for (let i = 0; i < 7; i++) n += histXP(st, addDays(mon, i)); return Math.round(n); }
-/* ---------- 25 Math / 25 Reading / 25 Language a day (Oct 23) ----------
-   The Weekly Door and the Treasure Vault also need the core subjects: 25 XP in each per school day, added up for the week
-   (5 days = 125 each), so weekend work can make up a missed day. Excused days still have to be made up (Ms. Ariana, Oct 25);
-   only a day off for everyone (cls.offDays[date]) lowers it. Students with their own plan use Ms. Ariana's subject swaps (cls.subSwap, same as their doors).
-   cls.subRule === false turns the rule off. */
-export const SUB_DAY = 25, SUB_REQ = ["m", "r", "l"];
-export const SUB_SINCE = "2026-10-19";   // weeks before this one had no subject numbers, so they skip the rule
-export const subRuleOn = cls => !(cls && cls.subRule === false);
-export function subReq(st, cls, wk) {
-  wk = wk || weekKey(cls);
-  const hist = (st && st.xpHist) || {}, off = (cls && cls.offDays) || {};
-  let days = 0;
-  for (let i = 0; i < 5; i++) if (!off[addDays(wk, i)]) days++;
-  // Any swap that sends two or three core subjects to the same subject adds them up (Oct 26): all three → Math = one Math row of 375 a week, not 125 three times
-  const rows = [], by = {};
-  SUB_REQ.forEach(k => { const src = subFor(cls, st, k);
-    if (by[src]) { by[src].need += days * SUB_DAY; by[src].ks.push(k); return; }
-    let have = 0; for (let i = 0; i < 7; i++) have += Number((((hist[addDays(wk, i)] || {}).sub) || {})[src]) || 0;
-    rows.push(by[src] = { k, ks: [k], src, name: SUB_NAMES[src] || src, have: Math.round(have), need: days * SUB_DAY }); });
-  const cells = SUB_REQ.map(k => Object.assign({}, by[subFor(cls, st, k)], { k }));   // one per Math / Reading / Language (the console table)
-  const on = subRuleOn(cls) && wk >= SUB_SINCE;
-  return { on, rows, cells, days, ok: !on || rows.every(r => r.have >= r.need), short: rows.filter(r => r.have < r.need) };
-}
-// Little bars for the student cards
-/* ---------- 📚 Today's work (Oct 26): what each core subject needs TODAY, with any catch-up from earlier this week ----------
-   On pace = 25 a school day so far (Mon..today, not cls.offDays). Today's target = what's left to be on pace once today ends,
-   never less than the normal 25. Weekends: whatever is still missing for the week. Uses the merged rows (swaps add up). */
-export function todayPlan(st, cls, today) {
-  const q = subReq(st, cls); if (!q.on) return null;
-  const wk = weekKey(cls), hist = (st && st.xpHist) || {}, off = (cls && cls.offDays) || {};
-  const idx = Math.round((new Date(today + "T12:00:00") - new Date(wk + "T12:00:00")) / 864e5);
-  if (idx < 0 || idx > 6) return null;
-  const weekend = idx >= 5, schoolToday = !weekend && !off[today];
-  let soFar = 0; for (let i = 0; i <= Math.min(idx, 4); i++) if (!off[addDays(wk, i)]) soFar++;
-  const rows = q.rows.map(r => {
-    const per = r.ks.length * SUB_DAY, tdy = Math.round(Number((((hist[today] || {}).sub) || {})[r.src]) || 0), before = r.have - tdy;
-    const target = weekend ? Math.max(0, r.need - before) : Math.max(schoolToday ? per : 0, soFar * per - before);
-    return { name: r.name, src: r.src, per, today: tdy, target, extra: Math.max(0, target - (schoolToday ? per : 0)), week: r.have, need: r.need };
-  });
-  return { rows, weekend, schoolToday };
-}
-export function subReqHTML(st, cls, wk) {
-  const q = subReq(st, cls, wk); if (!q.on || !q.days) return "";
-  return '<div class="subreq">' + q.rows.map(r => '<span class="srq' + (r.have >= r.need ? " ok" : "") + '"><b>' + esc(r.name) + "</b> " + Math.min(r.have, r.need) + " / " + r.need + (r.have >= r.need ? " \u2705" : "") + "</span>").join("") + "</div>";
-}
-// "open" | "ready" | "locked"
-export function weekDoorState(st, cls) {
-  const v = ((st && st.weekDoor) || {})[weekKey(cls)];
-  if (v === "open") return "open";
-  if (v === "ready" && subReq(st, cls).ok) return "ready";   // a saved "ready" still needs the core subjects
-  return weekTotal(st, cls) >= weekGoal(cls) && subReq(st, cls).ok ? "ready" : "locked";   // opens on its own once the week adds up (XP + the 25/25/25 subjects)
-}
-// Doors from an earlier week that weekend work unlocked late ("ready" under an older week)
-export function oldReady(st, cls, field) { const wk = weekKey(cls), o = (st && st[field]) || {}; return Object.keys(o).filter(k => k !== wk && o[k] === "ready").sort(); }
-
-/* ---------- Treasure Vault ----------
-   Reach the week's Vault goal (the student's own Weekly Reward goal, or VAULT_XP XP; weekend included) and that week's Treasure Vault unlocks: vault = { "<Monday>": "ready" | "open" }.
-   Inside (Nov 3): an Ultra Legendary egg (first vault always, then 25%; ultra.js vaultUltra), a Sparkle Legendary egg (vaultLegEggs / vaultLegUsed),
-   a Golden Present, a Vault Breaker lesson and the Weekly Reward. (VAULT_BONUS_XP / VAULT_EGGS are no longer given.)
-   and one more Vault Breaker lesson (vaultMoves = families that know it; one per Vault opened). */
-export const VAULT_XP = 600,   // no goal subject set = a plain 600 XP week (Ms. Ariana, Oct 27; was 1,000)
-  VAULT_BONUS_XP = 500, VAULT_EGGS = 3;
-// Every vault also needs VAULT_MIN XP in total that week (weekend included), whatever the student's own goal is (Oct 20)
-export const VAULT_MIN = 600;
-// The Vault's goal for a week: the student's own Weekly Reward goal (Rewards tab: a subject + an XP amount) when
-// Ms. Ariana set one for that week, otherwise a plain 600 XP total (VAULT_XP). Returns { xp, n, sub, reward }.
-// A student's Vault reward for a week. It counts for the week it was saved on, and also for this calendar week
-// (so a reward saved before or after the console's "New week" button still shows up this week).
-export function rewardFor(st, cls, wk) {
-  wk = wk || weekKey(cls);
-  const g = st && st.reward;
-  if (!g || !(Number(g.xp) > 0) || !g.sub) return null;
-  const cur = wk === weekKey(cls);
-  return g.week === wk || (cur && g.week === mondayOf(azToday())) ? g : null;
-}
-export function vaultGoal(st, cls, wk) {
-  wk = wk || weekKey(cls);
-  const g = rewardFor(st, cls, wk);
-  if (g) {
-    let n = 0;
-    if (g.sub === "all") n = wk === weekKey(cls) ? weekTotal(st, cls) : histWeekTotal(st, wk);   // a total-XP goal (like 600)
-    else for (let i = 0; i < 7; i++) { const h = ((st.xpHist || {})[addDays(wk, i)]) || {}; n += Number((h.sub || {})[g.sub]) || 0; }
-    const tot = g.sub === "all" ? Math.round(n) : wk === weekKey(cls) ? weekTotal(st, cls) : histWeekTotal(st, wk);
-    return { xp: Number(g.xp), n: Math.round(n), sub: g.sub, reward: g, tot, min: VAULT_MIN };
-  }
-  const tot = wk === weekKey(cls) ? weekTotal(st, cls) : histWeekTotal(st, wk);
-  return { xp: VAULT_XP, n: tot, sub: null, reward: null, tot, min: VAULT_MIN };
-}
-// Goal reached AND at least VAULT_MIN XP in total that week
-export const vaultMet = (st, cls, wk) => { const v = vaultGoal(st, cls, wk); return v.n >= v.xp && v.tot >= v.min && subReq(st, cls, wk).ok; };
-// The 600-XP rule needs its own line when the goal itself doesn't already cover it (a subject goal, or a total under 600)
-// A week that's over: its saved "ready" stands (its goal may have changed since), but it still needs VAULT_MIN XP total
-export const vaultMinOk = (st, cls, wk) => (wk === weekKey(cls) ? weekTotal(st, cls) : histWeekTotal(st, wk)) >= VAULT_MIN && subReq(st, cls, wk).ok;
-export const vaultNeedsMin = v => (v.sub && v.sub !== "all") || v.xp < v.min;
-export function vaultState(st, cls) {
-  const v = ((st && st.vault) || {})[weekKey(cls)];
-  if (v === "open") return v;
-  return vaultMet(st, cls) ? "ready" : "locked";   // a saved "ready" still has to meet today's rule (600 XP total)
-}
-export function vaultsOpened(st) { return Object.values((st && st.vault) || {}).filter(v => v === "open").length; }
-export function vaultLessonsLeft(st) { return Math.max(0, vaultsOpened(st) - ((st && st.vaultMoves) || []).length); }
 export { esc };

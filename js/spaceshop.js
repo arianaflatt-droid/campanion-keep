@@ -6,12 +6,12 @@
      About 1 day in 10 it's a ✨ Lucky Find: a holiday or event set piece.
    Every buy is one write (planet + the thing bought: outfits / roomOwned / coll), through safari.js planetSave so the safari, the café
    and the shop never overwrite each other. Teacher preview and the student demo save nothing to the class. Catalog: shop-data.js. */
-import { esc } from "./game.js?v=20261110h";
-import { azToday } from "./collect.js?v=20261110h";
-import { planetNow, planetSave, planetCtx, freshSt } from "./safari.js?v=20261110h";
-import { TYPE_THEMES, SEASON_THEMES, KINDS, itemName, itemArt, owned as roomOwnedList } from "./room.js?v=20261110h";
-import { ALIEN_CREATURES, ALIEN_FAMILIES } from "./aliens.js?v=20261110h";
-import { HANGAR_CATS, HANGAR_OPEN, SHOP_ITEMS, SHOP_BY, CATS, CRATE_COST, SHOP_ART, COLLECTIONS, shopOf, hasItem, wearing } from "./shop-data.js?v=20261110h";
+import { esc } from "./game.js?v=20261111k";
+import { azToday } from "./collect.js?v=20261111k";
+import { planetNow, planetSave, planetCtx, freshSt } from "./safari.js?v=20261111k";
+import { TYPE_THEMES, SEASON_THEMES, KINDS, itemName, itemArt, owned as roomOwnedList } from "./room.js?v=20261111k";
+import { ALIEN_CREATURES, ALIEN_FAMILIES } from "./aliens.js?v=20261111k";
+import { HANGAR_CATS, HANGAR_OPEN, SHOP_ITEMS, SHOP_BY, CATS, CRATE_COST, SHOP_ART, COLLECTIONS, shopOf, hasItem, wearing } from "./shop-data.js?v=20261111k";
 
 const WEAR_CATS = ["duck", "flame", "trail", "orbit", "table"];
 let msg = null, extra = null;   // the last message, and the last non-planet fields saved (so the page shows them before the save comes back)
@@ -78,14 +78,16 @@ function hatchEgg(st, it) {
   rerender();
 }
 // 🎁 Mystery Space Crate: mostly small things, sometimes something big, sometimes Stardust back
-function openCrate() {
+export const openCrateFree = onPl => { openCrate(0, onPl); const m = msg; msg = null; return m; };   // 🛰️ Space Station stage 1 reward (Nov 11)
+function openCrate(cost, onPl) {
+  cost = cost == null ? CRATE_COST : cost;
   const c = ctx(); if (!c) return; const st = stNow(c.st);
   const r0 = Math.random(), r = r0 >= 0.97 ? 0.9 : r0, notMine = cats => SHOP_ITEMS.filter(i => cats.includes(i.cat) && !HANGAR_CATS.includes(i.cat) && !i.goal && !hasItem(st, i.k));
   let pickFrom = r < 0.4 ? notMine(["table", "flame"]).concat(notMine(["table"])) : r < 0.65 ? [] : r < 0.85 ? notMine(["trail", "orbit"]).concat(notMine(["orbit"])) : r < 0.97 ? notMine(["outfit"]) : notMine(["duck"]);
   const it = pickFrom.length ? pickFrom[Math.floor(Math.random() * pickFrom.length)] : null;
   const back = it ? 0 : 30 + Math.floor(Math.random() * 8) * 10;   // 30–100 Stardust back
   const ex = it && (it.cat === "outfit" || it.cat === "room") ? give(st, it, null) : null;
-  if (!pay(CRATE_COST, (shop, pl) => { shop.cr = (Number(shop.cr) || 0) + 1; if (it && !ex) give(st, it, shop); else if (!it) pl.dust += back; }, ex, "")) return;
+  if (!pay(cost, (shop, pl) => { if (onPl) onPl(pl); if (cost) shop.cr = (Number(shop.cr) || 0) + 1; if (it && !ex) give(st, it, shop); else if (!it) pl.dust += back; }, ex, "")) return;
   msg = { crate: it ? (it.img || "") : "", emo: it && !it.img ? it.emo : "", text: "\u{1F381} The crate popped open: " + (it ? "the <b>" + esc(it.name) + "</b>! " + (HOW[it.cat] || "") : "<b>" + back + " ⭐ Stardust</b>!") + (c.preview ? " (Preview: nothing was saved.)" : ""), html: 1 };
   rerender();
 }

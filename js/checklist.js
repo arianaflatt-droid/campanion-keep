@@ -3,23 +3,24 @@
    Each step checks itself off from the student's save; tapping a step opens the tab where it's done.
    The Treasure Vault step is "check your progress", so it counts as done once the student opens it today
    (remembered on this computer only). */
-import { rvStarted, rvStock, rvBeatCount } from "./revenge.js?v=20261110h";
-import { heistTodo } from "./heist.js?v=20261110h";
-import { axoOn } from "./axolotl.js?v=20261110h";
-import { newsKeyOf, shownNews } from "./news.js?v=20261110h";
-import { freeReady } from "./pets.js?v=20261110h";
-import { tbLeft, tbLive } from "./teachbattle.js?v=20261110h";
-import { esc, simulate, companionOf, goalXP } from "./game.js?v=20261110h";
+import { rvStarted, rvStock, rvBeatCount } from "./revenge.js?v=20261111k";
+import { heistTodo } from "./heist.js?v=20261111k";
+import { axoOn } from "./axolotl.js?v=20261111k";
+import { newsKeyOf, shownNews } from "./news.js?v=20261111k";
+import { freeReady } from "./pets.js?v=20261111k";
+import { tbLeft, tbLive } from "./teachbattle.js?v=20261111k";
+import { esc, simulate, companionOf, goalXP } from "./game.js?v=20261111k";
 import { azToday, azNow, todayXP, pullsLeft, legendaryLeft, birthdayLeft, pickleLeft, vaultLegLeft, BOSS2_LIST, boss2EggLeft, candyLegLeft, snowLegLeft,
-  gingerLegLeft, feastLegLeft, brewLegLeft, goalLeft, themeLeft, hasStarter, bankXP, LEVEL_XP } from "./collect.js?v=20261110h";
-import { mqReady } from "./morning.js?v=20261110h";
-import { doorsLive, doorName, goldenReady, weekDoorState, vaultState, vaultGoal, subReq, todayPlan, SUBJECT_KEYS } from "./doors.js?v=20261110h";
-import { soloOn, soloReady, soloCfg } from "./solobrew.js?v=20261110h";
-import { passReady } from "./pass.js?v=20261110h";
-import { pettedToday } from "./bond.js?v=20261110h";
-import { mealsReady } from "./meals.js?v=20261110h";
-import { readyTests } from "./quest.js?v=20261110h";
-import { unthanked } from "./kindness.js?v=20261110h";
+  gingerLegLeft, feastLegLeft, brewLegLeft, goalLeft, themeLeft, hasStarter, bankXP, LEVEL_XP } from "./collect.js?v=20261111k";
+import { mqReady } from "./morning.js?v=20261111k";
+import { doorsLive, doorName, goldenReady, weekDoorState, vaultState, vaultGoal, subReq, todayPlan, SUBJECT_KEYS } from "./doors.js?v=20261111k";
+import { soloOn, soloReady, soloCfg } from "./solobrew.js?v=20261111k";
+import { passReady } from "./pass.js?v=20261111k";
+import { pettedToday } from "./bond.js?v=20261111k";
+import { mealsReady } from "./meals.js?v=20261111k";
+import { readyTests } from "./quest.js?v=20261111k";
+import { unthanked } from "./kindness.js?v=20261111k";
+import { kdTodo } from "./kingdom.js?v=20261111k";
 
 const seenKey = (id, what) => "ck-seen-" + azToday() + "-" + id + "-" + what;
 // 📣 the class announcement (Nov 9): a new one gets a new key, so it shows up on the list again
@@ -84,6 +85,7 @@ export function steps(s, cls, students, battles) {
   // 9. Season Pass
   if (!(cls && cls.passOff)) { const n = passReady(s, cls); add("pass", "pass", "\u{1F39F}️", "Claim Season Pass rewards", n ? plural(n, "reward") + " ready!" : "No rewards waiting.", !n); }
   // extras (only when there's something to do)
+  if (kdTodo(s, cls)) add("kd", "kd", "\u{1F30A}", "Visit the Axolotl Kingdom", "You made it in this week! Open your Royal Clam and go Pearl Diving.", false);   // Nov 10
   { const n = readyTests(s).length; if (n) add("tests", "quest", "\u{1F5FA}️", "Grade Level Quest: battle a guardian", "You passed " + plural(n, "test") + "! A guardian battle is waiting. Win it for a Legendary egg!", false); }
   { const n = tbLeft(s, cls, battles).length, live = tbLive(s, battles);
     if (live && live.status === "invite") add("tbattle", "collect", "\u{1F34E}", "Ms. Ariana started your battle!", "Go to the Battle Arena and tap Accept.", false);

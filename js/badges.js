@@ -1,16 +1,16 @@
-import { owned as roomOwned, fitOf as roomFit, FIT_SLOTS, setItems as roomSet } from "./room.js?v=20261110h";
-import { presentsOpened } from "./doors.js?v=20261110h";
-import { PASS_THEMES, passDone } from "./pass.js?v=20261110h";
-import { shopBuys, swapBuys, outfitsOwned, cabinOwned, paintsOwned } from "./shop-data.js?v=20261110h";
-import { REGULARS as CF_REG, SPECIALS as CF_SP, keptCount as cfKept, perfectTotal as cfPerfect, monthPairs as cfPairs } from "./cafe-data.js?v=20261110h";
-import { ZONES as PJ_ZONES, pageCount as pjPage, pageSize as pjSize, aliensFound as pjAl, allAliensFound as pjAllAl, ALIEN_LIST as PJ_ALIENS } from "./safari.js?v=20261110h";
+import { owned as roomOwned, fitOf as roomFit, FIT_SLOTS, setItems as roomSet } from "./room.js?v=20261111k";
+import { presentsOpened } from "./doors.js?v=20261111k";
+import { PASS_THEMES, passDone } from "./pass.js?v=20261111k";
+import { shopBuys, swapBuys, outfitsOwned, cabinOwned, paintsOwned } from "./shop-data.js?v=20261111k";
+import { REGULARS as CF_REG, SPECIALS as CF_SP, keptCount as cfKept, perfectTotal as cfPerfect, monthPairs as cfPairs } from "./cafe-data.js?v=20261111k";
+import { ZONES as PJ_ZONES, pageCount as pjPage, pageSize as pjSize, aliensFound as pjAl, allAliensFound as pjAllAl, ALIEN_LIST as PJ_ALIENS } from "./safari.js?v=20261111k";
 // Badges: worked out from each student's saved data, so nothing extra is stored and no rules change.
 // To add a badge: add an entry with a check(st) that returns how far along the student is,
 // and a goal. Put its picture in assets/badges/ (a transparent WEBP or PNG). Without a picture, the emoji shows.
 const nebOf = st => ((st && st.planet) || {}).pets || {}, nebN = st => Object.keys(nebOf(st).o || {}).length;
 const NEB_SEASON = ["pumpkin", "pie", "candycane", "snowball", "sweetheart", "clover", "egg", "springflower", "sunbeam", "pencil"];
-import { esc, goalXP, candyOf, ghostUnlocked } from "./game.js?v=20261110h";
-import { seenSet, ownedFams, owned, family, formIndex, formOf, STARTERS, CREATURES } from "./collect.js?v=20261110h";
+import { esc, goalXP, candyOf, ghostUnlocked } from "./game.js?v=20261111k";
+import { seenSet, ownedFams, owned, family, formIndex, formOf, STARTERS, CREATURES } from "./collect.js?v=20261111k";
 
 export const hatches = st => (Number(st.pullsUsed) || 0) + (Number(st.legendaryUsed) || 0);
 
@@ -120,6 +120,8 @@ export const eventsCaught = st => EVENT_FAMS.filter(f => owned(st)[f]).length;
 const LORE = CREATURES.filter(c => !c.event).length, lore = pct => Math.ceil(LORE * pct / 100);
 
 const zooOf = st => ((st && st.planet) || {}).zoo || {};
+const stnG = st => Number((((st && st.planet) || {}).stn || {}).g) || 0;
+const kdG = st => Object.keys(((st && st.kd) || {}).g || {}).length;
 export const BADGE_GROUPS = [
   { key: "hatch", title: "\u{1F95A} Hatching" },
   { key: "morning", title: "\u{1F305} Morning Quests" },
@@ -143,6 +145,8 @@ export const BADGE_GROUPS = [
   { key: "cafe", title: "\u2615 Space Caf\u00e9 + \u{1F6D2} Shops" },
   { key: "zoo", title: "\u{1F992} Space Zoo" },
   { key: "neb", title: "\u{1F43E} Nebbles" },
+  { key: "station", title: "\u{1F6F0}\uFE0F Space Station" },
+  { key: "kingdom", title: "\u{1F30A} Axolotl Kingdom" },
 ];
 
 export const BADGES = [
@@ -297,6 +301,17 @@ export const BADGES = [
   { id: "neb-50", group: "neb", name: "Nebble Master", desc: "Own all 50 Nebbles", goal: 50, img: "assets/badges/neb-50.webp", emoji: "\u{1F451}", check: st => Math.min(50, nebN(st)) },
   { id: "neb-care", group: "neb", name: "Pet Pro", desc: "Care for your Nebble 5 school days in a row", goal: 1, img: "assets/badges/neb-care.webp", emoji: "\u{1F6C1}", check: st => Math.min(1, Number((nebOf(st).care || {}).cards) || 0) },
   { id: "neb-season", group: "neb", name: "Seasonal Friend", desc: "Adopt a seasonal Nebble", goal: 1, img: "assets/badges/neb-season.webp", emoji: "\u{1F383}", check: st => Object.keys(nebOf(st).o || {}).some(k => NEB_SEASON.includes(k)) ? 1 : 0 },
+  // 🛰️ Space Station (Nov 11): this semester's planet.stn; Station Complete = got all 5 stage rewards (ever: stnDone stays true)
+  { id: "stn-crew", group: "station", name: "Station Crew", desc: "Give 250 Stardust to the class Space Station in one semester", goal: 250, img: "assets/badges/stn-crew.webp", emoji: "\u{1F9D1}\u200D\u{1F680}", check: st => Math.min(250, stnG(st)) },
+  { id: "stn-engineer", group: "station", name: "Station Engineer", desc: "Give 500 Stardust to the class Space Station in one semester", goal: 500, img: "assets/badges/stn-engineer.webp", emoji: "\u{1F527}", check: st => Math.min(500, stnG(st)) },
+  { id: "stn-captain", group: "station", name: "Station Captain", desc: "Give 1,000 Stardust to the class Space Station in one semester", goal: 1000, img: "assets/badges/stn-captain.webp", emoji: "\u{1F468}\u200D\u2708\uFE0F", check: st => Math.min(1000, stnG(st)) },
+  { id: "stn-complete", group: "station", name: "Station Complete", desc: "Help finish the class Space Station and claim Astro", goal: 1, img: "assets/badges/stn-complete.webp", emoji: "\u{1F6F0}\uFE0F", check: st => (((st && st.planet) || {}).pets || {}).o && st.planet.pets.o.astro ? 1 : 0 },
+  // 🌊 Axolotl Kingdom (Nov 11): kd.g = { week: 1 } treasures, kd.sb = Pearl Shop buys
+  { id: "kd-first", group: "kingdom", name: "Welcome to the Kingdom", desc: "Get your first Treasure of the Week from Queen Bubbles", goal: 1, img: "assets/badges/badge-kingdom-first.webp", emoji: "\u{1F3F0}", check: st => Math.min(1, kdG(st)) },
+  { id: "kd-13", group: "kingdom", name: "Treasure Season", desc: "Collect 13 Treasures of the Week", goal: 13, img: "assets/badges/badge-kingdom-13.webp", emoji: "\u{1F9F0}", check: st => Math.min(13, kdG(st)) },
+  { id: "kd-26", group: "kingdom", name: "Half a Year of Treasure", desc: "Collect 26 Treasures of the Week", goal: 26, img: "assets/badges/badge-kingdom-26.webp", emoji: "\u{1F41A}", check: st => Math.min(26, kdG(st)) },
+  { id: "kd-52", group: "kingdom", name: "Royal Collector", desc: "Collect 52 Treasures of the Week", goal: 52, img: "assets/badges/badge-kingdom-52.webp", emoji: "\u{1F451}", check: st => Math.min(52, kdG(st)) },
+  { id: "kd-shop", group: "kingdom", name: "Pearl Shopper", desc: "Buy something in the Pearl Shop", goal: 1, img: "assets/badges/badge-pearl-shop.webp", emoji: "\u26AA", check: st => Math.min(1, Number(((st && st.kd) || {}).sb) || 0) },
   { id: "zoo-rare", group: "zoo", name: "Rare Find", desc: "Meet a Super Rare animal in your zoo", goal: 1, img: "assets/badges/zoo-rare.webp", emoji: "\u{1F31F}", check: st => zooOf(st).fr ? 1 : 0 },
   { id: "zoo-alien", group: "zoo", name: "Alien Exhibit", desc: "Meet a Planet JP alien in your zoo", goal: 1, img: "assets/badges/zoo-alien.webp", emoji: "\u{1F47D}", check: st => zooOf(st).fa ? 1 : 0 },
   { id: "zoo-sparkle", group: "zoo", name: "Sparkle Spotter", desc: "Meet a \u2728 Sparkle animal in your zoo", goal: 1, img: "assets/badges/zoo-sparkle.webp", emoji: "\u2728", check: st => zooOf(st).fs ? 1 : 0 },
