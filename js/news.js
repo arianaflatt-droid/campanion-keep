@@ -6,8 +6,8 @@
    The old single announcement (cls.news + news/pic) still shows until the first save in the new editor turns it into a list item.
    Students see them newest first on Checklist → 📣 Announcements and can react ONCE to each with a kind emote:
    saved on the student as nlike = { announcementId: emote } (one save per reaction; counts come from classmates' public cards). */
-import { esc } from "./game.js?v=20261113e";
-import { azToday } from "./collect.js?v=20261113e";
+import { esc } from "./game.js?v=20261113f";
+import { azToday } from "./collect.js?v=20261113f";
 
 export const NEWS_EMOTES = [["heart", "❤️"], ["up", "\u{1F44D}"], ["party", "\u{1F389}"], ["smile", "\u{1F604}"], ["star", "\u{1F31F}"], ["clap", "\u{1F44F}"]];
 const EMO = {}; NEWS_EMOTES.forEach(([k, e]) => { EMO[k] = e; });

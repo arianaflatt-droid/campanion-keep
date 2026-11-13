@@ -8,9 +8,9 @@
    Saved on the student: doors = { "YYYY-MM-DD": { "0": { st: "wait"|"ok"|"no"|"open", at, r }, g: { st: "open", r } } }
    plus lastDoor = "YYYY-MM-DD/<door>" (which door the last save touched; the save rules check it).
    Class: doorsOn (on/off), doorList (default list), doorDays = { "YYYY-MM-DD": [..] } (one-day lists). */
-import { azToday } from "./collect.js?v=20261113e";
-import { SEASON, eventMode, esc, dayXP, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261113e";
-import { subFor, SUB_NAMES } from "./teams.js?v=20261113e";
+import { azToday } from "./collect.js?v=20261113f";
+import { SEASON, eventMode, esc, dayXP, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261113f";
+import { subFor, SUB_NAMES } from "./teams.js?v=20261113f";
 
 // A door that starts with "!" is always open (not locked behind the first doors). The "!" isn't shown.
 export const DOOR_DEFAULT = [
@@ -274,6 +274,15 @@ export function todayPlan(st, cls, today) {
     return { name: r.name, src: r.src, per, today: tdy, target, extra: Math.max(0, target - (schoolToday ? per : 0)), week: r.have, need: r.need };
   });
   return { rows, weekend, schoolToday };
+}
+/* 📤 Nov 13 (Ms. Ariana): students on their own plan (any subject swap) need their XP sent to the school portal by hand
+   on days they hit the daily goal AND closed their required rings. One day's check: { total, goal, rings: [{ name, have, need }], ok } */
+export const hasSwap = (st, cls) => { const o = ((cls && cls.subSwap) || {})[st && st.id] || {}; return SUB_REQ.some(k => o[k] && o[k] !== k); };
+export function portalDay(st, cls, date) {
+  const h = (((st && st.xpHist) || {})[date]) || {}, total = Math.round(Math.max(Number(h.d) || 0, Number(h.l) || 0));
+  const goal = (cls && Number(cls.goal)) || 120, q = subReq(st, cls, mondayOf(date)), rd = ringDay(st, cls);
+  const rings = q.rows.map(r => ({ name: r.name, have: Math.round(Number((h.sub || {})[r.src]) || 0), need: r.ks.length * rd }));
+  return { total, goal, rings, ok: total >= goal && rings.every(r => r.have >= r.need) };
 }
 export function subReqHTML(st, cls, wk) {
   const q = subReq(st, cls, wk); if (!q.on || !q.days) return "";

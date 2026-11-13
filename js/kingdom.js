@@ -12,9 +12,9 @@
    Saved on the student as kd = { w: the week (Monday), c: clam opened this week, t: trip done this week, dv: dives this week,
      p: pearls, g: { "Monday date": 1 } treasures, best: best dive, n: clams opened, v: visits, sb: shop buys }.
    One save per clam, per dive, per trip and per buy (a buy also saves roomOwned or outfits). Games run in their own layer. */
-import { esc, weekKey } from "./game.js?v=20261113e";
-import { azToday, azNow } from "./collect.js?v=20261113e";
-import { vaultMet, vaultGoal, subReq, addDays } from "./doors.js?v=20261113e";
+import { esc, weekKey } from "./game.js?v=20261113f";
+import { azToday, azNow } from "./collect.js?v=20261113f";
+import { vaultMet, vaultGoal, subReq, addDays } from "./doors.js?v=20261113f";
 
 const K = "assets/kingdom/";
 export const KD_DIVES = 3, KD_CLOSE = 22 * 60, DIVE_SECS = 45, TRIP_SECS = 35, TRIP_MAX = 20;
