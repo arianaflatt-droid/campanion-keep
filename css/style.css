@@ -3725,3 +3725,10 @@ body.sdon{ overflow:hidden; }
 .foldhead{ display:flex; align-items:center; gap:10px; margin:6px 0 8px; flex-wrap:wrap; }
 .foldhead .foldbtn{ margin-left:auto; }
 .card-head > .foldbtn{ flex:none; } .card-head:has(> .foldbtn) > .fact{ margin-left:auto; }
+/* ✏️ Nov 13: Spin to Pick prizes with choices + store links */
+.wsask{ display:block; font-size:11px; font-weight:700; color:#7A4A00; }
+.wslook{ display:inline-block; margin:2px 0 10px; text-decoration:none; }
+.wsnote{ display:flex; flex-direction:column; gap:4px; max-width:340px; margin:0 auto 8px; text-align:left; }
+.wsnote input{ font:inherit; font-size:16px; padding:8px 10px; border-radius:10px; border:2px solid #F4B942; }
+.wsneed{ display:block; color:#B3261E; font-weight:800; margin-bottom:6px; }
+.wscell .wschoice{ font-size:11px; padding:2px 6px; margin-top:4px; }

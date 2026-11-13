@@ -11,9 +11,9 @@
    so it shows on the console's Prize winners list to order.
    Saved on the class (teacher only): wspin = { id, kind, duck, label, names: [{ i, n }], slices: [name index], win, extra, at, open }
    and wsGoal (the weekly number). The wheel draws in its own layer (#wsroot), so page redraws never interrupt the spin. */
-import { esc, weekKey } from "./game.js?v=20261113k";
-import { addDays, histWeekTotal, subReq, subRuleOn, ringPass, mondayOf, ringDay, SUB_REQ } from "./doors.js?v=20261113k";
-import { getSpinPrizes } from "./db.js?v=20261113k";
+import { esc, weekKey } from "./game.js?v=20261113l";
+import { addDays, histWeekTotal, subReq, subRuleOn, ringPass, mondayOf, ringDay, SUB_REQ } from "./doors.js?v=20261113l";
+import { getSpinPrizes } from "./db.js?v=20261113l";
 
 const COLORS = ["#F2545B", "#F4B942", "#2EC4B6", "#7B61FF", "#06D6A0", "#3A86FF"];
 export const WS_DAILY = 120, WS_WEEKLY = 600, SPIN_MS = 4200;
@@ -45,6 +45,9 @@ export const winnerOf = w => (w && w.names && w.slices ? w.names[w.slices[w.win]
 
 /* ----- the layer ----- */
 let S = null, root = null, lastH = "", prizes = null, prizesFor = null, pickBusy = false, choose = null;
+let noteDraft = "", noteNeed = false;   // ✏️ the "which one?" answer for a prize with choices
+const linkOk = l => /^https:\/\//i.test(String(l || ""));
+if (typeof document !== "undefined") document.addEventListener("input", ev => { if (ev.target && ev.target.id === "wsNote") { noteDraft = ev.target.value; if (noteNeed && noteDraft.trim()) { noteNeed = false; const n = root && root.querySelector(".wsneed"); if (n) n.remove(); } } });
 const titleOf = w => w.duck ? "\u{1F986} Who gets to dress the duck?" : w.kind === "weekly" ? "\u{1F3C6} Weekly Prize Spin!" : "\u{1F381} 120 XP Prize Spin!";
 function drawWheel(cv, w, rot) {
   const ctx = cv.getContext("2d"), cx = cv.width / 2, cy = cv.height / 2, R = cv.width / 2 - 6, n = w.slices.length, arc = Math.PI * 2 / n;
@@ -98,11 +101,14 @@ function paintBottom() {
       else {
         const list = prizes.filter(p => (p.set || "daily") === set);
         if (!list.length) h += '<p class="wsmsg">Ms. Ariana will help you pick your prize!</p>';
-        else if (choose) { const p = list.find(x => x.id === choose);
+        else if (choose) { const p = list.find(x => x.id === choose), lk = p && linkOk(p.link);
           h += '<div class="wsconfirm">' + (p && p.img ? '<img src="' + esc(p.img) + '" alt="">' : "") + "<p>Pick <b>" + esc((p && p.name) || "this prize") + "</b>?</p>" +
+            (lk ? '<a class="btn ghost small wslook" href="' + esc(p.link) + '" target="_blank" rel="noopener">\u{1F440} See it in the store (opens a new tab)</a>' : "") +
+            (p && p.choice ? '<label class="wsnote"><b>\u270F\uFE0F ' + esc(p.choice) + '</b><input id="wsNote" type="text" maxlength="80" placeholder="Type which one you want" value="' + esc(noteDraft) + '"></label>' + (noteNeed ? '<small class="wsneed">Type your answer first!</small>' : "") : "") +
             '<div class="row" style="gap:10px;justify-content:center;"><button class="btn gold" data-wsyes="1"' + (pickBusy ? " disabled" : "") + '>✅ Yes, I want this one!</button><button class="btn ghost" data-wsno="1">Go back</button></div></div>'; }
         else h += '<p class="wsmsg">Pick your prize! Tap the one you want.</p><div class="wsprizes">' + list.map(p => '<button class="wsprize" data-wspick="' + esc(p.id) + '">' +
-          (p.img ? '<img src="' + esc(p.img) + '" alt="">' : '<span class="wsnoimg">\u{1F381}</span>') + (p.name ? "<b>" + esc(p.name) + "</b>" : "") + "</button>").join("") + "</div>";
+          (p.img ? '<img src="' + esc(p.img) + '" alt="">' : '<span class="wsnoimg">\u{1F381}</span>') + (p.name ? "<b>" + esc(p.name) + "</b>" : "") + (p.choice ? '<small class="wsask">\u270F\uFE0F You pick which one</small>' : "") + "</button>").join("") + "</div>" +
+          '<p class="wsmsg small">Tap a prize to see it bigger and look at it in the store.</p>';
       }
     } else if (S.teacher) {
       const st = (S.students || []).find(x => x.id === (win && win.i)), e = st && (st.spinLog || []).slice().reverse().find(x => x.src === "wheel" && x.ws === w.id);
@@ -115,13 +121,16 @@ function paintBottom() {
 if (typeof document !== "undefined") document.addEventListener("click", async ev => {
   const t = ev.target.closest && ev.target.closest("[data-wspick],[data-wsyes],[data-wsno],[data-wsclose]"); if (!t || !S) return;
   if (t.dataset.wsclose) { if (S.close) S.close(); return; }
-  if (t.dataset.wspick) { choose = t.dataset.wspick; paintBottom(); return; }
-  if (t.dataset.wsno) { choose = null; paintBottom(); return; }
+  if (t.dataset.wspick) { choose = t.dataset.wspick; noteDraft = ""; noteNeed = false; paintBottom(); return; }
+  if (t.dataset.wsno) { choose = null; noteNeed = false; paintBottom(); return; }
   if (t.dataset.wsyes && !pickBusy && S.save && S.me) {
     const p = (prizes || []).find(x => x.id === choose); if (!p) return;
+    const note = p.choice ? String(noteDraft || "").trim().slice(0, 80) : "";
+    if (p.choice && !note) { noteNeed = true; lastH = ""; paintBottom(); const box = root && root.querySelector("#wsNote"); if (box) box.focus(); return; }
     pickBusy = true; paintBottom();
-    const e = { id: "prize", src: "wheel", wp: p.id, prizeName: "\u{1F3A1} " + String(p.name || "Wheel prize").slice(0, 60), link: String(p.link || "").slice(0, 500), kind: S.w.kind, ws: S.w.id, at: new Date().toISOString() };
-    try { await S.save({ spinLog: (S.me.spinLog || []).concat([e]), wsPick: S.w.id }); S.picked = true; S.pickedName = p.name || "your prize"; choose = null; }
+    const e = { id: "prize", src: "wheel", wp: p.id, prizeName: "\u{1F3A1} " + String(p.name || "Wheel prize").slice(0, 60) + (note ? " (" + note + ")" : ""), link: String(p.link || "").slice(0, 500), kind: S.w.kind, ws: S.w.id, at: new Date().toISOString() };
+    if (note) e.note = note;
+    try { await S.save({ spinLog: (S.me.spinLog || []).concat([e]), wsPick: S.w.id }); S.picked = true; S.pickedName = (p.name || "your prize") + (note ? " (" + note + ")" : ""); choose = null; }
     catch (err) { alert("That didn’t save. Try again, or tell Ms. Ariana."); }
     pickBusy = false; paintBottom();
   }

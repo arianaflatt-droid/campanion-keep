@@ -6,7 +6,7 @@
    • Students can open it any time (the 🦆 pill at the top of the page) to see where the classes are.
    • "Show to students" (show:true) takes over every student's screen until the teacher turns it off.
    • Running (or replaying) the showdown sets playAt, and every screen that has it open plays the animation. */
-const V = "20261113k";
+const V = "20261113l";
 let root = null, frame = null, ready = false, mode = "", userOpen = false, ctx = {}, sent = "";
 
 export function sdState(cls) { return (cls && cls.duckSD && cls.duckSD.state) || null; }

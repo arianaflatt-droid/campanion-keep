@@ -26,12 +26,12 @@
    While an event is on, every companion wears a random costume from it, and The Keep gets the event's colors.
    Saved on the student: mini = { id, used: { date: n }, cos, maze, stop, stamps, elf: { d, found, peek: [] }, got }
    plus outfits / outfitOn (game.js). */
-import { esc, HEAD_FNS, OUTFITS, candyLeft, companionOf } from "./game.js?v=20261113k";
-import { azToday, creature, FAMILIES } from "./collect.js?v=20261113k";
-import { CREATURES } from "./creatures.js?v=20261113k";
-import { xpOn } from "./surprise.js?v=20261113k";
-import { SEASON, boostExtra } from "./game.js?v=20261113k";
-import { readingOn, readingOnBoosted } from "./readmap.js?v=20261113k";
+import { esc, HEAD_FNS, OUTFITS, candyLeft, companionOf } from "./game.js?v=20261113l";
+import { azToday, creature, FAMILIES } from "./collect.js?v=20261113l";
+import { CREATURES } from "./creatures.js?v=20261113l";
+import { xpOn } from "./surprise.js?v=20261113l";
+import { SEASON, boostExtra } from "./game.js?v=20261113l";
+import { readingOn, readingOnBoosted } from "./readmap.js?v=20261113l";
 
 export const PER_TICKET = 10, OUTFIT_COST = 60;
 const typesOf = fam => { const f = FAMILIES.find(x => x.id === fam); const c = f && CREATURES.find(x => x.id === f.forms[0]); return (c && c.types) || []; };
