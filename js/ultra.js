@@ -8,11 +8,11 @@
      🗺️ finishing all 3 Grade Level Quest tests at their own grade (st.grade = 4 or 5, set by Ms. Ariana; once)
    Saved on the student: ultraEggs, ultraUsed (server), ultraGoals = { st: { s: run start, n: given }, wk: { s, n }, vault: vaults rolled,
      q: true }, ultraLog = [{ why, at }] (newest last). */
-import { esc, weekKey, weekGoal } from "./game.js?v=20261113j";
-import { CLUB_ULTRA_FAMS, PJ_ULTRA_FAMS } from "./collect.js?v=20261113j";
-import { ULTRA_FAMS, ULTRA_DUPE, ultraLeft, owned, formOf, family, creature, statsOf, bankXP, LEVEL_XP, MAX_LEVEL } from "./collect.js?v=20261113j";
-import { doneCount, GRADES } from "./quest.js?v=20261113j";
-import { addDays, mondayOf, histWeekTotal, wkShare } from "./doors.js?v=20261113j";
+import { esc, weekKey, weekGoal } from "./game.js?v=20261113k";
+import { CLUB_ULTRA_FAMS, PJ_ULTRA_FAMS } from "./collect.js?v=20261113k";
+import { ULTRA_FAMS, ULTRA_DUPE, ultraLeft, owned, formOf, family, creature, statsOf, bankXP, LEVEL_XP, MAX_LEVEL } from "./collect.js?v=20261113k";
+import { doneCount, GRADES } from "./quest.js?v=20261113k";
+import { addDays, mondayOf, histWeekTotal, wkShare } from "./doors.js?v=20261113k";
 
 export const STREAK_DAYS = 30, WEEKS_IN_ROW = 4, WEEK_XP = 600, VAULT_ULTRA = 0.25;
 export const ULTRA_GRADES = [4, 5];
