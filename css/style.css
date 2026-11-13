@@ -3717,3 +3717,11 @@ body.sdon{ overflow:hidden; }
 .npx{ border:0; background:rgba(176,106,0,.15); color:#7A4A00; width:28px; height:28px; border-radius:50%; font-size:18px; line-height:1; cursor:pointer; font-weight:800; }
 .npx:hover{ background:rgba(176,106,0,.3); }
 .npok{ display:block; margin:4px auto 0; border:1px solid #FFB547; background:#FFF6E5; color:#7A4A00; border-radius:10px; font:inherit; font-size:11px; font-weight:700; padding:2px 8px; cursor:pointer; }
+/* ▾ Nov 13: fold cards on the console's Daily tab */
+.foldbtn{ border:1px solid var(--line-2,#ddd); background:transparent; color:inherit; border-radius:999px; font:inherit; font-size:12px; font-weight:700; padding:3px 10px; cursor:pointer; margin-left:8px; white-space:nowrap; }
+.foldbtn:hover{ background:rgba(0,0,0,.05); }
+.card.folded > :not(.card-head){ display:none !important; }
+.card.folded > .card-head{ margin-bottom:0; }
+.foldhead{ display:flex; align-items:center; gap:10px; margin:6px 0 8px; flex-wrap:wrap; }
+.foldhead .foldbtn{ margin-left:auto; }
+.card-head > .foldbtn{ flex:none; } .card-head:has(> .foldbtn) > .fact{ margin-left:auto; }

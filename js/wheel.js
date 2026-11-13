@@ -11,9 +11,9 @@
    so it shows on the console's Prize winners list to order.
    Saved on the class (teacher only): wspin = { id, kind, duck, label, names: [{ i, n }], slices: [name index], win, extra, at, open }
    and wsGoal (the weekly number). The wheel draws in its own layer (#wsroot), so page redraws never interrupt the spin. */
-import { esc, weekKey } from "./game.js?v=20261113h";
-import { addDays, histWeekTotal, subReq, subRuleOn, ringPass, mondayOf, ringDay, SUB_REQ } from "./doors.js?v=20261113h";
-import { getSpinPrizes } from "./db.js?v=20261113h";
+import { esc, weekKey } from "./game.js?v=20261113j";
+import { addDays, histWeekTotal, subReq, subRuleOn, ringPass, mondayOf, ringDay, SUB_REQ } from "./doors.js?v=20261113j";
+import { getSpinPrizes } from "./db.js?v=20261113j";
 
 const COLORS = ["#F2545B", "#F4B942", "#2EC4B6", "#7B61FF", "#06D6A0", "#3A86FF"];
 export const WS_DAILY = 120, WS_WEEKLY = 600, SPIN_MS = 4200;

@@ -10,10 +10,10 @@
    Picks: teacher-only doc private/secret = { days: { date: { picks: [{ sid, m, ok }], note, revealed, winners } }, last: { sid: date } }.
    Class doc (no names): cls.secretOn, cls.secretDay = { date, n }, cls.secretShout = { date, names }.
    Winner's save (teacher writes): secretWin = { date, m, prize, note }, secretWins (count). Student writes secretSeen = date. */
-import { esc } from "./game.js?v=20261113h";
-import { azToday } from "./collect.js?v=20261113h";
-import { subFor, SUB_NAMES } from "./teams.js?v=20261113h";
-import { doorsFor, doorState, approved } from "./doors.js?v=20261113h";
+import { esc } from "./game.js?v=20261113j";
+import { azToday } from "./collect.js?v=20261113j";
+import { subFor, SUB_NAMES } from "./teams.js?v=20261113j";
+import { doorsFor, doorState, approved } from "./doors.js?v=20261113j";
 
 export const MISSIONS = {
   rings: { icon: "\u{1F3AF}", name: "Close all 3 rings", short: "Rings", how: "25 Math, 25 Reading and 25 Language (or their own subjects)" },
@@ -136,13 +136,13 @@ export async function secretClick(el, c) {
 }
 
 /* ---------- student page ---------- */
-export function secretBanner(cls) {
+export function secretBanner(cls, top) {   // top = the bar on every page: the "Secret Students today" note only (Nov 13: the shout-out shows on Announcements)
   if (!secretOn(cls)) return "";
   const today = azToday(), d = cls.secretDay || {}, sh = cls.secretShout || {};
   let h = "";
   if (d.date === today && d.n && !d.done) h += '<div class="secretbar">\u{1F575}️ <b>There are ' + d.n + " Secret Students today…</b> Ms. Ariana is watching! Close your 3 rings, show your notebook and keep your camera on — it could be YOU.</div>";
   const age = sh.date ? Math.round((new Date(today + "T12:00:00") - new Date(sh.date + "T12:00:00")) / 864e5) : 99;
-  if (sh.date && age <= 3) h += '<div class="secretbar shout">\u{1F389} <b>' + (sh.date === today ? "Today’s" : dayLabel(sh.date).split(",")[0] + "’s") + " Secret Students:</b> " +
+  if (!top && sh.date && age <= 3) h += '<div class="secretbar shout">\u{1F389} <b>' + (sh.date === today ? "Today’s" : dayLabel(sh.date).split(",")[0] + "’s") + " Secret Students:</b> " +
     (sh.names && sh.names.length ? esc(sh.names.join(", ")) + "! Great work, Secret Agents!" : "nobody this time… will it be you next?") + "</div>";
   return h;
 }

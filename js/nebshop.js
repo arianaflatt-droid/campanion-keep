@@ -4,9 +4,9 @@
    Everyone has the Classic bed for free. Saved in planet.pets: beds = { key: 1 } owned, bed = the one in use.
    Buying = ONE save (it's put in use right away); switching beds = ONE save. Food, brushes, tub toys and fetch toys
    come later (art not in yet) and will be more tabs here. */
-import { esc } from "./game.js?v=20261113h";
-import { azToday } from "./collect.js?v=20261113h";
-import { freshSt, planetSave, planetNow, planetCtx } from "./safari.js?v=20261113h";
+import { esc } from "./game.js?v=20261113j";
+import { azToday } from "./collect.js?v=20261113j";
+import { freshSt, planetSave, planetNow, planetCtx } from "./safari.js?v=20261113j";
 
 const PP = "assets/pets/place/";
 // [key, name, price, months it's sold in (null = all year), where the Nebble sits: [bottom %, width %, left %]]

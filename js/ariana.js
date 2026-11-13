@@ -2,8 +2,8 @@
    Once a day she hides on ONE random Planet JP page (the same page for the whole class that day, picked from the date).
    She peeks in from the side of the screen. Tap her: she jumps out, "You found me!", +10 Stardust, once a day.
    Only while Planet JP is open for the student. Saved: planet.af = the date she was found (one write, through planetSave). */
-import { azToday } from "./collect.js?v=20261113h";
-import { planetNow, planetSave, planetCtx } from "./safari.js?v=20261113h";
+import { azToday } from "./collect.js?v=20261113j";
+import { planetNow, planetSave, planetCtx } from "./safari.js?v=20261113j";
 
 export const ARIANA_DUST = 10;
 // pages every student can reach (zones that unlock later are left out so it's fair)
