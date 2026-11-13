@@ -5,10 +5,10 @@
      · a potion brewed / a dish cooked → a big moment on screen: "✨ Ben brewed a Glow Potion!" / "🥧 Mia cooked Pumpkin Pie!"
      · a leaderboard (most potions / dishes this event), today's count, a class total with milestones, and the latest news.
    The other solo events (gingerbread, snowmen, chocolate, traps) use the same screen with their own icons. */
-import { esc } from "./game.js?v=20261113f";
-import { azToday } from "./collect.js?v=20261113f";
-import { soloCfg, soloOn, soloDay, soloTotal, soloOf, soloIngs } from "./solobrew.js?v=20261113f";
-import { DISHES, effect } from "./teams.js?v=20261113f";
+import { esc } from "./game.js?v=20261113g";
+import { azToday } from "./collect.js?v=20261113g";
+import { soloCfg, soloOn, soloDay, soloTotal, soloOf, soloIngs } from "./solobrew.js?v=20261113g";
+import { DISHES, effect } from "./teams.js?v=20261113g";
 
 const MILE = 25;                      // a class milestone every 25 potions / dishes
 let root = null, last = null, primed = "", snap = {}, feed = [], q = [], busy = false, open = false, cfgKey = "";

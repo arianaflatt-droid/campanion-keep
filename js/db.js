@@ -7,7 +7,7 @@ import {
   getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, signInAnonymously
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
-import { firebaseConfig, CLASS_ID, TEACHER_EMAILS, ADMIN_EMAILS, switchClass } from "./firebase-config.js?v=20261113f";
+import { firebaseConfig, CLASS_ID, TEACHER_EMAILS, ADMIN_EMAILS, switchClass } from "./firebase-config.js?v=20261113g";
 export { CLASS_ID, switchClass };
 
 // Teacher preview (student.html?s=ID&preview=1): the page shows a student's view, but nothing is ever written.
@@ -285,3 +285,10 @@ export const setDoc = PREVIEW ? none : fbSetDoc;
 export const updateDoc = PREVIEW ? none : fbUpdateDoc;
 export const deleteDoc = PREVIEW ? none : fbDeleteDoc;
 export const writeBatch = safeBatch;
+
+// 🎡 Nov 13: Spin to Pick prize lists. One doc per prize: spinPrizes/{id} = { set: "daily" | "weekly", name, link, img, at }.
+// Everyone signed in can read them (the winner picks from them); only the teacher changes them.
+export const spinPrizeRef = id => doc(db, "classes", CLASS_ID, "spinPrizes", id);
+export const newSpinPrizeRef = () => doc(collection(db, "classes", CLASS_ID, "spinPrizes"));
+export function watchSpinPrizes(cb) { return onSnapshot(collection(db, "classes", CLASS_ID, "spinPrizes"), snap => cb(snap.docs.map(d => Object.assign({ id: d.id }, d.data()))), () => cb([])); }
+export async function getSpinPrizes() { const snap = await getDocs(collection(db, "classes", CLASS_ID, "spinPrizes")); return snap.docs.map(d => Object.assign({ id: d.id }, d.data())); }

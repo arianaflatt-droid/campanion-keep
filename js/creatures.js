@@ -1,4 +1,4 @@
-import { ALIEN_CREATURES, ALIEN_FAMILIES, PJ_ULTRA_CREATURES, PJ_ULTRA_FAMILIES } from "./aliens.js?v=20261113f";
+import { ALIEN_CREATURES, ALIEN_FAMILIES, PJ_ULTRA_CREATURES, PJ_ULTRA_FAMILIES } from "./aliens.js?v=20261113g";
 // face: "L" = the picture faces left (default faces right). Battles flip creatures so they face each other.
 // Generated from Creature_Collector_410_Compact.xlsx + the creature sheets. Stats: level stat = round(Lv1 + growth x (level - 1)).
 export const TYPE_WEAK = {"Fire": ["Water", "Rock", "Earth"], "Water": ["Electric", "Nature"], "Nature": ["Fire", "Ice", "Poison"], "Rock": ["Water", "Nature", "Steel"], "Earth": ["Water", "Nature", "Ice"], "Air": ["Electric", "Ice", "Rock"], "Electric": ["Rock", "Earth"], "Ice": ["Fire", "Steel", "Rock"], "Light": ["Dark", "Arcane"], "Dark": ["Light", "Ghost"], "Ghost": ["Arcane", "Dark"], "Poison": ["Earth", "Arcane"], "Steel": ["Fire", "Electric", "Earth"], "Normal": ["Steel", "Rock"], "Arcane": ["Steel", "Dark"], "Crystal": ["Steel", "Earth"], "Dragon": ["Ice", "Dragon", "Crystal"]};

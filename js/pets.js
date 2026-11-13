@@ -15,10 +15,10 @@
      page-only (localStorage), no database writes.
    Saved in planet.pets = { o: { key: { n: name, p: personality, h: outfit id or "", at: date adopted } }, buddy: key, rel: releases }
    through safari.js planetSave, so the other Planet JP saves aren't overwritten. */
-import { esc, OUTFITS } from "./game.js?v=20261113f";
-import { azToday } from "./collect.js?v=20261113f";
-import { freshSt, planetSave, planetNow, planetCtx } from "./safari.js?v=20261113f";
-import { shopTab, shopTabs, bedShopHTML, careShopHTML } from "./nebshop.js?v=20261113f";
+import { esc, OUTFITS } from "./game.js?v=20261113g";
+import { azToday } from "./collect.js?v=20261113g";
+import { freshSt, planetSave, planetNow, planetCtx } from "./safari.js?v=20261113g";
+import { shopTab, shopTabs, bedShopHTML, careShopHTML } from "./nebshop.js?v=20261113g";
 
 export const PA = "assets/pets/", PP = PA + "place/";
 export const TIERS = [

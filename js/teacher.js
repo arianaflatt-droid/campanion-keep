@@ -1,53 +1,55 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261113f";
-import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261113f";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261113f";
-import { cpEarnedCalc } from "./room.js?v=20261113f";
-import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261113f";
-import { rewardFor, wkGoalOf, wkShare, ringDay, hasSwap, portalDay, addDays as pdAdd } from "./doors.js?v=20261113f";
-import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet, subReq, subRuleOn, SUB_DAY, addDays } from "./doors.js?v=20261113f";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing } from "./collector-ui.js?v=20261113f";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261113g";
+import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261113g";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261113g";
+import { cpEarnedCalc } from "./room.js?v=20261113g";
+import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261113g";
+import { rewardFor, wkGoalOf, wkShare, ringDay, hasSwap, portalDay, addDays as pdAdd } from "./doors.js?v=20261113g";
+import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet, subReq, subRuleOn, SUB_DAY, addDays } from "./doors.js?v=20261113g";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing } from "./collector-ui.js?v=20261113g";
 import {
   newsHTML, boostOn, boostHTML, countdownHTML, applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   boss2Of, boss2Prize, simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, weekCandyBefore, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, isFrost, isHeart, heartUnlocked, isLucky, luckyUnlocked, saveProblems, yetiUnlocked, wallMarks, WALL_BLOCK, BOSS_START_HP, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261113f";
-import { MQ_CUTOFF } from "./morning.js?v=20261113f";
-import { kindAdmin } from "./kindness.js?v=20261113f";
-import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261113f";
-import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261113f";
-import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261113f";
-import { passAdmin } from "./pass.js?v=20261113f";
-import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf, ULTRA_FAMS, CLUB_ULTRA_FAMS } from "./collect.js?v=20261113f";
-import { watchSecret, secretRef } from "./db.js?v=20261113f";
-import { secretAdmin, secretClick, autoPick, secretBanner } from "./secret.js?v=20261113f";
-import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef, newBattleRef, newsPicRef, watchNewsPics, newsPicFor } from "./db.js?v=20261113f";
-import { allNews, newsAdminHTML } from "./news.js?v=20261113f";
-import { nebbleAdmin } from "./pets.js?v=20261113f";
-import { mapAdmin } from "./readmap.js?v=20261113f";
-import { wheelTab, wheelClick } from "./subwheel.js?v=20261113f";
-import { tbRequestsCard, tbInvite, tbToSettle } from "./teachbattle.js?v=20261113f";
-import { rewardAdmin, rgWaiting, rgOf, shrinkImage, needPicList } from "./weekgoal.js?v=20261113f";
-import { soloAdmin, soloCfg, soloOn, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261113f";
+} from "./game.js?v=20261113g";
+import { MQ_CUTOFF } from "./morning.js?v=20261113g";
+import { kindAdmin } from "./kindness.js?v=20261113g";
+import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261113g";
+import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261113g";
+import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261113g";
+import { passAdmin } from "./pass.js?v=20261113g";
+import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf, ULTRA_FAMS, CLUB_ULTRA_FAMS } from "./collect.js?v=20261113g";
+import { watchSecret, secretRef } from "./db.js?v=20261113g";
+import { secretAdmin, secretClick, autoPick, secretBanner } from "./secret.js?v=20261113g";
+import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef, newBattleRef, newsPicRef, watchNewsPics, newsPicFor } from "./db.js?v=20261113g";
+import { allNews, newsAdminHTML } from "./news.js?v=20261113g";
+import { nebbleAdmin } from "./pets.js?v=20261113g";
+import { mapAdmin } from "./readmap.js?v=20261113g";
+import { wheelTab, wheelClick } from "./subwheel.js?v=20261113g";
+import { tbRequestsCard, tbInvite, tbToSettle } from "./teachbattle.js?v=20261113g";
+import { wheelSync, dailyPool, weeklyPool, makeSpin, WS_WEEKLY } from "./wheel.js?v=20261113g";
+import { spinPrizeRef, newSpinPrizeRef, watchSpinPrizes } from "./db.js?v=20261113g";
+import { rewardAdmin, rgWaiting, rgOf, shrinkImage, needPicList } from "./weekgoal.js?v=20261113g";
+import { soloAdmin, soloCfg, soloOn, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261113g";
 import { feederLink } from "./feeder.js?v=20261111e";
-import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261113f";
+import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261113g";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef, watchSeats, watchCards, deleteField
-} from "./db.js?v=20261113f";
-import { G, guardCard, guardClick, guardInput, autoSnap, personalLink, syncCards } from "./guard.js?v=20261113f";
-import { lockCard, lockClick } from "./lock.js?v=20261113f";
-import { revengeAdmin, revengeAction } from "./revenge.js?v=20261113f";
-import { heistAdmin, heistAction } from "./heist.js?v=20261113f";
-import { calendarCard, calendarEdit, autoExcuse } from "./calendar.js?v=20261113f";
-import { axoAdmin } from "./axolotl.js?v=20261113f";
-import { kdAdmin } from "./kingdom.js?v=20261113f";
-import { clubsAdmin, clubUpload, clubPicks, pickChange } from "./clubs.js?v=20261113f";
-import { planetAdmin, keepLaunchWatch, pjMinsNow } from "./planet.js?v=20261113f";
-import { soloScreenSync, soloScreenOpenNow } from "./soloscreen.js?v=20261113f";
-import { recessAdmin, recessAction } from "./playground.js?v=20261113f";
-import { rosterAdmin, rosterPreview, okEmail } from "./roster.js?v=20261113f";
-import { rosterList, rosterSave, seatsOnce, removeLinkSeats, myAccess, saveClassDir, createClass, adminList, setAdmin, isBuiltInAdmin, switchClass } from "./db.js?v=20261113f";
+} from "./db.js?v=20261113g";
+import { G, guardCard, guardClick, guardInput, autoSnap, personalLink, syncCards } from "./guard.js?v=20261113g";
+import { lockCard, lockClick } from "./lock.js?v=20261113g";
+import { revengeAdmin, revengeAction } from "./revenge.js?v=20261113g";
+import { heistAdmin, heistAction } from "./heist.js?v=20261113g";
+import { calendarCard, calendarEdit, autoExcuse } from "./calendar.js?v=20261113g";
+import { axoAdmin } from "./axolotl.js?v=20261113g";
+import { kdAdmin } from "./kingdom.js?v=20261113g";
+import { clubsAdmin, clubUpload, clubPicks, pickChange } from "./clubs.js?v=20261113g";
+import { planetAdmin, keepLaunchWatch, pjMinsNow } from "./planet.js?v=20261113g";
+import { soloScreenSync, soloScreenOpenNow } from "./soloscreen.js?v=20261113g";
+import { recessAdmin, recessAction } from "./playground.js?v=20261113g";
+import { rosterAdmin, rosterPreview, okEmail } from "./roster.js?v=20261113g";
+import { rosterList, rosterSave, seatsOnce, removeLinkSeats, myAccess, saveClassDir, createClass, adminList, setAdmin, isBuiltInAdmin, switchClass } from "./db.js?v=20261113g";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -318,6 +320,7 @@ function startConsole() {
     e => flash("Couldn’t load students — " + e.code)));
   unsub.push(watchCards(l => { G.cards = l; cardSoon(); }, () => {}));
   unsub.push(watchSeats(l => { G.seats = l; if (ctab === "students") liveRender(); }, () => {}));
+  unsub.push(watchSpinPrizes(list => { spinPrizes = list || []; if (ctab === "daily") liveRender(); }));   // 🎡 Spin to Pick prize lists
   unsub.push(watchNewsPics(m => { npics = m || {}; npic = npics.pic || null; if (ctab === "daily" || mode === "class") liveRender(); }));
   unsub.push(watchRewardPics(m => { rpics = m; if (ctab === "rewards") liveRender(); }));
   unsub.push(watchSecret(d => { secretDoc = d || {}; secretLoaded = true; secretAuto(); if (ctab === "daily") liveRender(); }));
@@ -624,6 +627,7 @@ function restoreFields(saved) {
 }
 function render(force) {
   if (ptrDown) { heldRender = heldRender || !!force; return; }
+  try { wheelSync({ cls, teacher: true, students, close: () => updateDoc(classRef, { "wspin.open": false }).catch(e => flash("Couldn\u2019t close it \u2014 " + (e.code || e.message))) }); } catch (e) {}
   if (!force && mode === "guide" && ctab === "collector" && collectorBusy()) return;   // don't redraw mid egg-hatch or page flip
   document.getElementById("wrap").className = mode === "class" || mode === "battle" ? "wrap wide" : "wrap";
   document.getElementById("pageTitle").textContent = mode === "class" ? "The Keep" : mode === "battle" ? "Battle Area" : "Companion Keep Console";
@@ -658,7 +662,7 @@ function render(force) {
     { const np2 = needPicList(students, cls); if (np2.length) h += '<div class="banner prizealert"><span>\u{1F4F8} <b>' + np2.length + " new vault prize" + (np2.length === 1 ? "" : "s") + "</b> picked by students: add a picture for " + np2.map(x => esc(x.name) + " (" + esc(x.reward.name || "prize") + ")").join(", ") + '</span><span class="row" style="gap:8px;"><button class="btn small" data-ctab="rewards">Add pictures</button></span></div>'; }
     if (np && np > prizeHidden) h += '<div class="banner prizealert"><span>\u{1F381} <b>' + np + " prize" + (np === 1 ? "" : "s") + "</b> to order or give" + prizeNames() + '</span><span class="row" style="gap:8px;"><button class="btn small" data-act="goPrizes">View prizes</button><button class="btn ghost small" data-act="hidePrizes">Hide</button></span></div>';
     h += '<div class="tabs ctabs" role="tablist">' + tabs.map(([k, l]) => '<button role="tab" class="tab' + (ctab === k ? " on" : "") + '" data-ctab="' + k + '" aria-selected="' + (ctab === k) + '">' + l + "</button>").join("") + "</div>";
-    if (ctab === "daily") h += portalCard() + viewDaily() + planetAdmin(students, cls) + nebbleAdmin(students, cls) + secretAdmin(students, cls, secretDoc) + newsAdminHTML(cls, students, npics, newsEditing) + countdownAdmin() + boostAdmin() + miniAdmin(students, cls) + partyAdmin(students, cls) + recessAdmin(students, cls) + surpriseAdmin(students, cls) + viewWeekDoor() + viewRewards();
+    if (ctab === "daily") h += portalCard() + spinCard() + viewDaily() + planetAdmin(students, cls) + nebbleAdmin(students, cls) + secretAdmin(students, cls, secretDoc) + newsAdminHTML(cls, students, npics, newsEditing) + countdownAdmin() + boostAdmin() + miniAdmin(students, cls) + partyAdmin(students, cls) + recessAdmin(students, cls) + surpriseAdmin(students, cls) + viewWeekDoor() + viewRewards();
     else if (ctab === "students") h += viewAssign() + minCard("viewas", viewAsCard(), true) + minCard("standings", viewStandings(), true) + minCard("roster", rosterAdmin(students, busy)) + minCard("lock", lockCard(students, cls)) + minCard("pass", passAdmin(students, cls)) +
       minCard("losses", viewLosses()) + minCard("subswap", subSwapCard()) + minCard("wkgoal", wkGoalCard()) + minCard("axo", axoAdmin(students, cls, busy, esc)) + minCard("kd", kdAdmin(students, cls));   // Nov 6: personal-link cards removed (Google sign-in), clubs got their own tab
     else if (ctab === "clubs") h += clubsAdmin(students, cls, busy);
@@ -1126,6 +1130,43 @@ function subRuleCard(kids, wk) {
     "</tbody></table></div>";
   return h + "</details>";
 }
+/* 🎡 Nov 13: Spin to Pick (see js/wheel.js). busy.ws = { kind: "daily" | "weekly", day: "prev" | "today", wk: "last" | "this",
+   challenge, duck, set (which prize list the editor shows) }. Prize pictures are shrunk to 300px before saving. */
+let spinPrizes = [], wsPic = null;
+function wsState() { busy.ws = Object.assign({ kind: "daily", day: "prev", wk: "last", challenge: false, duck: false, set: "daily" }, busy.ws || {}); return busy.ws; }
+function wsPool() {
+  const o = wsState(), dates = portalDates(), t = azToday();
+  if (o.kind === "daily") { const date = o.day === "today" ? t : (dates[1] || pdAdd(t, -1));
+    return { pool: dailyPool(students, cls, date), label: (date === t ? "Today" : new Date(date + "T12:00:00").toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })) + " \u00b7 " + ((Number(cls.goal)) || 120) + " XP + rings closed" }; }
+  const wk = o.wk === "this" ? weekKey(cls) : pdAdd(weekKey(cls), -7), goal = Number(cls.wsGoal) || WS_WEEKLY;
+  return { pool: weeklyPool(students, cls, wk, goal), label: "Week of " + new Date(wk + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" }) + " \u00b7 " + goal + " XP + rings closed", goal };
+}
+function spinCard() {
+  if (!cls) return "";
+  const o = wsState(), { pool, label, goal } = wsPool(), open = !!(cls.wspin && cls.wspin.open), tot = pool.reduce((a, r) => a + r.xp, 0);
+  const tb = (k, v, l) => '<button class="btn small' + (o[k] === v ? " gold" : " ghost") + '" data-act="wsSet" data-k="' + k + '" data-v="' + v + '">' + l + "</button>";
+  let h = '<div class="card" id="spinCard"><div class="card-head"><h2>\u{1F3A1} Spin to Pick</h2><span class="fact">' + pool.length + " on the wheel</span></div>" +
+    '<div class="row" style="gap:6px;flex-wrap:wrap;">' + tb("kind", "daily", "\u{1F381} 120 XP spin") + tb("kind", "weekly", "\u{1F3C6} Weekly spin") + "</div>" +
+    '<div class="row" style="gap:6px;flex-wrap:wrap;margin-top:8px;align-items:center;">' +
+    (o.kind === "daily" ? tb("day", "prev", "Last school day") + tb("day", "today", "Today") + '<label class="small"><input type="checkbox" data-act="wsTog" data-k="challenge"' + (o.challenge ? " checked" : "") + "> Challenge Mode (1 more slice per 10 XP over 120)</label>"
+      : tb("wk", "last", "Last week") + tb("wk", "this", "This week") + '<label class="small">Weekly goal <input id="wsGoalBox" type="number" min="1" step="10" value="' + goal + '" style="width:80px"></label><button class="btn ghost small" data-act="wsGoal">Save</button>') +
+    '<label class="small"><input type="checkbox" data-act="wsTog" data-k="duck"' + (o.duck ? " checked" : "") + "> \u{1F986} Dress the duck (no prize)</label></div>" +
+    '<p class="small muted" style="margin:8px 0 4px;">' + esc(label) + (pool.length ? " \u00b7 " + tot.toLocaleString() + " XP earned together" : "") + "</p>" +
+    '<div class="inv">' + (pool.length ? pool.map(r => "<span>" + esc(r.x.name) + " <b>" + r.xp + "</b></span>").join("") : '<span class="muted">Nobody yet.</span>') + "</div>" +
+    '<div class="row" style="gap:8px;margin-top:10px;">' + (open ? '<span class="small">\u{1F3A1} A spin is on everyone\u2019s screen now.</span><button class="btn small" data-act="wsClose">\u2716 Close it</button>'
+      : '<button class="btn gold" data-act="wsSpin"' + (pool.length ? "" : " disabled") + ">\u{1F3A1} Spin on everyone\u2019s screen</button>") + "</div>";
+  // the prize lists
+  const list = spinPrizes.filter(p => (p.set || "daily") === o.set);
+  h += '<details style="margin-top:12px;border-top:1px solid var(--line-2);padding-top:10px;"' + (busy.wsPrizesOpen ? " open" : "") + '><summary data-act="wsPrizesOpen"><b>\u{1F381} Prize lists</b> <span class="muted small">' +
+      spinPrizes.filter(p => (p.set || "daily") === "daily").length + " for the 120 XP spin \u00b7 " + spinPrizes.filter(p => p.set === "weekly").length + " for the weekly spin</span></summary>" +
+    '<div class="row" style="gap:6px;margin:8px 0;">' + tb("set", "daily", "\u{1F381} 120 XP prizes") + tb("set", "weekly", "\u{1F3C6} Weekly prizes") + "</div>" +
+    '<div class="row" style="gap:6px;flex-wrap:wrap;align-items:center;"><input id="wsPName" type="text" maxlength="40" placeholder="Prize name (optional)" style="width:170px"><input id="wsPLink" type="url" maxlength="500" placeholder="\u{1F517} Product link" style="flex:1;min-width:200px">' +
+    '<label class="btn ghost small" style="cursor:pointer;">\u{1F4F7} ' + (wsPic ? "Photo ready \u2705" : "Add photo") + '<input type="file" accept="image/*" hidden data-wspic="1"></label>' +
+    '<button class="btn small" data-act="wsAddPrize">Add to the ' + (o.set === "weekly" ? "weekly" : "120 XP") + " list</button></div>" +
+    '<div class="wsgrid">' + (list.length ? list.map(p => '<div class="wscell">' + (p.img ? '<a href="' + esc(/^https?:/i.test(p.link || "") ? p.link : "#") + '" target="_blank" rel="noopener"><img src="' + esc(p.img) + '" alt=""></a>' : "\u{1F381}") +
+      (p.name ? "<b>" + esc(p.name) + "</b>" : "") + '<button class="wsx" data-act="wsDelPrize" data-id="' + esc(p.id) + '" title="Remove">\u00d7</button></div>').join("") : '<p class="muted small">No prizes on this list yet.</p>') + "</div></details>";
+  return h + "</div>";
+}
 /* 📤 Nov 13 (Ms. Ariana): "send XP to the portal" reminder. Students with a subject swap whose day hit the daily goal
    AND closed their required rings (their swapped subjects) for today and the school day before. "Sent" is saved on the class:
    cls.portalSent[date][studentId] = true (days older than 2 weeks are cleaned up on the next save). */
@@ -1271,6 +1312,7 @@ function viewPrizes() {
   shown.forEach(r => {
     const p = Object.assign({}, prizeInfo(r.e));
     if (r.e.src === "reward") { const L = r.e.link || (r.s.reward && r.s.reward.link) || ""; p.link = /^https?:\/\//i.test(L) ? L : ""; }   // the Vault reward's order link (Rewards tab)
+    if (r.e.src === "wheel") { const sp = spinPrizes.find(x => x.id === r.e.wp); p.link = /^https?:\/\//i.test(String(r.e.link || "")) ? r.e.link : ""; if (sp && sp.img) p.img = sp.img; p.icon = "\u{1F3A1}"; }   // 🎡 Spin to Pick
     const pimg = r.e.src === "reward" && rpics[r.s.id] ? rpics[r.s.id] : p.img;
     const art = pimg ? '<img src="' + esc(pimg) + '" alt="" style="height:28px;vertical-align:middle;border-radius:6px;">' : p.icon;
     h += "<tr" + (r.e.ordered ? ' style="opacity:.55"' : "") + '><td><input type="checkbox" ' + (r.door ? 'data-doordone="' + r.s.id + ":" + r.door + '"' : 'data-ordered="' + r.s.id + ":" + r.idx + '"') + '' + (r.e.ordered ? " checked" : "") +
@@ -1980,6 +2022,11 @@ document.addEventListener("change", async ev => {
     catch (e) { flash("Couldn\u2019t save that picture \u2014 " + (e.code || e.message)); }
     ev.target.value = ""; return;
   }
+  if (ev.target.dataset && ev.target.dataset.wspic && ev.target.files && ev.target.files[0]) {   // 🎡 a Spin to Pick prize photo
+    const kn = (document.getElementById("wsPName") || {}).value || "", kl = (document.getElementById("wsPLink") || {}).value || "";   // keep what was typed
+    try { wsPic = await shrinkImage(ev.target.files[0], 300); render(); const a = document.getElementById("wsPName"), b = document.getElementById("wsPLink"); if (a) a.value = kn; if (b) b.value = kl; } catch (e) { flash("Couldn\u2019t read that picture \u2014 " + (e.message || e)); }
+    ev.target.value = ""; return;
+  }
   if (ev.target.dataset && ev.target.dataset.rgpic && ev.target.files && ev.target.files[0]) {
     const sid = ev.target.dataset.rgpic, st = students.find(x => x.id === sid);
     try { const img = await shrinkImage(ev.target.files[0]); await setDoc(rewardPicRef(sid), { img, at: new Date().toISOString() }); rpics = Object.assign({}, rpics, { [sid]: img });
@@ -2427,6 +2474,27 @@ document.addEventListener("click", async ev => {
   if (act === "allIdeas") { busy.allIdeas = !busy.allIdeas; render(); return; }
   if (act === "goDoors") { ctab = "events"; try { localStorage.setItem("ck-ctab", ctab); } catch (e) {} render(); const c = document.getElementById("doorCard"); if (c) c.scrollIntoView({ behavior: "smooth", block: "start" }); return; }
   if (act === "hideDoors") { doorHidden = waitingDoors(students, cls).length; render(); return; }
+  if (act === "wsSet") { wsState()[el.dataset.k] = el.dataset.v; return render(); }
+  if (act === "wsTog") { const o = wsState(); o[el.dataset.k] = !o[el.dataset.k]; return render(); }
+  if (act === "wsPrizesOpen") { busy.wsPrizesOpen = !busy.wsPrizesOpen; return; }
+  if (act === "wsGoal") { const v = Math.max(1, Math.round(Number((document.getElementById("wsGoalBox") || {}).value) || 0)); if (!v) return;
+    try { await updateDoc(classRef, { wsGoal: v }); cls.wsGoal = v; flash("Saved \u2014 the weekly spin goal is " + v + " XP."); } catch (e) { flash("Couldn\u2019t save \u2014 " + (e.code || e.message)); } return render(); }
+  if (act === "wsSpin") {
+    const o = wsState(), { pool, label } = wsPool(); if (!pool.length) return;
+    const w = makeSpin(pool, { kind: o.kind, challenge: o.challenge, duck: o.duck, label });
+    try { await updateDoc(classRef, { wspin: w }); cls.wspin = w; } catch (e) { flash("Couldn\u2019t start the spin \u2014 " + (e.code || e.message)); }
+    return render(); }
+  if (act === "wsClose") { try { await updateDoc(classRef, { "wspin.open": false }); } catch (e) { flash("Couldn\u2019t close it \u2014 " + (e.code || e.message)); } return render(); }
+  if (act === "wsAddPrize") {
+    const o = wsState(), name = ((document.getElementById("wsPName") || {}).value || "").trim().slice(0, 40); let link = ((document.getElementById("wsPLink") || {}).value || "").trim().slice(0, 500);
+    if (!link) { flash("Paste the prize\u2019s product link first."); return; }
+    if (!/^https?:\/\//i.test(link)) link = "https://" + link.replace(/^\/+/, "");
+    if (!wsPic) { flash("Add a photo of the prize first."); return; }
+    try { await setDoc(newSpinPrizeRef(), { set: o.set, name, link, img: wsPic, at: new Date().toISOString() }); wsPic = null; flash("Saved \u2014 added to the " + (o.set === "weekly" ? "weekly" : "120 XP") + " prize list."); }
+    catch (e) { flash("Couldn\u2019t save the prize \u2014 " + (e.code || e.message)); }
+    return render(); }
+  if (act === "wsDelPrize") { if (!confirm("Remove this prize from the list?")) return;
+    try { await deleteDoc(spinPrizeRef(el.dataset.id)); spinPrizes = spinPrizes.filter(p => p.id !== el.dataset.id); } catch (e) { flash("Couldn\u2019t remove it \u2014 " + (e.code || e.message)); } return render(); }
   if (act === "portalSent") {   // 📤 Nov 13: mark a student's XP as sent to the portal for that day (undo with data-on="0")
     const date = el.dataset.date, sid = el.dataset.sid, on = el.dataset.on === "1", up = { ["portalSent." + date + "." + sid]: on ? true : deleteField() };
     Object.keys(cls.portalSent || {}).forEach(d => { if (d < pdAdd(azToday(), -14)) up["portalSent." + d] = deleteField(); });

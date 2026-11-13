@@ -3,8 +3,8 @@
    it saves lives only in this browser (localStorage "ck-demo-db"). Nothing touches Firebase or the class.
    The console's 🎮 Student demo button saves a copy of the class settings ("ck-demo-class") and opens demo.html;
    this file then makes a demo student who has hit every goal, plus a few pretend classmates. */
-import { BADGES } from "./badges.js?v=20261113f";
-import { ROSTER } from "./game.js?v=20261113f";
+import { BADGES } from "./badges.js?v=20261113g";
+import { ROSTER } from "./game.js?v=20261113g";
 const K = "ck-demo-db";
 let MEM = null;   // works even if the browser blocks storage
 const read = () => { if (!MEM) { try { MEM = JSON.parse(localStorage.getItem(K)) || null; } catch (e) {} if (!MEM) MEM = seed(); } return JSON.parse(JSON.stringify(MEM)); };
@@ -77,7 +77,7 @@ export const teacherSignIn = async () => {}, anonSignIn = async () => {};
 // the server (Cloud Function) runs the real functions/actions.js against the mock data
 export async function ck(op, input) {
   if (PREVIEW) throw new Error("This is a teacher preview — nothing is saved.");
-  const A = await import("./server-actions.js?v=20261113f");   // the real server code, run here in the browser
+  const A = await import("./server-actions.js?v=20261113g");   // the real server code, run here in the browser
   const s = read(), sid = "demo";
   if (!sid || !s["students/" + sid]) throw new Error("Open Companion Keep from your personal link first.");
   const cls = s["class"] || {}, st = Object.assign({ id: sid }, JSON.parse(JSON.stringify(s["students/" + sid])));
@@ -132,3 +132,9 @@ export function seed() {
   return s;
 }
 export function resetDemo() { MEM = seed(); try { localStorage.setItem(K, JSON.stringify(MEM)); } catch (e) {} }
+
+// 🎡 Spin to Pick prize lists
+export const spinPrizeRef = id => ({ path: "spinPrizes/" + id });
+export const newSpinPrizeRef = () => ({ path: "spinPrizes/p" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6) });
+export function watchSpinPrizes(cb) { return watch(() => list("spinPrizes"), cb); }
+export async function getSpinPrizes() { return JSON.parse(JSON.stringify(list("spinPrizes"))); }
