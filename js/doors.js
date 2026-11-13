@@ -8,9 +8,9 @@
    Saved on the student: doors = { "YYYY-MM-DD": { "0": { st: "wait"|"ok"|"no"|"open", at, r }, g: { st: "open", r } } }
    plus lastDoor = "YYYY-MM-DD/<door>" (which door the last save touched; the save rules check it).
    Class: doorsOn (on/off), doorList (default list), doorDays = { "YYYY-MM-DD": [..] } (one-day lists). */
-import { azToday } from "./collect.js?v=20261112n";
-import { SEASON, eventMode, esc, dayXP, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261112n";
-import { subFor, SUB_NAMES } from "./teams.js?v=20261112n";
+import { azToday } from "./collect.js?v=20261113b";
+import { SEASON, eventMode, esc, dayXP, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261113b";
+import { subFor, SUB_NAMES } from "./teams.js?v=20261113b";
 
 // A door that starts with "!" is always open (not locked behind the first doors). The "!" isn't shown.
 export const DOOR_DEFAULT = [
@@ -277,6 +277,7 @@ export function todayPlan(st, cls, today) {
 }
 export function subReqHTML(st, cls, wk) {
   const q = subReq(st, cls, wk); if (!q.on || !q.days) return "";
+  if (ringPass(st, cls, wk)) return '<div class="subreq"><span class="srq ok">\u2705 Ms. Ariana changed your rings this week, so you can skip them. Just reach your XP goal!</span></div>';
   return '<div class="subreq">' + q.rows.map(r => '<span class="srq' + (r.have >= r.need ? " ok" : "") + '"><b>' + esc(r.name) + "</b> " + Math.min(r.have, r.need) + " / " + r.need + (r.have >= r.need ? " \u2705" : "") + "</span>").join("") + "</div>";
 }
 // "open" | "ready" | "locked"
@@ -327,10 +328,14 @@ export function vaultGoal(st, cls, wk) {
   return { xp: own, n: tot, sub: null, reward: null, tot, min: vaultMinOf(st, cls) };
 }
 // Goal reached AND at least VAULT_MIN XP in total that week
-export const vaultMet = (st, cls, wk) => { const v = vaultGoal(st, cls, wk); return v.n >= v.xp && v.tot >= v.min && subReq(st, cls, wk).ok; };
+// 🔁 Nov 13 (Ms. Ariana): a student whose rings were changed mid-week can be let off that week's rings from the console.
+// Saved on the CLASS (cls.ringPass[week][studentId] = true), so students can't set it themselves. They still need the XP goal.
+export const ringPass = (st, cls, wk) => !!(st && cls && cls.ringPass && (cls.ringPass[wk || weekKey(cls)] || {})[st.id]);
+const ringsOk = (st, cls, wk) => ringPass(st, cls, wk) || subReq(st, cls, wk).ok;
+export const vaultMet = (st, cls, wk) => { const v = vaultGoal(st, cls, wk); return v.n >= v.xp && v.tot >= v.min && ringsOk(st, cls, wk); };
 // The 600-XP rule needs its own line when the goal itself doesn't already cover it (a subject goal, or a total under 600)
 // A week that's over: its saved "ready" stands (its goal may have changed since), but it still needs VAULT_MIN XP total
-export const vaultMinOk = (st, cls, wk) => (rewardFor(st, cls, wk) || (wk === weekKey(cls) ? weekTotal(st, cls) : histWeekTotal(st, wk)) >= vaultMinOf(st, cls)) && subReq(st, cls, wk).ok;
+export const vaultMinOk = (st, cls, wk) => (rewardFor(st, cls, wk) || (wk === weekKey(cls) ? weekTotal(st, cls) : histWeekTotal(st, wk)) >= vaultMinOf(st, cls)) && ringsOk(st, cls, wk);
 export const vaultNeedsMin = v => v.min > 0 && ((v.sub && v.sub !== "all") || v.xp < v.min);
 export function vaultState(st, cls) {
   const v = ((st && st.vault) || {})[weekKey(cls)];
