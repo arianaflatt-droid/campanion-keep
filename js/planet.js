@@ -7,22 +7,22 @@
    A launch is saved on the student: planet = { n: launches, last: "YYYY-MM-DD", streak, best } (one write a day).
    Wave 2 adds a space minigame between liftoff and landing; Planet JP itself comes later, one piece at a time.
    Pictures live in assets/planet/ — until one is uploaded (ART below) the stand-in drawing is used. */
-import { esc, weekKey } from "./game.js?v=20261111k";
-import { azToday, azNow } from "./collect.js?v=20261111k";
-import { axoDay, schoolDayFor } from "./axolotl.js?v=20261111k";
-import { addDays, todayPlan, weekTotal, histWeekTotal } from "./doors.js?v=20261111k";
-import { GAMES, gameOfDay, gameByKey, play, preload } from "./spacegames.js?v=20261111k";
-import { setHitCheck, afterOn, PJ_AFTER, PJ_AFTER_END } from "./safari.js?v=20261111k";
-import { ZONES, safariSync, freshSt, albumHTML, filmLeft, pageCount, pageSize, aliensFound, zoneAliens, FREE_FILM, ROLL_COST, shopHTML, netsOf, NETS, netImg, pjWindow, classOpenAll, PJ_LATE, pjBreakDay, pjBreakXP } from "./safari.js?v=20261111k";
-import { cafeHTML } from "./cafe.js?v=20261111k";
-import { shopPageHTML } from "./spaceshop.js?v=20261111k";
-import { hangarHTML } from "./hangar.js?v=20261111k";
-import { stationHTML, stationAdminLine, doubleWaiting } from "./station.js?v=20261111k";
-import { zooHTML } from "./zoo.js?v=20261111k";
-import { adoptHTML, PP as NEB_PP } from "./pets.js?v=20261111k";
-import { parkHTML } from "./petpark.js?v=20261111k";
-import { missionsHTML, placeBang } from "./missions.js?v=20261111k";
-import { duckImgOf, flameFxOf, trailOf } from "./shop-data.js?v=20261111k";
+import { esc, weekKey } from "./game.js?v=20261112n";
+import { azToday, azNow } from "./collect.js?v=20261112n";
+import { axoDay, schoolDayFor } from "./axolotl.js?v=20261112n";
+import { addDays, todayPlan, weekTotal, histWeekTotal } from "./doors.js?v=20261112n";
+import { GAMES, gameOfDay, gameByKey, play, preload } from "./spacegames.js?v=20261112n";
+import { setHitCheck, afterOn, PJ_AFTER, PJ_AFTER_END } from "./safari.js?v=20261112n";
+import { ZONES, safariSync, freshSt, albumHTML, filmLeft, pageCount, pageSize, aliensFound, zoneAliens, FREE_FILM, ROLL_COST, shopHTML, netsOf, NETS, netImg, pjWindow, classOpenAll, PJ_LATE, pjBreakDay, pjBreakXP } from "./safari.js?v=20261112n";
+import { cafeHTML } from "./cafe.js?v=20261112n";
+import { shopPageHTML } from "./spaceshop.js?v=20261112n";
+import { hangarHTML } from "./hangar.js?v=20261112n";
+import { stationHTML, stationAdminLine, doubleWaiting } from "./station.js?v=20261112n";
+import { zooHTML } from "./zoo.js?v=20261112n";
+import { adoptHTML, PP as NEB_PP } from "./pets.js?v=20261112n";
+import { parkHTML } from "./petpark.js?v=20261112n";
+import { missionsHTML, placeBang } from "./missions.js?v=20261112n";
+import { duckImgOf, flameFxOf, trailOf } from "./shop-data.js?v=20261112n";
 
 export const PJ_OPEN = 11 * 60, PJ_CLOSE = 12 * 60 + 55;   // minutes after midnight, Arizona time
 const A = "assets/planet/";
@@ -324,7 +324,7 @@ export function planetAdmin(students, cls) {
   return '<div class="card" id="pjCard"><div class="card-head"><h2>\u{1F680} Planet JP</h2><span class="fact">' + (on ? (schoolDayFor(cls, today) ? went.length + " launched today" : "no school today") : "off") + "</span></div>" +
     '<p class="lede" style="font-size:13.5px;">A launch bar across the top of every student’s Keep. It fills with <b>120 XP + 25 Math, Reading and Language</b>. Full tanks can launch the S.S. Duck from <b>11:00 to 12:55</b> (Arizona time); not full by 12:55 = “Mission scrubbed”. School days only (your calendar breaks are skipped). To try it yourself, open a student’s page in preview and press “Preview the launch”.</p>' +
     '<div class="row" style="margin:10px 0;gap:8px;"><button class="btn' + (on ? " ghost" : "") + '" data-act="pjToggle">' + (on ? "Turn Planet JP off" : "\u{1F680} Turn Planet JP on") + "</button></div>" +
-    (on ? winRow(cls) + stationAdminLine(kids, cls) + (afterOn(cls) ? '<p class="small" style="margin:4px 0 0;">\u{1F307} <b>Afternoon launch:</b> on school days, anyone with all 4 tanks full (120 XP + the core-subject rings) can launch (or go back) from 2:00 to 10:00 pm.</p>' : "") : "") +
+    (on ? winRow(cls) + stationAdminLine(kids, cls) + '<p class="small" style="margin:4px 0 0;">\u{1F47D} <b>Alien Ms. Ariana</b> is hiding on <b>' + arianaToday().name + "</b> today (" + kids.filter(s => s.planet && s.planet.af === today).length + " found her, +10 ⭐ each).</p>" + (afterOn(cls) ? '<p class="small" style="margin:4px 0 0;">\u{1F307} <b>Afternoon launch:</b> on school days, anyone with all 4 tanks full (120 XP + the core-subject rings) can launch (or go back) from 2:00 to 10:00 pm.</p>' : "") : "") +
     (on && schoolDayFor(cls, today) ? manualRows(kids, cls, went) : "") +
     (on && (went.length || ready.length) ? '<p class="small" style="margin:4px 0;">' + (went.length ? "\u{1FA90} <b>Landed:</b> " + went.map(s => esc(s.name)).join(", ") : "") + (ready.length ? (went.length ? "<br>" : "") + "⛽ <b>Tanks full, not launched yet:</b> " + ready.map(s => esc(s.name)).join(", ") : "") + "</p>" : "") + "</div>";
 }
@@ -388,17 +388,36 @@ const HUB_PLACES = [
   { k: "park", name: "\u{1F333} Pet Park", x: 65.5, y: 37, w: 9, html: () => '<img src="' + NEB_PP + 'park-building.webp" alt="">' },   // 🌳 Nebbles Pet Park (Nov 9)
   { k: "hangar", name: "\u{1F527} Duck Hangar", x: 81, y: 38, w: 13.5, html: () => '<img src="' + A + 'hangar/hangar-building.webp" alt="">' },
   { k: "station", name: "\u{1F6F0}\uFE0F Space Station", x: 27.5, y: 33, w: 9, html: () => '<img src="' + A + 'station/station-dock.webp" alt="">' },   // 🛰️ Class Space Station (Nov 11)
+  { k: "moon", name: "\u{1F319} Moon Base", x: 27.6, y: 7.6, w: 6.5, html: () => '<span class="hubmoon"></span>' },   // 🌙 Moon Base (Nov 12): the moon painted in the sky
   { k: "colony", name: "\u{1F3D5}\uFE0F Class Colony", x: 54, y: 46, w: 14, html: () => '<span class="hubduck">' + duckHTML() + "</span>" }];
 if (typeof document !== "undefined") document.addEventListener("click", ev => { const b = ev.target.closest && ev.target.closest("[data-pjcolony]"); if (!b) return; const c = document.getElementById("pjcolonycard"); if (c) c.scrollIntoView({ behavior: "smooth" }); });
 function hubHTML(st, n) {
   let h = '<div class="pjhubscroll"><div class="pjhub" style="background-image:url(' + A + 'jp-landing.webp)">';
-  ZONES.forEach((z, i) => { const open = n >= z.at, [x, y] = HUB_ZONES[i];
-    h += '<button class="hubzone' + (open ? "" : " locked") + '" style="left:' + x + "%;top:" + y + '%"' + (open ? ' data-pjzone="' + z.key + '"' : " disabled") + ">" +
-      '<span class="hubport" style="background-image:url(' + A + "zone-" + z.key + '.webp)">' + (open ? "" : "<i>\u{1F512}</i>") + '</span><span class="hublbl">' + z.icon + " " + esc(z.name) + (open ? "" : " \u00b7 " + z.at + " \u{1F680}") + "</span></button>"; });
+  // Nov 12: the 7 zones moved off the sky (the Moon Base needed the room) to side arrows: ▶ goes to the zones, ◀ to the newest one open
+  const lastOpen = ZONES.filter(z => n >= z.at).pop();
+  if (ZONES[0] && n >= ZONES[0].at) h += '<button class="hubarrow r" data-pjzone="' + ZONES[0].key + '"><b>▶</b><span>' + ZONES[0].icon + " Zones</span></button>";
+  if (lastOpen && lastOpen !== ZONES[0]) h += '<button class="hubarrow l" data-pjzone="' + lastOpen.key + '"><b>◀</b><span>' + lastOpen.icon + " " + esc(lastOpen.name) + "</span></button>";
   HUB_PLACES.forEach(p => { h += '<button class="hubplace hub-' + p.k + '" style="left:' + p.x + "%;top:" + p.y + "%;width:" + p.w + '%" ' + (p.k === "colony" ? 'data-pjcolony="1"' : 'data-pjzone="' + p.k + '"') + ">" + p.html() + (placeBang(st, p.k) ? '<span class="hubbang" title="Something to do here today!">!</span>' : "") + '<span class="hublbl">' + p.name + "</span></button>"; });
   return h + "</div></div>";
 }
+import { arianaHTML, arianaToday } from "./ariana.js?v=20261112n";
+import { boardHTML } from "./board.js?v=20261112n";
+import { moonHTML } from "./moon.js?v=20261112n";
+// 👽 Nov 12: every Planet JP page gets the hidden Alien Ms. Ariana check at the end
+// ◀ ▶ between the zones (locked zones show how many launches they need)
+function zoneArrows(z, n) {
+  const i = ZONES.indexOf(z), prev = ZONES[i - 1], next = ZONES[i + 1];
+  const L = prev ? '<button class="zarrow l" data-pjzone="' + prev.key + '"><b>◀</b><span>' + prev.icon + " " + esc(prev.name) + "</span></button>" : '<button class="zarrow l" data-pjzone=""><b>◀</b><span>\u{1F5FA}\uFE0F Map</span></button>';
+  const R = !next ? '<button class="zarrow r" data-pjzone=""><b>▶</b><span>\u{1F5FA}\uFE0F Map</span></button>'
+    : n >= next.at ? '<button class="zarrow r" data-pjzone="' + next.key + '"><b>▶</b><span>' + next.icon + " " + esc(next.name) + "</span></button>"
+    : '<button class="zarrow r locked" disabled><b>\u{1F512}</b><span>' + next.icon + " " + esc(next.name) + " · " + next.at + " \u{1F680}</span></button>";
+  return L + R;
+}
 export function planetTab(st, cls, students, petOf, preview) {
+  const fs = freshSt(st);
+  return planetTab0(st, cls, students, petOf, preview) + arianaHTML(fs, zoneOpen || "", pjOpen(fs, cls), !!preview);
+}
+function planetTab0(st, cls, students, petOf, preview) {
   st = freshSt(st);
   const pl = (st && st.planet) || {}, n = Number(pl.n) || 0, today = azToday();
   const closeIn = Math.max(0, PJ_CLOSE - mins());
@@ -409,6 +428,8 @@ export function planetTab(st, cls, students, petOf, preview) {
   if (zoneOpen === "album") return h + albumHTML(st, n);
   if (zoneOpen === "hangar") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn ghost small" data-pjzone="">← Map</button></div>' + hangarHTML(st, cls, pjOpen(st, cls) || !!preview);
   if (zoneOpen === "station") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn ghost small" data-pjzone="">← Map</button></div>' + stationHTML(st, cls, students, pjOpen(st, cls) || !!preview);
+  if (zoneOpen === "board") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn ghost small" data-pjzone="">← Map</button></div>' + boardHTML(st, pjOpen(st, cls) || !!preview);
+  if (zoneOpen === "moon") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn ghost small" data-pjzone="">← Map</button></div>' + moonHTML(st, cls, students, petOf, pjOpen(st, cls) || !!preview);
   if (zoneOpen === "park") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn ghost small" data-pjzone="">← Map</button></div>' + parkHTML(st, cls, pjOpen(st, cls) || !!preview, students);
   if (zoneOpen === "adopt") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn ghost small" data-pjzone="">← Map</button></div>' + adoptHTML(st, cls, pjOpen(st, cls) || !!preview);
   if (zoneOpen === "zoo") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn ghost small" data-pjzone="">← Map</button></div>' + zooHTML(st, cls, pjOpen(st, cls) || !!preview);
@@ -419,7 +440,7 @@ export function planetTab(st, cls, students, petOf, preview) {
   const z = zoneOpen && ZONES.find(x => x.key === zoneOpen && n >= x.at);
   if (z) {
     return h + '<div class="card pjzone"><div class="pjzonescene" style="background-image:url(' + A + "zone-" + z.key + '.webp)">' +
-      '<button class="btn ghost small pjback" data-pjzone="">← Map</button><div class="pjzonepet">' + (petOf ? petOf(st) : "") + "</div></div>" +
+      '<button class="btn ghost small pjback" data-pjzone="">← Map</button><div class="pjzonepet">' + (petOf ? petOf(st) : "") + "</div>" + zoneArrows(z, n) + "</div>" +
       '<h2>' + z.icon + " " + esc(z.name) + '</h2><p class="lede">' + esc(z.line) + "</p>" +
       '<p class="small">Creatures here: ' + z.types.map(t => '<span class="pjtype">' + (TYPE_IC[t] || "") + " " + t + "</span>").join(" ") + "</p>" +
       '<div class="safbox"><div><b>\u{1F4F8} Creature Safari</b><p class="small" style="margin:2px 0 0;">Creatures peek out and hide again. Tap one fast to take its photo! ' +

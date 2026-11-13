@@ -1,8 +1,8 @@
 // Grade Level Quest screens: the student's road + guardian battles, and the teacher's tracker.
-import { esc } from "./game.js?v=20261111k";
-import { owned, ownedFams, fighterFrom, formOf, resolveRound, hitDamage, alive, MOVES, RARITY_COLOR } from "./collect.js?v=20261111k";
+import { esc } from "./game.js?v=20261112n";
+import { owned, ownedFams, fighterFrom, formOf, resolveRound, hitDamage, alive, MOVES, RARITY_COLOR } from "./collect.js?v=20261112n";
 import { SUBJECTS, GRADES, ROAD_SPOTS, roadArt, battleArt, QUEST_XP, QUEST_CP, WEAPON_KINDS, weapon, weaponId, qKey, startOf, passOf, doneOf,
-  testState, currentGrade, doneCount, readyTests, weaponsOwned, heldWeapon } from "./quest.js?v=20261111k";
+  testState, currentGrade, doneCount, readyTests, weaponsOwned, heldWeapon } from "./quest.js?v=20261112n";
 
 const SUBJ = Object.fromEntries(SUBJECTS.map(([k, n, i]) => [k, { n, i }]));
 let qb = null;   // the guardian battle in progress (only on this page; nothing is saved until the student wins)
@@ -134,7 +134,7 @@ export function questOverlay(s) {
     h += '<div class="qbpanel"><div class="mvgrid">' + btn("attack", esc(me.attack), "about " + d + " damage", true) +
       btn("power", "Power Move", "about " + Math.round(d * MOVES.power.mult) + " · 75% to hit", true) + btn("guard", "Guard", "take half damage", true) +
       btn("heal", "Heal", me.healed ? "already used" : "+" + Math.round(me.hp * MOVES.heal.pct) + " HP · once", !me.healed && me.cur < me.hp) +
-      (me.alt ? btn("alt", esc(me.alt.name), "special attack", true) : "") + "</div></div>";
+      (me.alt ? btn("alt", esc(me.alt.name), "special attack", true) : "") + (me.more || []).map((x, i) => btn(i ? "alt3" : "alt2", esc((x.alt || {}).name || "Special"), "special attack", true)).join("") + "</div></div>";
   }
   return h + "</div>";
 }

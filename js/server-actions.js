@@ -9,8 +9,8 @@ import {
   isStarterFam, hasStarter, STARTERS, rollRarity, rollRareUp, pullsLeft, legendaryLeft, birthdayLeft, pickleLeft, vaultLegLeft,
   boss2EggLeft, BOSS2_LIST, revengeLegLeft, REVENGE_FAM, heistLegLeft, HEIST_FAM, candyLegLeft, snowLegLeft, gingerLegLeft, feastLegLeft, brewLegLeft, goalLeft, nextGoal, themeLeft, nextTheme,
   ultraLeft, ultraPull, trapLegLeft, PRISM_FAM, THEME_TYPES, WISH_FAM, PICKLE_FAM, CANDY_FAM, SNOW_FAM, GINGER_FAM, HARVEST_FAM, BREW_FAM, LIVE, staleBattle, ownedFams, teacherPlayer, TEACHER_ID, tradeOpenFor
-} from "./collect.js?v=20261111k";
-import { creditCompanion, simulate, setSeason } from "./game.js?v=20261111k";
+} from "./collect.js?v=20261112n";
+import { creditCompanion, simulate, setSeason } from "./game.js?v=20261112n";
 
 export class CkError extends Error {}
 const no = msg => { throw new CkError(msg); };

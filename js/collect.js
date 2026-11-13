@@ -1,5 +1,5 @@
 // Creature Collector: pulls, XP bank, levels, evolutions, lorebook and arena battles.
-import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261111k";
+import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261112n";
 
 export const PULL_XP = 120;          // every 120 XP (all-time since the collector started) = 1 pull
 export const LEVEL_XP = 120;         // 120 banked XP = 1 level
@@ -93,10 +93,11 @@ export const HEIST_FAM = "L-43";
    17 dual-type Ultras (L-46 to L-62, rarity "Ultra"). They only come from Ultra eggs, earned from the Ultra goals (ultra.js):
    ultraEggs = earned (the page adds 1 per goal reached), ultraUsed = hatched (the server). A new one joins at level 1;
    one the student already has goes up ULTRA_DUPE levels instead. Never Sparkle, can't be traded or released. */
-export const ULTRA_FAMS = FAMILIES.filter(f => f.ultra && !f.club).map(f => f.id);   // the goal-egg pool (club Ultras only come from finishing a club)
+export const ULTRA_FAMS = FAMILIES.filter(f => f.ultra && !f.club && !f.pj).map(f => f.id);   // the goal-egg pool (club Ultras only come from finishing a club)
 export const CLUB_ULTRA_FAMS = FAMILIES.filter(f => f.ultra && f.club).map(f => f.id);
 export const ULTRA_DUPE = 5;
-export const isUltra = fam => ULTRA_FAMS.includes(fam) || CLUB_ULTRA_FAMS.includes(fam);
+export const PJ_ULTRA_FAMS = FAMILIES.filter(f => f.ultra && f.pj).map(f => f.id);   // 🪐 only from the Planet JP Ultra Egg
+export const isUltra = fam => ULTRA_FAMS.includes(fam) || CLUB_ULTRA_FAMS.includes(fam) || PJ_ULTRA_FAMS.includes(fam);
 export function ultraLeft(st) { return Math.max(0, (Number(st && st.ultraEggs) || 0) - (Number(st && st.ultraUsed) || 0)); }
 export function ultraPull(st, pool) {
   pool = pool || ULTRA_FAMS; const fam = pool[Math.floor(Math.random() * pool.length)];
@@ -448,7 +449,7 @@ function fighterBase(st, fam) {
   const c = formOf(fam, e.lvl || 1), s = statsOf(c, e.lvl || 1);
   return { fam, id: c.id, lvl: e.lvl || 1, name: e.nick || c.name, species: c.name, img: e.sparkle ? sparkleImg(c) : c.img, sparkle: !!e.sparkle, face: c.face || "R", type: c.atkType || c.types[0], ux: c.ux ? JSON.parse(JSON.stringify(c.ux)) : null, types: c.types, weak: c.weak, attack: c.attack, hp: s.hp, df: s.df, dmg: s.dmg, cur: s.hp, dodge: c.dodge || 0,
     daze: c.daze || 0, dazePct: c.dazePct || 0, poison: c.poison || 0, atkHeal: c.atkHeal || 0, brewFx: !!c.brewFx, candyFx: !!c.candyFx, atkDefDown: c.atkDefDown || 0, atkDefPct: c.atkDefPct || 0, pierce: c.atkPierce || 0, sp: BOSS2_LIST.filter(B => st && st[B.move] === fam).map(B => B.mv).concat(((st && st.vaultMoves) || []).includes(fam) ? ["vault"] : []), spUsed: {}, teamHeal: c.teamHeal || 0, cheer: c.cheer || 0,
-    alt: c.alt ? { name: c.alt.name, mult: c.alt.mult || 1, heal: c.alt.heal || 0, type: c.alt.type || "", defDown: c.alt.defDown || 0, defPct: c.alt.defPct || 0, defTemp: !!c.alt.defTemp, evade: c.alt.evade || 0, daze: c.alt.daze || 0, dazePct: c.alt.dazePct || 0, crit: c.alt.crit || 0, shield: c.alt.shield || 0, teamHeal: c.alt.teamHeal || 0 } : null };
+    alt: c.alt ? { name: c.alt.name, mult: c.alt.mult || 1, heal: c.alt.heal || 0, type: c.alt.type || "", defDown: c.alt.defDown || 0, defPct: c.alt.defPct || 0, defTemp: !!c.alt.defTemp, evade: c.alt.evade || 0, daze: c.alt.daze || 0, dazePct: c.alt.dazePct || 0, crit: c.alt.crit || 0, shield: c.alt.shield || 0, teamHeal: c.alt.teamHeal || 0 } : null, more: c.more ? JSON.parse(JSON.stringify(c.more)) : null };
 }
 export function teamSize(a, b) { return Math.max(0, Math.min(TEAM_MAX, ownedFams(a).length, ownedFams(b).length)); }
 export function hitDamage(att, def, crit) {
@@ -471,7 +472,8 @@ export const MOVES = {
   guard:  { icon: "\u{1F6E1}\uFE0F", name: "Guard" },
   heal:   { icon: "\u{1F49A}", name: "Heal", pct: 0.35 },
   swap:   { icon: "\u{1F504}", name: "Swap" },
-  alt:    { icon: "\u2728", name: "Special" },   // a creature's own second attack (e.g. Cinnamon's Sugar Rush)
+  alt:    { icon: "\u2728", name: "Special" },
+  alt2:   { icon: "\u2728", name: "Special" }, alt3: { icon: "\u2728", name: "Special" },   // 🪐 Nov 12: a 3rd and 4th attack (Astralume, Cosmara): f.more[0], f.more[1]   // a creature's own second attack (e.g. Cinnamon's Sugar Rush)
   // 2nd-boss moves (BOSS2): each is taught once to one companion. 1.75x damage of its type, never misses
   // (not even dodges or portals), once per battle.
   ghost:    { icon: "\u{1F47B}", name: "Spectral Strike", mult: 1.75, type: "Ghost", special: true },
@@ -489,6 +491,7 @@ export function moveOk(bt, side, mv) {
   if (!mv || !MOVES[mv.m] || !cur || cur.cur <= 0) return false;
   if (mv.m === "heal") return !cur.healed && cur.cur < cur.hp;
   if (mv.m === "alt") return !!cur.alt;
+  if (mv.m === "alt2" || mv.m === "alt3") return !!(cur.more && cur.more[mv.m === "alt2" ? 0 : 1]);
   if (MOVES[mv.m].special) return (cur.sp || []).includes(mv.m) && !(cur.spUsed || {})[mv.m];
   if (mv.m === "swap") return Number.isInteger(mv.to) && mv.to !== bt.active[side] && team[mv.to] && team[mv.to].cur > 0;
   return true;
@@ -498,11 +501,12 @@ export function moveOk(bt, side, mv) {
    fx = { fx: "defdown" | "daze" | "burn" | "poison" | "shield" | "boost" | "bonus" | "heal", ch: chance, pct }
    Log lines are { k: "ux", s, t: text } (plus i/left/max when HP changes). */
 function uxAfterHit(bt, s, o, att, def, f, alt) {
-  if (f.fx === "bonus" || Math.random() >= (f.ch || 0)) return;
+  if (f.fx === "bonus" || f.fx === "double" || Math.random() >= (f.ch || 0)) return;
   const pc = Math.round((f.pct || 0) * 100), mv = alt ? att.alt.name : att.attack;
   if (f.fx === "defdown" && f.turns && def.cur > 0 && !(def.dfT > 0)) { def.dfOrig = def.df; def.dfT = f.turns; def.df = Math.max(1, Math.round(def.df * (1 - f.pct))); bt.log.push({ k: "defdown", s, d: def.name, pct: pc, temp: true }); }
   else if (f.fx === "defdown" && def.cur > 0 && !def.uxDd) { def.uxDd = true; def.df = Math.max(1, Math.round(def.df * (1 - f.pct))); if (def.dfOrig) def.dfOrig = Math.max(1, Math.round(def.dfOrig * (1 - f.pct))); bt.log.push({ k: "ux", s: o, t: mv + " cracks " + def.name + "'s Defense: -" + pc + "% for the rest of the battle!" }); }
-  else if (f.fx === "atkdown" && def.cur > 0 && !def.uxAd) { def.uxAd = true; def.dmg = Math.max(1, Math.round(def.dmg * (1 - f.pct))); bt.log.push({ k: "ux", s, t: "\u{1F4E2} " + mv + " shakes " + def.name + "! Its Attack drops " + pc + "% for the rest of the battle." }); }
+  else if (f.fx === "atkdown" && f.turns && def.cur > 0 && !(def.adT > 0)) { def.adP = f.pct; def.adT = f.turns + 1; bt.log.push({ k: "ux", s, t: "\u{1F4E2} " + mv + " weakens " + def.name + "! Its Attack drops " + pc + "% for " + f.turns + " rounds." }); }
+  else if (f.fx === "atkdown" && !f.turns && def.cur > 0 && !def.uxAd) { def.uxAd = f.pct; bt.log.push({ k: "ux", s, t: "\u{1F4E2} " + mv + " shakes " + def.name + "! Its Attack drops " + pc + "% for the rest of the battle." }); }
   else if (f.fx === "daze" && def.cur > 0) { def.dazed = f.pct; bt.log.push({ k: "daze", s, d: def.name, pct: pc }); }
   else if ((f.fx === "burn" || f.fx === "poison") && def.cur > 0 && !def.psn) { def.psn = f.turns || 3; def.burn = f.fx === "burn"; bt.log.push(f.fx === "burn" ? { k: "ux", s: o, t: "\u{1F525} " + def.name + " is burning! It loses a little HP for 3 rounds." } : { k: "poison", s, d: def.name }); }
   else if (f.fx === "shield" && att.cur > 0) { att.shielded = f.pct; bt.log.push({ k: "ux", s, t: "\u{1F6E1}\uFE0F " + mv + ": the next hit on " + att.name + " does " + pc + "% less damage." }); }
@@ -525,6 +529,8 @@ function uxHurt(bt, s, i, f) {
     else { f.uxB = { p: p.boost || 0.25 }; bt.log.push({ k: "ux", s, t: "\u{1F9EA} " + p.name + ": Overcharged Solution! " + f.name + "'s next attack does +" + Math.round((p.boost || 0.25) * 100) + "%." }); }
   }
   // 👽 aliens: below 50% HP once: the next hit on it does less (halfShield), or heal + Defense up for a few rounds (halfHealDef)
+  if (p && p.fx === "halfHealShield" && !f.uxHalf && f.cur < f.hp * 0.5) { f.uxHalf = true; const amt = heal(p.pct); f.shielded = p.sh; f.shN = p.n || 1;   // 🪐 Nebblip / Astralume / Cosmara
+    bt.log.push({ k: "ux", s, i, left: f.cur, max: f.hp, t: "\u{1F31F} " + p.name + "! " + f.name + " shines and heals " + amt + " HP. The next " + ((p.n || 1) > 1 ? p.n + " hits" : "hit") + " on it do" + ((p.n || 1) > 1 ? "" : "es") + " " + Math.round(p.sh * 100) + "% less damage." }); }
   if (p && p.fx === "halfShield" && !f.uxHalf && f.cur < f.hp * 0.5) { f.uxHalf = true; f.shielded = p.pct; bt.log.push({ k: "ux", s, t: "\u{1F6E1}\uFE0F " + p.name + "! The next hit on " + f.name + " does " + Math.round(p.pct * 100) + "% less damage." }); }
   if (p && p.fx === "halfHealDef" && !f.uxHalf && f.cur < f.hp * 0.5) { f.uxHalf = true; const amt = heal(p.pct); if (!(f.dfUpT > 0)) { f.dfUpOrig = f.df; f.dfUpT = (p.turns || 2) + 1; f.df = Math.round(f.df * (1 + (p.def || 0))); }
     bt.log.push({ k: "ux", s, i, left: f.cur, max: f.hp, t: "\u{1F525} " + p.name + "! " + f.name + " heals " + amt + " HP and its Defense goes up " + Math.round((p.def || 0) * 100) + "%." }); }
@@ -563,7 +569,12 @@ export function resolveRound(bt) {
     if (m.m === "guard") { guard[s] = true; bt.log.push({ k: "guard", s, i: bt.active[s], n: f.name }); } });
   // 3. attacks, in order; a creature that faints first doesn't get to hit
   for (const s of order) {
-    const m = mv[s], o = other(s); if (!m || (m.m !== "attack" && m.m !== "power" && m.m !== "alt" && !(MOVES[m.m] && MOVES[m.m].special))) continue;
+    // 🪐 a 3rd / 4th attack plays exactly like the second one ("alt"): swap it in for this attack, then put the second one back
+    const m0 = mv[s], xi = m0 && m0.m === "alt2" ? 0 : m0 && m0.m === "alt3" ? 1 : -1, xf = xi >= 0 ? bt.team[s][bt.active[s]] : null, xm = xf && xf.more && xf.more[xi];
+    const keep = xm ? { alt: xf.alt, ua: xf.ux ? xf.ux.alt : null } : null;
+    if (xm) { xf.alt = xm.alt; if (xf.ux) xf.ux.alt = xm.ux || null; }
+    try {
+    const m = xm ? { m: "alt" } : m0, o = other(s); if (!m || (m.m !== "attack" && m.m !== "power" && m.m !== "alt" && !(MOVES[m.m] && MOVES[m.m].special))) continue;
     const att = bt.team[s][bt.active[s]], def = bt.team[o][bt.active[o]];
     if (!att || !def || att.cur <= 0 || def.cur <= 0) continue;
     const SP = MOVES[m.m] && MOVES[m.m].special ? MOVES[m.m] : null, spook = !!SP && (att.sp || []).includes(m.m) && !(att.spUsed || {})[m.m];
@@ -590,13 +601,16 @@ export function resolveRound(bt) {
     const atkType = spook ? SP.type : alt && att.alt.type ? att.alt.type : att.type;
     if (att.uxB && !miss && (!att.uxB.t || att.uxB.t.includes(atkType))) { dmg = Math.round(dmg * (1 + att.uxB.p)); bt.log.push({ k: "ux", s, t: att.name + "'s power-up: +" + Math.round(att.uxB.p * 100) + "% damage!" }); if ((att.uxB.n || 1) > 1) att.uxB = Object.assign({}, att.uxB, { n: att.uxB.n - 1 }); else att.uxB = null; }
     const uxFx = att.ux && !spook ? (alt ? att.ux.alt : (m.m === "attack" || m.m === "power") ? att.ux.main : null) : null;
+    if (uxFx && uxFx.fx === "double" && !miss && Math.random() < uxFx.ch) { dmg = Math.round(dmg * (1 + uxFx.pct)); bt.log.push({ k: "ux", s, t: "\u2728 " + att.name + "'s " + (alt ? att.alt.name : att.attack) + " strikes a second time! (+" + Math.round(uxFx.pct * 100) + "% damage)" }); }
     if (uxFx && uxFx.fx === "bonus" && !miss && Math.random() < uxFx.ch) { dmg = Math.round(dmg * (1 + uxFx.pct)); bt.log.push({ k: "ux", s, t: "\u{1F48E} " + att.name + "'s " + (alt ? att.alt.name : att.attack) + " hits extra hard: +" + Math.round(uxFx.pct * 100) + "% damage!" }); }
     // 🌈 Ultra passive (Glaciera, Lumirath, Monolyth): the first hit it takes in a battle does less damage
     const dp = def.ux && def.ux.pass;
     if (dp && dp.fx === "first" && !def.uxFirst && !miss) { dmg = Math.max(1, Math.round(dmg * (1 - dp.pct))); def.uxFirst = true; bt.log.push({ k: "ux", s: o, t: def.name + "'s " + dp.name + " blocks " + Math.round(dp.pct * 100) + "% of the first hit!" }); }
-    if (def.shielded && !miss) { dmg = Math.max(1, Math.round(dmg * (1 - def.shielded))); def.shielded = 0; }   // Wishful Winter snow barrier: this hit does 20% less
+    if (def.shielded && !miss) { dmg = Math.max(1, Math.round(dmg * (1 - def.shielded))); if (def.shN > 1) def.shN -= 1; else { def.shielded = 0; def.shN = 0; } }   // Wishful Winter snow barrier: this hit does 20% less
     const cheered = !!att.cheered;
     if (cheered) { dmg = Math.max(1, Math.round(dmg * (1 + att.cheered))); att.cheered = 0; }   // Midnight Finale cheer from a teammate: +10% this attack
+    // Attack down (Snowbloop, Auroraquin, Astralume): this attacker's hits are weaker. Kept apart from dmg, which the battle rules keep fixed.
+    { const ad = (typeof att.uxAd === "number" ? att.uxAd : 0) + (att.adT > 0 ? att.adP || 0 : 0); if (ad && dmg > 0) dmg = Math.max(1, Math.round(dmg * (1 - Math.min(0.6, ad)))); }
     const wasDazed = !!att.dazed;
     if (wasDazed) { dmg = Math.max(1, Math.round(dmg * (1 - (att.dazed || 0)))); att.dazed = 0; }   // dazzled last round: weaker hit
     if (guard[o]) dmg = Math.max(1, Math.round(dmg / 2));
@@ -652,12 +666,14 @@ export function resolveRound(bt) {
       bt.active[o] = null;
       if (!alive(bt.team[o])) { bt.status = "done"; bt.winner = s; bt.log.push({ k: "win", s }); bt.moves = { A: null, B: null }; return bt; }
     }
+    } finally { if (keep) { xf.alt = keep.alt; if (xf.ux) xf.ux.alt = keep.ua; } }
   }
   // a temporary defense drop wears off
   ["A", "B"].forEach(s => (bt.team[s] || []).forEach(f => { if (f && f.dfT > 0) { f.dfT -= 1; if (!f.dfT) { f.df = f.dfOrig || f.df; delete f.dfOrig; } } }));
   // 👽 alien effects that last a few rounds wear off: own Defense up, dazzled (lower accuracy), team aiming better
   ["A", "B"].forEach(s => (bt.team[s] || []).forEach(f => { if (!f) return;
     if (f.dfUpT > 0) { f.dfUpT -= 1; if (!f.dfUpT) { f.df = f.dfUpOrig || f.df; delete f.dfUpOrig; } }
+    if (f.adT > 0) { f.adT -= 1; if (!f.adT) delete f.adP; }
     if (f.blind) { f.blind.n -= 1; if (f.blind.n <= 0) delete f.blind; }
     if (f.accT > 0) { f.accT -= 1; if (!f.accT) delete f.accB; } }));
   // 4. poison ticks (6% of max HP, at least 1 HP is always left)

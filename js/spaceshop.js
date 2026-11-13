@@ -6,12 +6,12 @@
      About 1 day in 10 it's a ✨ Lucky Find: a holiday or event set piece.
    Every buy is one write (planet + the thing bought: outfits / roomOwned / coll), through safari.js planetSave so the safari, the café
    and the shop never overwrite each other. Teacher preview and the student demo save nothing to the class. Catalog: shop-data.js. */
-import { esc } from "./game.js?v=20261111k";
-import { azToday } from "./collect.js?v=20261111k";
-import { planetNow, planetSave, planetCtx, freshSt } from "./safari.js?v=20261111k";
-import { TYPE_THEMES, SEASON_THEMES, KINDS, itemName, itemArt, owned as roomOwnedList } from "./room.js?v=20261111k";
-import { ALIEN_CREATURES, ALIEN_FAMILIES } from "./aliens.js?v=20261111k";
-import { HANGAR_CATS, HANGAR_OPEN, SHOP_ITEMS, SHOP_BY, CATS, CRATE_COST, SHOP_ART, COLLECTIONS, shopOf, hasItem, wearing } from "./shop-data.js?v=20261111k";
+import { esc } from "./game.js?v=20261112n";
+import { azToday, formOf } from "./collect.js?v=20261112n";
+import { planetNow, planetSave, planetCtx, freshSt } from "./safari.js?v=20261112n";
+import { TYPE_THEMES, SEASON_THEMES, KINDS, itemName, itemArt, owned as roomOwnedList } from "./room.js?v=20261112n";
+import { ALIEN_CREATURES, ALIEN_FAMILIES, PJ_ULTRA_FAM } from "./aliens.js?v=20261112n";
+import { HANGAR_CATS, HANGAR_OPEN, SHOP_ITEMS, SHOP_BY, CATS, CRATE_COST, SHOP_ART, COLLECTIONS, shopOf, hasItem, wearing } from "./shop-data.js?v=20261112n";
 
 const WEAR_CATS = ["duck", "flame", "trail", "orbit", "table"];
 let msg = null, extra = null;   // the last message, and the last non-planet fields saved (so the page shows them before the save comes back)
@@ -67,6 +67,7 @@ export function buy(k, then) {
 }
 // 🥚 Planet JP Egg: an alien you don't have yet (Lv 1), or +5 levels on one you do. 10% Sparkle.
 function hatchEgg(st, it) {
+  if (it.k === "egg-ultra") return hatchUltra(st, it);
   const coll = Object.assign({}, st.coll || {}), fams = ALIEN_FAMILIES.map(f => f.id), missing = fams.filter(f => !coll[f]);
   const fam = (missing.length ? missing : fams)[Math.floor(Math.random() * (missing.length || fams.length))];
   const had = coll[fam], spk = Math.random() < 0.1;
@@ -75,6 +76,16 @@ function hatchEgg(st, it) {
   const fm = ALIEN_FAMILIES.find(f => f.id === fam), cr = ALIEN_CREATURES.find(x => x.id === (fm.forms || [])[0]) || {};
   if (!pay(it.cost, shop => { shop.egg = (Number(shop.egg) || 0) + 1; }, { coll, collTouch: [fam] }, "")) return;
   msg = { egg: cr.img, text: (spk ? "✨ SPARKLE! " : "\u{1F95A} It hatched! ") + "You got " + (cr.name || "a Planet JP alien") + (had ? " (+5 levels!)" : "! It joined your Creature Collector.") + (ctx().preview ? " (Preview: nothing was saved.)" : "") };
+  rerender();
+}
+// 🪐 Planet JP Ultra Egg (Nov 12): Nebblip joins at Lv 1, or the one you have gets +5 levels (it evolves at 30 and 65)
+function hatchUltra(st, it) {
+  const coll = Object.assign({}, st.coll || {}), fam = PJ_ULTRA_FAM, had = coll[fam];
+  coll[fam] = had ? Object.assign({}, had, { lvl: Math.min(100, (Number(had.lvl) || 1) + 5) }) : { lvl: 1, at: new Date().toISOString(), caught: true };
+  const lv = coll[fam].lvl, cr = formOf(fam, lv) || {};
+  if (!pay(it.cost, shop => { shop.ue = (Number(shop.ue) || 0) + 1; }, { coll, collTouch: [fam] }, "")) return;
+  msg = { egg: cr.img, html: 1, text: "\u{1F308} <b>ULTRA LEGENDARY!</b> " + (had ? esc(cr.name) + " got <b>+5 levels</b>! Now Lv " + lv + "." + ((Number(had.lvl) || 1) < 30 && lv >= 30 ? " It evolved into <b>Astralume</b>!" : (Number(had.lvl) || 1) < 65 && lv >= 65 ? " It evolved into <b>Cosmara</b>!" : "")
+    : "<b>Nebblip, the Newborn Star</b>, hatched from the egg! Find it in your \u{1F308} Ultra Legendaries.") + (ctx().preview ? " (Preview: nothing was saved.)" : "") };
   rerender();
 }
 // 🎁 Mystery Space Crate: mostly small things, sometimes something big, sometimes Stardust back

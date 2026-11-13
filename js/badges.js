@@ -1,16 +1,16 @@
-import { owned as roomOwned, fitOf as roomFit, FIT_SLOTS, setItems as roomSet } from "./room.js?v=20261111k";
-import { presentsOpened } from "./doors.js?v=20261111k";
-import { PASS_THEMES, passDone } from "./pass.js?v=20261111k";
-import { shopBuys, swapBuys, outfitsOwned, cabinOwned, paintsOwned } from "./shop-data.js?v=20261111k";
-import { REGULARS as CF_REG, SPECIALS as CF_SP, keptCount as cfKept, perfectTotal as cfPerfect, monthPairs as cfPairs } from "./cafe-data.js?v=20261111k";
-import { ZONES as PJ_ZONES, pageCount as pjPage, pageSize as pjSize, aliensFound as pjAl, allAliensFound as pjAllAl, ALIEN_LIST as PJ_ALIENS } from "./safari.js?v=20261111k";
+import { owned as roomOwned, fitOf as roomFit, FIT_SLOTS, setItems as roomSet } from "./room.js?v=20261112n";
+import { presentsOpened } from "./doors.js?v=20261112n";
+import { PASS_THEMES, passDone } from "./pass.js?v=20261112n";
+import { shopBuys, swapBuys, outfitsOwned, cabinOwned, paintsOwned } from "./shop-data.js?v=20261112n";
+import { REGULARS as CF_REG, SPECIALS as CF_SP, keptCount as cfKept, perfectTotal as cfPerfect, monthPairs as cfPairs } from "./cafe-data.js?v=20261112n";
+import { ZONES as PJ_ZONES, pageCount as pjPage, pageSize as pjSize, aliensFound as pjAl, allAliensFound as pjAllAl, ALIEN_LIST as PJ_ALIENS } from "./safari.js?v=20261112n";
 // Badges: worked out from each student's saved data, so nothing extra is stored and no rules change.
 // To add a badge: add an entry with a check(st) that returns how far along the student is,
 // and a goal. Put its picture in assets/badges/ (a transparent WEBP or PNG). Without a picture, the emoji shows.
 const nebOf = st => ((st && st.planet) || {}).pets || {}, nebN = st => Object.keys(nebOf(st).o || {}).length;
 const NEB_SEASON = ["pumpkin", "pie", "candycane", "snowball", "sweetheart", "clover", "egg", "springflower", "sunbeam", "pencil"];
-import { esc, goalXP, candyOf, ghostUnlocked } from "./game.js?v=20261111k";
-import { seenSet, ownedFams, owned, family, formIndex, formOf, STARTERS, CREATURES } from "./collect.js?v=20261111k";
+import { esc, goalXP, candyOf, ghostUnlocked } from "./game.js?v=20261112n";
+import { seenSet, ownedFams, owned, family, formIndex, formOf, STARTERS, CREATURES } from "./collect.js?v=20261112n";
 
 export const hatches = st => (Number(st.pullsUsed) || 0) + (Number(st.legendaryUsed) || 0);
 
@@ -120,6 +120,7 @@ export const eventsCaught = st => EVENT_FAMS.filter(f => owned(st)[f]).length;
 const LORE = CREATURES.filter(c => !c.event).length, lore = pct => Math.ceil(LORE * pct / 100);
 
 const zooOf = st => ((st && st.planet) || {}).zoo || {};
+const mbB = st => Object.keys((((st && st.planet) || {}).mb || {}).own || {}).filter(k => k !== "hut" && k !== "palace").length;
 const stnG = st => Number((((st && st.planet) || {}).stn || {}).g) || 0;
 const kdG = st => Object.keys(((st && st.kd) || {}).g || {}).length;
 export const BADGE_GROUPS = [
@@ -145,6 +146,7 @@ export const BADGE_GROUPS = [
   { key: "cafe", title: "\u2615 Space Caf\u00e9 + \u{1F6D2} Shops" },
   { key: "zoo", title: "\u{1F992} Space Zoo" },
   { key: "neb", title: "\u{1F43E} Nebbles" },
+  { key: "moon", title: "\u{1F319} Moon Base" },
   { key: "station", title: "\u{1F6F0}\uFE0F Space Station" },
   { key: "kingdom", title: "\u{1F30A} Axolotl Kingdom" },
 ];
@@ -301,6 +303,11 @@ export const BADGES = [
   { id: "neb-50", group: "neb", name: "Nebble Master", desc: "Own all 50 Nebbles", goal: 50, img: "assets/badges/neb-50.webp", emoji: "\u{1F451}", check: st => Math.min(50, nebN(st)) },
   { id: "neb-care", group: "neb", name: "Pet Pro", desc: "Care for your Nebble 5 school days in a row", goal: 1, img: "assets/badges/neb-care.webp", emoji: "\u{1F6C1}", check: st => Math.min(1, Number((nebOf(st).care || {}).cards) || 0) },
   { id: "neb-season", group: "neb", name: "Seasonal Friend", desc: "Adopt a seasonal Nebble", goal: 1, img: "assets/badges/neb-season.webp", emoji: "\u{1F383}", check: st => Object.keys(nebOf(st).o || {}).some(k => NEB_SEASON.includes(k)) ? 1 : 0 },
+  // 🌙 Moon Base (Nov 12): planet.mb.own (hut is free; "all 10" = the hut + the 9 other buildings, the palace is its own badge)
+  { id: "mb-first", group: "moon", name: "First Building", desc: "Build your first building on your Moon Base", goal: 1, img: "assets/badges/mb-first.webp", emoji: "\u{1F3E0}", check: st => Math.min(1, mbB(st)) },
+  { id: "mb-half", group: "moon", name: "Moon Town", desc: "Build 5 buildings on your Moon Base", goal: 5, img: "assets/badges/mb-half.webp", emoji: "\u{1F3D8}\uFE0F", check: st => Math.min(5, mbB(st)) },
+  { id: "mb-mayor", group: "moon", name: "Moon Mayor", desc: "Build all 10 Moon Base buildings", goal: 9, img: "assets/badges/mb-mayor.webp", emoji: "\u{1F396}\uFE0F", check: st => Math.min(9, mbB(st)) },
+  { id: "mb-palace", group: "moon", name: "Moon Royalty", desc: "Build the Moon Palace", goal: 1, img: "assets/badges/mb-palace.webp", emoji: "\u{1F451}", check: st => (((st && st.planet) || {}).mb || {}).own && st.planet.mb.own.palace ? 1 : 0 },
   // 🛰️ Space Station (Nov 11): this semester's planet.stn; Station Complete = got all 5 stage rewards (ever: stnDone stays true)
   { id: "stn-crew", group: "station", name: "Station Crew", desc: "Give 250 Stardust to the class Space Station in one semester", goal: 250, img: "assets/badges/stn-crew.webp", emoji: "\u{1F9D1}\u200D\u{1F680}", check: st => Math.min(250, stnG(st)) },
   { id: "stn-engineer", group: "station", name: "Station Engineer", desc: "Give 500 Stardust to the class Space Station in one semester", goal: 500, img: "assets/badges/stn-engineer.webp", emoji: "\u{1F527}", check: st => Math.min(500, stnG(st)) },

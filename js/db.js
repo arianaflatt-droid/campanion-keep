@@ -7,7 +7,7 @@ import {
   getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, signInAnonymously
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
-import { firebaseConfig, CLASS_ID, TEACHER_EMAILS, ADMIN_EMAILS, switchClass } from "./firebase-config.js?v=20261111k";
+import { firebaseConfig, CLASS_ID, TEACHER_EMAILS, ADMIN_EMAILS, switchClass } from "./firebase-config.js?v=20261112n";
 export { CLASS_ID, switchClass };
 
 // Teacher preview (student.html?s=ID&preview=1): the page shows a student's view, but nothing is ever written.

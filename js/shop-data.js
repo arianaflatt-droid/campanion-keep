@@ -60,7 +60,9 @@ export const SHOP_ITEMS = [
   I("table-balloon", "table", "Planet Balloon", 50, { img: P + "table-balloon.webp" }),
   I("table-rocket", "table", "Toy Rocket", 60, { img: P + "table-rocket.webp" }),
   // 🥚 the big one: hatches a Planet JP alien
-  I("egg-planetjp", "egg", "Planet JP Egg", 2000, { img: P + "egg-planetjp.webp", goal: 1, again: 1 })];
+  I("egg-planetjp", "egg", "Planet JP Egg", 2000, { img: P + "egg-planetjp.webp", goal: 1, again: 1 }),
+  // 🪐 Nov 12: the Planet JP Ultra Egg hatches Nebblip (Ultra Legendary); again = +5 levels
+  I("egg-ultra", "egg", "Planet JP Ultra Egg", 3000, { img: "assets/planet/ultra/ultra-egg-360.webp", goal: 1, again: 1 })];
 // 🚀 Duck paint, flames and trails wait for the Duck Hangar (Nov 8, Ms. Ariana): the Hangar will sell them and let students switch.
 export const HANGAR_CATS = ["duck", "flame", "trail"];
 export const HANGAR_OPEN = true;   // Nov 9: the Duck Hangar is open (these are sold there, not in the Space Shop)
@@ -68,7 +70,7 @@ export const SHOP_BY = {}; SHOP_ITEMS.forEach(i => { SHOP_BY[i.k] = i; });
 export const CRATE_COST = 75;
 export const CATS = [["outfit", "\u{1F469}‍\u{1F680} Outfits", "Wear them from Gear on My Companion."], ["room", "\u{1F6CB}️ Starship Cabin room set", "Decorate with them in My Room."],
   ["duck", "\u{1F680} S.S. Duck paint", "Your duck on the launch bar and in liftoff."], ["flame", "\u{1F525} Rocket flames", "The fire behind your duck."], ["trail", "✨ Trails", "Behind your duck on the launch bar."],
-  ["orbit", "\u{1F319} Orbit buddies", "They circle your companion everywhere."], ["table", "☕ Café table extras", "At your seat in the Space Café."], ["egg", "\u{1F95A} Big saving goal", "Hatches a Planet JP alien!"]];
+  ["orbit", "\u{1F319} Orbit buddies", "They circle your companion everywhere."], ["table", "☕ Café table extras", "At your seat in the Space Café."], ["egg", "\u{1F95A} Big saving goals", "The Planet JP Egg hatches an alien. The Ultra Egg hatches Nebblip, an Ultra Legendary!"]];
 // what a student has / uses
 export const shopOf = st => (((st && st.planet) || {}).shop) || {};
 export const hasItem = (st, k) => { const it = SHOP_BY[k]; if (!it) return false;

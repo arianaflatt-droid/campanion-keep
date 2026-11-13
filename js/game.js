@@ -1,13 +1,13 @@
-import { PARTY_SPOT } from "./party-spot.js?v=20261111k";
-import { CREATURE_LAYOUT, CREATURE_FIT_ID, CREATURE_NECK_ID } from "./creature-fit.js?v=20261111k";
-import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261111k";
-import { heldWeapon } from "./quest.js?v=20261111k";
-import { SNACKS as CAFE_SNACKS, snackKept } from "./cafe-data.js?v=20261111k";
-import { orbitImgOf } from "./shop-data.js?v=20261111k";
+import { PARTY_SPOT } from "./party-spot.js?v=20261112n";
+import { CREATURE_LAYOUT, CREATURE_FIT_ID, CREATURE_NECK_ID } from "./creature-fit.js?v=20261112n";
+import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261112n";
+import { heldWeapon } from "./quest.js?v=20261112n";
+import { SNACKS as CAFE_SNACKS, snackKept } from "./cafe-data.js?v=20261112n";
+import { orbitImgOf } from "./shop-data.js?v=20261112n";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261111k";
+export const APP_V = "20261112n";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -675,7 +675,7 @@ export const outfitOf = id => OUTFITS.find(o => o.id === id) || null;
 export const headImg = (c, img) => { const o = outfitByImg(img);
   return o && o.neck ? '<span class="phat cos neck" style="' + (c ? neckStyle(c) : "") + '"><img src="' + img + '" alt=""></span>'
     : '<span class="phat cos" style="' + (c ? partyStyle(c, "hat") : "") + '"><img src="' + img + '" alt=""></span>'; };
-export const HEAD_FNS = [st => { const o = st && st.outfitOn && ((st.outfits || {})[st.outfitOn]) ? outfitOf(st.outfitOn) : null; return o ? o.img : ""; }];
+export const HEAD_FNS = [st => (st && st.planet && st.planet.mb && st.planet.mb.cr === azToday() ? "assets/planet/moon/palace-crown.webp" : ""), st => { const o = st && st.outfitOn && ((st.outfits || {})[st.outfitOn]) ? outfitOf(st.outfitOn) : null; return o ? o.img : ""; }];
 // Something extra on the head (a bought outfit, then an event costume). The shop hat comes off while it's on.
 export function headExtra(st, c) { if (vipHat(st)) return ""; for (const f of HEAD_FNS) { const img = f(st, c); if (img) return headImg(c, img); } return ""; }
 /* 🎨 Paint (js/paint.js sells it): paint = color id (until changed), paints = { id: true } owned, sparkleDay = date (glow for that day).
@@ -688,7 +688,8 @@ export const paintClass = st => {
   if (!st) return "";
   const p = st.paint && (st.paints || {})[st.paint] ? " pt-" + st.paint : "", sp = st.sparkleDay === azToday() ? " pt-sparkle" : "";
   const cf = st.planet && st.planet.cf && st.planet.cf.d === azToday() ? " pt-snack" : "";   // ☕ cooked a café snack today: the snack glow
-  return p + sp + cf;
+  const mb = st.planet && st.planet.mb, gy = mb && mb.gy === azToday() ? " pt-strong" : "";   // 🏋️ Moon Base gym: Strong glow for the day
+  return p + sp + cf + gy;
 };
 export const painted = (st, html) => { const k = paintClass(st); if (k) html = html.replace('class="petwrap', 'class="petwrap' + k);
   const ob = orbitImgOf(st); return ob ? onPet(html, '<span class="orbitb"><img src="' + ob + '" alt=""></span>') : html; };   // 🌙 Space Shop orbit buddy

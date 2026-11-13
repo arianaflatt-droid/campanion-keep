@@ -8,11 +8,11 @@
      🗺️ finishing all 3 Grade Level Quest tests at their own grade (st.grade = 4 or 5, set by Ms. Ariana; once)
    Saved on the student: ultraEggs, ultraUsed (server), ultraGoals = { st: { s: run start, n: given }, wk: { s, n }, vault: vaults rolled,
      q: true }, ultraLog = [{ why, at }] (newest last). */
-import { esc, weekKey, weekGoal } from "./game.js?v=20261111k";
-import { CLUB_ULTRA_FAMS } from "./collect.js?v=20261111k";
-import { ULTRA_FAMS, ULTRA_DUPE, ultraLeft, owned, formOf, family, creature, statsOf, bankXP, LEVEL_XP, MAX_LEVEL } from "./collect.js?v=20261111k";
-import { doneCount, GRADES } from "./quest.js?v=20261111k";
-import { addDays, mondayOf, histWeekTotal, wkShare } from "./doors.js?v=20261111k";
+import { esc, weekKey, weekGoal } from "./game.js?v=20261112n";
+import { CLUB_ULTRA_FAMS, PJ_ULTRA_FAMS } from "./collect.js?v=20261112n";
+import { ULTRA_FAMS, ULTRA_DUPE, ultraLeft, owned, formOf, family, creature, statsOf, bankXP, LEVEL_XP, MAX_LEVEL } from "./collect.js?v=20261112n";
+import { doneCount, GRADES } from "./quest.js?v=20261112n";
+import { addDays, mondayOf, histWeekTotal, wkShare } from "./doors.js?v=20261112n";
 
 export const STREAK_DAYS = 30, WEEKS_IN_ROW = 4, WEEK_XP = 600, VAULT_ULTRA = 0.25;
 export const ULTRA_GRADES = [4, 5];
@@ -141,6 +141,14 @@ export function ultraSection(st, cls) {
   if (CLUB_ULTRA_FAMS.length) h += '<h3 style="margin:16px 0 6px;">\u{1F3A8} Club Ultras <span class="fact">' + CLUB_ULTRA_FAMS.filter(f => o[f]).length + " / " + CLUB_ULTRA_FAMS.length + '</span></h3><p class="muted small" style="margin:0 0 8px;">Finish every step of a club to get its own Ultra. Only club members can get them!</p><div class="ugrid">' +
     CLUB_ULTRA_FAMS.map(f => { const fm = family(f), e = o[f], c0 = creature(fm.forms[0]);
       if (!e) return '<div class="ucell unk">' + UI(c0, "uimg", true) + "<b>???</b><small>" + esc(CLUB_NAMES[fm.club] || "a club") + "</small></div>";
+      const lvl = e.lvl || 1, c = formOf(f, lvl), s2 = statsOf(c, lvl), maxed = lvl >= MAX_LEVEL;
+      return '<div class="ucell"><button class="mypic" data-cc="detail" data-id="' + c.id + '">' + UI(c, "uimg") + "</button><b>" + esc(e.nick || c.name) + '</b><span class="lv">Lv ' + lvl + "</span>" +
+        '<small class="muted">❤ ' + s2.hp + " · \u{1F6E1} " + s2.df + " · ⚔ " + s2.dmg + "</small>" +
+        '<button class="btn small" data-cc="lvl" data-fam="' + f + '"' + (bank >= LEVEL_XP && !maxed ? "" : " disabled") + ">" + (maxed ? "Max level" : "⬆ Level up · " + LEVEL_XP + " XP") + "</button></div>"; }).join("") + "</div>";
+  // 🪐 Planet JP Ultra (Nov 12): only from the Planet JP Ultra Egg in the Space Shop (3,000 Stardust)
+  if (PJ_ULTRA_FAMS.length) h += '<h3 style="margin:16px 0 6px;">\u{1FA90} Planet JP Ultra <span class="fact">' + PJ_ULTRA_FAMS.filter(f => o[f]).length + " / " + PJ_ULTRA_FAMS.length + '</span></h3><p class="muted small" style="margin:0 0 8px;">Hatch it from the <b>Planet JP Ultra Egg</b> in the Space Shop (3,000 ⭐ Stardust). Another egg = +5 levels. It evolves at Lv 30 and Lv 65!</p><div class="ugrid">' +
+    PJ_ULTRA_FAMS.map(f => { const fm = family(f), e = o[f], c0 = creature(fm.forms[0]);
+      if (!e) return '<div class="ucell unk">' + UI(c0, "uimg", true) + "<b>???</b><small>Planet JP Ultra Egg</small></div>";
       const lvl = e.lvl || 1, c = formOf(f, lvl), s2 = statsOf(c, lvl), maxed = lvl >= MAX_LEVEL;
       return '<div class="ucell"><button class="mypic" data-cc="detail" data-id="' + c.id + '">' + UI(c, "uimg") + "</button><b>" + esc(e.nick || c.name) + '</b><span class="lv">Lv ' + lvl + "</span>" +
         '<small class="muted">❤ ' + s2.hp + " · \u{1F6E1} " + s2.df + " · ⚔ " + s2.dmg + "</small>" +

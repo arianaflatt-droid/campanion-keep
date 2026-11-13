@@ -4,15 +4,15 @@ import {
   formIndex, formOf, statsOf, seenSet, rollRarity, doPull, arenaOpen, arenaOpenFor, lunchHour, hitGoalToday, LUNCH_ARENA, ARENA_HOURS, fighterFrom, teamSize, alive, resolve, resolveRound, moveOk, MOVES, hitDamage,
   birthdayLeft, pickleLeft, PICKLE_FAM, brewLegLeft, BREW_FAM, feastLegLeft, HARVEST_FAM, gingerLegLeft, GINGER_FAM, snowLegLeft, SNOW_FAM, candyLegLeft, CANDY_FAM, ghostEggLeft, GHOST_FAM, BOSS2_LIST, boss2EggLeft, vaultLegLeft, revengeLegLeft, heistLegLeft, goalLeft, nextGoal, rollRareUp, themeLeft, nextTheme, THEME_TYPES, THEME_EGG, WISH_FAM, spares, spareId, releaseXP, releaseProblem, isStarterFam, STARTERS, RARITY_COLOR, LEVEL_XP, MAX_LEVEL, PULL_XP, ODDS, isSparkle, sparkleImg, hasSparkleArt,
   EVENTS, eventOpen, eventWindow, eventStreak, hasEvent, eventUnlocked, azToday, rollTeacherRarity, teacherPull, TEACHER_ODDS, LIVE, staleBattle
-} from "./collect.js?v=20261111k";
-import { newBattleRef, battleRef, updateDoc, changeBattle as changeBattleRaw, setDoc, liveBattlesNow, ck, ckMessage } from "./db.js?v=20261111k";
+} from "./collect.js?v=20261112n";
+import { newBattleRef, battleRef, updateDoc, changeBattle as changeBattleRaw, setDoc, liveBattlesNow, ck, ckMessage } from "./db.js?v=20261112n";
 // every change to a battle is stamped with the time (upd), so a battle nobody has touched in a while can be ended
 let locking = null, leaving = null;   // battle id while "Lock in team" is saving
 const changeBattle = (id, fn) => changeBattleRaw(id, bt => { const n = fn(bt); if (n) n.upd = new Date().toISOString(); return n; });
 
-import { tradeCard } from "./trade-ui.js?v=20261111k";
-import { ultraLeft, isUltra, trapLegLeft, PRISM_FAM, teacherLegFam } from "./collect.js?v=20261111k";
-import { ultraSection, ultraInfoHTML } from "./ultra.js?v=20261111k";
+import { tradeCard } from "./trade-ui.js?v=20261112n";
+import { ultraLeft, isUltra, trapLegLeft, PRISM_FAM, teacherLegFam } from "./collect.js?v=20261112n";
+import { ultraSection, ultraInfoHTML } from "./ultra.js?v=20261112n";
 
 const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const PER_PAGE = 20;
@@ -599,7 +599,7 @@ function battleOverlay() {
 // Pick a move: attack, power move, guard, heal, or swap. Both players pick, then the round plays out.
 function movePanel(bt, me, them, thN) {
   const mine = bt.moves && bt.moves[me], theirs = bt.moves && bt.moves[them];
-  if (mine) return '<div class="bpanel small"><p>' + MOVES[mine.m].icon + " You picked <b>" + (mine.m === "swap" ? "Swap to " + esc(bt.team[me][mine.to].name) : mine.m === "alt" ? esc((bt.team[me][bt.active[me]].alt || {}).name || "Special") : MOVES[mine.m].name) + "</b>. Waiting for " + esc(thN) + "\u2026</p>" +
+  if (mine) return '<div class="bpanel small"><p>' + MOVES[mine.m].icon + " You picked <b>" + (mine.m === "swap" ? "Swap to " + esc(bt.team[me][mine.to].name) : mine.m === "alt" ? esc((bt.team[me][bt.active[me]].alt || {}).name || "Special") : mine.m === "alt2" || mine.m === "alt3" ? esc((((bt.team[me][bt.active[me]].more || [])[mine.m === "alt2" ? 0 : 1] || {}).alt || {}).name || "Special") : MOVES[mine.m].name) + "</b>. Waiting for " + esc(thN) + "\u2026</p>" +
     '<button class="btn ghost small" data-cc="undoMove">Change my move</button></div>';
   const f = bt.team[me][bt.active[me]], o = bt.team[them][bt.active[them]];
   const dmg = hitDamage(f, o, false), back = hitDamage(o, f, false);
@@ -614,6 +614,9 @@ function movePanel(bt, me, them, thN) {
       btn("attack", esc(f.attack), "about " + dmg.dmg + " damage" + (f.daze ? " \u00b7 " + Math.round(f.daze * 100) + "% chance to dazzle" : "") + (f.poison ? " \u00b7 " + Math.round(f.poison * 100) + "% chance to poison" : "") + (f.atkHeal ? " \u00b7 heals +" + Math.round(f.hp * f.atkHeal) + " HP" : "") + (f.brewFx ? " \u00b7 surprise: poison, Defense down or heal" : "") + (f.atkDefDown ? " \u00b7 " + Math.round(f.atkDefDown * 100) + "% chance to lower Defense" : "") + (f.teamHeal ? " \u00b7 heals the team" : "") + (f.cheer ? " \u00b7 boosts the team" : ""), true) +
       (f.alt ? (() => { const ad = hitDamage(f.alt.type ? Object.assign({}, f, { type: f.alt.type }) : f, o, false);
         return btn("alt", esc(f.alt.name), "about " + Math.max(1, Math.round(ad.dmg * (f.alt.mult || 1))) + " damage" + (ad.weak ? " \u2B50" : "") + (f.alt.heal ? " \u00b7 heals +" + Math.round(f.hp * f.alt.heal) + " HP" : "") + (f.alt.defDown ? " \u00b7 " + Math.round(f.alt.defDown * 100) + "% chance to lower defense" : "") + (f.alt.evade ? " \u00b7 " + Math.round(f.alt.evade * 100) + "% chance to dodge the next attack" : "") + (f.alt.daze ? " \u00b7 " + Math.round(f.alt.daze * 100) + "% chance to weaken their next attack" : "") + (f.alt.crit ? " \u00b7 " + Math.round(f.alt.crit * 100) + "% crit chance" : "") + (f.alt.shield ? " \u00b7 snow barrier" : ""), true); })() : "") +
+      (f.more || []).map((x, i) => { const A = x.alt || {}, ad = hitDamage(A.type ? Object.assign({}, f, { type: A.type }) : f, o, false), fx = x.ux || {};   // 🪐 a 3rd / 4th attack
+        return btn(i ? "alt3" : "alt2", esc(A.name), (A.mult ? "about " + Math.max(1, Math.round(ad.dmg * A.mult)) + " damage" + (ad.weak ? " \u2B50" : "") : "no damage") + (A.heal ? " \u00b7 heals +" + Math.round(f.hp * A.heal) + " HP" : "") +
+          (fx.fx === "double" ? " \u00b7 " + Math.round(fx.ch * 100) + "% chance to hit twice" : fx.fx === "shield" ? " \u00b7 the next hit on it does " + Math.round(fx.pct * 100) + "% less" : ""), true); }).join("") +
       (f.sp || []).map(k => { const M = MOVES[k], used = !!(f.spUsed || {})[k], gd = hitDamage(Object.assign({}, f, { type: M.type }), M.pierce ? Object.assign({}, o, { df: 0 }) : o, false);
         return btn(k, M.name, used ? "already used this battle" : "about " + Math.round(gd.dmg * M.mult) + " " + M.type + " damage" + (gd.weak ? " \u2B50" : "") + (M.hit ? " \u00b7 ignores Defense \u00b7 " + Math.round(M.hit * 100) + "% to hit" : " \u00b7 never misses") + " \u00b7 once", !used); }).join("") +
       btn("power", "Power Move", "about " + Math.round(dmg.dmg * MOVES.power.mult) + " damage \u00b7 75% to hit", true) +

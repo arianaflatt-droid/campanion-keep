@@ -3,8 +3,8 @@
    it saves lives only in this browser (localStorage "ck-demo-db"). Nothing touches Firebase or the class.
    The console's 🎮 Student demo button saves a copy of the class settings ("ck-demo-class") and opens demo.html;
    this file then makes a demo student who has hit every goal, plus a few pretend classmates. */
-import { BADGES } from "./badges.js?v=20261111k";
-import { ROSTER } from "./game.js?v=20261111k";
+import { BADGES } from "./badges.js?v=20261112n";
+import { ROSTER } from "./game.js?v=20261112n";
 const K = "ck-demo-db";
 let MEM = null;   // works even if the browser blocks storage
 const read = () => { if (!MEM) { try { MEM = JSON.parse(localStorage.getItem(K)) || null; } catch (e) {} if (!MEM) MEM = seed(); } return JSON.parse(JSON.stringify(MEM)); };
@@ -77,7 +77,7 @@ export const teacherSignIn = async () => {}, anonSignIn = async () => {};
 // the server (Cloud Function) runs the real functions/actions.js against the mock data
 export async function ck(op, input) {
   if (PREVIEW) throw new Error("This is a teacher preview — nothing is saved.");
-  const A = await import("./server-actions.js?v=20261111k");   // the real server code, run here in the browser
+  const A = await import("./server-actions.js?v=20261112n");   // the real server code, run here in the browser
   const s = read(), sid = "demo";
   if (!sid || !s["students/" + sid]) throw new Error("Open Companion Keep from your personal link first.");
   const cls = s["class"] || {}, st = Object.assign({ id: sid }, JSON.parse(JSON.stringify(s["students/" + sid])));
