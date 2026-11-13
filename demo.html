@@ -7,10 +7,10 @@
 <title>Companion Keep · Student demo</title>
 <link rel="icon" href="assets/axolotl.png">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Karla:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap">
-<link rel="stylesheet" href="css/style.css?v=20261113g">
+<link rel="stylesheet" href="css/style.css?v=20261113h">
 <!-- 🎮 Student demo (Nov 8): the real student page, but every "./db.js" import uses the pretend database (js/db-demo.js),
      so nothing is ever saved to Firebase. The clock is set to 11:30 am Arizona time on a school day, so Planet JP is open. -->
-<script type="importmap">{ "imports": { "./js/db.js?v=20261113g": "./js/db-demo.js?v=20261113g" } }</script>
+<script type="importmap">{ "imports": { "./js/db.js?v=20261113h": "./js/db-demo.js?v=20261113h" } }</script>
 <script>
 (() => {
   const now = Date.now(), az = new Date(now - 7 * 3600e3), wd = az.getUTCDay(), back = wd === 6 ? 1 : wd === 0 ? 2 : 0;
@@ -33,9 +33,9 @@
   <div id="app"><div class="card"><p class="lede">Loading…</p></div></div>
 </div>
 <script type="module">
-import { resetDemo } from "./js/db-demo.js?v=20261113g";
+import { resetDemo } from "./js/db-demo.js?v=20261113h";
 document.getElementById("demoReset").onclick = () => { if (confirm("Start the demo over? Everything you did in the demo goes back to the beginning.")) { resetDemo(); location.reload(); } };
 </script>
-<script type="module" src="js/student.js?v=20261113g"></script>
+<script type="module" src="js/student.js?v=20261113h"></script>
 </body>
 </html>

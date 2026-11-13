@@ -1791,7 +1791,7 @@ body.mini-xmas .tile{ box-shadow:0 0 0 2px #E8B923; } body.mini-tot .tile{ box-s
 
 /* 🎁 Weekly Reward */
 .rgmain{ display:flex; gap:24px; align-items:center; flex-wrap:wrap; }
-.rgpic{ width:min(240px,70vw); aspect-ratio:1; object-fit:cover; border-radius:18px; box-shadow:0 6px 18px rgba(0,0,0,.15); flex:none; }
+.rgpic{ width:min(240px,70vw); aspect-ratio:1; object-fit:contain; background:#fff; border-radius:18px; box-shadow:0 6px 18px rgba(0,0,0,.15); flex:none; }
 .rgemo{ display:grid; place-items:center; font-size:96px; background:var(--card-2, #f4efe4); }
 .rgtext{ flex:1; min-width:220px; }
 .rgname{ font-size:28px; margin:0 0 6px; }
@@ -1802,7 +1802,7 @@ body.mini-xmas .tile{ box-shadow:0 0 0 2px #E8B923; } body.mini-tot .tile{ box-s
 .rgmsg{ margin-top:10px; font-weight:800; font-size:18px; }
 .rglist{ display:flex; flex-direction:column; gap:10px; }
 .rgrow{ display:flex; gap:12px; align-items:center; } .rgrow > div{ flex:1; }
-.rgthumb{ width:56px; height:56px; object-fit:cover; border-radius:10px; flex:none; } .rgthumb.rgemo{ font-size:30px; }
+.rgthumb{ width:56px; height:56px; object-fit:contain; background:#fff; border-radius:10px; flex:none; } .rgthumb.rgemo{ font-size:30px; }
 .rgtable{ display:flex; flex-direction:column; gap:0; }
 .rgtr{ display:flex; gap:12px; align-items:center; padding:8px 0; border-bottom:1px solid rgba(0,0,0,.06); } .rgtr .rgn{ width:120px; font-weight:700; }
 .rgcol{ flex:1; min-width:0; } .rgpicbtn{ cursor:pointer; flex:none; } .rgpicbtn .rgthumb{ width:64px; height:64px; outline:2px dashed rgba(0,0,0,.15); outline-offset:2px; }
@@ -1810,9 +1810,9 @@ body.mini-xmas .tile{ box-shadow:0 0 0 2px #E8B923; } body.mini-tot .tile{ box-s
 .rgweek{ margin-top:12px; font-weight:800; font-size:15px; }
 .rglib{ display:flex; gap:12px; flex-wrap:wrap; }
 .rglibitem{ display:flex; flex-direction:column; align-items:center; gap:4px; width:120px; text-align:center; }
-.rglibitem img{ width:110px; height:110px; object-fit:cover; border-radius:12px; }
+.rglibitem img{ width:110px; height:110px; object-fit:contain; background:#fff; border-radius:12px; }
 .vaultreward{ display:flex; gap:14px; align-items:center; justify-content:center; margin:6px auto 10px; background:rgba(242,181,68,.16); border:2px solid rgba(242,181,68,.55); border-radius:16px; padding:10px 16px; max-width:460px; }
-.vaultreward img, .vaultreward .rgemo{ width:84px; height:84px; object-fit:cover; border-radius:12px; flex:none; font-size:48px; }
+.vaultreward img, .vaultreward .rgemo{ width:84px; height:84px; object-fit:contain; border-radius:12px; flex:none; font-size:48px; }
 .vaultreward div{ display:flex; flex-direction:column; } .vaultreward b{ font-size:20px; }
 /* 🧪 Solo Potion Brewing */
 .pshelf{ display:grid; grid-template-columns:repeat(15,1fr); gap:4px; background:linear-gradient(#5b3d24,#3e2814); border-radius:10px; padding:8px 8px 12px; box-shadow:inset 0 -6px 0 rgba(0,0,0,.3); }
@@ -3693,12 +3693,27 @@ body.kdmode .card{ box-shadow:0 12px 40px rgba(0,30,60,.35); }
 .wsprizes{ display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:12px; margin:10px 0; }
 .wsprize{ display:flex; flex-direction:column; align-items:center; gap:6px; background:#fff; border:3px solid rgba(43,27,54,.12); border-radius:16px; padding:10px; cursor:pointer; font:inherit; color:#2B1B36; }
 .wsprize:hover{ border-color:#F4B942; transform:translateY(-2px); }
-.wsprize img, .wsconfirm img{ width:100%; aspect-ratio:1; object-fit:cover; border-radius:10px; background:#fff; }
+.wsprize img, .wsconfirm img{ width:100%; aspect-ratio:1; object-fit:contain; border-radius:10px; background:#fff; }
 .wsconfirm img{ width:180px; }
 .wsnoimg{ font-size:48px; }
 .wsclose{ margin-top:14px; }
 .wsgrid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:10px; margin-top:10px; }
 .wscell{ position:relative; background:var(--bg-2, #f6f2ea); border:1px solid var(--line-2); border-radius:12px; padding:8px; text-align:center; font-size:13px; }
-.wscell img{ width:100%; aspect-ratio:1; object-fit:cover; border-radius:8px; display:block; }
+.wscell img{ width:100%; aspect-ratio:1; object-fit:contain; background:#fff; border-radius:8px; display:block; }
 .wsx{ position:absolute; top:4px; right:4px; width:24px; height:24px; border-radius:50%; border:1px solid var(--line-2); background:#fff; color:#F2545B; cursor:pointer; line-height:1; }
 @media (prefers-reduced-motion: reduce){ .wsbox, .wswinner{ animation:none; } }
+
+/* 🦆 Weekly Duck Showdown (Nov 13) — js/showdown.js */
+.sdpill{ display:flex; align-items:center; gap:8px; width:100%; margin:0 0 12px; border:2px solid #1E8F72; background:linear-gradient(90deg,#FFF4DC,#E3F6EF); color:#2b2a28; border-radius:14px; padding:9px 14px; font:inherit; font-size:15px; cursor:pointer; text-align:left; }
+.sdpill span{ margin-left:auto; font-weight:800; white-space:nowrap; color:#135C49; }
+#sdroot{ position:fixed; inset:0; z-index:290; background:#fffaf0; display:flex; flex-direction:column; }
+#sdroot .sdbar{ display:flex; align-items:center; gap:10px; padding:8px 14px; background:#2b2a28; color:#fff8dc; flex-wrap:wrap; }
+#sdroot .sdbar b{ font-size:16px; }
+#sdroot .sdtag{ font-size:13px; opacity:.9; }
+#sdroot .sdclose{ margin-left:auto; }
+#sdroot iframe{ flex:1; width:100%; border:0; background:#fffaf0; }
+body.sdon{ overflow:hidden; }
+/* 📸 Nov 13: dismiss the add-a-picture reminder */
+.npx{ border:0; background:rgba(176,106,0,.15); color:#7A4A00; width:28px; height:28px; border-radius:50%; font-size:18px; line-height:1; cursor:pointer; font-weight:800; }
+.npx:hover{ background:rgba(176,106,0,.3); }
+.npok{ display:block; margin:4px auto 0; border:1px solid #FFB547; background:#FFF6E5; color:#7A4A00; border-radius:10px; font:inherit; font-size:11px; font-weight:700; padding:2px 8px; cursor:pointer; }

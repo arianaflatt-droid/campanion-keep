@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Weekly Duck Showdown</title>
+<style>
+  :root {
+    --ariana: #E8A33D;
+    --ariana-dark: #A9701A;
+    --erica: #1E8F72;
+    --erica-dark: #135C49;
+    --ink: #2b2a28;
+    --paper: #fffaf0;
+    --card: #ffffff;
+    --border: #e7ddc8;
+    --muted: #7a7266;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #1c1a17;
+      --card: #262320;
+      --border: #3a352d;
+      --ink: #f1ece1;
+      --muted: #b6ad9c;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #1c1a17;
+    --card: #262320;
+    --border: #3a352d;
+    --ink: #f1ece1;
+    --muted: #b6ad9c;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--paper); color: var(--ink); }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    padding: 14px 14px 40px;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; }
+
+  header.top { text-align: center; margin-bottom: 14px; }
+  h1.title { font-size: 26px; margin: 0 0 4px; font-weight: 800; letter-spacing: -0.3px; }
+  h1.title .a { color: var(--ariana); }
+  h1.title .e { color: var(--erica); }
+  .rules-line { font-size: 13px; color: var(--muted); margin: 0 0 8px; }
+  .top-controls { display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 13px; }
+  .week-label { font-weight: 700; padding: 4px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); }
+  .toggle-btn {
+    border: 1px solid var(--border); background: var(--card); color: var(--ink);
+    border-radius: 8px; padding: 6px 12px; font-size: 13px; cursor: pointer;
+  }
+  .toggle-btn.active { border-color: var(--ink); font-weight: 700; }
+  .readonly-note {
+    text-align: center; font-size: 12px; color: var(--muted); background: var(--card);
+    border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; margin: 8px auto; max-width: 480px;
+  }
+
+  .scoreboard { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: stretch; margin-bottom: 14px; }
+  .team-card {
+    border-radius: 14px; padding: 14px; color: #fff; position: relative; overflow: hidden;
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .team-card.ariana { background: linear-gradient(155deg, var(--ariana), var(--ariana-dark)); }
+  .team-card.erica { background: linear-gradient(155deg, var(--erica), var(--erica-dark)); }
+  .team-card .mascot-name { font-size: 17px; font-weight: 800; }
+  .team-card .teacher-name { font-size: 12px; opacity: 0.85; }
+  .team-card .win-count { font-size: 30px; font-weight: 800; margin: 4px 0; }
+  .team-card .size-badge {
+    align-self: flex-start; background: rgba(255,255,255,0.25); border-radius: 20px;
+    padding: 3px 10px; font-size: 12px; font-weight: 700;
+  }
+  .day-circles { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
+  .day-circles .circles-row { display: flex; gap: 6px; }
+  .day-dot {
+    width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700;
+    color: var(--muted); background: var(--card);
+  }
+  .day-dot.win-ariana { background: var(--ariana); border-color: var(--ariana-dark); color: #fff; }
+  .day-dot.win-erica { background: var(--erica); border-color: var(--erica-dark); color: #fff; }
+  .day-dot.tie { background: #b8b2a4; border-color: #948d7c; color: #fff; }
+  .day-dot.pending { border-style: dashed; }
+  .day-circles .dc-label { font-size: 10px; color: var(--muted); }
+
+  .arena-card {
+    border-radius: 16px; overflow: hidden; margin-bottom: 14px; border: 1px solid var(--border);
+    background: var(--card); position: relative;
+  }
+  .banner-bar {
+    padding: 8px 14px; font-size: 13px; font-weight: 700; text-align: center;
+    background: var(--card); border-bottom: 1px solid var(--border);
+  }
+  .arena-wrap { position: relative; width: 100%; aspect-ratio: 2 / 1; background: #cfe8f5; }
+  .arena-wrap svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .arena-action-btn {
+    position: absolute; bottom: 12px; right: 12px; z-index: 20;
+    background: var(--ink); color: var(--paper); border: none; border-radius: 10px;
+    padding: 10px 16px; font-size: 13px; font-weight: 700; cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  }
+  .arena-action-btn:disabled { opacity: 0.5; cursor: default; }
+
+  .mascot-group { transform-box: fill-box; transform-origin: 50% 100%; transition: transform 0.6s cubic-bezier(.34,1.4,.4,1); }
+  .idle-wrap { animation: idleBob 1.6s ease-in-out infinite alternate; }
+  .idle-wrap.leading { animation-duration: 1s; }
+  .mascot-action { transform-box: fill-box; transform-origin: 50% 100%; }
+  .mascot-action.tail-wiggle { animation: tailWiggle 60s ease-in-out infinite; }
+  .speech-bubble { opacity: 0; transition: opacity 0.25s; }
+  .speech-bubble.show { opacity: 1; }
+  .mouth-open { opacity: 0; }
+  .belly-window { opacity: 0; transform: scale(0.2); transform-origin: center; transition: opacity 0.5s, transform 0.5s; }
+  .belly-window.show { opacity: 1; transform: scale(1); }
+  .exclaim, .sweatdrop, .runword, .gulpword, .titlecard, .countnum, .burp-bubble { opacity: 0; }
+
+  @keyframes idleBob { from { transform: translateY(0); } to { transform: translateY(-4px); } }
+  @keyframes tailWiggle {
+    0%, 3% { transform: scaleX(1) translateX(0) scaleY(1); }
+    4% { transform: scaleX(-1) translateX(0) scaleY(1); }
+    4.6% { transform: scaleX(-1) translateX(12px) scaleY(0.88); }
+    5.3% { transform: scaleX(-1) translateX(-12px) scaleY(1.1); }
+    6% { transform: scaleX(-1) translateX(12px) scaleY(0.88); }
+    6.7% { transform: scaleX(-1) translateX(-12px) scaleY(1.1); }
+    7.4% { transform: scaleX(-1) translateX(12px) scaleY(0.88); }
+    8.1% { transform: scaleX(-1) translateX(-12px) scaleY(1.1); }
+    8.8% { transform: scaleX(-1) translateX(0) scaleY(1); }
+    9.8% { transform: scaleX(1) translateX(0) scaleY(1); }
+    100% { transform: scaleX(1) translateX(0) scaleY(1); }
+  }
+
+  .teacher-panel { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 14px; }
+  .teacher-panel h2 { font-size: 15px; margin: 0 0 10px; }
+  .teacher-panel h3 { font-size: 13px; margin: 16px 0 8px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .day-pills { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 10px; }
+  .day-pill {
+    border: 1.5px solid var(--border); background: var(--paper); border-radius: 10px;
+    padding: 7px 12px; font-size: 12px; cursor: pointer; text-align: center; min-width: 74px;
+  }
+  .day-pill .day-name { font-weight: 600; display: block; color: var(--ink); }
+  .day-pill .day-sub { display: block; color: var(--muted); font-size: 10px; margin-top: 2px; }
+  .day-pill.filled { background: rgba(30,143,114,0.12); border-color: var(--erica); }
+  .day-pill.selected { border-color: var(--ink); border-width: 2px; }
+  .upload-row { display: flex; align-items: center; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .upload-row label.file-btn {
+    background: var(--ink); color: var(--paper); padding: 9px 16px; border-radius: 8px;
+    font-size: 13px; cursor: pointer; border: none;
+  }
+  #fileInput { display: none; }
+  table.results-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.results-table th, table.results-table td { padding: 6px 4px; text-align: center; border-bottom: 1px solid var(--border); }
+  table.results-table th { color: var(--muted); font-weight: 600; }
+  table.results-table input[type=number] {
+    width: 76px; padding: 5px 6px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px;
+    background: var(--paper); color: var(--ink); text-align: center;
+  }
+  .winner-chip { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
+  .winner-chip.ariana { background: var(--ariana); color: #fff; }
+  .winner-chip.erica { background: var(--erica); color: #fff; }
+  .winner-chip.tie { background: #b8b2a4; color: #fff; }
+  .winner-chip.none { background: transparent; color: var(--muted); }
+
+  .panel-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 8px; }
+  .btn {
+    border: 1px solid var(--border); background: var(--paper); color: var(--ink);
+    border-radius: 8px; padding: 8px 14px; font-size: 13px; cursor: pointer;
+  }
+  .btn:hover { border-color: var(--ink); }
+  .btn:disabled { opacity: 0.5; cursor: default; }
+  .btn.primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .btn.danger-confirm { background: #b5432f; color: #fff; border-color: #b5432f; }
+  input[type=date] {
+    padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--paper); color: var(--ink);
+  }
+  .past-weeks-list { font-size: 13px; margin-top: 6px; }
+  .past-weeks-list li { margin-bottom: 3px; }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+  body.presentation .teacher-panel { display: none; }
+  /* Companion Keep (Nov 13): students see the board, the ducks and the showdown, never the controls */
+  body.student .teacher-panel, body.student .tonly, body.student #presentationToggle, body.student #arenaActionBtn { display: none !important; }
+  #showStudentsBtn.active { background: #c93b3b; border-color: #c93b3b; color: #fff; }
+
+  @media (max-width: 620px) {
+    .scoreboard { grid-template-columns: 1fr; }
+    .day-circles { order: 3; flex-direction: row; }
+    .day-circles .circles-row { flex-wrap: wrap; justify-content: center; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <h1 class="title"><span class="a">White Ducks</span> vs. <span class="e">Teal Ducks</span></h1>
+    <p class="rules-line">Every school day, the class with the higher percentage hitting 120 XP wins the day. Most wins by Friday takes the Weekly Showdown.</p>
+    <div class="top-controls">
+      <span class="week-label" id="weekLabel">Week of —</span>
+      <button class="toggle-btn" id="soundToggle">Sound: On</button>
+      <button class="toggle-btn" id="presentationToggle">Presentation view</button>
+      <button class="toggle-btn tonly" id="showStudentsBtn">📺 Show to students: Off</button>
+    </div>
+  </header>
+
+  <div class="scoreboard">
+    <div class="team-card ariana">
+      <div>
+        <div class="mascot-name">White Ducks</div>
+        <div class="teacher-name">Ms. Ariana's class</div>
+      </div>
+      <div class="win-count" id="winCountAriana">0</div>
+      <div class="size-badge" id="sizeBadgeAriana">Size 1</div>
+    </div>
+
+    <div class="day-circles">
+      <div class="circles-row" id="dayCirclesRow"></div>
+      <div class="dc-label">Mo &nbsp; Tu &nbsp; We &nbsp; Th &nbsp; Fr</div>
+    </div>
+
+    <div class="team-card erica">
+      <div>
+        <div class="mascot-name">Teal Ducks</div>
+        <div class="teacher-name">Ms. Erica's class</div>
+      </div>
+      <div class="win-count" id="winCountErica">0</div>
+      <div class="size-badge" id="sizeBadgeErica">Size 1</div>
+    </div>
+  </div>
+
+  <div class="arena-card">
+    <div class="banner-bar" id="bannerBar">Loading…</div>
+    <div class="arena-wrap" id="arenaWrap">
+      <svg id="arenaSvg" viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+        <defs>
+          <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#A9DDF3"/>
+            <stop offset="100%" stop-color="#FDF3DA"/>
+          </linearGradient>
+          <radialGradient id="sunGrad" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#fff4c2"/>
+            <stop offset="100%" stop-color="#ffd65e"/>
+          </radialGradient>
+          <linearGradient id="waterGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#BFE3E8"/>
+            <stop offset="45%" stop-color="#6FB6C7"/>
+            <stop offset="100%" stop-color="#3E86A0"/>
+          </linearGradient>
+        </defs>
+
+        <rect id="skyRect" x="0" y="0" width="800" height="170" fill="url(#skyGrad)"/>
+        <rect id="darknessOverlay" x="0" y="0" width="800" height="400" fill="#0a0a12" opacity="0"/>
+
+        <circle cx="700" cy="70" r="38" fill="url(#sunGrad)"/>
+        <g id="cloud1" opacity="0.9">
+          <ellipse cx="140" cy="60" rx="34" ry="14" fill="#ffffff"/>
+          <ellipse cx="168" cy="55" rx="24" ry="12" fill="#ffffff"/>
+          <ellipse cx="112" cy="58" rx="22" ry="11" fill="#ffffff"/>
+        </g>
+        <g id="cloud2" opacity="0.85">
+          <ellipse cx="480" cy="40" rx="30" ry="12" fill="#ffffff"/>
+          <ellipse cx="504" cy="36" rx="20" ry="10" fill="#ffffff"/>
+        </g>
+
+        <ellipse cx="70" cy="165" rx="50" ry="16" fill="#8FBE7E" opacity="0.7"/>
+        <ellipse cx="140" cy="170" rx="65" ry="18" fill="#79AE6B" opacity="0.7"/>
+        <ellipse cx="660" cy="168" rx="55" ry="16" fill="#8FBE7E" opacity="0.6"/>
+        <ellipse cx="730" cy="172" rx="45" ry="14" fill="#79AE6B" opacity="0.6"/>
+
+        <rect x="0" y="170" width="800" height="230" fill="url(#waterGrad)"/>
+        <path d="M0 205 Q 70 199 140 206 T 280 206 T 420 204 T 560 206 T 700 204 T 800 206" fill="none" stroke="#EAF7F8" stroke-width="2" opacity="0.5"/>
+        <path d="M0 250 Q 80 243 160 250 T 320 250 T 480 248 T 640 250 T 800 249" fill="none" stroke="#EAF7F8" stroke-width="2" opacity="0.45"/>
+        <path d="M0 300 Q 90 293 180 300 T 360 300 T 540 298 T 720 300 T 800 299" fill="none" stroke="#EAF7F8" stroke-width="2" opacity="0.4"/>
+        <path d="M0 350 Q 100 343 200 350 T 400 350 T 600 348 T 800 350" fill="none" stroke="#EAF7F8" stroke-width="2" opacity="0.35"/>
+        <ellipse cx="370" cy="225" rx="22" ry="8" fill="#3E8E41" opacity="0.5"/>
+        <ellipse cx="430" cy="252" rx="20" ry="7" fill="#3E8E41" opacity="0.45"/>
+
+        <!-- spotlight for showdown -->
+        <g id="spotlightGroup" opacity="0">
+          <ellipse id="spotlightBeam" cx="400" cy="330" rx="90" ry="140" fill="rgba(255,255,235,0.35)"/>
+        </g>
+
+        <!-- ARIANA (White Duck) facing right, left side -->
+        <g id="duckAriana" class="mascot-group" transform="translate(230,340) scale(1)">
+          <g id="ariIdleWrap" class="idle-wrap">
+            <g id="ariAction" class="mascot-action">
+            <image href="../assets/showdown/white-duck.webp" x="-45" y="-110" width="90" height="110"/>
+            </g>
+          </g>
+        </g>
+
+        <!-- ERICA (Teal Duck) facing left, right side -->
+        <g id="duckErica" class="mascot-group" transform="translate(570,340) scale(1)">
+          <g id="eriIdleWrap" class="idle-wrap">
+            <g id="eriAction" class="mascot-action">
+            <image href="../assets/showdown/teal-duck.webp" x="-38" y="-110" width="77" height="110"/>
+            </g>
+          </g>
+        </g>
+
+        <!-- belly windows (post-showdown): each shows the OTHER duck napping inside -->
+        <g transform="translate(230,300)">
+          <g id="bellyAriana" class="belly-window">
+            <circle r="26" fill="#fffef8" stroke="#c9a24a" stroke-width="3"/>
+            <image href="../assets/showdown/teal-duck.webp" x="-14" y="-24" width="28" height="34"/>
+            <text x="18" y="-14" font-size="11" fill="#7a7266" font-family="inherit">z z z</text>
+          </g>
+        </g>
+        <g transform="translate(570,300)">
+          <g id="bellyErica" class="belly-window">
+            <circle r="26" fill="#fffef8" stroke="#4a8f6e" stroke-width="3"/>
+            <image href="../assets/showdown/white-duck.webp" x="-14" y="-24" width="28" height="34"/>
+            <text x="18" y="-14" font-size="11" fill="#7a7266" font-family="inherit">z z z</text>
+          </g>
+        </g>
+
+        <!-- speech bubbles -->
+        <g id="bubbleAriana" class="speech-bubble" transform="translate(120,180)">
+          <path d="M0 0 h190 a10 10 0 0 1 10 10 v60 a10 10 0 0 1 -10 10 h-140 l-15 18 l3 -18 h-38 a10 10 0 0 1 -10 -10 v-60 a10 10 0 0 1 10 -10 Z" fill="#ffffff" stroke="#2b2a28" stroke-width="2"/>
+          <text id="bubbleTextAriana" x="95" y="32" text-anchor="middle" font-size="13" font-weight="700" fill="#2b2a28" font-family="inherit"></text>
+        </g>
+        <g id="bubbleErica" class="speech-bubble" transform="translate(520,180)">
+          <path d="M0 0 h190 a10 10 0 0 1 10 10 v60 a10 10 0 0 1 -10 10 h-38 l3 18 l-15 -18 h-140 a10 10 0 0 1 -10 -10 v-60 a10 10 0 0 1 10 -10 Z" fill="#ffffff" stroke="#2b2a28" stroke-width="2"/>
+          <text id="bubbleTextErica" x="95" y="32" text-anchor="middle" font-size="13" font-weight="700" fill="#2b2a28" font-family="inherit"></text>
+        </g>
+
+        <!-- exclamation / sweat / run word (chase phase, over loser) -->
+        <g id="exclaimGroup" class="exclaim" transform="translate(0,0)">
+          <text id="exclaimText" x="0" y="0" font-size="46" font-weight="900" fill="#c93b3b" text-anchor="middle" font-family="inherit">!</text>
+        </g>
+        <g id="sweatGroup" class="sweatdrop" transform="translate(0,0)">
+          <path d="M0 -14 q10 14 0 24 q-10 -10 0 -24 Z" fill="#7fd0f0" stroke="#3fa8d8" stroke-width="1"/>
+        </g>
+        <text id="runWordText" class="runword" x="400" y="120" font-size="34" font-weight="900" fill="#c93b3b" text-anchor="middle" font-family="inherit">RUN!</text>
+
+        <!-- title card / countdown / gulp text -->
+        <text id="titleCardText" class="titlecard" x="400" y="160" text-anchor="middle" font-size="34" font-weight="900" fill="#fff8dc" stroke="#2b2a28" stroke-width="2" font-family="inherit">THE WEEKLY SHOWDOWN</text>
+        <text id="countdownText" class="countnum" x="400" y="220" text-anchor="middle" font-size="90" font-weight="900" fill="#fff8dc" stroke="#2b2a28" stroke-width="3" font-family="inherit">3</text>
+        <text id="whoBiggerText" class="titlecard" x="400" y="80" text-anchor="middle" font-size="26" font-weight="900" fill="#fff8dc" stroke="#2b2a28" stroke-width="2" font-family="inherit">WHO IS BIGGER?</text>
+        <text id="gulpWordText" class="gulpword" x="400" y="200" text-anchor="middle" font-size="60" font-weight="900" fill="#ffe14d" stroke="#2b2a28" stroke-width="3" font-family="inherit">GULP!</text>
+        <text id="bonkWordText" class="gulpword" x="400" y="200" text-anchor="middle" font-size="60" font-weight="900" fill="#ffe14d" stroke="#2b2a28" stroke-width="3" font-family="inherit">BONK!</text>
+        <g id="burpBubble" class="burp-bubble" transform="translate(400,150)">
+          <ellipse rx="40" ry="26" fill="#fff" stroke="#2b2a28" stroke-width="2"/>
+          <text y="6" text-anchor="middle" font-size="18" font-weight="900" fill="#2b2a28" font-family="inherit">BURP!</text>
+        </g>
+        <g id="whiteFlash" opacity="0"><rect x="0" y="0" width="800" height="400" fill="#ffffff"/></g>
+        <g id="confettiGroup"></g>
+      </svg>
+    </div>
+    <button class="arena-action-btn" id="arenaActionBtn">Run the showdown</button>
+  </div>
+
+  <div class="teacher-panel" id="teacherPanel">
+    <h2>Teacher panel</h2>
+
+    <h3>Daily results</h3>
+    <div class="day-pills" id="dayPills"></div>
+    <div class="upload-row">
+      <label class="file-btn" for="fileInput" id="uploadBtnLabel">Upload file for Monday</label>
+      <input type="file" id="fileInput" accept=".xlsx,.xls">
+    </div>
+    <div id="uploadStatus" style="text-align:center; margin-top:8px; font-size:13px; color:var(--muted);"></div>
+
+    <table class="results-table" style="margin-top:12px;">
+      <thead><tr><th>Day</th><th>White Ducks %</th><th>Teal Ducks %</th><th>Winner</th><th></th></tr></thead>
+      <tbody id="resultsTableBody"></tbody>
+    </table>
+    <div class="hint">Each upload needs two tabs: student points on the first tab, AM/PM attendance on the second. Class percentage = number of students who reached 120 xp ÷ number of students marked PRESENT for AM (late, excused, absent, and left-early don't count). Upload a day's file again to overwrite it.</div>
+
+    <div class="panel-row" style="margin-top: 6px;">
+      <button class="btn" id="exportData">Save backup file</button>
+      <label class="btn" for="importInput" style="margin: 0;">Load backup file</label>
+      <input type="file" id="importInput" accept=".json" style="display:none;">
+    </div>
+    <div class="hint">Saved to your class in Companion Keep, so it’s the same on every computer. Moving over from the old showdown file? Open it, press "Save backup file" there, then "Load backup file" here.</div>
+
+    <h3>Weekly Showdown</h3>
+    <div class="panel-row">
+      <button class="btn primary" id="runShowdownBtn">Run the showdown</button>
+      <button class="btn" id="undoShowdownBtn">Undo showdown</button>
+    </div>
+
+    <h3>Next week</h3>
+    <div class="panel-row">
+      <label style="font-size:13px;">Week starting: <input type="date" id="nextWeekDate"></label>
+      <button class="btn" id="startNewWeekBtn">Start a new week</button>
+    </div>
+    <div class="hint">Starting a new week saves this week's result, clears the board, resets both mascots to Size 1, and moves to the new date.</div>
+
+    <h3>Past weeks</h3>
+    <ul class="past-weeks-list" id="pastWeeksList"><li style="color:var(--muted);">No past weeks yet.</li></ul>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  var DAY_KEYS = ["mon", "tue", "wed", "thu", "fri"];
+  var DAY_NAMES = { mon: "Monday", tue: "Tuesday", wed: "Wednesday", thu: "Thursday", fri: "Friday" };
+  var MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  var GOAL_TEAM = { ariana: "erica", erica: "ariana" };
+
+  var TEAMS = {
+    ariana: { key: "ariana", teacher: "Ms. Ariana", plural: "White Ducks", singular: "White Duck", color: "#E8A33D" },
+    erica:  { key: "erica",  teacher: "Ms. Erica",  plural: "Teal Ducks",  singular: "Teal Duck",  color: "#1E8F72" }
+  };
+
+  var BRAG_LINES = {
+    1: [
+      "I'm kind of a big deal.",
+      "Did you see that XP? That was ME.",
+      "Try to keep up, {other}!",
+      "Winning looks good on me.",
+      "Check out this bicep."
+    ],
+    2: [
+      "Look at these muscles. Size {size}!",
+      "Two days ahead. Just saying.",
+      "Is it hot in here, or is it just my XP?",
+      "Hey {other}, need a tutor?",
+      "I'll sign autographs after class."
+    ],
+    3: [
+      "Should I start chewing now?",
+      "I can already taste victory. And {other}.",
+      "Hope you like naps, {other}!",
+      "Can't stop, won't stop.",
+      "I'm the GOAT. Greatest Of All Time."
+    ]
+  };
+  var MASCOT_LINES = {
+    ariana: ["Ruffling my feathers with victory.", "This duck doesn't just float, it FLOATS AHEAD.", "Quack of champions right here."],
+    erica: ["Iridescent AND unbeatable.", "This teal is un-real.", "Paddling circles around you."]
+  };
+  var COMEBACK_LINES = [
+    "Hmph.",
+    "Just wait until tomorrow.",
+    "Keep talking. We're grinding XP.",
+    "That was a lucky day.",
+    "Comeback season starts NOW.",
+    "Enjoy it while it lasts."
+  ];
+
+  function emptyDays() {
+    var d = {};
+    DAY_KEYS.forEach(function (k) { d[k] = { ariana: null, erica: null }; });
+    return d;
+  }
+  function todayMondayIso() {
+    var now = new Date();
+    var day = now.getDay(); // 0 Sun .. 6 Sat
+    var diffToMon = (day === 0) ? 1 : (day === 6 ? 2 : 1 - day);
+    var mon = new Date(now);
+    mon.setDate(now.getDate() + diffToMon);
+    return isoDate(mon);
+  }
+  function isoDate(d) {
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  }
+  function parseIso(iso) {
+    var parts = iso.split("-").map(Number);
+    return new Date(parts[0], parts[1] - 1, parts[2]);
+  }
+  function addDaysIso(iso, n) {
+    var d = parseIso(iso);
+    d.setDate(d.getDate() + n);
+    return isoDate(d);
+  }
+  function formatWeekLabel(iso) {
+    var d = parseIso(iso);
+    return "Week of " + MONTHS[d.getMonth()] + " " + d.getDate();
+  }
+
+  var DEFAULT_STATE = {
+    weekStart: todayMondayIso(),
+    days: emptyDays(),
+    showdown: { ran: false, ranAt: null, champion: null, arianaWins: 0, ericaWins: 0 },
+    pastWeeks: []
+  };
+
+  var STORAGE_KEY = "weeklyShowdownState_v1";
+  var state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+  var isAnimating = false;
+  var bragTimer = null, bragTick = 0;
+  var selectedDay = "mon";
+
+  // ---------- derived helpers ----------
+  function pctOf(obj) {
+    return (obj && obj.present > 0) ? (obj.reached / obj.present) * 100 : 0;
+  }
+  function dayWinner(day) {
+    if (!day || day.ariana == null || day.erica == null) return null;
+    var pa = pctOf(day.ariana), pe = pctOf(day.erica);
+    if (pa === pe) return "tie";
+    return pa > pe ? "ariana" : "erica";
+  }
+  function computeWins(days) {
+    var a = 0, e = 0;
+    DAY_KEYS.forEach(function (k) {
+      var w = dayWinner(days[k]);
+      if (w === "ariana") a++; else if (w === "erica") e++;
+    });
+    return { arianaWins: a, ericaWins: e };
+  }
+  function sizeScale(wins) { return Math.pow(2.0, wins / 5); }
+  function sizeLabel(wins) { return wins + 1; }
+  function filledDaysCount(days) {
+    var n = 0;
+    DAY_KEYS.forEach(function (k) { if (days[k].ariana != null && days[k].erica != null) n++; });
+    return n;
+  }
+  function anyScoresEntered(days) {
+    return DAY_KEYS.some(function (k) { return days[k].ariana != null || days[k].erica != null; });
+  }
+  function firstEmptyDay() {
+    for (var i = 0; i < DAY_KEYS.length; i++) {
+      var d = state.days[DAY_KEYS[i]];
+      if (d.ariana == null || d.erica == null) return DAY_KEYS[i];
+    }
+    return null;
+  }
+
+  // Companion Keep: the state lives on the class (cls.duckSD.state). The Keep page around this frame sends it in
+  // ({ckSD:"state"}) and saves what the teacher changes ({ckSD:"save"}). Nothing is kept in this browser.
+  var MODE = /[?&]mode=teacher/.test(location.search) ? "teacher" : "student";
+  document.body.classList.add(MODE);
+  function toKeep(msg) { try { if (window.parent && window.parent !== window) window.parent.postMessage(msg, location.origin); } catch (e) {} }
+  function loadState() { return JSON.parse(JSON.stringify(DEFAULT_STATE)); }
+  function saveState(playAt) {
+    if (MODE !== "teacher") return;
+    toKeep({ ckSD: "save", state: JSON.parse(JSON.stringify(state)), playAt: playAt || 0 });
+  }
+  function normalizeState(data) {
+    var out = JSON.parse(JSON.stringify(DEFAULT_STATE));
+    if (data.weekStart) out.weekStart = data.weekStart;
+    if (data.days) {
+      DAY_KEYS.forEach(function (k) {
+        if (data.days[k]) {
+          var v = data.days[k];
+          var validA = v.ariana && typeof v.ariana.reached === "number" && typeof v.ariana.present === "number";
+          var validE = v.erica && typeof v.erica.reached === "number" && typeof v.erica.present === "number";
+          out.days[k] = { ariana: validA ? v.ariana : null, erica: validE ? v.erica : null };
+        }
+      });
+    }
+    if (data.showdown) out.showdown = Object.assign({}, out.showdown, data.showdown);
+    if (Array.isArray(data.pastWeeks)) out.pastWeeks = data.pastWeeks;
+    return out;
+  }
+
+  // ---------- render ----------
+  function render() {
+    var wins = computeWins(state.days);
+    document.getElementById("weekLabel").textContent = formatWeekLabel(state.weekStart);
+
+    document.getElementById("winCountAriana").textContent = wins.arianaWins;
+    document.getElementById("winCountErica").textContent = wins.ericaWins;
+    document.getElementById("sizeBadgeAriana").textContent = "Size " + sizeLabel(wins.arianaWins);
+    document.getElementById("sizeBadgeErica").textContent = "Size " + sizeLabel(wins.ericaWins);
+
+    var row = document.getElementById("dayCirclesRow");
+    row.innerHTML = "";
+    DAY_KEYS.forEach(function (k) {
+      var w = dayWinner(state.days[k]);
+      var dot = document.createElement("div");
+      dot.className = "day-dot " + (w === "ariana" ? "win-ariana" : w === "erica" ? "win-erica" : w === "tie" ? "tie" : "pending");
+      row.appendChild(dot);
+    });
+
+    renderDayPills();
+    updateUploadLabel();
+    renderResultsTable();
+    renderMascots(wins);
+    renderBanner(wins);
+    renderArenaButton();
+    renderPastWeeks();
+    document.getElementById("nextWeekDate").value = addDaysIso(state.weekStart, 7);
+
+    document.getElementById("runShowdownBtn").disabled = state.showdown.ran || !anyScoresEntered(state.days) || isAnimating;
+    document.getElementById("undoShowdownBtn").disabled = !state.showdown.ran || isAnimating;
+  }
+
+  function renderDayPills() {
+    var container = document.getElementById("dayPills");
+    container.innerHTML = "";
+    DAY_KEYS.forEach(function (k) {
+      var day = state.days[k];
+      var filled = day.ariana != null && day.erica != null;
+      var pill = document.createElement("div");
+      pill.className = "day-pill" + (filled ? " filled" : "") + (selectedDay === k ? " selected" : "");
+      var sub = filled ? ("A:" + pctOf(day.ariana).toFixed(1) + "% \u00B7 E:" + pctOf(day.erica).toFixed(1) + "%") : "no data";
+      pill.innerHTML = "<span class='day-name'>" + DAY_NAMES[k] + "</span><span class='day-sub'>" + sub + "</span>";
+      pill.addEventListener("click", function () {
+        selectedDay = k;
+        renderDayPills();
+        updateUploadLabel();
+      });
+      container.appendChild(pill);
+    });
+  }
+  function updateUploadLabel() {
+    var label = document.getElementById("uploadBtnLabel");
+    var existing = state.days[selectedDay].ariana != null && state.days[selectedDay].erica != null;
+    label.textContent = existing ? ("Overwrite " + DAY_NAMES[selectedDay] + "'s file") : ("Upload file for " + DAY_NAMES[selectedDay]);
+  }
+
+  function renderResultsTable() {
+    var body = document.getElementById("resultsTableBody");
+    body.innerHTML = "";
+    DAY_KEYS.forEach(function (k) {
+      var day = state.days[k];
+      var w = dayWinner(day);
+      var filled = day.ariana != null && day.erica != null;
+      var tr = document.createElement("tr");
+
+      var aTitle = day.ariana ? (day.ariana.reached + " reached 120 \u00F7 " + day.ariana.present + " present") : "";
+      var eTitle = day.erica ? (day.erica.reached + " reached 120 \u00F7 " + day.erica.present + " present") : "";
+
+      tr.innerHTML = "<td>" + DAY_NAMES[k] + "</td>" +
+        "<td title=\"" + aTitle + "\">" + (day.ariana ? pctOf(day.ariana).toFixed(1) + "%" : "\u2014") + "</td>" +
+        "<td title=\"" + eTitle + "\">" + (day.erica ? pctOf(day.erica).toFixed(1) + "%" : "\u2014") + "</td>" +
+        "<td><span class='winner-chip " + (w || "none") + "'>" + (w === "ariana" ? "White Ducks" : w === "erica" ? "Teal Ducks" : w === "tie" ? "Tie" : "\u2014") + "</span></td>" +
+        "<td>" + (filled ? "<a href='#' data-day='" + k + "' class='clear-day' style='font-size:11px;color:#a33;'>clear</a>" : "") + "</td>";
+      body.appendChild(tr);
+    });
+    Array.prototype.forEach.call(body.querySelectorAll(".clear-day"), function (a) {
+      a.addEventListener("click", function (e) {
+        e.preventDefault();
+        var k = a.getAttribute("data-day");
+        state.days[k] = { ariana: null, erica: null };
+        saveState();
+        selectedDay = k;
+        render();
+      });
+    });
+  }
+
+  function renderPastWeeks() {
+    var ul = document.getElementById("pastWeeksList");
+    if (!state.pastWeeks || state.pastWeeks.length === 0) {
+      ul.innerHTML = "<li style='color:var(--muted);'>No past weeks yet.</li>";
+      return;
+    }
+    ul.innerHTML = "";
+    state.pastWeeks.slice().reverse().forEach(function (w) {
+      var li = document.createElement("li");
+      var champ = w.champion === "ariana" ? "White Ducks" : w.champion === "erica" ? "Teal Ducks" : "Truce";
+      li.textContent = formatWeekLabel(w.weekStart) + ": " + w.arianaWins + "\u2013" + w.ericaWins + " \u2014 " + champ;
+      ul.appendChild(li);
+    });
+  }
+
+  function renderBanner(wins) {
+    var banner = document.getElementById("bannerBar");
+    if (isAnimating) { return; } // animation controls banner text itself
+    if (state.showdown.ran) {
+      var champ = state.showdown.champion;
+      if (champ === "tie") {
+        banner.textContent = "It's a truce! They split a snack and call it even.";
+      } else {
+        var winner = TEAMS[champ], loser = TEAMS[champ === "ariana" ? "erica" : "ariana"];
+        banner.textContent = "The " + winner.plural + " gulped down the " + loser.plural + "! " +
+          Math.max(state.showdown.arianaWins, state.showdown.ericaWins) + "\u2013" + Math.min(state.showdown.arianaWins, state.showdown.ericaWins) +
+          " this week. Don't worry, the " + loser.plural + " are napping in there.";
+      }
+      return;
+    }
+    var lead = wins.arianaWins - wins.ericaWins;
+    var daysLeft = 5 - filledDaysCount(state.days);
+    var leadText;
+    if (lead === 0) leadText = "White Ducks and Teal Ducks are tied";
+    else if (lead > 0) leadText = "White Ducks lead " + wins.arianaWins + "\u2013" + wins.ericaWins;
+    else leadText = "Teal Ducks lead " + wins.ericaWins + "\u2013" + wins.arianaWins;
+    banner.textContent = leadText + " \u00B7 " + Math.max(daysLeft, 0) + " day" + (daysLeft === 1 ? "" : "s") + " left before the Weekly Showdown.";
+  }
+
+  function renderMascots(wins) {
+    if (isAnimating) { return; } // animation controls mascot visuals itself
+    var lead = wins.arianaWins - wins.ericaWins;
+    var leaderKey = lead > 0 ? "ariana" : lead < 0 ? "erica" : null;
+    var leadMag = Math.abs(lead);
+
+    var gA = document.getElementById("duckAriana");
+    var gE = document.getElementById("duckErica");
+
+    if (state.showdown.ran) {
+      stopBragging();
+      document.getElementById("bubbleAriana").classList.remove("show");
+      document.getElementById("bubbleErica").classList.remove("show");
+      var champ = state.showdown.champion;
+      if (champ === "tie") {
+        setScale(gA, sizeScale(wins.arianaWins), 230);
+        setScale(gE, sizeScale(wins.ericaWins), 570);
+        gA.style.display = ""; gE.style.display = "";
+        document.getElementById("bellyAriana").classList.remove("show");
+        document.getElementById("bellyErica").classList.remove("show");
+      } else {
+        var winnerId = champ === "ariana" ? "duckAriana" : "duckErica";
+        var loserId = champ === "ariana" ? "duckErica" : "duckAriana";
+        var winnerWins = champ === "ariana" ? wins.arianaWins : wins.ericaWins;
+        setScale(document.getElementById(winnerId), sizeScale(winnerWins), champ === "ariana" ? 230 : 570);
+        document.getElementById(loserId).style.display = "none";
+        document.getElementById(champ === "ariana" ? "bellyAriana" : "bellyErica").classList.add("show");
+        document.getElementById(champ === "ariana" ? "bellyErica" : "bellyAriana").classList.remove("show");
+      }
+      clearLeaderAction();
+      document.getElementById("ariIdleWrap").classList.remove("leading");
+      document.getElementById("eriIdleWrap").classList.remove("leading");
+      return;
+    }
+
+    gA.style.display = ""; gE.style.display = "";
+    document.getElementById("bellyAriana").classList.remove("show");
+    document.getElementById("bellyErica").classList.remove("show");
+    setScale(gA, sizeScale(wins.arianaWins), 230);
+    setScale(gE, sizeScale(wins.ericaWins), 570);
+    positionBubble("bubbleAriana", 195, sizeScale(wins.arianaWins));
+    positionBubble("bubbleErica", 415, sizeScale(wins.ericaWins));
+
+    setLeaderAction(leaderKey);
+    document.getElementById("ariIdleWrap").classList.toggle("leading", leaderKey === "ariana");
+    document.getElementById("eriIdleWrap").classList.toggle("leading", leaderKey === "erica");
+
+    startOrUpdateBragging(leaderKey, leadMag);
+  }
+
+  function setScale(group, scale, baseX) {
+    group.setAttribute("transform", "translate(" + baseX + ",340) scale(" + scale + ")");
+  }
+  function positionBubble(id, baseX, scale) {
+    var headY = 340 - 110 * scale;
+    document.getElementById(id).setAttribute("transform", "translate(" + baseX + "," + (headY - 106) + ")");
+  }
+
+  function renderArenaButton() {
+    var btn = document.getElementById("arenaActionBtn");
+    if (isAnimating) { btn.textContent = "Skip"; btn.disabled = false; return; }
+    if (state.showdown.ran) { btn.textContent = showOn ? "Replay the showdown (all screens)" : "Replay the showdown"; btn.disabled = false; return; }
+    btn.textContent = showOn ? "Run the showdown (all screens)" : "Run the showdown";
+    btn.disabled = !anyScoresEntered(state.days);
+  }
+
+  // ---------- bragging ----------
+  function stopBragging() {
+    if (bragTimer) { clearInterval(bragTimer); bragTimer = null; }
+    document.getElementById("bubbleAriana").classList.remove("show");
+    document.getElementById("bubbleErica").classList.remove("show");
+  }
+  function startOrUpdateBragging(leaderKey, leadMag) {
+    if (!leaderKey || leadMag === 0) { stopBragging(); return; }
+    if (bragTimer) return; // already running; content refreshes itself on tick
+    bragTick = 0;
+    tickBrag(leaderKey, leadMag);
+    bragTimer = setInterval(function () {
+      var wins = computeWins(state.days);
+      var lead = wins.arianaWins - wins.ericaWins;
+      var lk = lead > 0 ? "ariana" : lead < 0 ? "erica" : null;
+      if (!lk || state.showdown.ran) { stopBragging(); return; }
+      tickBrag(lk, Math.abs(lead));
+    }, 4000);
+  }
+  function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+  function clearLeaderAction() {
+    ["ariAction", "eriAction"].forEach(function (id) {
+      document.getElementById(id).classList.remove("tail-wiggle");
+    });
+  }
+  function setLeaderAction(leaderKey) {
+    clearLeaderAction();
+    if (!leaderKey) return;
+    var actionId = leaderKey === "ariana" ? "ariAction" : "eriAction";
+    document.getElementById(actionId).classList.add("tail-wiggle");
+  }
+  function setBubbleText(textEl, str) {
+    while (textEl.firstChild) textEl.removeChild(textEl.firstChild);
+    var maxWidth = 172;
+    var words = String(str).split(" ");
+    var lines = [];
+    var current = "";
+    var measure = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+    textEl.appendChild(measure);
+    words.forEach(function (word) {
+      var test = current ? current + " " + word : word;
+      measure.textContent = test;
+      var w = 0;
+      try { w = measure.getComputedTextLength(); } catch (e) { w = test.length * 7.2; }
+      if (w > maxWidth && current) {
+        lines.push(current);
+        current = word;
+      } else {
+        current = test;
+      }
+    });
+    if (current) lines.push(current);
+    if (lines.length > 3) {
+      lines = lines.slice(0, 3);
+      lines[2] = lines[2].replace(/\s*\S*$/, "") + "\u2026";
+    }
+    textEl.removeChild(measure);
+    var lineHeight = 15;
+    var totalHeight = (lines.length - 1) * lineHeight;
+    var startY = 32 - totalHeight / 2;
+    lines.forEach(function (line, i) {
+      var tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+      tspan.setAttribute("x", "95");
+      tspan.setAttribute("y", String(startY + i * lineHeight));
+      tspan.textContent = line;
+      textEl.appendChild(tspan);
+    });
+  }
+  function tickBrag(leaderKey, leadMag) {
+    bragTick++;
+    var trailerKey = GOAL_TEAM[leaderKey];
+    var leaderBubble = document.getElementById(leaderKey === "ariana" ? "bubbleAriana" : "bubbleErica");
+    var trailerBubble = document.getElementById(trailerKey === "ariana" ? "bubbleAriana" : "bubbleErica");
+    var leaderText = document.getElementById(leaderKey === "ariana" ? "bubbleTextAriana" : "bubbleTextErica");
+    var trailerText = document.getElementById(trailerKey === "ariana" ? "bubbleTextAriana" : "bubbleTextErica");
+
+    leaderBubble.classList.remove("show");
+    trailerBubble.classList.remove("show");
+
+    if (bragTick % 3 === 0) {
+      setBubbleText(trailerText, pick(COMEBACK_LINES));
+      trailerBubble.classList.add("show");
+      return;
+    }
+
+    var tier = leadMag >= 3 ? 3 : leadMag;
+    var pool = BRAG_LINES[tier].concat(MASCOT_LINES[leaderKey]);
+    var line = pick(pool)
+      .replace("{other}", TEAMS[trailerKey].plural)
+      .replace("{size}", sizeLabel(leaderKey === "ariana" ? computeWins(state.days).arianaWins : computeWins(state.days).ericaWins));
+    setBubbleText(leaderText, line);
+    leaderBubble.classList.add("show");
+  }
+
+  // ---------- file parsing (points tab + AM/PM attendance tab) ----------
+  function findColumnIndex(headerRow, names) {
+    for (var i = 0; i < headerRow.length; i++) {
+      var h = String(headerRow[i] || "").trim().toLowerCase();
+      if (names.indexOf(h) !== -1) return i;
+    }
+    return -1;
+  }
+  function parseFile(file) {
+    return new Promise(function (resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function (e) {
+        try {
+          var workbook = XLSX.read(e.target.result, { type: "array" });
+          if (workbook.SheetNames.length < 2) {
+            reject("This file needs two tabs: student points on the first, AM/PM attendance on the second.");
+            return;
+          }
+          var pointsRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1, defval: "" });
+          var attRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[1]], { header: 1, defval: "" });
+          if (!pointsRows.length || !attRows.length) { reject("One of the tabs appears to be empty."); return; }
+
+          var pHeader = pointsRows[0];
+          var guideIdx = findColumnIndex(pHeader, ["guide"]);
+          var completedIdx = findColumnIndex(pHeader, ["completed"]);
+          var emailIdxP = findColumnIndex(pHeader, ["email"]);
+          if (guideIdx === -1 || completedIdx === -1 || emailIdxP === -1) {
+            reject("Couldn't find 'guide', 'completed', and 'email' columns on the first tab.");
+            return;
+          }
+
+          var GOAL = 120;
+          var reachedAriana = 0, reachedErica = 0;
+          var emailToGuide = {};
+          for (var i = 1; i < pointsRows.length; i++) {
+            var row = pointsRows[i];
+            if (!row || row.length === 0) continue;
+            var guideVal = String(row[guideIdx] || "").trim().toLowerCase();
+            var emailVal = String(row[emailIdxP] || "").trim().toLowerCase();
+            var completedVal = parseFloat(row[completedIdx]) || 0;
+            if (guideVal === "ariana") {
+              if (emailVal) emailToGuide[emailVal] = "ariana";
+              if (completedVal >= GOAL) reachedAriana++;
+            } else if (guideVal === "erica scrivner") {
+              if (emailVal) emailToGuide[emailVal] = "erica";
+              if (completedVal >= GOAL) reachedErica++;
+            }
+          }
+
+          var aHeader = attRows[0];
+          var sessionIdx = findColumnIndex(aHeader, ["session"]);
+          var statusIdx = findColumnIndex(aHeader, ["status"]);
+          var emailIdxA = findColumnIndex(aHeader, ["email"]);
+          if (sessionIdx === -1 || statusIdx === -1 || emailIdxA === -1) {
+            reject("Couldn't find 'session', 'status', and 'email' columns on the attendance tab.");
+            return;
+          }
+
+          var presentAriana = {}, presentErica = {};
+          for (var j = 1; j < attRows.length; j++) {
+            var arow = attRows[j];
+            if (!arow || arow.length === 0) continue;
+            var sessionVal = String(arow[sessionIdx] || "").trim().toUpperCase();
+            var statusVal = String(arow[statusIdx] || "").trim().toUpperCase();
+            var emailValA = String(arow[emailIdxA] || "").trim().toLowerCase();
+            if (sessionVal !== "AM" || statusVal !== "PRESENT") continue;
+            var g = emailToGuide[emailValA];
+            if (g === "ariana") presentAriana[emailValA] = true;
+            else if (g === "erica") presentErica[emailValA] = true;
+          }
+
+          resolve({
+            ariana: { reached: reachedAriana, present: Object.keys(presentAriana).length },
+            erica: { reached: reachedErica, present: Object.keys(presentErica).length }
+          });
+        } catch (err) {
+          reject("Couldn't read that file. Make sure it's the two-tab points + attendance export.");
+        }
+      };
+      reader.onerror = function () { reject("Couldn't read that file."); };
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
+  document.getElementById("fileInput").addEventListener("change", function (e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    var statusEl = document.getElementById("uploadStatus");
+    statusEl.textContent = "Reading " + file.name + "...";
+    parseFile(file).then(function (result) {
+      state.days[selectedDay] = { ariana: result.ariana, erica: result.erica };
+      saveState();
+      statusEl.textContent = "Added " + DAY_NAMES[selectedDay] + ": White Ducks " + pctOf(result.ariana).toFixed(1) + "% (" + result.ariana.reached + "\u00F7" + result.ariana.present + "), Teal Ducks " + pctOf(result.erica).toFixed(1) + "% (" + result.erica.reached + "\u00F7" + result.erica.present + ").";
+      var next = firstEmptyDay();
+      if (next) selectedDay = next;
+      render();
+    }).catch(function (err) {
+      statusEl.textContent = err;
+    });
+    e.target.value = "";
+  });
+
+  document.getElementById("exportData").addEventListener("click", function () {
+    var blob = new Blob([JSON.stringify(state)], { type: "application/json" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url; a.download = "weekly-showdown-backup.json";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+  document.getElementById("importInput").addEventListener("change", function (e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function (ev) {
+      try {
+        var parsed = JSON.parse(ev.target.result);
+        state = normalizeState(parsed);
+        saveState();
+        selectedDay = firstEmptyDay() || "fri";
+        render();
+        document.getElementById("uploadStatus").textContent = "Backup loaded.";
+      } catch (err) {
+        alert("That doesn't look like a valid backup file.");
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  });
+
+  // ---------- showdown / week controls ----------
+  function runShowdown() {
+    if (state.showdown.ran || isAnimating) return;
+    var wins = computeWins(state.days);
+    var champion = wins.arianaWins === wins.ericaWins ? "tie" : (wins.arianaWins > wins.ericaWins ? "ariana" : "erica");
+    state.showdown = { ran: true, ranAt: Date.now(), champion: champion, arianaWins: wins.arianaWins, ericaWins: wins.ericaWins };
+    saveState(state.showdown.ranAt);
+    playShowdownAnimation(champion, wins);
+  }
+  function undoShowdown() {
+    if (!state.showdown.ran) return;
+    state.showdown = { ran: false, ranAt: null, champion: null, arianaWins: 0, ericaWins: 0 };
+    saveState();
+    render();
+  }
+  var confirmingNewWeek = false, confirmingTimer = null;
+  function startNewWeekClicked() {
+    var btn = document.getElementById("startNewWeekBtn");
+    if (!confirmingNewWeek) {
+      confirmingNewWeek = true;
+      btn.textContent = "Click again to confirm";
+      btn.classList.add("danger-confirm");
+      confirmingTimer = setTimeout(function () {
+        confirmingNewWeek = false;
+        btn.textContent = "Start a new week";
+        btn.classList.remove("danger-confirm");
+      }, 5000);
+      return;
+    }
+    clearTimeout(confirmingTimer);
+    confirmingNewWeek = false;
+    btn.textContent = "Start a new week";
+    btn.classList.remove("danger-confirm");
+
+    var wins = computeWins(state.days);
+    var champion = state.showdown.ran ? state.showdown.champion : (wins.arianaWins === wins.ericaWins ? "tie" : (wins.arianaWins > wins.ericaWins ? "ariana" : "erica"));
+    var entry = { weekStart: state.weekStart, arianaWins: wins.arianaWins, ericaWins: wins.ericaWins, champion: champion };
+    var newPastWeeks = (state.pastWeeks || []).concat([entry]);
+    if (newPastWeeks.length > 30) newPastWeeks = newPastWeeks.slice(newPastWeeks.length - 30);
+
+    var nextStartInput = document.getElementById("nextWeekDate").value || addDaysIso(state.weekStart, 7);
+    state.weekStart = nextStartInput;
+    state.days = emptyDays();
+    state.showdown = { ran: false, ranAt: null, champion: null, arianaWins: 0, ericaWins: 0 };
+    state.pastWeeks = newPastWeeks;
+    selectedDay = "mon";
+    saveState();
+    render();
+  }
+
+  // ---------- sound engine ----------
+  var audioCtx = null;
+  var soundOn = true;
+  function ensureCtx() {
+    if (!audioCtx) {
+      try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { audioCtx = null; }
+    }
+    return audioCtx;
+  }
+  function playTone(freq, dur, type, gainVal, startDelay) {
+    if (!soundOn) return;
+    var ctx = ensureCtx(); if (!ctx) return;
+    var t0 = ctx.currentTime + (startDelay || 0);
+    var osc = ctx.createOscillator(); var gain = ctx.createGain();
+    osc.type = type || "sine"; osc.frequency.setValueAtTime(freq, t0);
+    gain.gain.setValueAtTime(0, t0);
+    gain.gain.linearRampToValueAtTime(gainVal || 0.2, t0 + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(t0); osc.stop(t0 + dur + 0.02);
+  }
+  function playNoise(dur, filterFreq, gainVal, startDelay, sweepTo) {
+    if (!soundOn) return;
+    var ctx = ensureCtx(); if (!ctx) return;
+    var t0 = ctx.currentTime + (startDelay || 0);
+    var bufferSize = Math.floor(ctx.sampleRate * dur);
+    var buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    var data = buffer.getChannelData(0);
+    for (var i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+    var noise = ctx.createBufferSource(); noise.buffer = buffer;
+    var filter = ctx.createBiquadFilter(); filter.type = "bandpass";
+    filter.frequency.setValueAtTime(filterFreq, t0);
+    if (sweepTo) filter.frequency.linearRampToValueAtTime(sweepTo, t0 + dur);
+    var gain = ctx.createGain();
+    gain.gain.setValueAtTime(0, t0);
+    gain.gain.linearRampToValueAtTime(gainVal || 0.2, t0 + 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+    noise.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+    noise.start(t0); noise.stop(t0 + dur + 0.02);
+  }
+  function sndBeep(delay) { playTone(880, 0.18, "square", 0.18, delay); }
+  function sndDrumroll(dur) {
+    var ctx = ensureCtx(); if (!ctx || !soundOn) return;
+    var n = Math.floor(dur / 0.07);
+    for (var i = 0; i < n; i++) playNoise(0.05, 1800, 0.12, i * 0.07);
+  }
+  function sndWhoosh(delay) { playNoise(0.35, 500, 0.2, delay, 2200); }
+  function sndBoing(delay) {
+    if (!soundOn) return;
+    var ctx = ensureCtx(); if (!ctx) return;
+    var t0 = ctx.currentTime + (delay || 0);
+    var osc = ctx.createOscillator(); var gain = ctx.createGain();
+    osc.type = "sine"; osc.frequency.setValueAtTime(180, t0);
+    osc.frequency.exponentialRampToValueAtTime(700, t0 + 0.15);
+    osc.frequency.exponentialRampToValueAtTime(180, t0 + 0.3);
+    gain.gain.setValueAtTime(0.2, t0);
+    gain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.32);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(t0); osc.stop(t0 + 0.35);
+  }
+  function sndInhale(dur, delay) { playNoise(dur, 300, 0.22, delay, 2600); }
+  function sndGulp(delay) {
+    if (!soundOn) return;
+    var ctx = ensureCtx(); if (!ctx) return;
+    var t0 = ctx.currentTime + (delay || 0);
+    var osc = ctx.createOscillator(); var gain = ctx.createGain();
+    osc.type = "sawtooth"; osc.frequency.setValueAtTime(220, t0);
+    osc.frequency.exponentialRampToValueAtTime(70, t0 + 0.25);
+    gain.gain.setValueAtTime(0.25, t0);
+    gain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.3);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(t0); osc.stop(t0 + 0.32);
+  }
+  function sndBonk(delay) {
+    playNoise(0.15, 900, 0.25, delay);
+    playTone(120, 0.3, "sine", 0.25, delay);
+  }
+  function sndBurp(delay) {
+    if (!soundOn) return;
+    var ctx = ensureCtx(); if (!ctx) return;
+    var t0 = ctx.currentTime + (delay || 0);
+    var osc = ctx.createOscillator(); var gain = ctx.createGain();
+    osc.type = "sawtooth"; osc.frequency.setValueAtTime(140, t0);
+    for (var i = 0; i < 6; i++) {
+      osc.frequency.setValueAtTime(140 + (i % 2 === 0 ? 30 : -10), t0 + i * 0.08);
+    }
+    gain.gain.setValueAtTime(0.22, t0);
+    gain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.55);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(t0); osc.stop(t0 + 0.6);
+  }
+  function sndFanfare(delay) {
+    [523, 659, 784, 1046].forEach(function (f, i) { playTone(f, 0.4, "triangle", 0.18, (delay || 0) + i * 0.12); });
+  }
+
+  // ---------- showdown animation ----------
+  var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var animTimers = [];
+  function clearAnimTimers() { animTimers.forEach(clearTimeout); animTimers = []; }
+  function at(fn, ms) { animTimers.push(setTimeout(fn, ms)); }
+
+  function el(id) { return document.getElementById(id); }
+  function showEl(id, disp) { el(id).style.opacity = disp === undefined ? 1 : disp; }
+  function hideEl(id) { el(id).style.opacity = 0; }
+
+  function playShowdownAnimation(champion, wins) {
+    stopBragging();
+    if (reduceMotion) {
+      isAnimating = false;
+      render();
+      return;
+    }
+    isAnimating = true;
+    clearAnimTimers();
+    render();
+
+    var banner = document.getElementById("bannerBar");
+    var darkness = el("darknessOverlay");
+    var spotlightGroup = el("spotlightGroup");
+    var spotlightBeam = el("spotlightBeam");
+    var titleCard = el("titleCardText");
+    var countdown = el("countdownText");
+    var whoBigger = el("whoBiggerText");
+    var gA = el("duckAriana"), gE = el("duckErica");
+
+    clearLeaderAction();
+
+    banner.textContent = "The Weekly Showdown is starting...";
+    darkness.style.transition = "opacity 0.6s"; darkness.style.opacity = 0.88;
+    sndDrumroll(1.1);
+    titleCard.style.transition = "opacity 0.2s"; showEl("titleCardText", 1);
+    at(function () { hideEl("titleCardText"); }, 1400);
+
+    // countdown 3-2-1
+    [3, 2, 1].forEach(function (num, i) {
+      at(function () {
+        countdown.textContent = num;
+        countdown.style.transition = "opacity 0.15s";
+        showEl("countdownText", 1);
+        sndBeep(0);
+        var baseA = gA.getAttribute("transform");
+        var baseE = gE.getAttribute("transform");
+        var shakeInt = setInterval(function () {
+          var dx = (Math.random() - 0.5) * 6;
+          gA.setAttribute("transform", baseA + " translate(" + dx + ",0)");
+          gE.setAttribute("transform", baseE + " translate(" + (-dx) + ",0)");
+        }, 60);
+        at(function () {
+          clearInterval(shakeInt);
+          hideEl("countdownText");
+          gA.setAttribute("transform", baseA);
+          gE.setAttribute("transform", baseE);
+        }, 700);
+      }, 1500 + i * 800);
+    });
+
+    var spotlightAt = 1500 + 3 * 800 + 200;
+    at(function () {
+      spotlightGroup.style.transition = "opacity 0.3s";
+      showEl("spotlightGroup", 1);
+      whoBigger.style.transition = "opacity 0.2s"; showEl("whoBiggerText", 1);
+      var swings = 6, i = 0;
+      var swingInt = setInterval(function () {
+        i++;
+        var toArianaSide = i % 2 === 0;
+        spotlightBeam.setAttribute("cx", toArianaSide ? "230" : "570");
+        sndWhoosh(0);
+        (toArianaSide ? gA : gE).style.transition = "transform 0.15s";
+        if (i >= swings) {
+          clearInterval(swingInt);
+          spotlightBeam.setAttribute("cx", champion === "ariana" ? "230" : (champion === "erica" ? "570" : "400"));
+        }
+      }, 260);
+    }, spotlightAt);
+
+    var afterSpotlight = spotlightAt + 6 * 260 + 500;
+
+    if (champion === "tie") {
+      at(function () {
+        hideEl("whoBiggerText");
+        banner.textContent = "Charging in for a truce bonk...";
+        gA.style.transition = "transform 0.35s ease-in";
+        gE.style.transition = "transform 0.35s ease-in";
+        gA.setAttribute("transform", "translate(360,340) scale(" + sizeScale(wins.arianaWins) + ")");
+        gE.setAttribute("transform", "translate(440,340) scale(" + sizeScale(wins.ericaWins) + ")");
+        sndWhoosh(0.1);
+      }, afterSpotlight);
+      at(function () {
+        sndBonk(0);
+        el("bonkWordText").style.transition = "opacity 0.1s"; showEl("bonkWordText", 1);
+        darkness.style.opacity = 0.3;
+        var flash = el("whiteFlash"); flash.style.transition = "opacity 0.08s"; showEl("whiteFlash", 0.7);
+        at(function () { hideEl("whiteFlash"); }, 120);
+        gA.setAttribute("transform", "translate(300,340) scale(" + sizeScale(wins.arianaWins) + ")");
+        gE.setAttribute("transform", "translate(500,340) scale(" + sizeScale(wins.ericaWins) + ")");
+      }, afterSpotlight + 500);
+      at(function () {
+        hideEl("bonkWordText");
+        darkness.style.opacity = 0; hideEl("spotlightGroup");
+        banner.textContent = "It's a truce! They split a snack and call it even.";
+        launchConfetti(["#b8b2a4", "#8f887a"]);
+        sndFanfare(0);
+        isAnimating = false;
+        render();
+      }, afterSpotlight + 1600);
+      return;
+    }
+
+    var winnerId = champion === "ariana" ? "duckAriana" : "duckErica";
+    var loserId = champion === "ariana" ? "duckErica" : "duckAriana";
+    var winnerBaseX = champion === "ariana" ? 230 : 570;
+    var loserBaseX = champion === "ariana" ? 570 : 230;
+    var winnerWins = champion === "ariana" ? wins.arianaWins : wins.ericaWins;
+    var loserWins = champion === "ariana" ? wins.ericaWins : wins.arianaWins;
+    var winG = el(winnerId), loseG = el(loserId);
+    var loserEdgeX = loserBaseX > 400 ? 780 : 20;
+
+    // chase
+    at(function () {
+      hideEl("whoBiggerText"); hideEl("spotlightGroup");
+      banner.textContent = "Uh oh...";
+      var exGroup = el("exclaimGroup"), swGroup = el("sweatGroup");
+      exGroup.setAttribute("transform", "translate(" + loserBaseX + ",200)");
+      swGroup.setAttribute("transform", "translate(" + (loserBaseX + 30) + ",220)");
+      exGroup.style.transition = "opacity 0.2s"; showEl("exclaimGroup", 1);
+      swGroup.style.transition = "opacity 0.2s"; showEl("sweatGroup", 1);
+      sndBoing(0);
+    }, afterSpotlight + 300);
+
+    at(function () {
+      el("runWordText").setAttribute("x", loserBaseX);
+      el("runWordText").style.transition = "opacity 0.2s"; showEl("runWordText", 1);
+      loseG.style.transition = "transform 1.1s ease-in";
+      loseG.setAttribute("transform", "translate(" + loserEdgeX + ",340) scale(" + (sizeScale(loserWins) * 0.8) + ")");
+    }, afterSpotlight + 900);
+
+    var gulpPhase = afterSpotlight + 2200;
+    at(function () {
+      hideEl("exclaimGroup"); hideEl("sweatGroup"); hideEl("runWordText");
+      darkness.style.opacity = 0;
+      banner.textContent = "Here it comes...";
+      sndInhale(0.9, 0);
+      at(function () { }, 0);
+      loseG.style.transition = "transform 0.9s ease-in";
+      loseG.setAttribute("transform", "translate(" + winnerBaseX + ",300) scale(0.05) rotate(360)");
+    }, gulpPhase);
+
+    at(function () {
+      sndGulp(0);
+      var flash = el("whiteFlash"); flash.style.transition = "opacity 0.06s"; showEl("whiteFlash", 0.85);
+      at(function () { hideEl("whiteFlash"); }, 140);
+      loseG.style.display = "none";
+      el("gulpWordText").style.transition = "opacity 0.1s"; showEl("gulpWordText", 1);
+      var arena = document.getElementById("arenaWrap");
+      arena.style.transition = "transform 0.08s";
+      arena.style.transform = "translate(4px,0)";
+      at(function () { arena.style.transform = "translate(-4px,0)"; }, 60);
+      at(function () { arena.style.transform = "translate(0,0)"; }, 120);
+    }, gulpPhase + 900);
+
+    at(function () {
+      hideEl("gulpWordText");
+      banner.textContent = "...";
+    }, gulpPhase + 1700);
+
+    at(function () {
+      sndBurp(0);
+      el("burpBubble").setAttribute("transform", "translate(" + winnerBaseX + ",180)");
+      el("burpBubble").style.transition = "opacity 0.2s"; showEl("burpBubble", 1);
+      at(function () { hideEl("burpBubble"); }, 900);
+    }, gulpPhase + 2200);
+
+    at(function () {
+      el(winnerId === "duckAriana" ? "bellyAriana" : "bellyErica").classList.add("show");
+      setScale(winG, sizeScale(winnerWins), winnerBaseX);
+      launchConfetti([TEAMS[champion].color, "#ffffff"]);
+      sndFanfare(0);
+      var winnerT = TEAMS[champion], loserT = TEAMS[champion === "ariana" ? "erica" : "ariana"];
+      banner.textContent = "The " + winnerT.plural + " gulped down the " + loserT.plural + "! " +
+        winnerWins + "\u2013" + loserWins + " this week. Don't worry, the " + loserT.plural + " are napping in there.";
+      isAnimating = false;
+      render();
+    }, gulpPhase + 3000);
+  }
+
+  function launchConfetti(colors) {
+    var g = el("confettiGroup");
+    g.innerHTML = "";
+    for (var i = 0; i < 40; i++) {
+      var c = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      var x = 100 + Math.random() * 600;
+      var w = 5 + Math.random() * 5;
+      c.setAttribute("x", x); c.setAttribute("y", -20 - Math.random() * 100);
+      c.setAttribute("width", w); c.setAttribute("height", w * 1.6);
+      c.setAttribute("fill", colors[i % colors.length]);
+      c.style.transition = "transform " + (1.4 + Math.random()) + "s ease-in, opacity 1.8s";
+      g.appendChild(c);
+      (function (node) {
+        requestAnimationFrame(function () {
+          node.style.transform = "translate(" + ((Math.random() - 0.5) * 60) + "px,460px) rotate(" + (Math.random() * 480) + "deg)";
+          node.style.opacity = 0.1;
+        });
+      })(c);
+    }
+    setTimeout(function () { g.innerHTML = ""; }, 3200);
+  }
+
+  function skipAnimation() {
+    clearAnimTimers();
+    isAnimating = false;
+    document.querySelectorAll(".exclaim,.sweatdrop,.runword,.gulpword,.titlecard,.countnum,.burp-bubble").forEach(function (n) { n.style.opacity = 0; });
+    el("darknessOverlay").style.opacity = 0;
+    el("spotlightGroup").style.opacity = 0;
+    el("whiteFlash").style.opacity = 0;
+    document.getElementById("duckAriana").style.display = "";
+    document.getElementById("duckErica").style.display = "";
+    render();
+  }
+
+  // ---------- UI wiring ----------
+  document.getElementById("arenaActionBtn").addEventListener("click", function () {
+    if (isAnimating) { skipAnimation(); return; }
+    if (state.showdown.ran) { saveState(Date.now()); playShowdownAnimation(state.showdown.champion, { arianaWins: state.showdown.arianaWins, ericaWins: state.showdown.ericaWins }); return; }
+    runShowdown();
+  });
+  document.getElementById("runShowdownBtn").addEventListener("click", runShowdown);
+  document.getElementById("undoShowdownBtn").addEventListener("click", undoShowdown);
+  document.getElementById("startNewWeekBtn").addEventListener("click", startNewWeekClicked);
+
+  document.getElementById("soundToggle").addEventListener("click", function () {
+    soundOn = !soundOn;
+    ensureCtx();
+    this.textContent = "Sound: " + (soundOn ? "On" : "Off");
+    this.classList.toggle("active", soundOn);
+    try { localStorage.setItem("weeklyShowdownSound", soundOn ? "1" : "0"); } catch (e) {}
+  });
+  document.getElementById("presentationToggle").addEventListener("click", function () {
+    var on = !document.body.classList.contains("presentation");
+    document.body.classList.toggle("presentation", on);
+    this.classList.toggle("active", on);
+    try { localStorage.setItem("weeklyShowdownPresentation", on ? "1" : "0"); } catch (e) {}
+  });
+
+  try {
+    if (localStorage.getItem("weeklyShowdownSound") === "0") {
+      soundOn = false;
+      document.getElementById("soundToggle").textContent = "Sound: Off";
+    } else {
+      document.getElementById("soundToggle").classList.add("active");
+    }
+    if (localStorage.getItem("weeklyShowdownPresentation") === "1") {
+      document.body.classList.add("presentation");
+      document.getElementById("presentationToggle").classList.add("active");
+    }
+  } catch (e) {}
+
+  // ---------- Companion Keep link ----------
+  var showOn = false, gotState = false, lastPlay = 0;
+  try { lastPlay = Number(sessionStorage.getItem("ck-sd-play")) || 0; } catch (e) {}
+  function paintShowBtn() {
+    var b = document.getElementById("showStudentsBtn");
+    b.textContent = "\uD83D\uDCFA Show to students: " + (showOn ? "On" : "Off");
+    b.classList.toggle("active", showOn);
+  }
+  document.getElementById("showStudentsBtn").addEventListener("click", function () { toKeep({ ckSD: "show", on: !showOn }); });
+  window.addEventListener("message", function (ev) {
+    if (ev.origin !== location.origin) return;
+    var d = ev.data;
+    if (!d || d.ckSD !== "state") return;
+    var wasShow = showOn;
+    showOn = !!d.show; paintShowBtn();
+    var next = normalizeState(d.state || {});
+    var first = !gotState, changed = first || JSON.stringify(next) !== JSON.stringify(state);
+    gotState = true;
+    var playAt = Number(d.playAt) || 0;
+    state = next;
+    if (MODE === "student" && state.showdown.ran && playAt > lastPlay && Math.abs(Date.now() - playAt) < 5 * 60 * 1000) {
+      lastPlay = playAt;
+      try { sessionStorage.setItem("ck-sd-play", String(playAt)); } catch (e) {}
+      if (isAnimating) skipAnimation();
+      playShowdownAnimation(state.showdown.champion, { arianaWins: state.showdown.arianaWins, ericaWins: state.showdown.ericaWins });
+      return;
+    }
+    if (isAnimating && !state.showdown.ran) { skipAnimation(); return; }
+    if ((changed || wasShow !== showOn) && !isAnimating) {
+      if (first) selectedDay = firstEmptyDay() || "fri";
+      render();
+    }
+  });
+  state = loadState();
+  paintShowBtn();
+  render();
+  toKeep({ ckSD: "ready" });
+})();
+</script>
+</body>
+</html>

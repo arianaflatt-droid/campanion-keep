@@ -4,9 +4,9 @@
    Each student's picture is its own small doc, classes/{class}/rewards/{studentId} = { img: "data:image/webp;base64,..." },
    so a student's page reads only its own picture (and the class roster stays small).
    Progress = that subject's XP this week (Mon-Sun, from xpHist[date].sub). The reward only counts in its own week. */
-import { esc, weekKey } from "./game.js?v=20261113g";
-import { SUB_NAMES } from "./teams.js?v=20261113g";
-import { addDays, weekTotal, histWeekTotal, rewardFor } from "./doors.js?v=20261113g";
+import { esc, weekKey } from "./game.js?v=20261113h";
+import { SUB_NAMES } from "./teams.js?v=20261113h";
+import { addDays, weekTotal, histWeekTotal, rewardFor } from "./doors.js?v=20261113h";
 
 // "all" = every subject added up (the week's total XP), for students whose goal is total XP (like 600)
 const NAMES = Object.assign({ all: "Total" }, SUB_NAMES);
@@ -72,7 +72,7 @@ export function rewardAdmin(students, cls, pics, busy) {
     '<div class="rgtable">' + kids.map(s => {
       const g = rewardFor(s, cls), d = Object.assign({ name: g ? g.name : "", sub: g ? g.sub : "", xp: g ? g.xp : "", link: g ? g.link || "" : (s.reward && s.reward.link) || "" }, (busy.rgDraft || {})[s.id] || {});
       const goal = Number(d.xp) || 0, n = d.sub ? subWeek(s, wk, d.sub, cls) : 0;
-      return '<div class="rgtr' + (g && g.needPic ? " needpic" : "") + '"><label class="rgpicbtn" title="Pick a picture">' + pic(pics[s.id], g, "rgthumb") + (g && g.needPic ? '<em class="rgneed">\u{1F4F8} add a picture</em>' : "") + '<input type="file" accept="image/*" hidden data-rgpic="' + s.id + '"></label>' +
+      return '<div class="rgtr' + (g && g.needPic ? " needpic" : "") + '"><label class="rgpicbtn" title="Pick a picture">' + pic(pics[s.id], g, "rgthumb") + (g && g.needPic ? '<em class="rgneed">\u{1F4F8} add a picture</em>' : "") + '<input type="file" accept="image/*" hidden data-rgpic="' + s.id + '"></label>' + (g && g.needPic ? '<button class="npok" data-act="npOk" data-sid="' + s.id + '" title="The picture that\u2019s there still works">\u00d7 Picture is fine</button>' : "") +
         '<div class="rgcol"><div class="row" style="gap:8px;align-items:center;"><span class="rgn">' + esc(s.name) + '</span><input id="rgName-' + s.id + '" data-rgf="name" type="text" maxlength="40" placeholder="Reward name" value="' + esc(String(d.name || "")) + '" style="flex:1;min-width:150px">' +
         '<select id="rgSub-' + s.id + '" data-rgf="sub">' + subOpts(d.sub) + '</select><input id="rgXp-' + s.id + '" data-rgf="xp" type="number" min="1" step="10" placeholder="XP" value="' + esc(String(d.xp)) + '" style="width:90px"></div>' +
         '<input id="rgLink-' + s.id + '" data-rgf="link" type="url" maxlength="500" placeholder="\u{1F517} Link to order it (optional, only you see it on Prize winners)" value="' + esc(String(d.link || "")) + '" style="width:100%;margin-top:4px;">' +
