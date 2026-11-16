@@ -14,8 +14,8 @@
      sub { own:{key:1}, use, trail, trails:{key:1} }, seen { area: 1 }.
    Weekly parts (a new week starts fresh): qd { quest: 1 } claimed quests, qx chest pearls, wb best dive this week,
      wn new creatures this week, vq { place: 1 } places visited this week, ws pearls spent this week. */
-import { esc } from "./game.js?v=20261116c";
-import { startPaint } from "./hangar.js?v=20261116c";
+import { esc } from "./game.js?v=20261116d";
+import { startPaint } from "./hangar.js?v=20261116d";
 
 const K = "assets/kingdom/";
 export const KEEP2 = ["aq", "aqf", "cg", "sub", "seen", "sh", "rk", "rkp", "ship"];
