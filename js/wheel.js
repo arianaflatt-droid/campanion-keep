@@ -11,9 +11,9 @@
    so it shows on the console's Prize winners list to order.
    Saved on the class (teacher only): wspin = { id, kind, duck, label, names: [{ i, n }], slices: [name index], win, extra, at, open }
    and wsGoal (the weekly number). The wheel draws in its own layer (#wsroot), so page redraws never interrupt the spin. */
-import { esc, weekKey } from "./game.js?v=20261116d";
-import { addDays, histWeekTotal, subReq, subRuleOn, ringPass, mondayOf, ringDay, SUB_REQ } from "./doors.js?v=20261116d";
-import { getSpinPrizes } from "./db.js?v=20261116d";
+import { esc, weekKey } from "./game.js?v=20261116e";
+import { addDays, histWeekTotal, subReq, subRuleOn, ringPass, mondayOf, ringDay, SUB_REQ } from "./doors.js?v=20261116e";
+import { getSpinPrizes } from "./db.js?v=20261116e";
 
 const COLORS = ["#F2545B", "#F4B942", "#2EC4B6", "#7B61FF", "#06D6A0", "#3A86FF"];
 export const WS_DAILY = 120, WS_WEEKLY = 600, SPIN_MS = 4200;
@@ -90,9 +90,10 @@ function paintBottom() {
   if (!S || !root) return; const b = root.querySelector(".wsbottom"); if (!b) return;
   const w = S.w, win = winnerOf(w), name = win ? win.n : "?";
   let h = "";
-  if (!S.done) h = '<p class="wswait">\u{1F3B6} Spinning…</p>';
+  if (w.test) h += '<p class="wstest">\u{1F9EA} <b>Test spin</b>: only you can see this. Nothing is saved and no prize is given.</p>';
+  if (!S.done) h += '<p class="wswait">\u{1F3B6} Spinning…</p>';
   else {
-    h = '<div class="wswinner"><span>' + (S.isWinner ? "\u{1F389} It’s YOU!" : "\u{1F389} It landed on") + "</span><b>" + esc(name) + "</b></div>";
+    h += '<div class="wswinner"><span>' + (S.isWinner ? "\u{1F389} It’s YOU!" : "\u{1F389} It landed on") + "</span><b>" + esc(name) + "</b></div>";
     if (w.duck) h += '<p class="wsmsg">\u{1F986} ' + (S.isWinner ? "You get to dress the duck!" : esc(name) + " gets to dress the duck!") + "</p>";
     else if (S.isWinner) {
       const set = w.kind === "weekly" ? "weekly" : "daily", picked = S.picked || (S.me && S.me.wsPick === w.id);
@@ -111,12 +112,14 @@ function paintBottom() {
           (p.img ? '<img src="' + esc(p.img) + '" alt="">' : '<span class="wsnoimg">\u{1F381}</span>') + (p.name ? "<b>" + esc(p.name) + "</b>" : "") + (p.choice ? '<small class="wsask">\u270F\uFE0F You pick which one</small>' : "") + "</button>").join("") + "</div>" +
           '<p class="wsmsg small">Tap a prize to see it bigger and look at it in the store.</p>';
       }
+    } else if (S.teacher && w.test) {
+      h += '<p class="wsmsg">\u{1F9EA} In a real spin, ' + esc(name) + " would pick a prize now.</p>";
     } else if (S.teacher) {
       const st = (S.students || []).find(x => x.id === (win && win.i)), e = st && (st.spinLog || []).slice().reverse().find(x => x.src === "wheel" && x.ws === w.id);
       h += '<p class="wsmsg">' + (e ? "✅ " + esc(name) + " picked <b>" + esc(e.prizeName || "a prize") + "</b>. It’s on your Prize winners list." : "\u{1F381} " + esc(name) + " is picking a prize…") + "</p>";
     } else h += '<p class="wsmsg">\u{1F381} ' + esc(name) + " gets to pick a prize!</p>";
   }
-  if (S.teacher) h += '<button class="btn wsclose" data-wsclose="1">✖ Close it on everyone’s screen</button>';
+  if (S.teacher) h += '<button class="btn wsclose" data-wsclose="1">' + (w.test ? "✖ Stop the test" : "✖ Close it on everyone’s screen") + "</button>";
   if (h !== lastH || !b.innerHTML) { b.innerHTML = h; lastH = h; }
 }
 if (typeof document !== "undefined") document.addEventListener("click", async ev => {
@@ -137,8 +140,14 @@ if (typeof document !== "undefined") document.addEventListener("click", async ev
   }
 });
 
+// 🧪 Nov 16 (Ms. Ariana): a TEST spin only runs on her own screen. Nothing is saved and no student sees it.
+let testW = null, lastO = null;
+export function testSpin(w) { testW = Object.assign({}, w, { id: "t" + w.id, test: true }); if (lastO) wheelSync(lastO); }
+export const testOn = () => !!testW;
 // Called on every redraw of the student page and the console. o = { cls, me (the student, or null), teacher, students, preview, save(data), close() }
 export function wheelSync(o) {
+  lastO = o;
+  if (testW && o.teacher) o = Object.assign({}, o, { cls: Object.assign({}, o.cls, { wspin: testW }), close: () => { testW = null; wheelSync(lastO); } });
   const w = o.cls && o.cls.wspin;
   if (!w || !w.open || !w.slices || !w.slices.length) { if (root) { root.remove(); root = null; } S = null; choose = null; return; }
   const win = winnerOf(w), isWinner = !!(o.me && win && o.me.id === win.i && !o.teacher);

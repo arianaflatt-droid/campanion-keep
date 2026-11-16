@@ -3965,3 +3965,19 @@ body.kdmode .kdhead h2{ display:none; }
 .kq-twinkle{ position:absolute; z-index:3; font-style:normal; font-size:2.2cqw; transform:translate(-50%,-50%); pointer-events:none; opacity:0; animation:kqtwink 4s ease-in-out 7s infinite; }
 @keyframes kqtwink{ 0%,70%,100%{ opacity:0; } 80%{ opacity:.75; } }
 .kq-xclose{ position:absolute; right:2%; top:3%; background:rgba(255,255,255,.9) !important; color:#2D2150 !important; }
+/* 🌙 Royal Hatchery (Knight, Nov 16) */
+.kq-lagoon .kq-aqbox{ z-index:1; }
+.kq-nest{ position:absolute; left:33%; top:79%; transform:translate(-50%,-50%); width:18%; display:flex; flex-direction:column; align-items:center; gap:4px; z-index:3; }
+.kq-egg{ border:0; background:none; padding:0; width:62%; cursor:default; } .kq-egg img{ width:100%; display:block; filter:drop-shadow(0 8px 12px rgba(0,0,0,.35)); }
+.kq-egg.ready{ cursor:pointer; animation:kqwob 1.6s ease-in-out infinite; } .kq-egg.ready img{ filter:drop-shadow(0 0 18px rgba(255,240,170,.9)); }
+.kq-egg.t1{ animation:kqwob .5s ease-in-out infinite; } .kq-egg.t2{ animation:kqwob .35s ease-in-out infinite; } .kq-egg.t3, .kq-egg.t4{ animation:kqwob .2s ease-in-out infinite; } .kq-egg.t4 img{ filter:drop-shadow(0 0 26px #fff) brightness(1.2); }
+@keyframes kqwob{ 0%,100%{ rotate:-6deg; } 50%{ rotate:6deg; } }
+.kq-hatchbox{ text-align:center; } .kq-crack{ position:relative; width:200px; height:200px; margin:-90px auto 6px; }
+.kq-eggfx{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; animation:kqeggpop 1s ease-in forwards; }
+.kq-baby{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; opacity:0; animation:kqbaby .7s ease-out .9s forwards; filter:drop-shadow(0 8px 14px rgba(0,0,0,.3)); }
+@keyframes kqeggpop{ 0%{ transform:rotate(0); } 30%{ transform:rotate(-12deg); } 60%{ transform:rotate(12deg); filter:brightness(1.5); } 100%{ transform:scale(1.4); opacity:0; filter:brightness(3); } }
+@keyframes kqbaby{ from{ opacity:0; transform:scale(.3); } 70%{ transform:scale(1.12); } to{ opacity:1; transform:scale(1); } }
+.kq-fact{ background:#E9F8EE; border-radius:14px; padding:10px 12px; text-align:left; font-size:14px; margin-top:8px; }
+.kq-rankgear{ display:flex; align-items:center; gap:10px; background:#fff; border-radius:16px; padding:6px 12px; margin:6px auto; max-width:420px; box-shadow:0 2px 8px rgba(0,0,0,.12); text-align:left; }
+.kq-rankgear img{ width:64px; height:64px; object-fit:contain; }
+.wstest{ background:#FFF3C4; color:#5A3B00; border-radius:12px; padding:8px 12px; margin:0 0 8px; font-size:14px; }
