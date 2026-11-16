@@ -664,7 +664,7 @@ function render(force) {
     { const np2 = needPicList(students, cls); if (np2.length) h += '<div class="banner prizealert"><span>\u{1F4F8} <b>' + np2.length + " new vault prize" + (np2.length === 1 ? "" : "s") + "</b> picked by students: add a picture for " + np2.map(x => esc(x.name) + " (" + esc(x.reward.name || "prize") + ")").join(", ") + '</span><span class="row" style="gap:8px;"><button class="btn small" data-ctab="rewards">Add pictures</button><button class="npx" data-act="npOk" title="The pictures already there are fine: hide this">\u00d7</button></span></div>'; }
     if (np && np > prizeHidden) h += '<div class="banner prizealert"><span>\u{1F381} <b>' + np + " prize" + (np === 1 ? "" : "s") + "</b> to order or give" + prizeNames() + '</span><span class="row" style="gap:8px;"><button class="btn small" data-act="goPrizes">View prizes</button><button class="btn ghost small" data-act="hidePrizes">Hide</button></span></div>';
     h += '<div class="tabs ctabs" role="tablist">' + tabs.map(([k, l]) => '<button role="tab" class="tab' + (ctab === k ? " on" : "") + '" data-ctab="' + k + '" aria-selected="' + (ctab === k) + '">' + l + "</button>").join("") + "</div>";
-    if (ctab === "daily") h += viewDaily() + secretAdmin(students, cls, secretDoc) + portalCard() + spinCard() + showdownCard() + planetAdmin(students, cls) + newsAdminHTML(cls, students, npics, newsEditing) + countdownAdmin() + boostAdmin() + miniAdmin(students, cls) + partyAdmin(students, cls) + recessAdmin(students, cls) + surpriseAdmin(students, cls) + viewWeekDoor() + viewRewards() + nebbleAdmin(students, cls);   // Nov 13: Nebbles at the bottom, Secret Students under the students
+    if (ctab === "daily") h += viewDaily() + secretAdmin(students, cls, secretDoc) + vaultWeekCard() + portalCard() + spinCard() + showdownCard() + planetAdmin(students, cls) + newsAdminHTML(cls, students, npics, newsEditing) + countdownAdmin() + boostAdmin() + miniAdmin(students, cls) + partyAdmin(students, cls) + recessAdmin(students, cls) + surpriseAdmin(students, cls) + viewWeekDoor() + viewRewards() + nebbleAdmin(students, cls);   // Nov 13: Nebbles at the bottom, Secret Students under the students
     else if (ctab === "students") h += viewAssign() + minCard("viewas", viewAsCard(), true) + minCard("standings", viewStandings(), true) + minCard("roster", rosterAdmin(students, busy)) + minCard("lock", lockCard(students, cls)) + minCard("pass", passAdmin(students, cls)) +
       minCard("losses", viewLosses()) + minCard("subswap", subSwapCard()) + minCard("wkgoal", wkGoalCard()) + minCard("axo", axoAdmin(students, cls, busy, esc)) + minCard("kd", kdAdmin(students, cls));   // Nov 6: personal-link cards removed (Google sign-in), clubs got their own tab
     else if (ctab === "clubs") h += clubsAdmin(students, cls, busy);
@@ -1236,6 +1236,23 @@ function portalList() {
   portalDates().forEach(date => students.filter(x => !x.isTeacher && hasSwap(x, cls)).forEach(x => {
     const p = portalDay(x, cls, date); if (p.ok) rows.push({ x, date, p, sent: !!(sent[date] || {})[x.id] }); }));
   return rows;
+}
+/* 💎 Nov 15 (Ms. Ariana): who opened their Treasure Vault last week (◀ ▶ for earlier weeks). Reads nothing new.
+   Opened = s.vault[week] === "open". Earned, not opened yet = reached it (still openable for the week right after). */
+function vaultWeekCard() {
+  if (!cls) return "";
+  const back = Number(busy.vwBack) || 1, wk = addDays(weekKey(cls), -7 * back), kids = students.filter(x => x.companionId && !x.isTeacher);
+  const nm = x => esc(x.fullName || x.name);
+  const open = kids.filter(x => (x.vault || {})[wk] === "open"), earned = kids.filter(x => (x.vault || {})[wk] !== "open" && ((x.vault || {})[wk] === "ready" || vaultMet(x, cls, wk))), rest = kids.filter(x => !open.includes(x) && !earned.includes(x));
+  const label = new Date(wk + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" }) + " \u2013 " + new Date(addDays(wk, 6) + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  const list = (L, ic) => L.length ? '<div class="inv">' + L.map(x => "<span>" + ic + " " + nm(x) + "</span>").join("") + "</div>" : '<p class="muted small" style="margin:2px 0;">Nobody.</p>';
+  return '<div class="card" id="vaultWeekCard"><div class="card-head"><h2>\u{1F48E} Vaults opened</h2><span class="fact">' + open.length + " of " + kids.length + "</span></div>" +
+    '<div class="row" style="gap:8px;align-items:center;margin-bottom:8px;"><button class="btn ghost small" data-act="vwWeek" data-d="1">\u25C0</button><b>' + (back === 1 ? "Last week" : back + " weeks ago") + " \u00b7 " + label + '</b>' +
+    (back > 1 ? '<button class="btn ghost small" data-act="vwWeek" data-d="-1">\u25B6</button>' : "") +
+    (open.length ? '<button class="btn small" data-act="vwCopy" style="margin-left:auto;">\u{1F4CB} Copy names</button>' : "") + "</div>" +
+    "<p style=\"margin:6px 0 2px;\"><b>\u2705 Opened their vault (" + open.length + ")</b></p>" + list(open, "\u2705") +
+    (earned.length ? "<p style=\"margin:10px 0 2px;\"><b>\u{1F31F} Earned it but haven\u2019t opened it yet (" + earned.length + ")</b>" + (back === 1 ? ' <span class="muted small">they can still open it this week</span>' : "") + "</p>" + list(earned, "\u{1F31F}") : "") +
+    '<details style="margin-top:8px;"><summary class="muted small">Didn\u2019t reach it (' + rest.length + ")</summary>" + list(rest, "\u2022") + "</details></div>";
 }
 function portalCard() {
   if (!cls || !students.some(x => !x.isTeacher && hasSwap(x, cls))) return "";
@@ -2912,6 +2929,10 @@ document.addEventListener("click", async ev => {
     try { await updateDoc(classRef, { planetOn: on }); cls.planetOn = on; flash(on ? "Saved \u2014 \u{1F680} Planet JP is on! The launch bar shows on school days." : "Saved \u2014 Planet JP is off.", true); } catch (e) { flash("Couldn\u2019t save \u2014 " + (e.code || e.message)); }
     render(); return;
   }
+  if (act === "vwWeek") { busy.vwBack = Math.max(1, Math.min(12, (Number(busy.vwBack) || 1) + Number(el.dataset.d))); return render(); }
+  if (act === "vwCopy") { const wk = addDays(weekKey(cls), -7 * (Number(busy.vwBack) || 1));
+    const txt = students.filter(x => x.companionId && !x.isTeacher && (x.vault || {})[wk] === "open").map(x => x.fullName || x.name).join("\n");
+    try { await navigator.clipboard.writeText(txt); el.textContent = "Copied!"; setTimeout(render, 1400); } catch (e) { prompt("Copy these names:", txt); } return; }
   if (act === "kdPass") {   // 🎟️ Nov 15: let a student into the Kingdom this week without the vault
     const on = el.dataset.on === "1", sid = on ? ((document.getElementById("kdPassPick") || {}).value || "") : el.dataset.sid, wk = weekKey(cls);
     if (!sid) { flash("Pick a student first."); return; }
