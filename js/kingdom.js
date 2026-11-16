@@ -12,9 +12,9 @@
    Saved on the student as kd = { w: the week (Monday), c: clam opened this week, t: trip done this week, dv: dives this week,
      p: pearls, g: { "Monday date": 1 } treasures, best: best dive, n: clams opened, v: visits, sb: shop buys }.
    One save per clam, per dive, per trip and per buy (a buy also saves roomOwned or outfits). Games run in their own layer. */
-import { esc, weekKey } from "./game.js?v=20261113l";
-import { azToday, azNow } from "./collect.js?v=20261113l";
-import { vaultMet, vaultGoal, subReq, addDays } from "./doors.js?v=20261113l";
+import { esc, weekKey } from "./game.js?v=20261115a";
+import { azToday, azNow } from "./collect.js?v=20261115a";
+import { vaultMet, vaultGoal, subReq, addDays } from "./doors.js?v=20261115a";
 
 const K = "assets/kingdom/";
 export const KD_DIVES = 3, KD_CLOSE = 22 * 60, DIVE_SECS = 45, TRIP_SECS = 35, TRIP_MAX = 20;
@@ -55,7 +55,9 @@ export function kdTimeOk(cls) {
   const sun = addDays(wk(cls), 6), d = azToday(), t = azNow(); if (d > sun) return false;
   return !(d === sun && t.h * 60 + t.m >= KD_CLOSE);
 }
-export const kdUnlocked = (st, cls) => kdOn(cls) && !!st && vaultMet(st, cls) && kdTimeOk(cls);
+// 🎟️ Nov 15 (Ms. Ariana): a Kingdom pass for this week only (e.g. a student testing their first week): cls.kdPass[week][studentId] = true
+export const kdPass = (st, cls) => !!(st && cls && ((cls.kdPass || {})[wk(cls)] || {})[st.id]);
+export const kdUnlocked = (st, cls) => kdOn(cls) && !!st && (vaultMet(st, cls) || kdPass(st, cls)) && kdTimeOk(cls);
 export const kdTodo = (st, cls) => { if (!kdUnlocked(st, cls)) return false; const k = kdOf(st, cls); return !k.t || !k.c || (Number(k.dv) || 0) < KD_DIVES; };
 // which minigame this week: the 1st–4th Monday of the month (a 5th Monday plays week 1 again)
 export const tripGame = cls => (typeof window !== "undefined" && window.__kdGame != null) ? window.__kdGame : (Math.ceil(Number(String(wk(cls)).slice(8, 10)) / 7) - 1) % 4;
@@ -442,6 +444,13 @@ export function kdAdmin(students, cls) {
     "Inside: Captain Duck’s submarine trip with a minigame (up to " + TRIP_MAX + " pearls), Queen Bubbles’ Treasure of the Week for the Treasure Grotto (52 a year), Pearl Diving (3 a week) and the Pearl Shop.</p>" +
     '<p class="small" style="display:flex;align-items:center;gap:8px;">' + trImg(t, "mini") + " This week: <b>" + esc(t.n) + "</b> · trip game: " + g.icon + " " + g.name + "</p>" +
     '<div class="row" style="margin:10px 0;"><button class="btn' + (on ? " ghost" : "") + '" data-act="kdToggle">' + (on ? "Turn the Kingdom off" : "\u{1F30A} Turn the Kingdom on") + "</button></div>";
-  if (on && inn.length) h += '<p class="small"><b>In the Kingdom this week:</b> ' + inn.map(s => esc(s.name) + " (\u{1F9F0} " + treasureCount(s) + ")").join(", ") + "</p>";
+  if (on && inn.length) h += '<p class="small"><b>In the Kingdom this week:</b> ' + inn.map(s => esc(s.name) + (kdPass(s, cls) && !vaultMet(s, cls) ? " \u{1F39F}\uFE0F" : "") + " (\u{1F9F0} " + treasureCount(s) + ")").join(", ") + "</p>";
+  if (on) {
+    const passed = kids.filter(s => kdPass(s, cls)), rest = kids.filter(s => !kdPass(s, cls) && !vaultMet(s, cls));
+    h += '<div style="margin-top:10px;border-top:1px solid var(--line-2);padding-top:10px;"><b>\u{1F39F}\uFE0F Kingdom pass (this week only)</b>' +
+      '<p class="small muted" style="margin:2px 0 6px;">Let a student in without opening their vault, like a student testing their first week. It ends on its own on Sunday night.</p>' +
+      (passed.length ? '<div class="inv">' + passed.map(s => "<span>" + esc(s.name) + ' <button class="wsx" data-act="kdPass" data-sid="' + esc(s.id) + '" data-on="0" title="Take the pass back">\u00d7</button></span>').join("") + "</div>" : "") +
+      (rest.length ? '<div class="row" style="gap:6px;align-items:center;margin-top:6px;"><select id="kdPassPick"><option value="">Pick a student…</option>' + rest.map(s => '<option value="' + esc(s.id) + '">' + esc(s.name) + "</option>").join("") + '</select><button class="btn small" data-act="kdPass" data-on="1">\u{1F39F}\uFE0F Give a Kingdom pass</button></div>' : "") + "</div>";
+  }
   return h + "</div>";
 }
