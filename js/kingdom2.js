@@ -14,11 +14,11 @@
      sub { own:{key:1}, use, trail, trails:{key:1} }, seen { area: 1 }.
    Weekly parts (a new week starts fresh): qd { quest: 1 } claimed quests, qx chest pearls, wb best dive this week,
      wn new creatures this week, vq { place: 1 } places visited this week, ws pearls spent this week. */
-import { esc } from "./game.js?v=20261116a";
-import { startPaint } from "./hangar.js?v=20261116a";
+import { esc } from "./game.js?v=20261116b";
+import { startPaint } from "./hangar.js?v=20261116b";
 
 const K = "assets/kingdom/";
-export const KEEP2 = ["aq", "aqf", "cg", "sub", "seen", "sh", "rk", "rkp"];
+export const KEEP2 = ["aq", "aqf", "cg", "sub", "seen", "sh", "rk", "rkp", "ship"];
 export const kd2On = (cls, preview) => !!preview || !!(cls && cls.kd2On);
 
 /* ----- ranks: weeks the student reached the Kingdom (= Treasures of the Week they have) ----- */
@@ -87,6 +87,8 @@ const cur = () => { const C = A && A.C(); return C && C.st ? { C, st: C.st, cls:
 
 /* ----- guide ducks ----- */
 const GUIDE = {
+  ship: { duck: "ship", name: "Deckhand Duck", hi: "Ahoy! Welcome back to the Sunken Ship!",
+    how: "Ahoy! This is the <b>Sunken Ship</b>. It has <b>8 dark rooms</b>, and <b>one new room opens every week</b> you reach the Kingdom. Explore it with a <b>flashlight</b> to find what’s hiding inside (+20 pearls). Find all 8 for the <b>Captain’s Treasure</b>!" },
   stable: { duck: "seahorse", name: "Stable Duck", hi: "Welcome back to the Seahorse Stable!",
     how: "Welcome to the <b>Seahorse Stable</b>! Pick a seahorse and give it a name. <b>Feed it once a week</b> and it gets faster. You get <b>2 races a week</b> on the reef against your classmates’ seahorses. Tap fast to win pearls!" },
   aquarium: { duck: "aquarium", name: "Keeper Duck", hi: "Welcome back to the Royal Aquarium! Tap a tank to see your creatures.",
@@ -440,6 +442,8 @@ if (typeof document !== "undefined") document.addEventListener("click", ev => {
   else if (a === "shfeed") { feedOn = true; feedAte = 0; A.rer(); }
   else if (a === "shfeedx") { feedOn = false; A.rer(); }
   else if (a === "shrace") startRace();
+  else if (a === "room") exploreRoom(Number(x));
+  else if (a === "shiptreasure") openTreasure();
   else if (a === "rankok") { if (!o) return; const nm = rankOf(o.st).name; if (o.k.rk === nm) return;
     const got = o.k.rkp || {}; if (RANK_PRIZE[nm] && !got[nm]) { o.k.p = (Number(o.k.p) || 0) + RANK_PRIZE[nm]; o.k.rkp = Object.assign({}, got, { [nm]: 1 }); }   // each rank's prize is paid only once
     o.k.rk = nm; A.save(o.k); A.rer(); }
@@ -586,7 +590,95 @@ async function startRace() {
 }
 
 /* ----- rank-up moment: the first time a student comes in at a new rank, Captain Duck salutes and shows what opened ----- */
-export const RANK_PRIZE = { Page: 50 };   // Nov 15: Page = 50 pearls (others decided later)
+
+/* ===================== ⚓ Sunken Ship (opens at Squire, week 3) =====================
+   A cut-open shipwreck with 8 dark rooms. One new room opens each week a student reaches the Kingdom (from week 3).
+   Explore a room with a flashlight: move the light around the dark room until it shines on the hidden find.
+   Each find = +20 pearls and goes on the Ship's Log. All 8 = the Captain's Treasure (+100 pearls).
+   Save: kd.ship = { f: { roomIndex: 1 }, t: 1 when the treasure was opened }. */
+// [key, room name, find key, find name, room box x0,y0,x1,y1 (% of the ship picture)]
+export const ROOMS = [
+  ["cabin", "Captain’s Cabin", "captain-hat", "Captain’s Hat", 16, 22, 39, 40],
+  ["maproom", "Map Room", "map", "Treasure Map", 40, 22, 62, 40],
+  ["galley", "Galley", "bottle-ship", "Ship in a Bottle", 63, 22, 89, 40],
+  ["bunks", "Crew Bunks", "teddy", "Sailor’s Teddy Bear", 15, 42, 47, 60],
+  ["cannon", "Cannon Deck", "bell", "Ship’s Bell", 48, 42, 90, 60],
+  ["cargo", "Cargo Hold", "pearl-cannonball", "Pearl Cannonball", 17, 63, 51, 83],
+  ["nest", "Crow’s Nest", "spyglass", "Brass Spyglass", 55, 2, 69, 17],
+  ["vault", "Treasure Vault", "compass", "Golden Compass", 52, 63, 83, 83]];
+const SHIP_FIND = 20, SHIP_TREASURE = 100;
+const findImg = f => K + "ship/find-" + f + ".webp";
+export const shipOpen = st => Math.max(0, Math.min(8, weeksIn(st) - 2));   // rooms open: week 3 = 1 room … week 10 = all 8
+let shipSay = null;
+export function shipHTML(st, cls) {
+  visit("ship");
+  const o = cur(), k = o ? o.k : {}, sh = k.ship || { f: {} }, open = shipOpen(st), found = Object.keys(sh.f || {}).length;
+  let h = '<div class="kdscene kq-ship" style="background-image:url(' + K + 'ship/ship-bg.webp)">';
+  ROOMS.forEach(([key, name, fk, fn, x0, y0, x1, y1], i) => {
+    const st2 = sh.f[i] ? "got" : i < open ? "new" : "dark";
+    h += '<button class="kq-room ' + st2 + '" style="left:' + x0 + "%;top:" + y0 + "%;width:" + (x1 - x0) + "%;height:" + (y1 - y0) + '%"' + (st2 === "dark" ? " disabled" : ' data-kd2="room:' + i + '"') + ">" +
+      (st2 === "dark" ? "<span>\u{1F512} Week " + (i + 3) + "</span>" : st2 === "new" ? "<span>\u{1F526} Explore the " + name + "!</span>" : '<img src="' + findImg(fk) + '" alt=""><span>✅ ' + name + "</span>") + "</button>";
+  });
+  if (found >= 8 && !sh.t) h += '<button class="btn gold big kq-treasurebtn" data-kd2="shiptreasure:1">\u{1F9F0} Open the Captain’s Treasure!</button>';
+  const line = shipSay || (found >= 8 ? (sh.t ? "You found everything on the ship! What an explorer!" : "You found all 8! Open the Captain’s Treasure!") : open > found ? "A new room is open! Grab your flashlight and explore it." : "Come back next week. Another room opens every week you reach the Kingdom!");
+  h += guide("ship", st, shipSay ? "cheer" : null, line) + "</div>";
+  h += '<div class="kq-log"><b>\u{1F4D6} Ship’s Log</b> <span class="small">' + found + " of 8 found</span><div>" + ROOMS.map(([key, name, fk, fn], i) =>
+    '<span class="kq-logslot' + (sh.f[i] ? " got" : "") + '" title="' + (sh.f[i] ? fn : "???") + '"><img src="' + findImg(fk) + '" alt=""><small>' + (sh.f[i] ? fn : "???") + "</small></span>").join("") +
+    '<span class="kq-logslot big' + (sh.t ? " got" : "") + '"><img src="' + findImg("captains-treasure") + '" alt=""><small>' + (sh.t ? "Captain’s Treasure" : "All 8 = ???") + "</small></span></div></div>";
+  shipSay = null;
+  return h;
+}
+// the flashlight search: its own full-screen layer
+let SX = null;
+const clamp01 = v => Math.max(0, Math.min(1, v));
+function exploreRoom(i) {
+  const o = cur(); if (!o || SX) return; const sh = o.k.ship || { f: {} }; if (sh.f[i] || i >= shipOpen(o.st)) return;
+  const [key, name, fk, fn, x0, y0, x1, y1] = ROOMS[i], rw = x1 - x0, rh = y1 - y0;
+  // zoom the ship picture so this room fills the screen (keeping its shape, centered)
+  const z = Math.min(3.2, Math.min(100 / rw, 100 / rh) * 0.92), cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+  const r = hash01(o.st.id + "|" + key), r2 = hash01(key + "|" + o.st.id);
+  const fx = 50 + (r - 0.5) * 62, fy = 50 + (r2 - 0.5) * 44;   // where the find hides (in screen %)
+  const root = document.createElement("div"); root.className = "kdgame"; root.id = "kqexplore";
+  root.innerHTML = '<div class="kdstage kq-dark"><div class="kdbg" style="background-image:url(' + K + "ship/ship-bg.webp);background-size:" + (z * 100) + "% auto;background-position:" +
+    clamp01((cx * z / 100 - 0.5) / (z - 1)) * 100 + "% " + clamp01((cy * z / 100 - 0.5) / (z - 1)) * 100 + '%"></div>' +
+    '<img class="kq-find" src="' + findImg(fk) + '" alt="" style="left:' + fx + "%;top:" + fy + '%"><div class="kq-night"></div><i class="kq-twinkle" style="left:' + fx + "%;top:" + fy + '%">✨</i><div class="kdui"></div></div>';
+  document.body.appendChild(root); SX = root;
+  const stage = root.querySelector(".kdstage"), night = root.querySelector(".kq-night"), ui = root.querySelector(".kdui"), fimg = root.querySelector(".kq-find");
+  ui.innerHTML = '<div class="kq-racesay"><img src="' + K + 'duck/ship-explain.webp" alt=""><div>It’s dark in the <b>' + name + "</b>! Move your finger or mouse to shine the flashlight. Something is hiding in here…</div></div>" +
+    '<button class="btn small ghost kq-xclose" data-kqx="close">✖ Leave</button>';
+  let lx = 50, ly = 50, seen = 0, last = 0, done = false;
+  const paint = () => { night.style.background = "radial-gradient(circle at " + lx + "% " + ly + "%, rgba(255,240,190,.10) 0, rgba(255,240,190,.05) 7%, rgba(4,8,22,.96) 13%)"; };
+  paint();
+  const move = e => {
+    if (done) return; const b = stage.getBoundingClientRect(); lx = (e.clientX - b.left) / b.width * 100; ly = (e.clientY - b.top) / b.height * 100; paint();
+    const say = ui.querySelector(".kq-racesay"); if (say && performance.now() - t0 > 2500) say.remove();
+    const d = Math.hypot((lx - fx) * 16 / 9, ly - fy), now = performance.now();
+    if (d < 9) { if (last) seen += Math.min(0.1, (now - last) / 1000); last = now; fimg.classList.add("lit"); } else { last = 0; fimg.classList.remove("lit"); }
+    if (seen > 0.7) { done = true; foundIt(); }
+  };
+  const t0 = performance.now();
+  stage.addEventListener("pointermove", move); stage.addEventListener("pointerdown", move);
+  ui.onclick = e => { const b = e.target.closest("[data-kqx]"); if (!b) return; if (b.dataset.kqx === "close" || b.dataset.kqx === "done") { root.remove(); SX = null; A.rer(); } };
+  function foundIt() {
+    night.classList.add("on"); fimg.classList.add("got");
+    const k = A.kdOf(o.st, o.cls), s2 = { f: Object.assign({}, (k.ship || {}).f || {}, { [i]: 1 }), t: (k.ship || {}).t || 0 };
+    k.ship = s2; k.p = (Number(k.p) || 0) + SHIP_FIND; A.save(k);
+    const n = Object.keys(s2.f).length;
+    setTimeout(() => {
+      ui.innerHTML = '<div class="kdbox"><img src="' + K + 'duck/ship-cheer.webp" alt="" class="kdboximg"><div class="kq-catch"><img src="' + findImg(fk) + '" alt=""></div>' +
+        "<h2>\u{1F31F} You found the " + fn + "!</h2><p>It’s in your <b>Ship’s Log</b> now. <b>+" + SHIP_FIND + " pearls!</b></p><p class='small'>" +
+        (n >= 8 ? "That’s all 8! The <b>Captain’s Treasure</b> is waiting for you." : n + " of 8 found. " + (n < shipOpen(o.st) ? "Another room is open, go explore it!" : "A new room opens next week you reach the Kingdom.")) + "</p>" +
+        '<div class="row" style="justify-content:center;margin-top:8px;"><button class="btn gold" data-kqx="done">Back to the ship</button></div></div>';
+    }, 1100);
+  }
+}
+function openTreasure() {
+  const o = cur(); if (!o) return; const sh = o.k.ship || { f: {} }; if (sh.t || Object.keys(sh.f || {}).length < 8) return;
+  o.k.ship = { f: sh.f, t: 1 }; o.k.p = (Number(o.k.p) || 0) + SHIP_TREASURE;
+  shipSay = "\u{1F9F0} The Captain’s Treasure! <b>+" + SHIP_TREASURE + " pearls</b>! You explored the whole ship!"; A.save(o.k);
+}
+
+export const RANK_PRIZE = { Page: 50, Squire: 50 };   // Nov 15: Page = 50 pearls; Squire 50 (draft, others decided later)
 export function rankUpHTML(st) {
   const o = cur(); if (!o) return ""; const k = o.k, r = rankOf(st);
   if (r.n < 2 || k.rk === r.name) return "";
