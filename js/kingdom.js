@@ -12,9 +12,10 @@
    Saved on the student as kd = { w: the week (Monday), c: clam opened this week, t: trip done this week, dv: dives this week,
      p: pearls, g: { "Monday date": 1 } treasures, best: best dive, n: clams opened, v: visits, sb: shop buys }.
    One save per clam, per dive, per trip and per buy (a buy also saves roomOwned or outfits). Games run in their own layer. */
-import { esc, weekKey } from "./game.js?v=20261115a";
-import { azToday, azNow } from "./collect.js?v=20261115a";
-import { vaultMet, vaultGoal, subReq, addDays } from "./doors.js?v=20261115a";
+import { esc, weekKey } from "./game.js?v=20261116a";
+import { azToday, azNow } from "./collect.js?v=20261116a";
+import { vaultMet, vaultGoal, subReq, addDays } from "./doors.js?v=20261116a";
+import { guide as guide2, bind as bind2, KEEP2, kd2On, rankChip, rankOf as rankOf2, map2HTML, questsHTML, questsWaiting, aquariumHTML, gardenHTML, dockHTML, stableHTML, rankUpHTML, catchCreature, pickCreature, keepCreature, aqImg, AQSZ, catchCard, subSprite, subImg, trailHTML, resetViews } from "./kingdom2.js?v=20261116a";
 
 const K = "assets/kingdom/";
 export const KD_DIVES = 3, KD_CLOSE = 22 * 60, DIVE_SECS = 45, TRIP_SECS = 35, TRIP_MAX = 20;
@@ -47,6 +48,7 @@ const wk = cls => weekKey(cls);
 // the week's save (a new week starts fresh, but pearls, treasures and buys stay)
 export function kdOf(st, cls) {
   const k = (st && st.kd) || {}, w = wk(cls), keep = { p: Number(k.p) || 0, g: Object.assign({}, k.g || {}), best: Number(k.best) || 0, n: Number(k.n) || 0, v: Number(k.v) || 0, sb: Number(k.sb) || 0 };
+  KEEP2.forEach(x => { if (k[x] != null) keep[x] = k[x]; });   // part 2 (Nov 15): the aquarium, garden, sub paint and guide-duck parts last from week to week
   return k.w === w ? Object.assign({}, k, keep) : Object.assign({ w, c: 0, t: 0, dv: 0 }, keep);
 }
 export const treasureCount = st => Object.keys(((st && st.kd) || {}).g || {}).length;
@@ -79,6 +81,8 @@ const ownsItem = (st, it) => it.cat === "room" ? ((st && st.roomOwned) || []).in
 
 let C = null, view = "map", opened = null, shopCat = "room", shopSay = null, grotYear = null, grotMonth = null;
 export function kdSync(c) { C = c; }
+const on2 = () => kd2On(C && C.cls, C && C.preview);
+bind2({ C: () => C, save: (k, extra) => save(k, extra), rer: () => rer(), kdOf: (st, cls) => kdOf(st, cls), wk: cls => wk(cls) });
 const rer = () => { if (C && C.render) C.render(); };
 // one save: the kd record plus any other fields (room pieces, outfits)
 function save(k, extra) {
@@ -101,7 +105,7 @@ function gateHTML(st, cls) {
   return '<div class="kdscene kdgate" style="background-image:url(' + K + 'kingdom-gate.webp)"><div class="kdgatebox">' +
     "<h2>\u{1F512} The Kingdom gate is closed</h2>" +
     (timeOk ? "<p>Reach your <b>weekly XP</b> and close <b>all your rings</b> this week, and the gate opens until Sunday night!</p>" : "<p>The Kingdom closed for this week. A new week starts Monday!</p>") +
-    '<div class="kdbar"><i style="width:' + pct.toFixed(1) + '%"></i><img src="' + K + 'duck-sub.webp" alt="" style="left:' + pct.toFixed(1) + '%"></div>' +
+    '<div class="kdbar"><i style="width:' + pct.toFixed(1) + '%"></i>' + (on2() ? '<span class="kq-barsub" style="left:' + pct.toFixed(1) + '%">' + trailHTML(st) + '<img src="' + subImg(st) + '" alt=""></span>' : '<img src="' + K + 'duck-sub.webp" alt="" style="left:' + pct.toFixed(1) + '%">') + "</div>" +
     '<div class="kdreqs">' + rows.join("") + "</div></div></div>";
 }
 
@@ -186,7 +190,7 @@ function buyItem(key) {
   const k = kdOf(st, C.cls), p = Number(k.p) || 0;
   if (p < it.c) { shopSay = { mood: "short", text: "You need <b>" + (it.c - p) + " more pearls</b> for the " + esc(it.n) + ". Try a Pearl Dive! \u{1FAE7}" }; rer(); return; }
   if (typeof confirm === "function" && !confirm("Buy the " + it.n + " for " + it.c + " pearls?")) return;
-  k.p = p - it.c; k.sb = (Number(k.sb) || 0) + 1;
+  k.p = p - it.c; k.sb = (Number(k.sb) || 0) + 1; k.ws = (Number(k.ws) || 0) + it.c;
   const extra = it.cat === "room" ? { roomOwned: (st.roomOwned || []).concat([it.k]) } : { outfits: Object.assign({}, st.outfits || {}, { [it.k]: true }) };
   shopSay = { mood: "happy", text: "Ooh, splendid choice! The <b>" + esc(it.n) + "</b> is yours forever. " + (it.cat === "room" ? "Find it in <b>My Room</b>!" : "Wear it from <b>Gear</b>!") + " \u{1F49C}" + (C.preview ? " (Preview: nothing was saved.)" : "") };
   save(k, extra);
@@ -250,7 +254,7 @@ async function runTrip(replay) {
   openLayer("sub-surface");
   const skip = document.createElement("button"); skip.className = "btn ghost small kdskip"; skip.textContent = "✖ Close"; skip.onclick = () => { closeLayer(); rer(); }; L.stage.appendChild(skip);
   // 1. the dock
-  const sub = sprite("duck-sub", "kdsub", 26); place(sub, 64, 40);
+  const sub = sprite(on2() ? subSprite(C.st) : "duck-sub", "kdsub", 26); place(sub, 64, 40);
   const cap = sprite("captain-wave", "kdcap", 19); place(cap, 22, 60);
   let bob = true; loop((dt, t) => { if (!bob) return false; place(sub, 64, 40 + Math.sin(t * 2.2) * 1.2); });
   if (await panel("<b>Captain Duck:</b> Ahoy, explorer! You earned your trip to the <b>Axolotl Kingdom!</b>" + (replay ? "<br><span class='small'>(This is a replay, just for fun.)</span>" : ""), [["go", "Next ▶"]], "kdboxr") === null) return;
@@ -276,7 +280,7 @@ async function runTrip(replay) {
   if (!replay) { const k = kdOf(C.st, cls); if (!k.t) { k.t = 1; k.p = (Number(k.p) || 0) + earn; k.v = (Number(k.v) || 0) + 1; save(k); } }
   if (await panel("<h2>" + G.icon + " " + G.name + " done!</h2>" + (replay ? "<p>You scored <b>" + got + "</b>! (Replays are just for fun, no pearls.)</p>" : "<p><b>+" + earn + " pearls</b> \u{1FAE7} for the Pearl Shop!</p>"), [["go", "Keep going ▶"]]) === null) return;
   // 5. docking: the sub pops up in the castle's pool
-  setBg("sub-dock"); const s2 = sprite("duck-sub", "kdsub", 24); const ring = document.createElement("div"); ring.className = "kdring"; L.lay.appendChild(ring);
+  setBg("sub-dock"); const s2 = sprite(on2() ? subSprite(C.st) : "duck-sub", "kdsub", 24); const ring = document.createElement("div"); ring.className = "kdring"; L.lay.appendChild(ring);
   const cap3 = sprite("captain-cheer", "kdcap", 18); place(cap3, 17, 200);
   await loop((dt, t) => { const u = Math.min(1, t / 1.8), e = 1 - Math.pow(1 - u, 3);
     place(s2, 40, 100 - e * 32 + (u >= 1 ? Math.sin(t * 2.4) * 1 : 0)); s2.style.opacity = Math.min(1, u * 2);
@@ -288,7 +292,7 @@ async function runTrip(replay) {
 
 /* Bubble Dash: move up and down; swim into pearl bubbles (or tap them), steer around urchins */
 async function bubbleDash() {
-  setBg("sub-deep"); let score = 0, y = 50, spawn = 0, hurt = 0; const sub = sprite("duck-sub", "kdsub", 15), things = [];
+  setBg("sub-deep"); let score = 0, y = 50, spawn = 0, hurt = 0; const sub = sprite(on2() ? subSprite(C.st) : "duck-sub", "kdsub", 15), things = [];
   await loop((dt, t) => {
     y = steer(y, "y", dt, 12, 88); place(sub, 15, y, hurt > 0 && Math.floor(t * 12) % 2 ? " scale(.95)" : ""); sub.style.opacity = hurt > 0 && Math.floor(t * 12) % 2 ? .5 : 1; hurt -= dt;
     spawn -= dt; if (spawn <= 0) { const bad = Math.random() < 0.3; things.push({ e: sprite(bad ? "mg-urchin" : "mg-bubble", "", bad ? 7.5 : 7), bad, x: 108, y: 12 + Math.random() * 76, v: bad ? 24 : 20 }); spawn = 0.75 + Math.random() * 0.4; }
@@ -303,7 +307,7 @@ async function bubbleDash() {
 }
 /* Jelly Drift: move left and right; shells sink from the top, jellyfish rise from the bottom */
 async function jellyDrift() {
-  setBg("sub-deep"); let score = 0, x = 50, s1 = 0.5, s2 = 1.2, hurt = 0; const sub = sprite("duck-sub", "kdsub", 15), things = []; let face = 1;
+  setBg("sub-deep"); let score = 0, x = 50, s1 = 0.5, s2 = 1.2, hurt = 0; const sub = sprite(on2() ? subSprite(C.st) : "duck-sub", "kdsub", 15), things = []; let face = 1;
   await loop((dt, t) => {
     const nx = steer(x, "x", dt, 8, 92); if (Math.abs(nx - x) > 0.05) face = nx > x ? 1 : -1; x = nx;
     place(sub, x, 55, " scaleX(" + face + ")"); sub.style.opacity = hurt > 0 && Math.floor(t * 12) % 2 ? .5 : 1; hurt -= dt;
@@ -320,7 +324,7 @@ async function jellyDrift() {
 /* Treasure Claw: the sub glides back and forth; tap to drop the claw; chests +3, boots 0 */
 async function treasureClaw() {
   setBg("mg-floor-bg"); let score = 0, x = 20, dir = 1, claw = null; const SLOTS = [14, 32, 50, 68, 86], floor = [];
-  const sub = sprite("duck-sub", "kdsub", 14), cable = document.createElement("div"); cable.className = "kdcable"; L.lay.appendChild(cable); const cl = sprite("mg-claw", "", 7);
+  const sub = sprite(on2() ? subSprite(C.st) : "duck-sub", "kdsub", 14), cable = document.createElement("div"); cable.className = "kdcable"; L.lay.appendChild(cable); const cl = sprite("mg-claw", "", 7);
   const fill = i => { const chest = Math.random() < 0.6; floor[i] = { chest, e: sprite(chest ? "mg-chest" : "mg-boot", "", chest ? 9 : 8) }; place(floor[i].e, SLOTS[i], 84); };
   SLOTS.forEach((_, i) => fill(i)); L.tap = 0;
   await loop((dt, t) => {
@@ -342,7 +346,7 @@ async function treasureClaw() {
 async function glowCave() {
   setBg("mg-cave-bg"); let score = 0, y = 50, sf = 0.6, sr = 1.4, hurt = 0; const X = 20;
   const dark = document.createElement("div"); dark.className = "kddark"; L.lay.appendChild(dark);
-  const sub = sprite("duck-sub", "kdsub", 14), things = [];
+  const sub = sprite(on2() ? subSprite(C.st) : "duck-sub", "kdsub", 14), things = [];
   await loop((dt, t) => {
     y = steer(y, "y", dt, 12, 88); place(sub, X, y); sub.style.opacity = hurt > 0 && Math.floor(t * 12) % 2 ? .5 : 1; hurt -= dt;
     dark.style.background = "radial-gradient(ellipse 24% 32% at " + (X + 14) + "% " + y + "%, rgba(0,0,20,0) 0, rgba(0,0,20,.25) 55%, rgba(0,0,25,.86) 100%)";
@@ -363,53 +367,100 @@ async function glowCave() {
 function diveHTML(st, cls) {
   const k = kdOf(st, cls), dl = Math.max(0, KD_DIVES - (Number(k.dv) || 0));
   return '<div class="kdscene" style="background-image:url(' + K + 'dive-bg.webp)"><div class="kdgatebox">' +
-    "<h2>\u{1FAE7} Pearl Diving</h2><p>Swim with <b>" + esc(diverName(st)) + "</b> and grab the pearls! ⚪ = 1 pearl, \u{1F7E1} golden = 5. Watch out for jellyfish, they make you drop 3!</p>" +
+    "<h2>\u{1FAE7} Pearl Diving</h2><p>Swim with <b>" + esc(diverName(st)) + "</b> and grab the pearls! ⚪ = 1 pearl, \u{1F7E1} golden = 5. Watch out for jellyfish, they make you drop 3!</p>" + (on2() ? "<p>\u{1F420} A <b>sea creature</b> swims by on every dive in a glowing bubble. Swim into it to catch it for your aquarium!</p>" : "") +
     "<p>Swim anywhere with your finger or mouse (or the arrow keys). " + DIVE_SECS + " seconds.</p>" +
     (dl ? '<button class="btn gold big" data-kd="dive">\u{1F30A} Dive! (' + dl + " of " + KD_DIVES + " left this week)</button>" : "<p><b>No dives left this week.</b> Come back next week!</p>") +
-    (k.best ? '<p class="small">\u{1F3C6} Your best dive: ' + k.best + " pearls</p>" : "") + "</div></div>";
+    (k.best ? '<p class="small">\u{1F3C6} Your best dive: ' + k.best + " pearls</p>" : "") + "</div>" + (on2() ? guide2("dive", st) : "") + "</div>";
 }
+/* Nov 15 (her notes: "a little jolty", controls/jellyfish not clear, "how do they know to get" the creature):
+   • the axolotl now has real speed: it speeds up toward your finger, glides, slows down, and turns around smoothly
+   • a picture card explains the controls, pearls, jellyfish and the sea creature before the dive starts
+   • part 2: the sea creature is SEEN. It swims by in a glowing bubble (and comes back if you miss it). Swim into it to catch it. */
+const DIVE_HOW = part2 => '<h2>\u{1FAE7} How to dive</h2><div class="kdhow">' +
+  '<div><span class="kdhowic">\u{1F446}</span><p><b>Move your finger or mouse</b> (or use the arrow keys). Your axolotl swims to it.</p></div>' +
+  '<div><img src="' + K + 'pearl.webp" alt=""><p><b>Pearl</b> = +1</p></div>' +
+  '<div><img src="' + K + 'pearl-gold.webp" alt=""><p><b>Golden pearl</b> = +5</p></div>' +
+  '<div class="bad"><img src="' + K + 'dive-jelly.webp" alt=""><p><b>Stay away from jellyfish!</b> Bump one and you drop 3 pearls.</p></div>' +
+  (part2 ? '<div class="sea"><span class="kdhowic">\u{1FAE7}</span><p><b>A sea creature swims by</b> in a glowing bubble. Swim into it to catch it for your aquarium!</p></div>' : "") +
+  "</div><p class='small' style='margin:6px 0 0'>" + DIVE_SECS + " seconds.</p>";
+let crLast = false;
 async function runDive() {
   if (!C || !C.st) return; const k0 = kdOf(C.st, C.cls); if ((Number(k0.dv) || 0) >= KD_DIVES) return;
   openLayer("dive-bg"); const fx = diverFx(C.st);
   const dv = document.createElement("img"); dv.className = "kdsp kddiver"; dv.alt = ""; dv.style.filter = fx; L.lay.appendChild(dv);
-  const FR = [1, 2, 3, 4, 5, 6, 7, 8].map(n => "assets/axolotl/frame-" + n + ".webp"), TURN = ["assets/axolotl/frame-17.webp", "assets/axolotl/frame-18.webp"];
-  FR.concat(TURN).forEach(s => { const i = new Image(); i.src = s; });
-  let x = 50, y = 55, face = 1, turnT = -1, score = 0, spawn = 0.3, jspawn = 2.5, hurt = 0, src = "";
+  const FR = [1, 2, 3, 4, 5, 6, 7, 8].map(n => "assets/axolotl/frame-" + n + ".webp");
+  FR.forEach(s => { const i = new Image(); i.src = s; });
+  let x = 50, y = 55, vx = 0, vy = 0, face = 1, sx = 1, rot = 0, fr = 0, score = 0, spawn = 0.3, jspawn = 3, hurt = 0, src = "";
   const items = [];
   const show = s => { if (s !== src) { dv.src = s; src = s; } };
-  if (await panel("<h2>\u{1FAE7} Ready to dive?</h2><p>Swim <b>anywhere</b>: up, down, left and right. Grab ⚪ pearls and \u{1F7E1} golden pearls, and dodge the jellyfish!</p>", [["go", "\u{1F30A} Go!"]]) === null) return;
+  // the sea creature for this dive (part 2): picked now, kept only if caught
+  const part2 = on2(), sea = part2 ? pickCreature(k0) : null;
+  let cr = null, crNext = 7 + Math.random() * 4, caught = false, crTimes = 0;
+  if (sea) { const i = new Image(); i.src = aqImg(sea, true); }
+  if (await panel(DIVE_HOW(part2), [["go", "\u{1F30A} Start diving!"]], "kdboxhow") === null) return;
   await loop((dt, t) => {
-    const ox = x, oy = y; x = steer(x, "x", dt, 6, 94); y = steer(y, "y", dt, 14, 90);
-    const vx = (x - ox) / Math.max(dt, 1e-3), vy = (y - oy) / Math.max(dt, 1e-3);
-    if (Math.abs(vx) > 6 && Math.sign(vx) !== face && turnT < 0) { turnT = 0; face = Math.sign(vx); }
-    let flip = face < 0, rot = 0;
-    if (turnT >= 0) { turnT += dt; show(TURN[turnT < 0.18 ? 0 : 1]); flip = turnT < 0.18 ? !flip : flip; if (turnT > 0.36) turnT = -1; }
-    else { show(FR[Math.floor(t * 12) % 8]); rot = Math.max(-35, Math.min(35, Math.atan2(vy * 0.5625, Math.abs(vx) + 4) * 57.3)) * (flip ? -1 : 1); }
-    place(dv, x, y + Math.sin(t * 4) * 0.6, " scaleX(" + (flip ? -1 : 1) + ") rotate(" + rot.toFixed(1) + "deg)");
-    dv.style.filter = fx + (hurt > 0 && Math.floor(t * 12) % 2 ? " brightness(2)" : ""); hurt -= dt;
+    // ---- the axolotl: steers toward the finger with real speed, so it glides instead of jumping
+    const kx = (L.keys.ArrowRight ? 1 : 0) - (L.keys.ArrowLeft ? 1 : 0), ky = (L.keys.ArrowDown ? 1 : 0) - (L.keys.ArrowUp ? 1 : 0);
+    let wx = 0, wy = 0;
+    if (kx || ky) { L.useKeys = true; L.keyAt = performance.now(); wx = kx * 48; wy = ky * 40; }
+    else if (L.useKeys && !(L.moved > (L.keyAt || 0))) { wx = 0; wy = 0; }
+    else { L.useKeys = false; const tx = Math.max(6, Math.min(94, L.px)) - x, ty = Math.max(14, Math.min(90, L.py)) - y, d = Math.hypot(tx, ty);
+      const sp = Math.min(50, d * 3.2); if (d > 0.4) { wx = tx / d * sp; wy = ty / d * sp; } }
+    const acc = Math.min(1, dt * 4.5); vx += (wx - vx) * acc; vy += (wy - vy) * acc;
+    x = Math.max(6, Math.min(94, x + vx * dt)); y = Math.max(14, Math.min(90, y + vy * dt));
+    if (vx > 5) face = 1; else if (vx < -5) face = -1;                 // only turns when it really swims the other way
+    sx += (face - sx) * Math.min(1, dt * 7);                            // a smooth turn instead of a flip
+    const sxs = Math.abs(sx) < 0.15 ? 0.15 * (sx < 0 ? -1 : 1) : sx;
+    const rotTo = Math.max(-30, Math.min(30, Math.atan2(vy * 0.5625, Math.abs(vx) + 6) * 57.3)) * (sxs < 0 ? -1 : 1);
+    rot += (rotTo - rot) * Math.min(1, dt * 6);
+    const speed = Math.hypot(vx, vy); fr += dt * (7 + speed * 0.22); show(FR[Math.floor(fr) % 8]);   // paddles faster when it swims faster
+    place(dv, x, y + Math.sin(t * 2.4) * 0.5, " scaleX(" + sxs.toFixed(3) + ") rotate(" + rot.toFixed(1) + "deg)");
+    dv.style.filter = fx + (hurt > 0 && Math.floor(t * 10) % 2 ? " brightness(1.9)" : ""); hurt -= dt;
+    // ---- pearls and jellyfish (jellies pulse along like real ones)
     spawn -= dt; if (spawn <= 0) { const gold = Math.random() < 0.14; items.push({ e: sprite(gold ? "pearl-gold" : "pearl", gold ? "kdgold" : "", gold ? 5 : 4.2), kind: gold ? "gold" : "pearl", x: 6 + Math.random() * 88, y: -6, vx: 0, vy: 13 + Math.random() * 9, w: Math.random() * 6.28 }); spawn = 0.45 + Math.random() * 0.35; }
-    jspawn -= dt; if (jspawn <= 0) { const left = Math.random() < 0.5; items.push({ e: sprite("dive-jelly", "", 7), kind: "jelly", x: left ? -6 : 106, y: 20 + Math.random() * 65, vx: (left ? 1 : -1) * (12 + Math.random() * 6), vy: 0, w: Math.random() * 6.28 }); jspawn = 2 + Math.random() * 1.2; }
+    jspawn -= dt; if (jspawn <= 0) { const lf = Math.random() < 0.5; items.push({ e: sprite("dive-jelly", "kdjelly", 7), kind: "jelly", x: lf ? -6 : 106, y: 22 + Math.random() * 60, vx: (lf ? 1 : -1) * (10 + Math.random() * 5), vy: 0, w: Math.random() * 6.28 }); jspawn = 2.2 + Math.random() * 1.2; }
     for (let i = items.length - 1; i >= 0; i--) { const o = items[i]; o.x += o.vx * dt; o.y += o.vy * dt; o.w += dt * 2;
-      const ix = o.x + (o.kind === "jelly" ? 0 : Math.sin(o.w) * 1.5), iy = o.y + (o.kind === "jelly" ? Math.sin(o.w) * 3 : 0);
-      place(o.e, ix, iy, o.kind === "jelly" ? " rotate(" + Math.sin(o.w) * 8 + "deg)" : "");
+      let ix = o.x + (o.kind === "jelly" ? 0 : Math.sin(o.w) * 1.5), iy = o.y, ex = "";
+      if (o.kind === "jelly") { const c = (o.w / 2.2) % 1, push = c < 0.3 ? Math.sin(c / 0.3 * Math.PI) : 0; o.y = Math.max(16, o.y - push * 7 * dt + (c >= 0.3 ? 2 : 0) * dt); iy = o.y;
+        ex = " scale(" + (1 + push * 0.12).toFixed(3) + "," + (1 - push * 0.14).toFixed(3) + ")"; }
+      place(o.e, ix, iy, ex);
       if (near(ix, iy, x, y, 6.5)) {
-        if (o.kind === "jelly") { if (hurt <= 0) { const lost = Math.min(3, score); score -= lost; pop(ix, iy, lost ? "-" + lost + " (jellyfish!)" : "Oops!", true); hurt = 1; } }
-        else { const g = o.kind === "gold" ? 5 : 1; score += g; pop(ix, iy, "+" + g + (g > 1 ? " ✨" : "")); }
-        o.e.remove(); items.splice(i, 1); continue; }
+        if (o.kind === "jelly") { if (hurt <= 0) { const lost = Math.min(3, score); score -= lost; pop(ix, iy, lost ? "⚡ Ouch! -" + lost : "⚡ Ouch!", true); hurt = 1; } continue; }
+        const g = o.kind === "gold" ? 5 : 1; score += g; pop(ix, iy, "+" + g + (g > 1 ? " ✨" : "")); o.e.remove(); items.splice(i, 1); continue; }
       if (o.y > 108 || o.x < -10 || o.x > 110) { o.e.remove(); items.splice(i, 1); } }
-    hud(["⚪ " + score, "⏱️ " + Math.max(0, Math.ceil(DIVE_SECS - t))]); return t < DIVE_SECS;
+    // ---- the sea creature: swims slowly across in a glowing bubble; comes back from the other side if you miss it
+    if (sea && !caught) {
+      if (!cr && t >= crNext && t < DIVE_SECS - 4) {
+        const lf = crTimes ? !crLast : Math.random() < 0.5, w = Math.max(10, Math.min(16, AQSZ[sea.sz] * 0.7)), fl = !!sea.fl;
+        const e = document.createElement("div"); e.className = "kdsea" + (fl ? " fl" : ""); e.style.width = w + "%";
+        e.innerHTML = '<img src="' + aqImg(sea, true) + '" alt="">'; L.lay.appendChild(e);
+        cr = { e, x: lf ? -10 : 110, by: fl ? 84 : 30 + Math.random() * 40, y: 0, vx: (lf ? 1 : -1) * (fl ? 7 : 9), w: 0 }; crTimes++; crLast = lf;
+        pop(lf ? 24 : 76, cr.by - 10, crTimes === 1 ? "\u{1F440} A sea creature! Catch it!" : "\u{1F440} It came back!");
+      }
+      if (cr) { cr.x += cr.vx * dt; cr.w += dt; cr.y = cr.by + (sea.fl ? 0 : Math.sin(cr.w * 1.3) * 5);
+        place(cr.e, cr.x, cr.y, ""); cr.e.firstChild.style.transform = "scaleX(" + (cr.vx > 0 ? 1 : -1) + ") rotate(" + (sea.fl ? 0 : Math.cos(cr.w * 1.3) * 6).toFixed(1) + "deg)";
+        if (near(cr.x, cr.y, x, y, 8)) { caught = true; cr.e.classList.add("got"); pop(cr.x, cr.y, "\u{1F31F} You caught a " + sea.n + "!"); const ce = cr.e; setTimeout(() => ce.remove(), 900); cr = null; }
+        else if (cr.x < -14 || cr.x > 114) { cr.e.remove(); cr = null; crNext = t + 3; } }
+    }
+    hud(["⚪ " + score, "⏱️ " + Math.max(0, Math.ceil(DIVE_SECS - t))].concat(sea ? [caught ? '<img class="kdhudsea" src="' + aqImg(sea) + '" alt=""> caught!' : "\u{1F420} not caught yet"] : [])); return t < DIVE_SECS;
   });
   if (!L) return;
   L.lay.innerHTML = ""; L.ui.innerHTML = "";
-  const k = kdOf(C.st, C.cls); k.dv = (Number(k.dv) || 0) + 1; k.p = (Number(k.p) || 0) + score; k.best = Math.max(Number(k.best) || 0, score); save(k);
-  await panel('<img src="' + K + 'queen-cheer.webp" alt="" class="kdboximg"><h2>\u{1F389} +' + score + " pearls!</h2><p>You have ⚪ <b>" + k.p + "</b> pearls. " + Math.max(0, KD_DIVES - k.dv) + " dives left this week.</p><p class='small'>Spend pearls in the \u{1F41A} Pearl Shop (the shipwreck)!</p>", [["go", "Back to the Kingdom"]]);
+  const k = kdOf(C.st, C.cls); k.dv = (Number(k.dv) || 0) + 1; k.p = (Number(k.p) || 0) + score; k.best = Math.max(Number(k.best) || 0, score); k.wb = Math.max(Number(k.wb) || 0, score);
+  const res = sea && caught ? keepCreature(k, sea) : null; save(k);
+  const left = Math.max(0, KD_DIVES - k.dv), more = left + (left === 1 ? " dive" : " dives") + " left this week.";
+  let html;
+  if (res) html = '<img src="' + K + 'duck/pearl-cheer.webp" alt="" class="kdboximg">' + catchCard(res) + "<p class='small'>Plus <b>+" + score + " pearls</b> from your dive! " + more + "</p>";
+  else if (sea) html = '<img src="' + K + 'queen-cheer.webp" alt="" class="kdboximg"><h2>\u{1F389} +' + score + " pearls!</h2><p>The sea creature got away this time. Next dive, swim into it when it goes by!</p><p class='small'>You have ⚪ <b>" + k.p + "</b> pearls. " + more + "</p>";
+  else html = '<img src="' + K + 'queen-cheer.webp" alt="" class="kdboximg"><h2>\u{1F389} +' + score + " pearls!</h2><p>You have ⚪ <b>" + k.p + "</b> pearls. " + more + "</p><p class='small'>Spend pearls in the \u{1F41A} Pearl Shop (the shipwreck)!</p>";
+  await panel(html, [["go", "Back to the Kingdom"]]);
   closeLayer(); view = "map"; rer();
 }
 
 if (typeof document !== "undefined") document.addEventListener("click", ev => {
   const t = ev.target.closest && ev.target.closest("[data-kd]"); if (!t) return;
   const [a, k] = t.dataset.kd.split(":");
-  if (a === "go") { view = k; opened = null; shopSay = null; grotMonth = null; rer(); scrollTo({ top: 0 }); }
+  if (a === "go") { view = k; opened = null; shopSay = null; grotMonth = null; resetViews(); rer(); scrollTo({ top: 0 }); }
   else if (a === "clam") openClam();
   else if (a === "dive") runDive();
   else if (a === "trip") runTrip(true);
@@ -422,17 +473,30 @@ if (typeof document !== "undefined") document.addEventListener("click", ev => {
 
 // the tab
 export function kingdomTab(st, cls) {
-  if (!kdUnlocked(st, cls)) return gateHTML(st, cls);
+  if (!kdUnlocked(st, cls) && !(C && C.preview)) return gateHTML(st, cls);   // a Preview (View as student) can always go in, so Ms. Ariana can try it
   const k = kdOf(st, cls);
   if (!k.t) return '<div class="kdscene kdgate open" style="background-image:url(' + K + 'kingdom-gate.webp)"><div class="kdbubbles">' + Array.from({ length: 14 }, (_, i) => '<i style="left:' + (8 + i * 6.5) + "%;animation-delay:" + (i % 5) * 0.3 + 's"></i>').join("") + "</div>" +
     '<div class="kdgatebox"><h2>\u{1F389} The gate is open!</h2><p>You reached your weekly XP and closed all your rings. Captain Duck’s submarine is ready to take you down to the <b>Axolotl Kingdom</b>!</p><p class="small">This week’s game: <b>' + GAMES[tripGame(cls)].icon + " " + GAMES[tripGame(cls)].name + "</b> (up to " + TRIP_MAX + " pearls). The Kingdom is open until Sunday at 10 pm.</p>" +
     '<button class="btn gold big" data-kd="board">\u{1F986} Board the submarine!</button></div></div>';
   const back = view !== "map" ? '<div class="row" style="margin:0 0 10px;"><button class="btn ghost small" data-kd="go:map">← Kingdom map</button></div>' : "";
-  const head = '<div class="kdhead"><h2>\u{1F30A} The Axolotl Kingdom</h2><span class="fact">⚪ ' + (Number(k.p) || 0) + " pearls · \u{1F9F0} " + treasureCount(st) + " treasures</span></div>";
+  const head = '<div class="kdhead"><h2>\u{1F30A} The Axolotl Kingdom</h2>' + (on2() ? rankChip(st) : "") + '<span class="fact">⚪ ' + (Number(k.p) || 0) + " pearls · \u{1F9F0} " + treasureCount(st) + " treasures</span></div>";
+  if (on2()) {   // 🌊 part 2 (Nov 15)
+    if (view === "throne") return head + back + throneHTML(st, cls) + questsHTML(st, cls);
+    if (view === "aquarium") return head + back + aquariumHTML(st, cls);
+    if (view === "garden") return head + back + gardenHTML(st, cls);
+    if (view === "dock") return head + back + dockHTML(st, cls);
+    if (view === "stable" && rankOf2(st).n >= 2) return head + back + stableHTML(st, cls);
+    if (view === "grotto" && !C.preview && !(k.vq || {}).grotto) { k.vq = Object.assign({}, k.vq || {}, { grotto: 1 }); save(k); }
+  }
   if (view === "throne") return head + back + throneHTML(st, cls);
   if (view === "dive") return head + back + diveHTML(st, cls);
   if (view === "grotto") return head + back + grottoHTML(st, cls);
   if (view === "shop") return head + back + shopHTML(st, cls);
+  if (on2() && view === "map") {
+    const dl = Math.max(0, KD_DIVES - (Number(k.dv) || 0));
+    return head + rankUpHTML(st) + map2HTML(st, cls, k, { throne: (!k.c ? 1 : 0) + questsWaiting(k, wk(cls)), dive: dl }) + '<div class="row" style="margin-top:8px;gap:8px;align-items:center;flex-wrap:wrap;"><span class="small">' +
+      (k.c ? "✅ You got this week’s treasure." : "\u{1F451} This week’s treasure is waiting in the Throne Room!") + " · \u{1FAE7} " + dl + " of " + KD_DIVES + ' dives left</span><button class="btn ghost small" data-kd="trip">\u{1F986} Watch the trip again</button></div>';
+  }
   return head + mapHTML(st, cls);
 }
 
@@ -443,7 +507,9 @@ export function kdAdmin(students, cls) {
     '<p class="lede" style="font-size:13.5px;">An undersea reward land. A student gets in when they reach their <b>weekly XP</b> and close <b>all their rings</b> (the same as opening the Treasure Vault). It stays open until Sunday 10 pm. ' +
     "Inside: Captain Duck’s submarine trip with a minigame (up to " + TRIP_MAX + " pearls), Queen Bubbles’ Treasure of the Week for the Treasure Grotto (52 a year), Pearl Diving (3 a week) and the Pearl Shop.</p>" +
     '<p class="small" style="display:flex;align-items:center;gap:8px;">' + trImg(t, "mini") + " This week: <b>" + esc(t.n) + "</b> · trip game: " + g.icon + " " + g.name + "</p>" +
-    '<div class="row" style="margin:10px 0;"><button class="btn' + (on ? " ghost" : "") + '" data-act="kdToggle">' + (on ? "Turn the Kingdom off" : "\u{1F30A} Turn the Kingdom on") + "</button></div>";
+    '<div class="row" style="margin:10px 0;"><button class="btn' + (on ? " ghost" : "") + '" data-act="kdToggle">' + (on ? "Turn the Kingdom off" : "\u{1F30A} Turn the Kingdom on") + "</button>" +
+    '<button class="btn' + (cls.kd2On ? " ghost" : " gold") + '" data-act="kd2Toggle">' + (cls.kd2On ? "Turn Kingdom part 2 off" : "\u{1F420} Turn on Kingdom part 2") + "</button></div>" +
+    '<p class="small muted" style="margin:0 0 8px;">Part 2 adds the big map, ranks, Queen\u2019s Quests, the Royal Aquarium, the Coral Garden and the Sub Paint Dock. ' + (cls.kd2On ? "<b>Students see it now.</b>" : "Off for students. <b>View as student</b> always shows it, so you can try it first.") + "</p>";
   if (on && inn.length) h += '<p class="small"><b>In the Kingdom this week:</b> ' + inn.map(s => esc(s.name) + (kdPass(s, cls) && !vaultMet(s, cls) ? " \u{1F39F}\uFE0F" : "") + " (\u{1F9F0} " + treasureCount(s) + ")").join(", ") + "</p>";
   if (on) {
     const passed = kids.filter(s => kdPass(s, cls)), rest = kids.filter(s => !kdPass(s, cls) && !vaultMet(s, cls));

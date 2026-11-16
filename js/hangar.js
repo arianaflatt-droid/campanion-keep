@@ -6,10 +6,10 @@
    The paint is already bought, so nobody can fail; 1–3 stars are just for fun. Owned paints can be switched for free (Use)
    or painted again for fun (🎨). Buying goes through spaceshop.js buy() (one save). The minigame saves nothing.
    Paint cans, bucket, roller and splats are her art with WHITE paint; the game tints the white with each color (CSS mask + multiply). */
-import { esc } from "./game.js?v=20261115a";
-import { freshSt } from "./safari.js?v=20261115a";
-import { buy } from "./spaceshop.js?v=20261115a";
-import { SHOP_ITEMS, SHOP_BY, PAINT_COLORS, COLOR_NAMES, hasItem, wearing, duckImgOf, paintsOwned } from "./shop-data.js?v=20261115a";
+import { esc } from "./game.js?v=20261116a";
+import { freshSt } from "./safari.js?v=20261116a";
+import { buy } from "./spaceshop.js?v=20261116a";
+import { SHOP_ITEMS, SHOP_BY, PAINT_COLORS, COLOR_NAMES, hasItem, wearing, duckImgOf, paintsOwned } from "./shop-data.js?v=20261116a";
 
 const H = "assets/planet/hangar/";
 const cname = c => COLOR_NAMES[c] || c;
@@ -57,14 +57,16 @@ const DECOYS = ["red", "orange", "yellow", "lime", "green", "teal", "sky", "blue
 function rootEl() { if (!root) { root = document.createElement("div"); root.id = "hgroot"; document.body.appendChild(root);
   root.addEventListener("click", ev => { const c = ev.target.closest("[data-hgcan]"); if (c) pick(c); const q = ev.target.closest("[data-hgq]"); if (q) quit(); }); } return root; }
 function shell(inner, say, step) {
-  rootEl().innerHTML = '<div class="hgover" style="background-image:url(' + H + 'hangar-bg.webp)"><div class="hgtop"><b>\u{1F527} Duck Hangar · ' + esc(G.it.name) + "</b><span>" + (step || "") +
-    '</span><button class="btn ghost small" data-hgq="1">✕</button></div><div class="hgchef"><img src="' + H + 'mechanic-duck.webp" alt=""><div class="hgbub" id="hgbub">' + say + "</div></div>" +
+  const o = G.opt || {};
+  rootEl().innerHTML = '<div class="hgover' + (o.cls ? " " + o.cls : "") + '" style="background-image:url(' + (o.bg || H + "hangar-bg.webp") + ')"><div class="hgtop"><b>' + (o.title || "\u{1F527} Duck Hangar") + " · " + esc(G.it.name) + "</b><span>" + (step || "") +
+    '</span><button class="btn ghost small" data-hgq="1">✕</button></div><div class="hgchef"><img src="' + (o.chef || H + "mechanic-duck.webp") + '" alt=""><div class="hgbub" id="hgbub">' + say + "</div></div>" +
     '<div class="hgwork" id="hgwork">' + inner + "</div></div>";
 }
 function quit() { G = null; if (root) root.innerHTML = ""; }
-export function startPaint(k) {
-  const it = SHOP_BY[k]; if (!it || it.cat !== "duck") return;
-  G = { it, got: 0, miss: 0, cols: it.cols };
+// opt (Nov 15, the Kingdom's Sub Paint Dock): { it: {name, img, cols}, bg, chef, title, cls, done, where }
+export function startPaint(k, opt) {
+  const it = opt && opt.it ? opt.it : SHOP_BY[k]; if (!it || (!opt && it.cat !== "duck")) return;
+  G = { it, got: 0, miss: 0, cols: it.cols, opt: opt || null };
   const dec = DECOYS.filter(c => !it.cols.includes(c)).sort(() => Math.random() - 0.5).slice(0, 3), all = it.cols.concat(dec).sort(() => Math.random() - 0.5);
   shell('<div class="hgrecipe">Paint recipe: ' + it.cols.map((c, i) => '<i id="hgg' + i + '" style="background:' + PAINT_COLORS[c] + '" title="' + cname(c) + '"></i>').join("") + "</div>" +
     tool("bucket", "#FFFFFF", "hgbucket", ' id="hgbk"') +
@@ -83,7 +85,7 @@ function roll() {
   if (!G) return; const it = G.it, grad = "linear-gradient(90deg," + G.cols.map(c => PAINT_COLORS[c]).join(",") + ")";
   shell('<div class="hgstage" id="hgst"><canvas id="hgprimer"></canvas><canvas id="hgcv"></canvas>' + tool("roller", grad, "hgroller", ' id="hgro"') + "</div>" +
     '<div class="hgbar"><div id="hgcov"></div></div><div class="hgtime" id="hgtm">10</div>',
-    "Step 2: roll it on! Drag the roller over the whole duck before time runs out.", "Step 2 of 2");
+    "Step 2: roll it on! Drag the roller over the whole " + (G.opt && G.opt.thing ? G.opt.thing : "duck") + " before time runs out.", "Step 2 of 2");
   const img = new Image(); img.onload = () => setupRoll(img); img.src = it.img;
 }
 function setupRoll(img) {
@@ -111,8 +113,8 @@ function setupRoll(img) {
   function finish(v) { if (done || !G) return; done = true; const stars = v > 0.9 && G.miss === 0 ? 3 : v > 0.7 ? 2 : 1;
     x.clearRect(0, 0, W, Hh); x.drawImage(img, 0, 0, W, Hh); pr.style.opacity = 0; const ro = $("hgro"); if (ro) ro.style.display = "none"; chime();
     const b = $("hgbub"); if (b) b.textContent = stars === 3 ? "WOW! A perfect paint job, Captain!" : stars === 2 ? "Looking sharp, Captain!" : "Nice! A little touch-up and it’s shiny!";
-    const tm = $("hgtm"); if (tm) tm.outerHTML = '<div class="hgdone"><div class="hgstars">' + "⭐".repeat(stars) + '<span class="cafdim">' + "⭐".repeat(3 - stars) + "</span></div><b>Your S.S. Duck is now " + esc(G.it.name) + "!</b>" +
-      '<p>It shows on your launch bar and in liftoff.</p><button class="btn gold" data-hgq="1">Done</button></div>';
+    const tm = $("hgtm"); if (tm) tm.outerHTML = '<div class="hgdone"><div class="hgstars">' + "⭐".repeat(stars) + '<span class="cafdim">' + "⭐".repeat(3 - stars) + "</span></div><b>" + (G.opt && G.opt.done ? G.opt.done : "Your S.S. Duck is now") + " " + esc(G.it.name) + "!</b>" +
+      "<p>" + (G.opt && G.opt.where ? G.opt.where : "It shows on your launch bar and in liftoff.") + '</p><button class="btn gold" data-hgq="1">Done</button></div>';
     const bar = $("hgcov"); if (bar) bar.parentNode.remove(); }
 }
 function splat(c, d) { const st = $("hgst"); if (!st || !G) return; const s = document.createElement("span"), col = PAINT_COLORS[G.cols[Math.floor(Math.random() * 3)]];
