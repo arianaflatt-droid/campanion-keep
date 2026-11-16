@@ -26,12 +26,12 @@
    While an event is on, every companion wears a random costume from it, and The Keep gets the event's colors.
    Saved on the student: mini = { id, used: { date: n }, cos, maze, stop, stamps, elf: { d, found, peek: [] }, got }
    plus outfits / outfitOn (game.js). */
-import { esc, HEAD_FNS, OUTFITS, candyLeft, companionOf } from "./game.js?v=20261116g";
-import { azToday, creature, FAMILIES } from "./collect.js?v=20261116g";
-import { CREATURES } from "./creatures.js?v=20261116g";
-import { xpOn } from "./surprise.js?v=20261116g";
-import { SEASON, boostExtra } from "./game.js?v=20261116g";
-import { readingOn, readingOnBoosted } from "./readmap.js?v=20261116g";
+import { esc, HEAD_FNS, OUTFITS, candyLeft, companionOf } from "./game.js?v=20261116h";
+import { azToday, creature, FAMILIES } from "./collect.js?v=20261116h";
+import { CREATURES } from "./creatures.js?v=20261116h";
+import { xpOn } from "./surprise.js?v=20261116h";
+import { SEASON, boostExtra } from "./game.js?v=20261116h";
+import { readingOn, readingOnBoosted } from "./readmap.js?v=20261116h";
 
 export const PER_TICKET = 10, OUTFIT_COST = 60;
 const typesOf = fam => { const f = FAMILIES.find(x => x.id === fam); const c = f && CREATURES.find(x => x.id === f.forms[0]); return (c && c.types) || []; };
@@ -107,6 +107,8 @@ const amount = rar => (rar === "Legendary" ? rnd(15, 25) : rar === "Rare" || rar
 let CLS = null;
 HEAD_FNS.push(st => {
   const E = miniOn(CLS); if (!E || !st || st.isTeacher) return "";
+  // Nov 16 (Ms. Ariana): a hat the student picked (like the Crown) wins over the random event costume
+  const eq = String(st.equipped || ""); if (eq && eq !== "shades" && eq !== "snack" && !/snack/.test(eq)) return "";
   const list = OUTFITS.filter(o => o.ev === E.key), m = mine(st, CLS); if (!list.length) return "";
   return list[(m.cos != null ? m.cos : hash(st.id + CLS.mini.id)) % list.length].img;
 });
