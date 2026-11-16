@@ -29,6 +29,7 @@ import { wheelTab, wheelClick } from "./subwheel.js?v=20261115a";
 import { tbRequestsCard, tbInvite, tbToSettle } from "./teachbattle.js?v=20261115a";
 import { wheelSync, dailyPool, weeklyPool, makeSpin, WS_WEEKLY } from "./wheel.js?v=20261115a";
 import { showdownSync, openShowdown, sdState, sdLine } from "./showdown.js?v=20261115a";
+import { lvlSync, lvlCard } from "./lvlup.js?v=20261115c";
 import { spinPrizeRef, newSpinPrizeRef, watchSpinPrizes } from "./db.js?v=20261115a";
 import { rewardAdmin, rgWaiting, rgOf, shrinkImage, needPicList } from "./weekgoal.js?v=20261115a";
 import { soloAdmin, soloCfg, soloOn, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261115a";
@@ -630,6 +631,8 @@ function render(force) {
   if (ptrDown) { heldRender = heldRender || !!force; return; }
   try { wheelSync({ cls, teacher: true, students, close: () => updateDoc(classRef, { "wspin.open": false }).catch(e => flash("Couldn\u2019t close it \u2014 " + (e.code || e.message))) }); } catch (e) {}
   try { showdownSync({ cls, teacher: true, save: sdSave, setShow: sdShow }); } catch (e) {}
+  try { lvlSync({ cls, teacher: true, flash, rerender: () => render(), close: () => updateDoc(classRef, { "lvlup.open": false }).catch(e => flash("Couldn\u2019t close it \u2014 " + (e.code || e.message))),
+    show: d => updateDoc(classRef, { lvlup: d }).then(() => flash("\u{1F4A1} The level-up shoutout is on every screen.")).catch(e => flash("Couldn\u2019t show it \u2014 " + (e.code || e.message))) }); } catch (e) {}
   if (!force && mode === "guide" && ctab === "collector" && collectorBusy()) return;   // don't redraw mid egg-hatch or page flip
   document.getElementById("wrap").className = mode === "class" || mode === "battle" ? "wrap wide" : "wrap";
   document.getElementById("pageTitle").textContent = mode === "class" ? "The Keep" : mode === "battle" ? "Battle Area" : "Companion Keep Console";
@@ -664,7 +667,7 @@ function render(force) {
     { const np2 = needPicList(students, cls); if (np2.length) h += '<div class="banner prizealert"><span>\u{1F4F8} <b>' + np2.length + " new vault prize" + (np2.length === 1 ? "" : "s") + "</b> picked by students: add a picture for " + np2.map(x => esc(x.name) + " (" + esc(x.reward.name || "prize") + ")").join(", ") + '</span><span class="row" style="gap:8px;"><button class="btn small" data-ctab="rewards">Add pictures</button><button class="npx" data-act="npOk" title="The pictures already there are fine: hide this">\u00d7</button></span></div>'; }
     if (np && np > prizeHidden) h += '<div class="banner prizealert"><span>\u{1F381} <b>' + np + " prize" + (np === 1 ? "" : "s") + "</b> to order or give" + prizeNames() + '</span><span class="row" style="gap:8px;"><button class="btn small" data-act="goPrizes">View prizes</button><button class="btn ghost small" data-act="hidePrizes">Hide</button></span></div>';
     h += '<div class="tabs ctabs" role="tablist">' + tabs.map(([k, l]) => '<button role="tab" class="tab' + (ctab === k ? " on" : "") + '" data-ctab="' + k + '" aria-selected="' + (ctab === k) + '">' + l + "</button>").join("") + "</div>";
-    if (ctab === "daily") h += viewDaily() + secretAdmin(students, cls, secretDoc) + vaultWeekCard() + portalCard() + spinCard() + showdownCard() + planetAdmin(students, cls) + newsAdminHTML(cls, students, npics, newsEditing) + countdownAdmin() + boostAdmin() + miniAdmin(students, cls) + partyAdmin(students, cls) + recessAdmin(students, cls) + surpriseAdmin(students, cls) + viewWeekDoor() + viewRewards() + nebbleAdmin(students, cls);   // Nov 13: Nebbles at the bottom, Secret Students under the students
+    if (ctab === "daily") h += viewDaily() + secretAdmin(students, cls, secretDoc) + lvlCard(cls, students, busy) + vaultWeekCard() + portalCard() + spinCard() + showdownCard() + planetAdmin(students, cls) + newsAdminHTML(cls, students, npics, newsEditing) + countdownAdmin() + boostAdmin() + miniAdmin(students, cls) + partyAdmin(students, cls) + recessAdmin(students, cls) + surpriseAdmin(students, cls) + viewWeekDoor() + viewRewards() + nebbleAdmin(students, cls);   // Nov 13: Nebbles at the bottom, Secret Students under the students
     else if (ctab === "students") h += viewAssign() + minCard("viewas", viewAsCard(), true) + minCard("standings", viewStandings(), true) + minCard("roster", rosterAdmin(students, busy)) + minCard("lock", lockCard(students, cls)) + minCard("pass", passAdmin(students, cls)) +
       minCard("losses", viewLosses()) + minCard("subswap", subSwapCard()) + minCard("wkgoal", wkGoalCard()) + minCard("axo", axoAdmin(students, cls, busy, esc)) + minCard("kd", kdAdmin(students, cls));   // Nov 6: personal-link cards removed (Google sign-in), clubs got their own tab
     else if (ctab === "clubs") h += clubsAdmin(students, cls, busy);

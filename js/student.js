@@ -28,6 +28,7 @@ import { wheelBanner, wheelWinOverlay, wheelSeen } from "./subwheel.js?v=2026111
 import { axoOn, axoSync } from "./axolotl.js?v=20261115a";
 import { wheelSync } from "./wheel.js?v=20261115a";
 import { showdownSync, sdPill } from "./showdown.js?v=20261115a";
+import { lvlSync } from "./lvlup.js?v=20261115c";
 import { kdOn, kdSync, kingdomTab, kdTodo, kdUnlocked, kdOf, kdPass } from "./kingdom.js?v=20261115a";
 import { clubsTab, clubsNew, doneCount, clubPageSet } from "./clubs.js?v=20261115a";
 import { planetBar, planetSync, planetBusy, planetTab, planetZone, planetZoneNow, pjOpen, planetOn, nebbleOut } from "./planet.js?v=20261115a";
@@ -328,6 +329,7 @@ function render(force) {
   // 🎡 Nov 13: Spin to Pick covers the screen while Ms. Ariana's wheel is open (its own layer, so it never restarts)
   try { wheelSync({ cls, me: students.find(x => x.id === me) || null, preview: !!PREVIEW, save: d => patch(d, true) }); } catch (e) {}
   try { showdownSync({ cls }); } catch (e) {}
+  try { lvlSync({ cls, me: students.find(x => x.id === me) || null }); } catch (e) {}
   if (ptrDown) { heldRender = heldRender || !!force; return; }
   if (watching && loaded.c && subFor !== me) subMine();
   if (wheelBusy) return;          // don't redraw mid-spin; the spin calls render() when it stops
