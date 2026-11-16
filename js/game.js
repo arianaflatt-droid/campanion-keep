@@ -1,13 +1,13 @@
-import { PARTY_SPOT } from "./party-spot.js?v=20261116e";
-import { CREATURE_LAYOUT, CREATURE_FIT_ID, CREATURE_NECK_ID } from "./creature-fit.js?v=20261116e";
-import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261116e";
-import { heldWeapon } from "./quest.js?v=20261116e";
-import { SNACKS as CAFE_SNACKS, snackKept } from "./cafe-data.js?v=20261116e";
-import { orbitImgOf } from "./shop-data.js?v=20261116e";
+import { PARTY_SPOT } from "./party-spot.js?v=20261116g";
+import { CREATURE_LAYOUT, CREATURE_FIT_ID, CREATURE_NECK_ID } from "./creature-fit.js?v=20261116g";
+import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261116g";
+import { heldWeapon } from "./quest.js?v=20261116g";
+import { SNACKS as CAFE_SNACKS, snackKept } from "./cafe-data.js?v=20261116g";
+import { orbitImgOf } from "./shop-data.js?v=20261116g";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261116e";
+export const APP_V = "20261116g";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -669,7 +669,7 @@ export const OUTFITS = [].concat(
   OF("aur", "aur", [["aurora", "Aurora Headband"], ["beanie", "Snowflake Beanie"], ["headlamp", "Explorer Headlamp"], ["nightcap", "Starry Nightcap"], ["trapper", "Plaid Trapper Hat"], ["moon", "Moon Crown"], ["scarf", "Aurora Scarf"], ["compass", "Explorer Compass"]]),   // 🌌 Northern Lights Camp (Nov 3)
   OF("val", "val", [["mailcap", "Mail Carrier Cap"], ["heartband", "Bouncy Heart Headband"], ["cupid", "Cupid Halo & Wings"], ["rosecrown", "Rose Crown"], ["bow", "Polka-Dot Bow"], ["beret", "Cherry Heart Beret"], ["locket", "Heart Locket"], ["bowtie", "Heart Bow Tie"]]),   // 💌 Valentine Mailroom (Nov 3)
   OF("kite", "kite", [["propeller", "Propeller Beanie"], ["aviator", "Aviator Cap"], ["pinwheel", "Pinwheel Headband"], ["daisy", "Daisy Crown"], ["sunhat", "Breezy Sun Hat"], ["cloud", "Rainbow Cloud Hat"], ["scarf", "Spring Stripe Scarf"], ["whistle", "Kite Captain Whistle"]]),
-  OF("sea", "kingdom", [["crown", "Coral Pearl Crown"], ["necklace", "Shell Pearl Necklace"], ["cape", "Sea-Blue Fin Cape"], ["goggles", "Diving Goggles"]]),   // 🌊 Axolotl Kingdom Pearl Shop (Nov 11)
+  OF("sea", "kingdom", [["crown", "Coral Pearl Crown"], ["necklace", "Shell Pearl Necklace"], ["cape", "Sea-Blue Fin Cape"], ["goggles", "Diving Goggles"], ["knight-helmet", "Knight Shell Helmet"]]),   // + the Knight rank prize (Nov 16)   // 🌊 Axolotl Kingdom Pearl Shop (Nov 11)
   OF("lib", "lib", [["candles", "Candle Crown"], ["nightcap", "Starry Nightcap"], ["wizard", "Wizard Reading Cap"], ["bookhat", "Book Hat"], ["bun", "Ghost Librarian Bun"], ["scholar", "Moonlight Scholar Cap"], ["owl", "Owl Ear Headband"], ["bookworm", "Bookworm Antennae"]]));
 export const outfitOf = id => OUTFITS.find(o => o.id === id) || null;
 export const headImg = (c, img) => { const o = outfitByImg(img);

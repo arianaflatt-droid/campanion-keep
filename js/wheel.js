@@ -11,9 +11,9 @@
    so it shows on the console's Prize winners list to order.
    Saved on the class (teacher only): wspin = { id, kind, duck, label, names: [{ i, n }], slices: [name index], win, extra, at, open }
    and wsGoal (the weekly number). The wheel draws in its own layer (#wsroot), so page redraws never interrupt the spin. */
-import { esc, weekKey } from "./game.js?v=20261116e";
-import { addDays, histWeekTotal, subReq, subRuleOn, ringPass, mondayOf, ringDay, SUB_REQ } from "./doors.js?v=20261116e";
-import { getSpinPrizes } from "./db.js?v=20261116e";
+import { esc, weekKey } from "./game.js?v=20261116g";
+import { addDays, histWeekTotal, subReq, subRuleOn, ringPass, mondayOf, ringDay, SUB_REQ, vaultGift } from "./doors.js?v=20261116g";
+import { getSpinPrizes } from "./db.js?v=20261116g";
 
 const COLORS = ["#F2545B", "#F4B942", "#2EC4B6", "#7B61FF", "#06D6A0", "#3A86FF"];
 export const WS_DAILY = 120, WS_WEEKLY = 600, SPIN_MS = 4200;
@@ -33,7 +33,7 @@ export function weeklyPool(students, cls, wk, goal) {
   goal = Number(goal) || WS_WEEKLY;
   return students.filter(x => x && !x.isTeacher && x.companionId).map(x => ({ x, xp: Math.round(histWeekTotal(x, wk)) }))
     // Nov 16: anyone who OPENED their Treasure Vault that week is on the wheel too (the vault already checked their goal + rings)
-    .filter(r => ((r.x.vault || {})[wk] === "open") || (r.xp >= (Number(r.x.wkGoal) > 0 ? Number(r.x.wkGoal) : goal) && (!subRuleOn(cls) || ringPass(r.x, cls, wk) || subReq(r.x, cls, wk).ok)));
+    .filter(r => ((r.x.vault || {})[wk] === "open") || vaultGift(r.x, cls, wk) || (r.xp >= (Number(r.x.wkGoal) > 0 ? Number(r.x.wkGoal) : goal) && (!subRuleOn(cls) || ringPass(r.x, cls, wk) || subReq(r.x, cls, wk).ok)));
 }
 // The slices: one each, or Challenge Mode (daily only): 1 + one per full 10 XP over 120
 export function makeSpin(pool, opts) {

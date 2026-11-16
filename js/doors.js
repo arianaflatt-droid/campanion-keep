@@ -8,9 +8,9 @@
    Saved on the student: doors = { "YYYY-MM-DD": { "0": { st: "wait"|"ok"|"no"|"open", at, r }, g: { st: "open", r } } }
    plus lastDoor = "YYYY-MM-DD/<door>" (which door the last save touched; the save rules check it).
    Class: doorsOn (on/off), doorList (default list), doorDays = { "YYYY-MM-DD": [..] } (one-day lists). */
-import { azToday } from "./collect.js?v=20261116e";
-import { SEASON, eventMode, esc, dayXP, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261116e";
-import { subFor, SUB_NAMES } from "./teams.js?v=20261116e";
+import { azToday } from "./collect.js?v=20261116g";
+import { SEASON, eventMode, esc, dayXP, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261116g";
+import { subFor, SUB_NAMES } from "./teams.js?v=20261116g";
 
 // A door that starts with "!" is always open (not locked behind the first doors). The "!" isn't shown.
 export const DOOR_DEFAULT = [
@@ -246,13 +246,16 @@ export function subReq(st, cls, wk) {
   const hist = (st && st.xpHist) || {}, off = (cls && cls.offDays) || {};
   let days = 0;
   for (let i = 0; i < 5; i++) if (!off[addDays(wk, i)]) days++;
+  // 🗓️ Nov 16 (Ms. Ariana): a short week set only by lowering the week's XP goal (480 of 600) with no day-off box checked
+  // shrinks the rings the same way: 125 → 100 in each subject. A week with day-off boxes already counts fewer days.
+  const wg = weekGoalAt(cls, wk), share = days === 5 && wg > 0 && wg < WEEK_DOOR_XP ? wg / WEEK_DOOR_XP : 1;
   // Any swap that sends two or three core subjects to the same subject adds them up (Oct 26): all three → Math = one Math row of 375 a week, not 125 three times
   const rows = [], by = {};
   SUB_REQ.forEach(k => { const src = subFor(cls, st, k);
-    const rd = ringDay(st, cls);
-    if (by[src]) { by[src].need += days * rd; by[src].ks.push(k); return; }
+    const rd = ringDay(st, cls), add = Math.round(days * rd * share);
+    if (by[src]) { by[src].need += add; by[src].ks.push(k); return; }
     let have = 0; for (let i = 0; i < 7; i++) have += Number((((hist[addDays(wk, i)] || {}).sub) || {})[src]) || 0;
-    rows.push(by[src] = { k, ks: [k], src, name: SUB_NAMES[src] || src, have: Math.round(have), need: days * rd }); });
+    rows.push(by[src] = { k, ks: [k], src, name: SUB_NAMES[src] || src, have: Math.round(have), need: add }); });
   const cells = SUB_REQ.map(k => Object.assign({}, by[subFor(cls, st, k)], { k }));   // one per Math / Reading / Language (the console table)
   const on = subRuleOn(cls) && wk >= SUB_SINCE;
   return { on, rows, cells, days, ok: !on || rows.every(r => r.have >= r.need), short: rows.filter(r => r.have < r.need) };

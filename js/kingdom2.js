@@ -14,11 +14,11 @@
      sub { own:{key:1}, use, trail, trails:{key:1} }, seen { area: 1 }.
    Weekly parts (a new week starts fresh): qd { quest: 1 } claimed quests, qx chest pearls, wb best dive this week,
      wn new creatures this week, vq { place: 1 } places visited this week, ws pearls spent this week. */
-import { esc } from "./game.js?v=20261116e";
-import { startPaint } from "./hangar.js?v=20261116e";
+import { esc } from "./game.js?v=20261116g";
+import { startPaint } from "./hangar.js?v=20261116g";
 
 const K = "assets/kingdom/";
-export const KEEP2 = ["aq", "aqf", "cg", "sub", "seen", "sh", "rk", "rkp", "ship"];
+export const KEEP2 = ["aq", "aqf", "cg", "sub", "seen", "sh", "rk", "rkp", "ship", "hx"];
 export const kd2On = (cls, preview) => !!preview || !!(cls && cls.kd2On);
 
 /* ----- ranks: weeks the student reached the Kingdom (= Treasures of the Week they have) ----- */
@@ -87,6 +87,8 @@ const cur = () => { const C = A && A.C(); return C && C.st ? { C, st: C.st, cls:
 
 /* ----- guide ducks ----- */
 const GUIDE = {
+  lagoon: { duck: "hatchery", name: "Hatchery Duck", hi: "Welcome back to the Royal Hatchery!",
+    how: "Welcome to the <b>Royal Hatchery</b>! Every week you reach the Kingdom you get a <b>free baby axolotl egg</b>. It rests in the nest and <b>hatches 2 minutes later</b>. Every egg is a <b>new color</b> (there are 20!), and babies grow up after 2 more Kingdom weeks. Want more? I sell extra eggs for 150 pearls." },
   ship: { duck: "ship", name: "Deckhand Duck", hi: "Ahoy! Welcome back to the Sunken Ship!",
     how: "Ahoy! This is the <b>Sunken Ship</b>. It has <b>8 dark rooms</b>, and <b>one new room opens every week</b> you reach the Kingdom. Explore it with a <b>flashlight</b> to find what’s hiding inside (+20 pearls). Find all 8 for the <b>Captain’s Treasure</b>!" },
   stable: { duck: "seahorse", name: "Stable Duck", hi: "Welcome back to the Seahorse Stable!",
@@ -104,7 +106,7 @@ export function guide(area, st, pose, line) {
   const g = GUIDE[area], seen = (((st && st.kd) || {}).seen || {})[area];
   const p = seen ? (pose || "welcome") : "explain";
   return '<div class="kq-guide' + (seen ? "" : " first") + '"><img class="kq-duck" src="' + duckSrc(g, p) + '" alt="' + esc(g.name) + '">' +
-    '<div class="kq-bub"><b>' + esc(g.name) + ":</b> " + (line || (seen ? g.hi : g.how)) + (seen ? "" : ' <button class="btn gold" data-kd2="seen:' + area + '">Got it! \u{1F44D}</button>') + "</div></div>";
+    '<div class="kq-bub"><b>' + esc(g.name) + ":</b> " + (seen ? (line || g.hi) : g.how) + (seen ? "" : ' <button class="btn gold" data-kd2="seen:' + area + '">Got it! \u{1F44D}</button>') + "</div></div>";
 }
 function visit(place) {   // remember a place was visited this week (for the quests); saves only the first time each week
   const o = cur(); if (!o || o.C.preview) return; const k = o.k; k.vq = k.vq || {}; if (k.vq[place]) return;
@@ -443,10 +445,14 @@ if (typeof document !== "undefined") document.addEventListener("click", ev => {
   else if (a === "shfeedx") { feedOn = false; A.rer(); }
   else if (a === "shrace") startRace();
   else if (a === "room") exploreRoom(Number(x));
+  else if (a === "hxfree") layEgg(true);
+  else if (a === "hxbuy") layEgg(false);
+  else if (a === "hxtap") tapEgg();
   else if (a === "shiptreasure") openTreasure();
   else if (a === "rankok") { if (!o) return; const nm = rankOf(o.st).name; if (o.k.rk === nm) return;
     const got = o.k.rkp || {}; if (RANK_PRIZE[nm] && !got[nm]) { o.k.p = (Number(o.k.p) || 0) + RANK_PRIZE[nm]; o.k.rkp = Object.assign({}, got, { [nm]: 1 }); }   // each rank's prize is paid only once
-    o.k.rk = nm; A.save(o.k); A.rer(); }
+    o.k.rk = nm; const gear = RANK_GEAR[nm], st0 = o.st;
+    A.save(o.k, gear && !((st0.outfits || {})[gear[0]]) ? { outfits: Object.assign({}, st0.outfits || {}, { [gear[0]]: true }) } : null); A.rer(); }
 });
 export function resetViews() { aqTank = -1; dockSay = null; shPick = shName = null; feedOn = false; }
 
@@ -678,7 +684,92 @@ function openTreasure() {
   shipSay = "\u{1F9F0} The Captain’s Treasure! <b>+" + SHIP_TREASURE + " pearls</b>! You explored the whole ship!"; A.save(o.k);
 }
 
-export const RANK_PRIZE = { Page: 50, Squire: 50 };   // Nov 15: Page = 50 pearls; Squire 50 (draft, others decided later)
+
+/* ===================== 🌙 Royal Hatchery (opens at Knight, week 4) =====================
+   Like Nebbles: one FREE baby axolotl egg every Kingdom week, and extra eggs for 150 pearls from the Hatchery Duck.
+   An egg rests in the nest and is ready to hatch the next day: tap it to crack it open. It's always a color the student
+   doesn't have yet (20 colors). Babies grow up after 2 more Kingdom weeks. Everyone swims in the Moonlit Lagoon.
+   After all 20 colors, eggs hatch a second one of a color: keep it, or release it to the wild (real axolotls are
+   critically endangered in their only home, Lake Xochimilco in Mexico).
+   Save: kd.hx = { l: [[color, weeksIn when hatched], …], e: { d: date laid } | null, fw: week of the free egg, rel: released }. */
+export const AXO_COLORS = [["pink", "Pink"], ["gold", "Gold"], ["blue", "Blue"], ["mint", "Mint"], ["lavender", "Lavender"], ["galaxy", "Galaxy"],
+  ["white", "Snowy White"], ["black", "Midnight"], ["copper", "Copper"], ["sunset", "Sunset"], ["opal", "Rainbow Opal"], ["glowgreen", "Glow Green"],
+  ["cottoncandy", "Cotton Candy"], ["cherry", "Cherry"], ["lemon", "Lemon"], ["chocolate", "Chocolate"], ["oceanwave", "Ocean Wave"], ["leopard", "Leopard"],
+  ["lilac", "Lilac Spots"], ["mermaidteal", "Mermaid Teal"]];
+const AXO_NAME = Object.fromEntries(AXO_COLORS), EGG_PRICE = 150, GROW_WEEKS = 2;
+// Nov 16 (Ms. Ariana): an egg hatches a short wait after it's laid (not the next day, since the Kingdom closes Sunday night)
+export const HATCH_MS = 2 * 60 * 1000;
+const eggLeft = e => !e ? 0 : e.t ? Math.max(0, Number(e.t) + HATCH_MS - Date.now()) : (e.d && e.d < today() ? 0 : 1);
+let hxTimer = 0;
+function hxTick() {   // the countdown on the egg; redraws once when it's ready
+  clearInterval(hxTimer); hxTimer = setInterval(() => {
+    const el = document.getElementById("kqeggleft"); if (!el) { clearInterval(hxTimer); return; }
+    const o = cur(); const left = o ? eggLeft(hxOf(o.k).e) : 0;
+    if (left <= 0) { clearInterval(hxTimer); A.rer(); return; }
+    const sec = Math.ceil(left / 1000); el.textContent = Math.floor(sec / 60) + ":" + String(sec % 60).padStart(2, "0");
+  }, 500);
+}
+const axoImg = (c, big) => K + "hatch/" + (big ? "adult-" : "baby-") + c + ".webp";
+let hxSay = null, hxTaps = 0, hxNew = null;
+const today = () => { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
+function hxOf(k) { const h = k.hx || {}; return { l: (h.l || []).slice(), e: h.e || null, fw: h.fw || "", rel: Number(h.rel) || 0 }; }
+export function hatchHTML(st, cls) {
+  visit("lagoon"); setTimeout(aqKick, 30);
+  const o = cur(), k = o ? o.k : {}, wk = A.wk(cls), h = hxOf(k), n = weeksIn(st);
+  const have = new Set(h.l.map(x => x[0])), grown = x => n - x[1] >= GROW_WEEKS;
+  const left = eggLeft(h.e), ready = !!h.e && left <= 0, freeOk = h.fw !== wk;
+  if (h.e && !ready) setTimeout(hxTick, 50);
+  let s = '<div class="kdscene kq-lagoon" style="background-image:url(' + K + 'hatch/lagoon-bg.webp)">';
+  s += '<div class="kq-aqbox">' + h.l.map(([c, w], i) => { const big = grown([c, w]);
+    return '<div class="kq-swim" data-k="axo' + i + '" data-sz="' + (big ? "l" : "s") + '" data-m="swim" style="width:' + (big ? 15 : 10) + '%;left:-40%;top:50%"><img src="' + axoImg(c, big) + '" alt="' + esc(AXO_NAME[c] || c) + '"></div>'; }).join("") + "</div>";
+  s += '<div class="kq-nest">' + (h.e ? '<button class="kq-egg' + (ready ? " ready" : "") + (hxTaps ? " t" + Math.min(4, hxTaps) : "") + '"' + (ready ? ' data-kd2="hxtap:1"' : " disabled") + '><img src="' + K + 'hatch/egg.webp" alt="A baby axolotl egg"></button>' +
+    '<span class="kq-tag">' + (ready ? "\u{1F449} Tap the egg to hatch it!" : '\u{1F319} Hatching in <b id="kqeggleft">' + Math.floor(Math.ceil(left / 1000) / 60) + ":" + String(Math.ceil(left / 1000) % 60).padStart(2, "0") + "</b>") + "</span>" : "") + "</div>";
+  s += '<div class="kq-shbtns">' + (h.e ? "" : freeOk ? '<button class="btn gold" data-kd2="hxfree:1">\u{1F95A} Get this week’s free egg</button>' :
+    '<button class="btn ' + ((Number(k.p) || 0) >= EGG_PRICE ? "gold" : "ghost") + '" data-kd2="hxbuy:1">\u{1F95A} Buy an egg (⚪ ' + EGG_PRICE + ")</button>") + "</div>";
+  const line = hxSay || (h.e ? (ready ? "Your egg is ready! Tap it to help it hatch." : "Shh, your egg is getting ready. It hatches in 2 minutes. Go explore and come back!") : freeOk ? "Your free egg for this week is waiting!" : h.l.length ? "Your axolotls love the lagoon! Want another egg?" : "");
+  s += guide("lagoon", st, hxSay ? "cheer" : null, line || null) + "</div>";
+  s += '<div class="kq-log"><b>\u{1F98E} My axolotls</b> <span class="small">' + have.size + " of " + AXO_COLORS.length + " colors" + (h.rel ? " · \u{1F33F} " + h.rel + " released to the wild" : "") + "</span><div>" +
+    AXO_COLORS.map(([c, nm]) => { const mine = h.l.filter(x => x[0] === c), g = mine.some(grown);
+      return '<span class="kq-logslot' + (mine.length ? " got" : "") + '" title="' + (mine.length ? nm : "???") + '"><img src="' + axoImg(c, g) + '" alt=""><small>' + (mine.length ? nm + (mine.length > 1 ? " ×" + mine.length : "") + "<br>" + (g ? "grown up" : "baby") : "???") + "</small></span>"; }).join("") + "</div>" +
+    '<p class="small muted" style="margin:6px 0 0;">One free egg every week you reach the Kingdom. Babies grow up after ' + GROW_WEEKS + " more Kingdom weeks. Every egg is a new color until you have all " + AXO_COLORS.length + ".</p></div>";
+  hxSay = null;
+  return s;
+}
+function layEgg(free) {
+  const o = cur(); if (!o) return; const k = o.k, h = hxOf(k), wk = A.wk(o.cls); if (h.e) return;
+  if (free) { if (h.fw === wk) return; h.fw = wk; }
+  else { const p = Number(k.p) || 0; if (p < EGG_PRICE) { hxSay = "You need <b>" + (EGG_PRICE - p) + " more pearls</b> for an egg. Try a Pearl Dive!"; A.rer(); return; }
+    if (typeof confirm === "function" && !confirm("Buy a baby axolotl egg for " + EGG_PRICE + " pearls?")) return; k.p = p - EGG_PRICE; }
+  h.e = { t: Date.now() }; k.hx = h; hxTaps = 0;
+  hxSay = "Here\u2019s your egg! I\u2019ll tuck it in the nest. It hatches in <b>2 minutes</b>."; A.save(k);
+}
+function tapEgg() {
+  const o = cur(); if (!o) return; const h = hxOf(o.k); if (!h.e || eggLeft(h.e) > 0) return;
+  hxTaps++; if (hxTaps < 5) { A.rer(); return; }
+  hxTaps = 0;
+  const have = new Set(h.l.map(x => x[0])), fresh = AXO_COLORS.filter(([c]) => !have.has(c)), pool = fresh.length ? fresh : AXO_COLORS;
+  const c = pool[Math.floor(Math.random() * pool.length)][0], dup = !fresh.length;
+  h.e = null; h.l.push([c, weeksIn(o.st)]); o.k.hx = h; A.save(o.k);
+  showHatch(c, dup);
+}
+function showHatch(c, dup) {
+  const root = document.createElement("div"); root.className = "kq-rankup"; root.id = "kqhatch";
+  root.innerHTML = '<div class="kq-rankbox kq-hatchbox"><div class="kq-crack"><img class="kq-eggfx" src="' + K + 'hatch/egg.webp" alt=""><img class="kq-baby" src="' + axoImg(c) + '" alt=""></div>' +
+    "<small>\u{1F389} Your egg hatched!</small><h2>It’s a <b>" + esc(AXO_NAME[c]) + "</b> baby!</h2>" +
+    "<p>" + (dup ? "You have every color now, so this is a second " + esc(AXO_NAME[c]) + ". You can keep it, or release it to the wild." : "It swims in your <b>Moonlit Lagoon</b> now, and grows up after " + GROW_WEEKS + " more Kingdom weeks.") + "</p>" +
+    (dup ? '<div class="kq-fact">\u{1F30E} <b>Did you know?</b> Wild axolotls live in just one place: the canals of Lake Xochimilco in Mexico. There are very few left, so people work hard to protect them.</div>' +
+      '<div class="row" style="justify-content:center;gap:8px;margin-top:10px;"><button class="btn" data-kqh="keep">\u{1F49C} Keep it</button><button class="btn gold" data-kqh="free">\u{1F33F} Release it to the wild</button></div>'
+      : '<button class="btn gold big" data-kqh="ok">\u{1F49C} Yay!</button>') + "</div>";
+  document.body.appendChild(root);
+  root.onclick = e => { const b = e.target.closest("[data-kqh]"); if (!b) return;
+    if (b.dataset.kqh === "free") { const o = cur(); if (o) { const h = hxOf(o.k), i = h.l.map(x => x[0]).lastIndexOf(c); if (i >= 0) h.l.splice(i, 1); h.rel++; o.k.hx = h;
+      hxSay = "Thank you! Your axolotl swam off to help grow the wild axolotl family. \u{1F33F}"; A.save(o.k); } }
+    root.remove(); A.rer(); };
+}
+
+export const RANK_PRIZE = { Page: 50, Squire: 50 };
+// rank prizes that are gear: [outfit id, picture name, name]
+export const RANK_GEAR = { Knight: ["sea-knight-helmet", "knight-helmet", "Knight Shell Helmet"] };   // Nov 15: Page = 50 pearls; Squire 50 (draft, others decided later)
 export function rankUpHTML(st) {
   const o = cur(); if (!o) return ""; const k = o.k, r = rankOf(st);
   if (r.n < 2 || k.rk === r.name) return "";
@@ -686,6 +777,7 @@ export function rankUpHTML(st) {
   return '<div class="kq-rankup"><div class="kq-rankbox"><img class="kq-rankbadge" src="' + K + "rank-" + r.badge + '.webp" alt="">' +
     '<img class="kq-rankduck" src="' + K + 'captain-salute.webp" alt="Captain Duck">' +
     "<small>\u{1F389} You reached the Kingdom " + r.n + " weeks!</small><h2>You are now a <b>" + r.name + "</b>!</h2>" +
+    (RANK_GEAR[r.name] ? '<div class="kq-rankgear"><img src="' + K + "outfit-" + RANK_GEAR[r.name][1] + '.webp" alt=""><span>\u{1F381} Your rank prize: the <b>' + RANK_GEAR[r.name][2] + "</b>! Wear it from <b>Gear</b>.</span></div>" : "") +
     (RANK_PRIZE[r.name] ? '<p class="kq-rankprize">\u{1F381} Your rank prize: <b>⚪ ' + RANK_PRIZE[r.name] + " pearls</b></p>" : "") +
     (opens.length ? '<p>A new place just opened on the map:</p><div class="kq-rankopens">' + opens.map(s => "<span>" + s[1] + "</span>").join("") + "</div>" : "") +
     '<button class="btn gold big" data-kd2="rankok:1">\u{1F30A} Let’s go!</button></div></div>';

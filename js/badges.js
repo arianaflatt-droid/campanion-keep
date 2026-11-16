@@ -1,16 +1,16 @@
-import { owned as roomOwned, fitOf as roomFit, FIT_SLOTS, setItems as roomSet } from "./room.js?v=20261116e";
-import { presentsOpened } from "./doors.js?v=20261116e";
-import { PASS_THEMES, passDone } from "./pass.js?v=20261116e";
-import { shopBuys, swapBuys, outfitsOwned, cabinOwned, paintsOwned } from "./shop-data.js?v=20261116e";
-import { REGULARS as CF_REG, SPECIALS as CF_SP, keptCount as cfKept, perfectTotal as cfPerfect, monthPairs as cfPairs } from "./cafe-data.js?v=20261116e";
-import { ZONES as PJ_ZONES, pageCount as pjPage, pageSize as pjSize, aliensFound as pjAl, allAliensFound as pjAllAl, ALIEN_LIST as PJ_ALIENS } from "./safari.js?v=20261116e";
+import { owned as roomOwned, fitOf as roomFit, FIT_SLOTS, setItems as roomSet } from "./room.js?v=20261116g";
+import { presentsOpened } from "./doors.js?v=20261116g";
+import { PASS_THEMES, passDone } from "./pass.js?v=20261116g";
+import { shopBuys, swapBuys, outfitsOwned, cabinOwned, paintsOwned } from "./shop-data.js?v=20261116g";
+import { REGULARS as CF_REG, SPECIALS as CF_SP, keptCount as cfKept, perfectTotal as cfPerfect, monthPairs as cfPairs } from "./cafe-data.js?v=20261116g";
+import { ZONES as PJ_ZONES, pageCount as pjPage, pageSize as pjSize, aliensFound as pjAl, allAliensFound as pjAllAl, ALIEN_LIST as PJ_ALIENS } from "./safari.js?v=20261116g";
 // Badges: worked out from each student's saved data, so nothing extra is stored and no rules change.
 // To add a badge: add an entry with a check(st) that returns how far along the student is,
 // and a goal. Put its picture in assets/badges/ (a transparent WEBP or PNG). Without a picture, the emoji shows.
 const nebOf = st => ((st && st.planet) || {}).pets || {}, nebN = st => Object.keys(nebOf(st).o || {}).length;
 const NEB_SEASON = ["pumpkin", "pie", "candycane", "snowball", "sweetheart", "clover", "egg", "springflower", "sunbeam", "pencil"];
-import { esc, goalXP, candyOf, ghostUnlocked } from "./game.js?v=20261116e";
-import { seenSet, ownedFams, owned, family, formIndex, formOf, STARTERS, CREATURES } from "./collect.js?v=20261116e";
+import { esc, goalXP, candyOf, ghostUnlocked } from "./game.js?v=20261116g";
+import { seenSet, ownedFams, owned, family, formIndex, formOf, STARTERS, CREATURES } from "./collect.js?v=20261116g";
 
 export const hatches = st => (Number(st.pullsUsed) || 0) + (Number(st.legendaryUsed) || 0);
 
@@ -122,6 +122,7 @@ const LORE = CREATURES.filter(c => !c.event).length, lore = pct => Math.ceil(LOR
 const zooOf = st => ((st && st.planet) || {}).zoo || {};
 const mbB = st => Object.keys((((st && st.planet) || {}).mb || {}).own || {}).filter(k => k !== "hut" && k !== "palace").length;
 const stnG = st => Number((((st && st.planet) || {}).stn || {}).g) || 0;
+const axoColors = st => new Set(((((st && st.kd) || {}).hx || {}).l || []).map(x => x[0])).size;
 const kdG = st => Object.keys(((st && st.kd) || {}).g || {}).length;
 export const BADGE_GROUPS = [
   { key: "hatch", title: "\u{1F95A} Hatching" },
@@ -318,6 +319,11 @@ export const BADGES = [
   { id: "kd-13", group: "kingdom", name: "Treasure Season", desc: "Collect 13 Treasures of the Week", goal: 13, img: "assets/badges/badge-kingdom-13.webp", emoji: "\u{1F9F0}", check: st => Math.min(13, kdG(st)) },
   { id: "kd-26", group: "kingdom", name: "Half a Year of Treasure", desc: "Collect 26 Treasures of the Week", goal: 26, img: "assets/badges/badge-kingdom-26.webp", emoji: "\u{1F41A}", check: st => Math.min(26, kdG(st)) },
   { id: "kd-52", group: "kingdom", name: "Royal Collector", desc: "Collect 52 Treasures of the Week", goal: 52, img: "assets/badges/badge-kingdom-52.webp", emoji: "\u{1F451}", check: st => Math.min(52, kdG(st)) },
+  // 🌙 Royal Hatchery (Knight rank, Nov 16): colors of baby axolotls hatched, and releasing one to the wild
+  { id: "kd-axo5", group: "kingdom", name: "Hatchery Helper", desc: "Hatch 5 axolotl colors in the Royal Hatchery", goal: 5, img: "assets/badges/badge-hatch-helper.webp", emoji: "\u{1F95A}", check: st => Math.min(5, axoColors(st)) },
+  { id: "kd-axo10", group: "kingdom", name: "Axolotl Keeper", desc: "Hatch 10 axolotl colors in the Royal Hatchery", goal: 10, img: "assets/badges/badge-hatch-keeper.webp", emoji: "\u{1F98E}", check: st => Math.min(10, axoColors(st)) },
+  { id: "kd-axo20", group: "kingdom", name: "Axolotl Royalty", desc: "Hatch all 20 axolotl colors", goal: 20, img: "assets/badges/badge-hatch-royalty.webp", emoji: "\u{1F451}", check: st => Math.min(20, axoColors(st)) },
+  { id: "kd-wild", group: "kingdom", name: "Wild Axolotl Hero", desc: "Release an axolotl to the wild", goal: 1, img: "assets/badges/badge-hatch-wild.webp", emoji: "\u{1F33F}", check: st => Math.min(1, Number((((st && st.kd) || {}).hx || {}).rel) || 0) },
   { id: "kd-shop", group: "kingdom", name: "Pearl Shopper", desc: "Buy something in the Pearl Shop", goal: 1, img: "assets/badges/badge-pearl-shop.webp", emoji: "\u26AA", check: st => Math.min(1, Number(((st && st.kd) || {}).sb) || 0) },
   { id: "zoo-rare", group: "zoo", name: "Rare Find", desc: "Meet a Super Rare animal in your zoo", goal: 1, img: "assets/badges/zoo-rare.webp", emoji: "\u{1F31F}", check: st => zooOf(st).fr ? 1 : 0 },
   { id: "zoo-alien", group: "zoo", name: "Alien Exhibit", desc: "Meet a Planet JP alien in your zoo", goal: 1, img: "assets/badges/zoo-alien.webp", emoji: "\u{1F47D}", check: st => zooOf(st).fa ? 1 : 0 },
