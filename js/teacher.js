@@ -1283,8 +1283,17 @@ let prizeBusy = false;
 async function prizeAuto() {
   if (prizeBusy || !cls || !students.length) return;
   const wk = weekKey(cls), todo = students.filter(x => !x.isTeacher && x.prizeReq && x.prizeReq.wk === wk && !x.prizeReq.used && /^https:\/\/[^\s"'<>]+$/i.test(String(x.prizeReq.link || "")));   // only plain https links (a student writes this field)
-  if (!todo.length) return;
+  // 🔁 Nov 16 (Ms. Ariana): a student who didn't pick a new prize keeps LAST week's prize (name + link + her subject),
+  // copied into the new week once. A total-XP goal follows this week's goal (a short week's 480).
+  const carry = students.filter(x => !x.isTeacher && x.reward && x.reward.week && x.reward.week < wk && x.reward.sub && Number(x.reward.xp) > 0 && (x.reward.link || x.reward.name) &&
+    !rewardFor(x, cls) && !(x.prizeReq && x.prizeReq.wk === wk && !x.prizeReq.used));
+  if (!todo.length && !carry.length) return;
   prizeBusy = true; const batch = writeBatch(db), done = [];
+  carry.forEach(x => {
+    const o = x.reward, nw = { week: wk, sub: o.sub, xp: o.sub === "all" ? wkGoalOf(x, cls) : Number(o.xp), name: o.name || "", given: false, carried: true };
+    if (o.link) nw.link = o.link; if (o.setAt) nw.setAt = o.setAt; if (o.needPic) nw.needPic = true;
+    batch.update(studentRef(x.id), { reward: nw }); done.push([x, nw]);
+  });
   todo.forEach(x => {
     const q = x.prizeReq, cur = x.reward && x.reward.week === wk ? x.reward : null, base = cur && Number(cur.xp) > 0 ? cur : x.reward && Number(x.reward.xp) > 0 && x.reward.sub ? x.reward : null;
     const up = { "prizeReq.used": true };
@@ -1296,7 +1305,9 @@ async function prizeAuto() {
   });
   try { await batch.commit(); todo.forEach(x => { x.prizeReq = Object.assign({}, x.prizeReq, { used: true }); });
     done.forEach(([x, r]) => { x.reward = r; });
-    if (done.length) flash("\u{1F4EC} Added " + done.length + " student prize pick" + (done.length === 1 ? "" : "s") + " to this week\u2019s vault: " + done.map(([x]) => x.name).join(", ") + ". Add their pictures on the Rewards tab.", true);
+    const picks = done.filter(([x, r]) => !r.carried), kept = done.filter(([x, r]) => r.carried);
+    if (picks.length) flash("\u{1F4EC} Added " + picks.length + " student prize pick" + (picks.length === 1 ? "" : "s") + " to this week\u2019s vault: " + picks.map(([x]) => x.name).join(", ") + ". Add their pictures on the Rewards tab.", true);
+    else if (kept.length) flash("\u{1F501} Kept last week\u2019s vault prize for " + kept.length + " student" + (kept.length === 1 ? "" : "s") + " who didn\u2019t pick a new one.", true);
   } catch (e) { flash("Couldn\u2019t add the students\u2019 prize picks \u2014 " + (e.code || e.message)); }
   prizeBusy = false; render();
 }
