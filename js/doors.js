@@ -8,9 +8,9 @@
    Saved on the student: doors = { "YYYY-MM-DD": { "0": { st: "wait"|"ok"|"no"|"open", at, r }, g: { st: "open", r } } }
    plus lastDoor = "YYYY-MM-DD/<door>" (which door the last save touched; the save rules check it).
    Class: doorsOn (on/off), doorList (default list), doorDays = { "YYYY-MM-DD": [..] } (one-day lists). */
-import { azToday } from "./collect.js?v=20261116b";
-import { SEASON, eventMode, esc, dayXP, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261116b";
-import { subFor, SUB_NAMES } from "./teams.js?v=20261116b";
+import { azToday } from "./collect.js?v=20261116c";
+import { SEASON, eventMode, esc, dayXP, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261116c";
+import { subFor, SUB_NAMES } from "./teams.js?v=20261116c";
 
 // A door that starts with "!" is always open (not locked behind the first doors). The "!" isn't shown.
 export const DOOR_DEFAULT = [
@@ -321,6 +321,10 @@ export function rewardFor(st, cls, wk) {
   const cur = wk === weekKey(cls);
   return g.week === wk || (cur && g.week === mondayOf(azToday())) ? g : null;
 }
+// The class XP goal a week had: saved per week (weekGoals) when Ms. Ariana changes it, otherwise 600
+export function weekGoalAt(cls, wk) { const g = Number(((cls && cls.weekGoals) || {})[wk]); if (g > 0) return g; return wk === weekKey(cls) ? weekGoal(cls) : VAULT_XP; }
+// 🔓 Nov 16: Ms. Ariana can let a student open a week's vault by hand (saved on the CLASS: cls.vaultGift[week][studentId] = true)
+export const vaultGift = (st, cls, wk) => !!(st && cls && ((cls.vaultGift || {})[wk || weekKey(cls)] || {})[st.id]);
 export function vaultGoal(st, cls, wk) {
   wk = wk || weekKey(cls);
   const g = rewardFor(st, cls, wk);
@@ -333,18 +337,19 @@ export function vaultGoal(st, cls, wk) {
     return { xp: Number(g.xp), n: Math.round(n), sub: g.sub, reward: g, tot, min: 0 };
   }
   const tot = wk === weekKey(cls) ? weekTotal(st, cls) : histWeekTotal(st, wk);
-  const own = Number(st && st.wkGoal) > 0 ? Math.round(VAULT_XP * wkShare(st, cls)) : VAULT_XP;
-  return { xp: own, n: tot, sub: null, reward: null, tot, min: vaultMinOf(st, cls) };
+  // Nov 16 fix: no prize set → the goal is THAT week's goal (a short week's 480), not always 600, for this week and past weeks
+  const base = weekGoalAt(cls, wk), own = Number(st && st.wkGoal) > 0 ? Math.round(base * wkShare(st, cls)) : base;
+  return { xp: own, n: tot, sub: null, reward: null, tot, min: Math.min(vaultMinOf(st, cls), own) };
 }
 // Goal reached AND at least VAULT_MIN XP in total that week
 // 🔁 Nov 13 (Ms. Ariana): a student whose rings were changed mid-week can be let off that week's rings from the console.
 // Saved on the CLASS (cls.ringPass[week][studentId] = true), so students can't set it themselves. They still need the XP goal.
 export const ringPass = (st, cls, wk) => !!(st && cls && cls.ringPass && (cls.ringPass[wk || weekKey(cls)] || {})[st.id]);
 const ringsOk = (st, cls, wk) => ringPass(st, cls, wk) || subReq(st, cls, wk).ok;
-export const vaultMet = (st, cls, wk) => { const v = vaultGoal(st, cls, wk); return v.n >= v.xp && v.tot >= v.min && ringsOk(st, cls, wk); };
+export const vaultMet = (st, cls, wk) => { if (vaultGift(st, cls, wk)) return true; const v = vaultGoal(st, cls, wk); return v.n >= v.xp && v.tot >= v.min && ringsOk(st, cls, wk); };
 // The 600-XP rule needs its own line when the goal itself doesn't already cover it (a subject goal, or a total under 600)
 // A week that's over: its saved "ready" stands (its goal may have changed since), but it still needs VAULT_MIN XP total
-export const vaultMinOk = (st, cls, wk) => (rewardFor(st, cls, wk) || (wk === weekKey(cls) ? weekTotal(st, cls) : histWeekTotal(st, wk)) >= vaultMinOf(st, cls)) && ringsOk(st, cls, wk);
+export const vaultMinOk = (st, cls, wk) => vaultGift(st, cls, wk) || (rewardFor(st, cls, wk) || (wk === weekKey(cls) ? weekTotal(st, cls) : histWeekTotal(st, wk)) >= vaultMinOf(st, cls)) && ringsOk(st, cls, wk);
 export const vaultNeedsMin = v => v.min > 0 && ((v.sub && v.sub !== "all") || v.xp < v.min);
 export function vaultState(st, cls) {
   const v = ((st && st.vault) || {})[weekKey(cls)];

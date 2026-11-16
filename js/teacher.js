@@ -1,57 +1,57 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261116b";
-import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261116b";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261116b";
-import { cpEarnedCalc } from "./room.js?v=20261116b";
-import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261116b";
-import { rewardFor, wkGoalOf, wkShare, ringDay, hasSwap, portalDay, addDays as pdAdd } from "./doors.js?v=20261116b";
-import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet, subReq, subRuleOn, SUB_DAY, addDays } from "./doors.js?v=20261116b";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing } from "./collector-ui.js?v=20261116b";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261116c";
+import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261116c";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261116c";
+import { cpEarnedCalc } from "./room.js?v=20261116c";
+import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261116c";
+import { rewardFor, wkGoalOf, wkShare, ringDay, hasSwap, portalDay, addDays as pdAdd } from "./doors.js?v=20261116c";
+import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet, subReq, subRuleOn, SUB_DAY, addDays } from "./doors.js?v=20261116c";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing } from "./collector-ui.js?v=20261116c";
 import {
   newsHTML, boostOn, boostHTML, countdownHTML, applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   boss2Of, boss2Prize, simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, weekCandyBefore, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, isFrost, isHeart, heartUnlocked, isLucky, luckyUnlocked, saveProblems, yetiUnlocked, wallMarks, WALL_BLOCK, BOSS_START_HP, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261116b";
-import { MQ_CUTOFF } from "./morning.js?v=20261116b";
-import { kindAdmin } from "./kindness.js?v=20261116b";
-import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261116b";
-import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261116b";
-import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261116b";
-import { passAdmin } from "./pass.js?v=20261116b";
-import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf, ULTRA_FAMS, CLUB_ULTRA_FAMS } from "./collect.js?v=20261116b";
-import { watchSecret, secretRef } from "./db.js?v=20261116b";
-import { secretAdmin, secretClick, autoPick, secretBanner } from "./secret.js?v=20261116b";
-import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef, newBattleRef, newsPicRef, watchNewsPics, newsPicFor } from "./db.js?v=20261116b";
-import { allNews, newsAdminHTML } from "./news.js?v=20261116b";
-import { nebbleAdmin } from "./pets.js?v=20261116b";
-import { mapAdmin } from "./readmap.js?v=20261116b";
-import { wheelTab, wheelClick } from "./subwheel.js?v=20261116b";
-import { tbRequestsCard, tbInvite, tbToSettle } from "./teachbattle.js?v=20261116b";
-import { wheelSync, dailyPool, weeklyPool, makeSpin, WS_WEEKLY } from "./wheel.js?v=20261116b";
-import { showdownSync, openShowdown, sdState, sdLine } from "./showdown.js?v=20261116b";
-import { lvlSync, lvlCard } from "./lvlup.js?v=20261116b";
-import { spinPrizeRef, newSpinPrizeRef, watchSpinPrizes } from "./db.js?v=20261116b";
-import { rewardAdmin, rgWaiting, rgOf, shrinkImage, needPicList } from "./weekgoal.js?v=20261116b";
-import { soloAdmin, soloCfg, soloOn, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261116b";
+} from "./game.js?v=20261116c";
+import { MQ_CUTOFF } from "./morning.js?v=20261116c";
+import { kindAdmin } from "./kindness.js?v=20261116c";
+import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261116c";
+import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261116c";
+import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261116c";
+import { passAdmin } from "./pass.js?v=20261116c";
+import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf, ULTRA_FAMS, CLUB_ULTRA_FAMS } from "./collect.js?v=20261116c";
+import { watchSecret, secretRef } from "./db.js?v=20261116c";
+import { secretAdmin, secretClick, autoPick, secretBanner } from "./secret.js?v=20261116c";
+import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef, newBattleRef, newsPicRef, watchNewsPics, newsPicFor } from "./db.js?v=20261116c";
+import { allNews, newsAdminHTML } from "./news.js?v=20261116c";
+import { nebbleAdmin } from "./pets.js?v=20261116c";
+import { mapAdmin } from "./readmap.js?v=20261116c";
+import { wheelTab, wheelClick } from "./subwheel.js?v=20261116c";
+import { tbRequestsCard, tbInvite, tbToSettle } from "./teachbattle.js?v=20261116c";
+import { wheelSync, dailyPool, weeklyPool, makeSpin, WS_WEEKLY } from "./wheel.js?v=20261116c";
+import { showdownSync, openShowdown, sdState, sdLine } from "./showdown.js?v=20261116c";
+import { lvlSync, lvlCard } from "./lvlup.js?v=20261116c";
+import { spinPrizeRef, newSpinPrizeRef, watchSpinPrizes } from "./db.js?v=20261116c";
+import { rewardAdmin, rgWaiting, rgOf, shrinkImage, needPicList } from "./weekgoal.js?v=20261116c";
+import { soloAdmin, soloCfg, soloOn, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261116c";
 import { feederLink } from "./feeder.js?v=20261111e";
-import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261116b";
+import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261116c";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef, watchSeats, watchCards, deleteField
-} from "./db.js?v=20261116b";
-import { G, guardCard, guardClick, guardInput, autoSnap, personalLink, syncCards } from "./guard.js?v=20261116b";
-import { lockCard, lockClick } from "./lock.js?v=20261116b";
-import { revengeAdmin, revengeAction } from "./revenge.js?v=20261116b";
-import { heistAdmin, heistAction } from "./heist.js?v=20261116b";
-import { calendarCard, calendarEdit, autoExcuse } from "./calendar.js?v=20261116b";
-import { axoAdmin } from "./axolotl.js?v=20261116b";
-import { kdAdmin } from "./kingdom.js?v=20261116b";
-import { clubsAdmin, clubUpload, clubPicks, pickChange } from "./clubs.js?v=20261116b";
-import { planetAdmin, keepLaunchWatch, pjMinsNow } from "./planet.js?v=20261116b";
-import { soloScreenSync, soloScreenOpenNow } from "./soloscreen.js?v=20261116b";
-import { recessAdmin, recessAction } from "./playground.js?v=20261116b";
-import { rosterAdmin, rosterPreview, okEmail } from "./roster.js?v=20261116b";
-import { rosterList, rosterSave, seatsOnce, removeLinkSeats, myAccess, saveClassDir, createClass, adminList, setAdmin, isBuiltInAdmin, switchClass } from "./db.js?v=20261116b";
+} from "./db.js?v=20261116c";
+import { G, guardCard, guardClick, guardInput, autoSnap, personalLink, syncCards } from "./guard.js?v=20261116c";
+import { lockCard, lockClick } from "./lock.js?v=20261116c";
+import { revengeAdmin, revengeAction } from "./revenge.js?v=20261116c";
+import { heistAdmin, heistAction } from "./heist.js?v=20261116c";
+import { calendarCard, calendarEdit, autoExcuse } from "./calendar.js?v=20261116c";
+import { axoAdmin } from "./axolotl.js?v=20261116c";
+import { kdAdmin } from "./kingdom.js?v=20261116c";
+import { clubsAdmin, clubUpload, clubPicks, pickChange } from "./clubs.js?v=20261116c";
+import { planetAdmin, keepLaunchWatch, pjMinsNow } from "./planet.js?v=20261116c";
+import { soloScreenSync, soloScreenOpenNow } from "./soloscreen.js?v=20261116c";
+import { recessAdmin, recessAction } from "./playground.js?v=20261116c";
+import { rosterAdmin, rosterPreview, okEmail } from "./roster.js?v=20261116c";
+import { rosterList, rosterSave, seatsOnce, removeLinkSeats, myAccess, saveClassDir, createClass, adminList, setAdmin, isBuiltInAdmin, switchClass } from "./db.js?v=20261116c";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -1093,6 +1093,19 @@ function viewDoors() {
       GOAL_SUBJECTS.map(g => '<option' + (x.goalSubject === g ? " selected" : "") + ">" + esc(g) + "</option>").join("") + "</select></label>").join("") + "</div></details>";
   return h + "</div>";
 }
+/* 🔓 Nov 16 (Ms. Ariana): open LAST week's vault by hand for a student it didn't open for. Saved on the class
+   (cls.vaultGift[lastWeek][studentId] = true); the student then sees "Open last week's Treasure Vault!" and opens it as usual. */
+function vaultGiftHTML(kids) {
+  const lw = addDays(weekKey(cls), -7), g = (cls.vaultGift || {})[lw] || {};
+  const given = kids.filter(x => g[x.id] && ((x.vault || {})[lw]) !== "open"), done = kids.filter(x => g[x.id] && ((x.vault || {})[lw]) === "open");
+  const left = kids.filter(x => !g[x.id] && ((x.vault || {})[lw]) !== "open");
+  return '<div style="margin-top:10px;border-top:1px solid var(--line-2);padding-top:10px;"><b>\u{1F513} Open last week’s vault by hand</b> <span class="muted small">(week of ' + new Date(lw + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" }) + ")</span>" +
+    '<p class="small muted" style="margin:2px 0 6px;">For a student who earned it but whose vault didn’t open. They’ll see “Open last week’s Treasure Vault!” and get everything inside, like normal.</p>' +
+    (given.length || done.length ? '<div class="inv">' + given.map(x => "<span>\u{1F513} " + esc(x.name) + ' (waiting) <button class="wsx" data-act="vaultGift" data-sid="' + esc(x.id) + '" data-on="0" title="Take it back">×</button></span>').join("") +
+      done.map(x => "<span>✅ " + esc(x.name) + " opened it</span>").join("") + "</div>" : "") +
+    (left.length ? '<div class="row" style="gap:6px;align-items:center;margin-top:6px;"><select id="vaultGiftPick"><option value="">Pick a student…</option>' + left.map(x => '<option value="' + esc(x.id) + '">' + esc(x.name) + " (" + histWeekTotal(x, lw).toLocaleString() + " XP)</option>").join("") +
+      '</select><button class="btn small" data-act="vaultGift" data-on="1">\u{1F513} Let them open it</button></div>' : "") + "</div>";
+}
 /* ---------- Weekly Door ---------- */
 function viewWeekDoor() {
   const wk = weekKey(cls), goal = weekGoal(cls), kids = students.filter(x => x.companionId);
@@ -1106,8 +1119,9 @@ function viewWeekDoor() {
     '<button class="btn ghost small" data-act="weekCheck">\u{1F504} Unlock for everyone who made it</button></div>' +
     '<p class="muted small" style="margin-top:6px;">A short-week goal only lasts this week \u2014 starting a new week goes back to ' + WEEK_DOOR_XP + ".</p>";
   const vst = x => ((x.vault || {})[wk]) || (vaultMet(x, cls) ? "ready" : ""), vOpen = kids.filter(x => vst(x) === "open"), vReady = kids.filter(x => vst(x) === "ready");
-  h += '<p class="small" style="margin-top:10px;">\u{1F48E} <b>Treasure Vault</b> (each student\u2019s Rewards goal, or ' + VAULT_XP.toLocaleString() + " XP in a week, and always at least 600 XP total that week): " + vOpen.length + " opened · " + vReady.length + " ready" +
+  h += '<p class="small" style="margin-top:10px;">\u{1F48E} <b>Treasure Vault</b> (each student\u2019s Rewards goal, or this week\u2019s ' + goal.toLocaleString() + " XP goal, plus the rings): " + vOpen.length + " opened · " + vReady.length + " ready" +
     (vOpen.length || vReady.length ? " — " + vOpen.map(x => "✅ " + esc(x.name)).concat(vReady.map(x => "\u{1F48E} " + esc(x.name))).join(", ") : "") + "</p>";
+  h += vaultGiftHTML(kids);
   if (opened.length || ready.length) h += '<div class="inv" style="margin-top:8px;">' +
     opened.map(x => "<span>\u2705 " + esc(x.name) + "</span>").join("") + ready.map(x => "<span>\u{1F31F} " + esc(x.name) + " (ready)</span>").join("") +
     "</div>";
@@ -2611,6 +2625,15 @@ document.addEventListener("click", async ev => {
     Object.keys(cls.portalSent || {}).forEach(d => { if (d < pdAdd(azToday(), -14)) up["portalSent." + d] = deleteField(); });
     try { await updateDoc(classRef, up); cls.portalSent = Object.assign({}, cls.portalSent || {}); cls.portalSent[date] = Object.assign({}, cls.portalSent[date] || {}); if (on) cls.portalSent[date][sid] = true; else delete cls.portalSent[date][sid]; }
     catch (e) { flash("Couldn\u2019t save that \u2014 " + (e.code || e.message)); }
+    return render(); }
+  if (act === "vaultGift") {
+    const lw = addDays(weekKey(cls), -7), on = el.dataset.on === "1", sid = on ? (document.getElementById("vaultGiftPick") || {}).value : el.dataset.sid;
+    if (!sid) { flash("Pick a student first."); return; }
+    const who = (sOf(sid) || {}).name || "that student";
+    try { await updateDoc(classRef, { ["vaultGift." + lw + "." + sid]: on ? true : deleteField() });
+      cls.vaultGift = Object.assign({}, cls.vaultGift || {}); cls.vaultGift[lw] = Object.assign({}, cls.vaultGift[lw] || {}); if (on) cls.vaultGift[lw][sid] = true; else delete cls.vaultGift[lw][sid];
+      flash(on ? "\u{1F513} Saved — " + who + " can open last week’s Treasure Vault now (it’s on their Doors tab)." : "Saved — taken back for " + who + ".");
+    } catch (e) { flash("Couldn’t save that — " + (e.code || e.message)); }
     return render(); }
   if (act === "ringPass") {   // 🔁 Nov 13: rings changed mid-week → vault + Kingdom need only the XP goal this week
     const wk = weekKey(cls), sid = el.dataset.sid, on = el.dataset.on === "1", who = (sOf(sid) || {}).name || "that student";
