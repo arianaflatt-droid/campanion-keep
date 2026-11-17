@@ -6,8 +6,8 @@
    The old single announcement (cls.news + news/pic) still shows until the first save in the new editor turns it into a list item.
    Students see them newest first on Checklist → 📣 Announcements and can react ONCE to each with a kind emote:
    saved on the student as nlike = { announcementId: emote } (one save per reaction; counts come from classmates' public cards). */
-import { esc } from "./game.js?v=20261116M";
-import { azToday } from "./collect.js?v=20261116M";
+import { esc } from "./game.js?v=20261116U";
+import { azToday } from "./collect.js?v=20261116U";
 
 export const NEWS_EMOTES = [["heart", "❤️"], ["up", "\u{1F44D}"], ["party", "\u{1F389}"], ["smile", "\u{1F604}"], ["star", "\u{1F31F}"], ["clap", "\u{1F44F}"]];
 const EMO = {}; NEWS_EMOTES.forEach(([k, e]) => { EMO[k] = e; });
@@ -62,7 +62,7 @@ export function reactSave(st, cls, id, k) {
 /* ---------- console editor ---------- */
 export function newsAdminHTML(cls, students, pics, editing) {
   const l = allNews(cls), d = azToday(), shown = l.filter(n => live(n, d)).length;
-  let h = '<div class="card newsadmin"><div class="card-head"><h2>\u{1F4E3} Announcements</h2><span class="fact">' + shown + " showing</span></div>" +
+  let h = '<div class="card newsadmin" id="newsCard"><div class="card-head"><h2>\u{1F4E3} Announcements</h2><span class="fact">' + shown + " showing</span></div>" +
     '<p class="lede" style="font-size:13.5px;">Post as many as you like. Students see them on <b>Checklist → \u{1F4E3} Announcements</b> (newest first), get a "Read the announcements" step on their checklist, and can react once to each with a kind emote. Set a last day and it hides itself after that day. <b>⭐ Star one</b> to keep it at the top of every page of the Keep.</p>' +
     '<div class="row" style="margin:8px 0;"><button class="btn" data-act="newsAdd">➕ New announcement</button></div>';
   l.forEach(n => { const likes = likesFor(students, n.id), tot = Object.values(likes).reduce((a, b) => a + b, 0), img = n.pic && pics ? pics[n.pic] : "", ed = editing === n.id;

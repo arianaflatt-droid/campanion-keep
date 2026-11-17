@@ -17,10 +17,10 @@
       pty60 / pty120 = { id, in, hat, mv, mn, pops, drop, solo, ch: { k, n }, hits }   (live party state; others read it)
       partyGot = { partyId: true, partyId + "-p": true }   partyAlbum = [ { id, d, who: [{ id, n, p }] } ]   vipDay
    Party music is made in the browser (no sound files); it only starts when someone taps 🎵. */
-import { esc, goalXP, companionOf, petHTML, wornItem, simulate, eventMode, seasonOf, hatHTML, randomHat, onPet, vipToday, partyHat, partyCrown, headFree } from "./game.js?v=20261116M";
-import { azToday } from "./collect.js?v=20261116M";
-import { heldWeapon } from "./quest.js?v=20261116M";
-import { tricksFor } from "./bond.js?v=20261116M";
+import { esc, goalXP, companionOf, petHTML, wornItem, simulate, eventMode, seasonOf, hatHTML, randomHat, onPet, vipToday, partyHat, partyCrown, headFree } from "./game.js?v=20261116U";
+import { azToday } from "./collect.js?v=20261116U";
+import { heldWeapon } from "./quest.js?v=20261116U";
+import { tricksFor } from "./bond.js?v=20261116U";
 
 export const PARTY_MIN = 10, PARTY_XP = 60;
 const DROP_MS = 20000, SOLO_MS = 15000, A = "assets/party/";
@@ -538,7 +538,7 @@ export function partyAdmin(students, cls) {
       ? stats + '<button class="btn small" data-party="watch' + k + '">\u{1F4FA} Party screen</button><button class="btn ghost small" data-act="' + stopAct + '">' + (k === "120" ? "Turn off" : "End early") + "</button>"
       : '<span class="small muted">' + desc + " (" + elig + " can come right now)</span><button class=\"btn small\" data-act=\"" + startAct + '">Start</button>') + "</div>";
   };
-  return '<div class="card"><div class="card-head"><h2>\u{1F389} Party Time</h2><span class="fact">60 XP: 10 minutes · VIP: until you turn it off</span></div>' +
+  return '<div class="card" id="partyCard"><div class="card-head"><h2>\u{1F389} Party Time</h2><span class="fact">60 XP: 10 minutes · VIP: until you turn it off</span></div>' +
     row("60", "\u{1F388} 60 XP Party", "Dance floor + Balloon Drop for everyone at 60+ XP. Favor when it ends.", "party60Start", "party60Stop") +
     row("120", "\u{1F451} " + goal + " XP VIP Party", "VIP Lounge, piñata, Spotlight Solos, group photo for everyone at " + goal + " XP today or on the last school day. Mystery Box + VIP look for the day.", "party120On", "party120Off") +
     '<p class="small muted">The 60 XP Party ends by itself after 10 minutes. The VIP Party stays open until you tap Turn off, so anyone who reaches 120 later can still come in. Favors open when a party ends.</p></div>';

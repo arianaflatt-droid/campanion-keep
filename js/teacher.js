@@ -1,61 +1,67 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261116M";
-import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261116M";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261116M";
-import { cpEarnedCalc } from "./room.js?v=20261116M";
-import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261116M";
-import { rewardFor, wkGoalOf, wkShare, ringDay, hasSwap, portalDay, addDays as pdAdd } from "./doors.js?v=20261116M";
-import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet, subReq, subRuleOn, SUB_DAY, addDays } from "./doors.js?v=20261116M";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing } from "./collector-ui.js?v=20261116M";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261116U";
+import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261116U";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261116U";
+import { cpEarnedCalc } from "./room.js?v=20261116U";
+import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261116U";
+import { rewardFor, wkGoalOf, wkShare, ringDay, hasSwap, portalDay, addDays as pdAdd } from "./doors.js?v=20261116U";
+import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet, subReq, subRuleOn, SUB_DAY, addDays } from "./doors.js?v=20261116U";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing } from "./collector-ui.js?v=20261116U";
 import {
   newsHTML, boostOn, boostHTML, countdownHTML, applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   boss2Of, boss2Prize, simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, weekCandyBefore, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, isFrost, isHeart, heartUnlocked, isLucky, luckyUnlocked, saveProblems, yetiUnlocked, wallMarks, WALL_BLOCK, BOSS_START_HP, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261116M";
-import { MQ_CUTOFF } from "./morning.js?v=20261116M";
-import { kindAdmin } from "./kindness.js?v=20261116M";
-import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261116M";
-import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261116M";
-import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261116M";
-import { passAdmin } from "./pass.js?v=20261116M";
-import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf, ULTRA_FAMS, CLUB_ULTRA_FAMS } from "./collect.js?v=20261116M";
-import { watchSecret, secretRef } from "./db.js?v=20261116M";
-import { secretAdmin, secretClick, autoPick, secretBanner } from "./secret.js?v=20261116M";
-import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef, newBattleRef, newsPicRef, watchNewsPics, newsPicFor } from "./db.js?v=20261116M";
-import { allNews, newsAdminHTML } from "./news.js?v=20261116M";
-import { nebbleAdmin } from "./pets.js?v=20261116M";
-import { mapAdmin } from "./readmap.js?v=20261116M";
-import { wheelTab, wheelClick } from "./subwheel.js?v=20261116M";
-import { tbRequestsCard, tbInvite, tbToSettle } from "./teachbattle.js?v=20261116M";
-import { noteDrop, takeBackPlan, dropCard } from "./clawback.js?v=20261116M";
-import { wheelSync, dailyPool, weeklyPool, makeSpin, WS_WEEKLY, testSpin } from "./wheel.js?v=20261116M";
-import { showdownSync, openShowdown, sdState, sdLine } from "./showdown.js?v=20261116M";
-import { lvlSync, lvlCard } from "./lvlup.js?v=20261116M";
-import { spinPrizeRef, newSpinPrizeRef, watchSpinPrizes, snapsAt } from "./db.js?v=20261116M";
-import { rewardAdmin, rgWaiting, rgOf, shrinkImage, needPicList } from "./weekgoal.js?v=20261116M";
-import { soloAdmin, soloCfg, soloOn, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261116M";
+} from "./game.js?v=20261116U";
+import { MQ_CUTOFF } from "./morning.js?v=20261116U";
+import { kindAdmin } from "./kindness.js?v=20261116U";
+import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync } from "./party.js?v=20261116U";
+import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261116U";
+import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261116U";
+import { passAdmin } from "./pass.js?v=20261116U";
+import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf, ULTRA_FAMS, CLUB_ULTRA_FAMS } from "./collect.js?v=20261116U";
+import { watchSecret, secretRef, talkRef, watchTalk } from "./db.js?v=20261116U";
+import { talkCard, talkSync } from "./talk.js?v=20261116U";
+import { shoutCard, shoutSync, setShoutMode } from "./shout.js?v=20261116U";
+import { mmState, mmStartCard, mmBar, mmScreenChip, mmNewsScreen, newsPopSync, battleKind, launchedToday, MM_NAME } from "./modes.js?v=20261116U";
+import { kdDiveWatch, kdDiveTest } from "./divewatch.js?v=20261116U";
+import { secretAdmin, secretClick, autoPick, secretBanner } from "./secret.js?v=20261116U";
+import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef, newBattleRef, newsPicRef, watchNewsPics, newsPicFor } from "./db.js?v=20261116U";
+import { allNews, newsAdminHTML } from "./news.js?v=20261116U";
+import { nebbleAdmin } from "./pets.js?v=20261116U";
+import { mapAdmin } from "./readmap.js?v=20261116U";
+import { wheelTab, wheelClick } from "./subwheel.js?v=20261116U";
+import { tbRequestsCard, tbInvite, tbToSettle } from "./teachbattle.js?v=20261116U";
+import { noteDrop, takeBackPlan, dropCard } from "./clawback.js?v=20261116U";
+import { wheelSync, dailyPool, weeklyPool, makeSpin, WS_WEEKLY, testSpin } from "./wheel.js?v=20261116U";
+import { showdownSync, openShowdown, sdState, sdLine } from "./showdown.js?v=20261116U";
+import { lvlSync, lvlCard } from "./lvlup.js?v=20261116U";
+import { spinPrizeRef, newSpinPrizeRef, watchSpinPrizes, snapsAt } from "./db.js?v=20261116U";
+import { rewardAdmin, rgWaiting, rgOf, shrinkImage, needPicList } from "./weekgoal.js?v=20261116U";
+import { soloAdmin, soloCfg, soloOn, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261116U";
 import { feederLink } from "./feeder.js?v=20261111e";
-import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261116M";
+import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261116U";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef, watchSeats, watchCards, deleteField
-} from "./db.js?v=20261116M";
-import { G, guardCard, guardClick, guardInput, autoSnap, personalLink, syncCards } from "./guard.js?v=20261116M";
-import { lockCard, lockClick } from "./lock.js?v=20261116M";
-import { revengeAdmin, revengeAction } from "./revenge.js?v=20261116M";
-import { heistAdmin, heistAction } from "./heist.js?v=20261116M";
-import { calendarCard, calendarEdit, autoExcuse } from "./calendar.js?v=20261116M";
-import { axoAdmin } from "./axolotl.js?v=20261116M";
-import { kdAdmin } from "./kingdom.js?v=20261116M";
-import { clubsAdmin, clubUpload, clubPicks, pickChange } from "./clubs.js?v=20261116M";
-import { planetAdmin, keepLaunchWatch, pjMinsNow } from "./planet.js?v=20261116M";
-import { soloScreenSync, soloScreenOpenNow } from "./soloscreen.js?v=20261116M";
-import { recessAdmin, recessAction } from "./playground.js?v=20261116M";
-import { rosterAdmin, rosterPreview, okEmail } from "./roster.js?v=20261116M";
-import { rosterList, rosterSave, seatsOnce, removeLinkSeats, myAccess, saveClassDir, createClass, adminList, setAdmin, isBuiltInAdmin, switchClass } from "./db.js?v=20261116M";
+} from "./db.js?v=20261116U";
+import { G, guardCard, guardClick, guardInput, autoSnap, personalLink, syncCards } from "./guard.js?v=20261116U";
+import { lockCard, lockClick } from "./lock.js?v=20261116U";
+import { revengeAdmin, revengeAction } from "./revenge.js?v=20261116U";
+import { heistAdmin, heistAction } from "./heist.js?v=20261116U";
+import { calendarCard, calendarEdit, autoExcuse } from "./calendar.js?v=20261116U";
+import { axoAdmin } from "./axolotl.js?v=20261116U";
+import { kdAdmin } from "./kingdom.js?v=20261116U";
+import { clubsAdmin, clubUpload, clubPicks, pickChange } from "./clubs.js?v=20261116U";
+import { planetAdmin, keepLaunchWatch, pjMinsNow, rocketSync } from "./planet.js?v=20261116U";
+import { soloScreenSync, soloScreenOpenNow, soloScreenOpen, soloScreenClose } from "./soloscreen.js?v=20261116U";
+import { recessAdmin, recessAction } from "./playground.js?v=20261116U";
+import { rosterAdmin, rosterPreview, okEmail } from "./roster.js?v=20261116U";
+import { rosterList, rosterSave, seatsOnce, removeLinkSeats, myAccess, saveClassDir, createClass, adminList, setAdmin, isBuiltInAdmin, switchClass } from "./db.js?v=20261116U";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
+// 📺 Nov 16: "?screen=1" = the student screen tab (projected). It only watches and shows; the console tab does all the saving.
+const SCREEN = (() => { try { return new URLSearchParams(location.search).has("screen"); } catch (e) { return false; } })();
 let mode = "boot";           // boot | noconfig | signin | denied | setup | guide | class | battle
 let day = todayIndex();
 const busy = {};
@@ -313,23 +319,51 @@ else onAuthStateChanged(auth, u => {
   });
 });
 function startConsole() {
+  if (SCREEN) return startScreen();
   unsub.push(watchClass(c => { cls = c; clsLoaded = true; setSeason(c); setTimeout(secretAuto, 0); if (studentsLoaded) { autoSnap(c, students); excuseSoon(); } if (c && !c.weekStart) updateDoc(classRef, { weekStart: dateOfDay(0) }).catch(() => {}); if (c && checkVersion(c, true, v => updateDoc(classRef, { appVersion: v }).catch(() => {}))) return; autoGobble(); lockBadges();
     if (c && c.haunt && !c.hauntSince) updateDoc(classRef, { hauntSince: azToday() }).catch(() => {});   // Hexaduck streaks start today if the mode was already on
     if (c && !c.collectorStart) updateDoc(classRef, { collectorStart: (() => { const t = new Date(); return t.getFullYear() + "-" + String(t.getMonth() + 1).padStart(2, "0") + "-" + String(t.getDate()).padStart(2, "0"); })() }).catch(() => {}); if (!c) mode = "setup"; else if (mode === "boot" || mode === "setup") mode = "guide"; registerClass(c); detectEvents(); liveRender(); },
     e => flash("Couldn’t load the class — " + e.code)));
   unsub.push(watchBattles(l => { battles = l; G.battles = l; addIds(l, battleRef); closeStale(l); tbSettle(l); lockBadges(); if (ctab === "collector") liveRender(); }, () => {}));
   unsub.push(watchTrades(l => { trades = l; addIds(l, tradeRef); if (cls) settleTrades(tctx()); if (ctab === "collector") liveRender(); }, () => {}));
-  unsub.push(watchStudents(list => { students = applyDisplayNames(list).sort(byAlpha); studentsLoaded = true; keepLaunchWatch(students, mode === "class" || mode === "battle"); try { soloScreenSync(students, cls); } catch (e) {} setTimeout(secretAuto, 0); setTimeout(prizeAuto, 0); autoSnap(cls, students); excuseSoon(); cardSoon(); autoGobble(); detectEvents(); lockBadges(); liveRender(); },
+  unsub.push(watchStudents(list => { students = applyDisplayNames(list).sort(byAlpha); studentsLoaded = true; keepLaunchWatch(students, mode === "class" || mode === "battle"); kdDiveWatch(students, cls, mode === "class" || mode === "battle"); try { soloScreenSync(students, cls); } catch (e) {} setTimeout(secretAuto, 0); setTimeout(prizeAuto, 0); autoSnap(cls, students); excuseSoon(); cardSoon(); autoGobble(); detectEvents(); lockBadges(); liveRender(); },
     e => flash("Couldn’t load students — " + e.code)));
   unsub.push(watchCards(l => { G.cards = l; cardSoon(); }, () => {}));
   unsub.push(watchSeats(l => { G.seats = l; if (ctab === "students") liveRender(); }, () => {}));
   unsub.push(watchSpinPrizes(list => { spinPrizes = list || []; if (ctab === "daily") liveRender(); }));   // 🎡 Spin to Pick prize lists
   unsub.push(watchNewsPics(m => { npics = m || {}; npic = npics.pic || null; if (ctab === "daily" || mode === "class") liveRender(); }));
   unsub.push(watchRewardPics(m => { rpics = m; if (ctab === "rewards") liveRender(); }));
+  unsub.push(watchTalk(d => { talkDoc = d || {}; if (ctab === "daily") liveRender(); }));
   unsub.push(watchSecret(d => { secretDoc = d || {}; secretLoaded = true; secretAuto(); if (ctab === "daily") liveRender(); }));
   unsub.push(watchLive(d => { live = d; autoLive(); if (ctab === "daily") liveRender(); }, () => {}));
 }
-setInterval(() => { autoLive(); }, 60000);
+setInterval(() => { if (!SCREEN) autoLive(); }, 60000);
+// 📺 the student screen tab: class + students + announcement pictures only, and no saving jobs (the console tab runs those)
+function startScreen() {
+  unsub.push(watchClass(c => { cls = c; clsLoaded = true; setSeason(c); if (c && checkVersion(c, false)) return; if (mode === "boot" || mode === "setup" || mode === "guide") mode = "class"; registerClass(c); detectEvents(); liveRender(); },
+    e => flash("Couldn\u2019t load the class \u2014 " + e.code)));
+  unsub.push(watchStudents(list => { students = applyDisplayNames(list).sort(byAlpha); studentsLoaded = true; keepLaunchWatch(students, true); kdDiveWatch(students, cls, true); try { soloScreenSync(students, cls); } catch (e) {} detectEvents(); liveRender(); },
+    e => flash("Couldn\u2019t load students \u2014 " + e.code)));
+  unsub.push(watchNewsPics(m => { npics = m || {}; npic = npics.pic || null; liveRender(); }));
+}
+// 📺 the student screen follows the step Ms. Ariana is on (Battle Area / event screen / party / the Keep)
+let scrKey = "", scrParty = "", scrSolo = "";
+function screenFollow() {
+  if (!SCREEN || !cls) return;
+  const S = mmState(cls), key = S ? S.id + ":" + S.i + ":" + ((cls.mm && cls.mm.v) || "") : "", want = S && S.step.k === "battle" ? battleKind(cls) : "none";
+  if (key !== scrKey) {
+    scrKey = key;
+    if (soloScreenOpen() && want !== "solo") soloScreenClose();
+    if (scrParty) { scrParty = ""; partyClick({ dataset: { party: "close" } }, partyCtx()).catch(() => {}); }
+    setTimeout(() => scrollTo({ top: 0 }), 0);
+  }
+  if (mode === "class" || mode === "battle") mode = want === "battle" ? "battle" : "class";
+  if (want === "solo" && scrSolo !== key) { scrSolo = key; soloScreenSync(students, cls); soloScreenOpenNow(); }
+  if (S && S.step.party) {
+    const k = S.step.party, P = k === "120" ? cls.party120 : cls.party60, on = k === "120" ? !!(P && P.on) : !!(P && Number(P.end) > Date.now());
+    if (on && scrParty !== P.id) { scrParty = P.id; setTimeout(() => partyClick({ dataset: { party: "watch" + k } }, partyCtx()).catch(() => {}), 0); }
+  }
+}
 
 /* ================= celebrations (class view) ================= */
 let unlockWriting = false, lastHealed = null;
@@ -630,8 +664,16 @@ function restoreFields(saved) {
 }
 function render(force) {
   if (ptrDown) { heldRender = heldRender || !!force; return; }
+  if (SCREEN) try { screenFollow(); } catch (e) {}
+  try { rocketSync(cls, students, SCREEN || mode === "class" || mode === "battle"); } catch (e) {}
+  try { const S0 = mmState(cls); newsPopSync({ cls, students, pics: npics, teacher: true, skip: mode === "guide" || (SCREEN && S0 && S0.step.k === "news"),
+    close: () => updateDoc(classRef, { "newsShow.open": false }).catch(e => flash("Couldn\u2019t close it \u2014 " + (e.code || e.message))) }); } catch (e) {}
   try { wheelSync({ cls, teacher: true, students, close: () => updateDoc(classRef, { "wspin.open": false }).catch(e => flash("Couldn\u2019t close it \u2014 " + (e.code || e.message))) }); } catch (e) {}
   try { showdownSync({ cls, teacher: true, save: sdSave, setShow: sdShow }); } catch (e) {}
+  try { shoutSync({ cls, teacher: true, students, manual: talkDoc.shout || [], flash, rerender: () => render(),
+    saveManual: async L => { talkDoc = Object.assign({}, talkDoc, { shout: L }); render(); try { await setDoc(talkRef, talkDoc); } catch (e) { flash("Couldn\u2019t save \u2014 " + (e.code || e.message)); } },
+    show: async S => { try { await updateDoc(classRef, { shout: S }); cls.shout = S; flash("\u{1F4E3} Shoutouts are on every screen.", true); } catch (e) { flash("Couldn\u2019t show it \u2014 " + (e.code || e.message)); } render(); },
+    close: () => updateDoc(classRef, { "shout.open": false }).catch(e => flash("Couldn\u2019t close it \u2014 " + (e.code || e.message))) }); } catch (e) {}
   try { lvlSync({ cls, teacher: true, flash, rerender: () => render(), close: () => updateDoc(classRef, { "lvlup.open": false }).catch(e => flash("Couldn\u2019t close it \u2014 " + (e.code || e.message))),
     show: d => updateDoc(classRef, { lvlup: d }).then(() => flash("\u{1F4A1} The level-up shoutout is on every screen.")).catch(e => flash("Couldn\u2019t show it \u2014 " + (e.code || e.message))) }); } catch (e) {}
   if (!force && mode === "guide" && ctab === "collector" && collectorBusy()) return;   // don't redraw mid egg-hatch or page flip
@@ -643,12 +685,14 @@ function render(force) {
 
   let top = "";
   if (mode === "battle" && !battleOn(cls)) mode = "guide";   // no Battle Area outside special modes
+  if (SCREEN && mode === "guide") mode = "class";
   const bat = battleOn(cls) ? '<button class="btn small" data-act="battleView" style="background:#5B2A86;">\u2694\uFE0F Battle Area</button>' : "";
   const sk = soloOn(cls) ? soloCfg(cls) : null;   // 📽️ Nov 7: the class screen for solo potions / feast (projector)
   const ssBtn = sk ? '<button class="btn small" data-act="soloScreen" style="background:#7A3FB0;">' + (sk.key === "haunt" ? "\u{1F9EA} Class Cauldron" : sk.key === "gobble" ? "\u{1F37D}\uFE0F Class Feast" : sk.icon + " Class " + esc(sk.name)) + "</button>" : "";
   if (mode === "guide") top = classPicker() + '<button class="btn small" data-act="classView">Class view</button>' + bat + ssBtn + '<button class="btn ghost small" data-act="signOut">Sign out</button>';
   else if (mode === "class") top = bat + ssBtn + '<button class="btn ghost small" data-act="testParty">Test celebration</button><button class="btn ghost small" data-act="backConsole">Back to console</button>';
   else if (mode === "battle") top = ssBtn + '<button class="btn small" data-act="classView">The Keep</button><button class="btn ghost small" data-act="backConsole">Back to console</button>';
+  if (SCREEN && (mode === "class" || mode === "battle")) top = "";
   document.getElementById("topActions").innerHTML = top;
 
   let h = flashMsg ? '<div class="banner ' + (flashOk ? "info" : "bad") + '">' + esc(flashMsg) + "</div>" : "";
@@ -657,18 +701,21 @@ function render(force) {
   else if (mode === "signin") h += '<div class="card"><div class="card-head"><h2>Teacher sign-in</h2></div><p class="lede">Sign in with your school Google account.</p><div class="row" style="margin-top:14px;"><button class="btn" data-act="signIn">Sign in with Google</button></div><p class="lede" style="margin-top:12px;font-size:13.5px;">Students: use the student link your teacher sent.</p></div>';
   else if (mode === "denied") h += '<div class="card"><h2>This console is for the teacher</h2><p class="lede" style="margin-top:8px;">' + esc(user && user.email) + ' isn’t a teacher of any class yet. Ask your school’s Companion Keep admin to add you.</p><div class="row" style="margin-top:14px;"><button class="btn ghost" data-act="signOut">Use a different account</button></div></div>';
   else if (mode === "setup") h += viewSetup();
-  else if (mode === "class") h += secretBanner(cls) + miniBanner(students, cls) + partyBanner(students, cls) + shoutTicker(students, cls) + keepHTML(cls, students, popIds, badgeShout());
-  else if (mode === "battle") h += shoutTicker(students, cls) + battleHTML(cls, students, battleFx) + ghost2Card() + (isFrost(cls) ? "" : healControls());
+  else if (SCREEN && mode === "class" && mmState(cls) && mmState(cls).step.k === "news") h += mmScreenChip(cls) + mmNewsScreen(cls, students, npics);
+  else if (mode === "class") h += (SCREEN ? mmScreenChip(cls) : "") + secretBanner(cls) + miniBanner(students, cls) + partyBanner(students, cls) + shoutTicker(students, cls) + keepHTML(cls, students, popIds, badgeShout());
+  else if (mode === "battle") h += (SCREEN ? mmScreenChip(cls) : "") + shoutTicker(students, cls) + battleHTML(cls, students, battleFx) + ghost2Card() + (isFrost(cls) ? "" : healControls());
   else {
     const np = prizesOpen(), nd = waitingDoors(students, cls).length;
     const tabs = [["daily", "\u{1F4C5} Daily"], ["students", "\u{1F43E} Students"], ["clubs", "\u{1F3A8} Clubs"], ["collector", "\u{1F95A} Collector"], ["events", "\u2728 Events" + (eventMode(cls) ? " " + SEASON.icon : "") + (np + nd ? ' <span class="tbadge" aria-label="' + (np + nd) + ' to check">' + (np + nd) + "</span>" : "")], ["rewards", "\u{1F48E} Vault Rewards"], ["quest", "\u{1F5FA}\uFE0F Quest"], ["settings", "\u2699\uFE0F Settings"]];
+    { const S = mmState(cls), key = S ? S.id + ":" + S.i : ""; if (key !== mmKey) { mmKey = key; mmScroll = !!S; if (S) { ctab = S.step.tab; if (S.step.k === "shout") setShoutMode(S.k); } } }
     if (!tabs.some(x => x[0] === ctab)) ctab = "daily";
+    h += mmBar(cls, students);
     if (nd && nd > doorHidden) h += '<div class="banner prizealert"><span>\u{1F6AA} <b>' + nd + " door" + (nd === 1 ? "" : "s") + "</b> to check" + doorNames() + '</span><span class="row" style="gap:8px;"><button class="btn small" data-act="goDoors">Check doors</button><button class="btn ghost small" data-act="hideDoors">Hide</button></span></div>';
     { const pn = portalList().filter(r => !r.sent).length; if (pn) h += '<div class="banner prizealert"><span>\u{1F4E4} <b>' + pn + " student" + (pn === 1 ? "" : "s") + "</b> on their own plan to send to the portal" + '</span><span class="row" style="gap:8px;"><button class="btn small" data-ctab="daily">See the list</button></span></div>'; }
     { const np2 = needPicList(students, cls); if (np2.length) h += '<div class="banner prizealert"><span>\u{1F4F8} <b>' + np2.length + " new vault prize" + (np2.length === 1 ? "" : "s") + "</b> picked by students: add a picture for " + np2.map(x => esc(x.name) + " (" + esc(x.reward.name || "prize") + ")").join(", ") + '</span><span class="row" style="gap:8px;"><button class="btn small" data-ctab="rewards">Add pictures</button><button class="npx" data-act="npOk" title="The pictures already there are fine: hide this">\u00d7</button></span></div>'; }
     if (np && np > prizeHidden) h += '<div class="banner prizealert"><span>\u{1F381} <b>' + np + " prize" + (np === 1 ? "" : "s") + "</b> to order or give" + prizeNames() + '</span><span class="row" style="gap:8px;"><button class="btn small" data-act="goPrizes">View prizes</button><button class="btn ghost small" data-act="hidePrizes">Hide</button></span></div>';
     h += '<div class="tabs ctabs" role="tablist">' + tabs.map(([k, l]) => '<button role="tab" class="tab' + (ctab === k ? " on" : "") + '" data-ctab="' + k + '" aria-selected="' + (ctab === k) + '">' + l + "</button>").join("") + "</div>";
-    if (ctab === "daily") h += dropCard(students, cls) + viewDaily() + secretAdmin(students, cls, secretDoc) + lvlCard(cls, students, busy) + vaultWeekCard() + portalCard() + spinCard() + showdownCard() + planetAdmin(students, cls) + newsAdminHTML(cls, students, npics, newsEditing) + countdownAdmin() + boostAdmin() + miniAdmin(students, cls) + partyAdmin(students, cls) + recessAdmin(students, cls) + surpriseAdmin(students, cls) + viewWeekDoor() + viewRewards() + nebbleAdmin(students, cls);   // Nov 13: Nebbles at the bottom, Secret Students under the students
+    if (ctab === "daily") h += mmStartCard(cls) + dropCard(students, cls) + talkHTML() + shoutCard(students, cls, talkDoc.shout || []) + viewDaily() + secretAdmin(students, cls, secretDoc) + lvlCard(cls, students, busy) + vaultWeekCard() + portalCard() + spinCard() + showdownCard() + planetAdmin(students, cls) + newsAdminHTML(cls, students, npics, newsEditing) + countdownAdmin() + boostAdmin() + miniAdmin(students, cls) + partyAdmin(students, cls) + recessAdmin(students, cls) + surpriseAdmin(students, cls) + viewWeekDoor() + viewRewards() + nebbleAdmin(students, cls);   // Nov 13: Nebbles at the bottom, Secret Students under the students
     else if (ctab === "students") h += viewAssign() + minCard("viewas", viewAsCard(), true) + minCard("standings", viewStandings(), true) + minCard("roster", rosterAdmin(students, busy)) + minCard("lock", lockCard(students, cls)) + minCard("pass", passAdmin(students, cls)) +
       minCard("losses", viewLosses()) + minCard("subswap", subSwapCard()) + minCard("wkgoal", wkGoalCard()) + minCard("axo", axoAdmin(students, cls, busy, esc)) + minCard("kd", kdAdmin(students, cls));   // Nov 6: personal-link cards removed (Google sign-in), clubs got their own tab
     else if (ctab === "clubs") h += clubsAdmin(students, cls, busy);
@@ -686,6 +733,7 @@ function render(force) {
   h = teacherize(h);
   app.innerHTML = h + (mode === "guide" ? '<p class="muted small" style="text-align:center;margin:18px 0 6px;opacity:.6;">Version ' + APP_V + "</p>" : "") + (mode === "guide" && ctab === "collector" && cls ? collectorOverlays(tctx()) : "");
   if (mode === "guide") try { foldAll(app); } catch (e) {}
+  if (mode === "guide") try { mmFocus(); } catch (e) {}
   if (battleScroll != null) { scrollTo(0, battleScroll); battleScroll = null; }
   if (cls) partySync(partyCtx());
   miniSync(cls);
@@ -1262,6 +1310,13 @@ function portalList() {
 }
 /* 💎 Nov 15 (Ms. Ariana): who opened their Treasure Vault last week (◀ ▶ for earlier weeks). Reads nothing new.
    Opened = s.vault[week] === "open". Earned, not opened yet = reached it (still openable for the week right after). */
+// 📝 Nov 16: her own checklist (js/talk.js), saved in private/talk
+let talkDoc = {}, talkOpen = {};
+function talkHTML() {
+  talkSync({ doc: talkDoc, students, open: talkOpen, flash, rerender: () => render(),
+    save: async d => { talkDoc = d; render(); try { await setDoc(talkRef, d); } catch (e) { flash("Couldn\u2019t save the checklist \u2014 " + (e.code || e.message)); } } });
+  return talkCard(students, talkDoc, talkOpen);
+}
 function vaultWeekCard() {
   if (!cls) return "";
   const back = Number(busy.vwBack) || 1, wk = addDays(weekKey(cls), -7 * back), kids = students.filter(x => x.companionId && !x.isTeacher);
@@ -2761,6 +2816,7 @@ document.addEventListener("click", async ev => {
   }
   if (act === "hidePrizes") { prizeHidden = prizesOpen(); render(); return; }
   if (act === "signOut") { await signOut(auth); return; }
+  if (act.startsWith("mm")) { await mmAction(act, el); return; }
   if (act === "soloScreen") { soloScreenSync(students, cls); soloScreenOpenNow(); return; }
   if (act === "classView") { mode = "class"; render(); scrollTo({ top: 0 }); return; }
   if (act === "backConsole") { mode = "guide"; render(); return; }
@@ -3251,3 +3307,42 @@ document.addEventListener("keydown", ev => {
 render();
 
 partyTicker(() => cls, () => render());
+
+/* ---------- ☀️ / 🌇 the guided modes (Nov 16): the console side ---------- */
+let mmKey = "", mmScroll = false, scrWin = null;
+function mmFocus() {
+  const S = mmState(cls); if (!S) return;
+  const c = S.step.card && document.getElementById(S.step.card);
+  if (c) { c.classList.add("mmfocus"); if (c.classList.contains("folded")) applyFold(c, false); }
+  if (mmScroll) { mmScroll = false; setTimeout(() => { const bar = document.querySelector(".mmbar"), off = bar ? bar.offsetHeight + 12 : 12;
+    if (c) scrollTo({ top: Math.max(0, c.getBoundingClientRect().top + scrollY - off), behavior: "smooth" }); else scrollTo({ top: 0, behavior: "smooth" }); }, 60); }
+}
+function openScreen() {
+  const u = new URL(location.href); u.searchParams.set("screen", "1"); u.hash = "";
+  try { if (scrWin && !scrWin.closed) { scrWin.focus(); return; } } catch (e) {}
+  scrWin = window.open(u.toString(), "ckscreen");
+  if (!scrWin) flash("Your browser blocked the new tab. Allow pop-ups for this site, then tap \u{1F4FA} again.");
+}
+async function mmSet(data, msg) { try { await updateDoc(classRef, data); if (msg) flash(msg, true); } catch (e) { flash("Couldn\u2019t save that \u2014 " + (e.code || e.message)); } }
+async function mmAction(act, el) {
+  if (!cls) return;
+  const S = mmState(cls);
+  if (act === "mmScreen") { openScreen(); return; }
+  if (act === "mmDiveTest") { kdDiveTest("Test Student", cls, students.find(s => s.companionId)); return; }
+  if (act === "mmStart") { const k = el.dataset.k === "pm" ? "pm" : "am"; openScreen(); await mmSet({ mm: { on: true, k, i: 0, id: "mm" + Date.now().toString(36) } }, MM_NAME[k] + " is on. The student screen follows along."); return; }
+  if (!S) return;
+  // leaving the Announcements step closes them on every screen too
+  const leave = d => (S.step.k === "news" && cls.newsShow && cls.newsShow.open ? Object.assign({ "newsShow.open": false }, d) : d);
+  if (act === "mmEnd") { await mmSet(leave({ mm: { on: false } }), "Guided mode ended."); return; }
+  if (act === "mmNext") { if (S.last) { await mmSet(leave({ mm: { on: false } }), "\u2705 All done! " + MM_NAME[S.k] + " is finished."); return; } await mmSet(leave({ "mm.i": S.i + 1 })); return; }
+  if (act === "mmBack") { if (S.i) await mmSet(leave({ "mm.i": S.i - 1 })); return; }
+  if (act === "mmGo") { const i = Number(el.dataset.i); if (i >= 0 && i < S.steps.length && i !== S.i) await mmSet(leave({ "mm.i": i })); return; }
+  if (act === "mmNewsOpen") { await mmSet({ newsShow: { id: "nw" + Date.now().toString(36), open: true } }, "\u{1F4F0} The announcements are open on every screen."); return; }
+  if (act === "mmView") { await mmSet({ "mm.v": el.dataset.v === "battle" ? "battle" : "solo" }); return; }
+  if (act === "mmNewsClose") { await mmSet({ "newsShow.open": false }); return; }
+  if (act === "mmRockets") {
+    const l = launchedToday(students).map(s => ({ id: s.id, n: s.name || "A student" }));
+    if (!l.length) { flash("Nobody has launched to Planet JP today yet."); return; }
+    await mmSet({ rkShow: { id: "rk" + Date.now().toString(36), t: Date.now(), l } }, "\u{1F680} " + l.length + " rocket" + (l.length === 1 ? "" : "s") + " blasting off on every screen!");
+  }
+}

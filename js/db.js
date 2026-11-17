@@ -7,7 +7,7 @@ import {
   getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, signInAnonymously
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
-import { firebaseConfig, CLASS_ID, TEACHER_EMAILS, ADMIN_EMAILS, switchClass } from "./firebase-config.js?v=20261116M";
+import { firebaseConfig, CLASS_ID, TEACHER_EMAILS, ADMIN_EMAILS, switchClass } from "./firebase-config.js?v=20261116U";
 export { CLASS_ID, switchClass };
 
 // Teacher preview (student.html?s=ID&preview=1): the page shows a student's view, but nothing is ever written.
@@ -45,6 +45,9 @@ export function watchNewsPics(cb) { return onSnapshot(collection(db, "classes", 
 export const feederKeyRef = db ? doc(db, "classes", CLASS_ID, "private", "feeder") : null;
 // 🕵️ Secret Students (Nov 2026): today's picks live here so students can't see them (teacher-only)
 export const secretRef = db ? doc(db, "classes", CLASS_ID, "private", "secret") : null;
+// 📝 Nov 16: Ms. Ariana's own checklist (teachers only: the rules keep /private/ teacher-only)
+export const talkRef = db ? doc(db, "classes", CLASS_ID, "private", "talk") : null;
+export function watchTalk(cb) { return onSnapshot(talkRef, snap => cb(snap.exists() ? snap.data() : null), () => cb(null)); }
 export function watchSecret(cb) { return onSnapshot(secretRef, snap => cb(snap.exists() ? snap.data() : null), () => cb(null)); }
 export function watchLive(cb, onErr) { return onSnapshot(liveRef, snap => cb(snap.exists() ? snap.data() : null), onErr); }
 export const studentRef = id => doc(db, "classes", CLASS_ID, "students", id);
