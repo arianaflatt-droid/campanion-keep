@@ -8,11 +8,11 @@
    • The café: 6 tables × 6 seats. Everyone who cooked today sits with their snack, until 12:55.
    Saved in planet.cf (see cafe-data.js), one write per day. Saves go through safari.js planetSave so the safari and the
    café never overwrite each other. Teacher preview saves nothing. */
-import { esc } from "./game.js?v=20261116h";
-import { azToday } from "./collect.js?v=20261116h";
-import { planetNow, planetSave, planetCtx, freshSt } from "./safari.js?v=20261116h";
-import { tableImgOf } from "./shop-data.js?v=20261116h";
-import { REGULARS, SPECIALS, SNACKS, SNACK_BY, MONTHS, CAFE_KEEP, cafeOf, perfectOf, snackKept, keptCount } from "./cafe-data.js?v=20261116h";
+import { esc } from "./game.js?v=20261116j";
+import { azToday } from "./collect.js?v=20261116j";
+import { planetNow, planetSave, planetCtx, freshSt } from "./safari.js?v=20261116j";
+import { tableImgOf } from "./shop-data.js?v=20261116j";
+import { REGULARS, SPECIALS, SNACKS, SNACK_BY, MONTHS, CAFE_KEEP, cafeOf, perfectOf, snackKept, keptCount } from "./cafe-data.js?v=20261116j";
 export { SNACKS, cafeOf, snackKept };
 
 const P = "assets/planet/cafe/";

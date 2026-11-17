@@ -9,11 +9,11 @@
      { own: { key: 1 }, pads: [8 keys or ""], dec: { key: 1 }, ds: [6 keys or ""], n: buys,
        in: { room: date paid }, gd: { s: waterings, f: flower }, fl: { flower: 1 }, rc: { recipe: 1 }, cs: { constellation: 1 },
        hs: { game: best }, pl: { d, n } (playhouse taps today), cr: palace crown date, gy: gym glow date } */
-import { esc } from "./game.js?v=20261116h";
-import { azToday } from "./collect.js?v=20261116h";
-import { planetNow, planetSave, planetCtx, freshSt } from "./safari.js?v=20261116h";
-import { ownedOf, nebImg, nebHappy, NEB } from "./pets.js?v=20261116h";
-import { GAMES, gameByKey, play } from "./spacegames.js?v=20261116h";
+import { esc } from "./game.js?v=20261116j";
+import { azToday } from "./collect.js?v=20261116j";
+import { planetNow, planetSave, planetCtx, freshSt } from "./safari.js?v=20261116j";
+import { ownedOf, nebImg, nebHappy, NEB } from "./pets.js?v=20261116j";
+import { GAMES, gameByKey, play } from "./spacegames.js?v=20261116j";
 
 const M = "assets/planet/moon/";
 export const BUILDINGS = [

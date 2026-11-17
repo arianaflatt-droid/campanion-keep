@@ -3981,3 +3981,8 @@ body.kdmode .kdhead h2{ display:none; }
 .kq-rankgear{ display:flex; align-items:center; gap:10px; background:#fff; border-radius:16px; padding:6px 12px; margin:6px auto; max-width:420px; box-shadow:0 2px 8px rgba(0,0,0,.12); text-align:left; }
 .kq-rankgear img{ width:64px; height:64px; object-fit:contain; }
 .wstest{ background:#FFF3C4; color:#5A3B00; border-radius:12px; padding:8px 12px; margin:0 0 8px; font-size:14px; }
+
+/* ⚠️ rewards removed notice (Nov 16): blocks the Keep until I Understand */
+.xrlock{ position:fixed; inset:0; z-index:2147483000; background:rgba(20,16,40,.88); display:grid; place-items:center; padding:16px; }
+.xrbox{ background:#fff; color:#2D2150; border-radius:22px; padding:26px 24px; max-width:460px; text-align:center; box-shadow:0 0 0 5px #E5484D, 0 20px 50px rgba(0,0,0,.4); }
+.xrbox h2{ margin:6px 0 10px; } .xrbox p{ font-size:18px; line-height:1.4; margin:0 0 18px; } .xric{ font-size:54px; }
