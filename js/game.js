@@ -1,14 +1,14 @@
-import { PARTY_SPOT } from "./party-spot.js?v=20261117f";
-import { CREATURE_EYES, CREATURE_SPOTS } from "./salon-fit.js?v=20261117f";
-import { CREATURE_LAYOUT, CREATURE_FIT_ID, CREATURE_NECK_ID } from "./creature-fit.js?v=20261117f";
-import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261117f";
-import { heldWeapon } from "./quest.js?v=20261117f";
-import { SNACKS as CAFE_SNACKS, snackKept } from "./cafe-data.js?v=20261117f";
-import { orbitImgOf } from "./shop-data.js?v=20261117f";
+import { PARTY_SPOT } from "./party-spot.js?v=20261117g";
+import { CREATURE_EYES, CREATURE_SPOTS } from "./salon-fit.js?v=20261117g";
+import { CREATURE_LAYOUT, CREATURE_FIT_ID, CREATURE_NECK_ID } from "./creature-fit.js?v=20261117g";
+import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261117g";
+import { heldWeapon } from "./quest.js?v=20261117g";
+import { SNACKS as CAFE_SNACKS, snackKept } from "./cafe-data.js?v=20261117g";
+import { orbitImgOf } from "./shop-data.js?v=20261117g";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261117f";
+export const APP_V = "20261117g";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -633,7 +633,7 @@ function partyStyle(c, kind) {
   // sits ON the head (it was floating above or sitting on the back for a lot of creatures)
   // Nov 17 (Ms. Ariana): the hand-placed head spots (salon) are used for party hats and crowns too
   const Q = c && c.creature && CREATURE_SPOTS[c.formId], LY = c && c.creature && CREATURE_LAYOUT[c.formId];
-  const sp = Q && LY ? (hw => [LY[0] + 0.125 + Q[3] * LY[2], LY[1] + (Q[4] + hw * 0.08) * LY[2], hw * LY[2] * 0.55])(Math.min(Q[5], 0.34)) : c && c.creature && PARTY_SPOT[c.formId];
+  const sp = Q && LY ? (hw => [LY[0] + 0.125 + Q[3] * LY[2], LY[1] + (Q[4] + hw * 0.02) * LY[2], hw * LY[2] * 0.55])(Math.min(Q[5], 0.34)) : c && c.creature && PARTY_SPOT[c.formId];
   if (sp) { const fs = kind === "hat" ? sp[2] / 0.72 : sp[2] / 1.0;
     return pos(sp[0], sp[1]) + "font-size:" + fs.toFixed(3) + "em;transform:translate(-50%,-" + (kind === "hat" ? 88 : 90) + "%) rotate(" + (kind === "hat" ? -6 : -4) + "deg);transform-origin:50% 90%;"; }
   const f = (c && c.fit) || {}, [x0, y0, sz0, r0] = f.hat || [0.6, 0.2, 0.45, 0];
