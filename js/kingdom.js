@@ -62,20 +62,20 @@ export function kdTimeOk(cls) {
 }
 // 🎟️ Nov 15 (Ms. Ariana): a Kingdom pass for this week only (e.g. a student testing their first week): cls.kdPass[week][studentId] = true
 export const kdPass = (st, cls) => !!(st && cls && ((cls.kdPass || {})[wk(cls)] || {})[st.id]);
-/* 🦃 Nov 17 (Ms. Ariana): over a break (weekdays marked off on the school calendar) the Kingdom also opens
-   - on a break day when that day has 120 XP + all its rings (25 Math, Reading, Language), any time that day, or
-   - for the rest of a break week once the week has 600 XP + the week's rings closed (25 a day × 5 = 125 of each). */
+/* 🦃 Nov 17 (Ms. Ariana): in a break week (weekdays marked off on the school calendar) the Kingdom opens only with the normal
+   weekly requirement: 600 XP + the week's rings closed (25 a day × 5 = 125 of each), even though break days don't need rings.
+   (Planet JP is different: 120 XP + that day's rings opens it on a break day.) No daily 120 path for the Kingdom. */
 const breakWeek = cls => { const mon = wk(cls); for (let i = 0; i < 5; i++) if (pjBreakDay(cls, addDays(mon, i))) return true; return false; };
 export function kdBreak(st, cls) {
   if (!st || !cls || !breakWeek(cls)) return null;
-  const today = azToday(), mon = wk(cls), d = axoDay(st, cls, today), dayOk = pjBreakDay(cls, today) && d.good;
+  const today = azToday(), mon = wk(cls), d = axoDay(st, cls, today);
   const by = {}; let xp = 0;
   for (let i = 0; i < 7; i++) { const iso = addDays(mon, i), x = axoDay(st, cls, iso); if (iso > today) break; xp += x.xp; x.rows.forEach(r => { by[r.src] = by[r.src] || { name: r.name, have: 0, need: r.need * 5 }; by[r.src].have += r.have; }); }
   const rows = Object.values(by), weekOk = xp >= 600 && rows.every(r => r.have >= r.need);
-  return { dayOk, weekOk, ok: dayOk || weekOk, day: d, xp, rows };
+  return { weekOk, ok: weekOk, day: d, xp, rows };
 }
-const kdBreakOk = (st, cls) => { const b = kdBreak(st, cls); return !!(b && b.ok); };
-export const kdUnlocked = (st, cls) => kdOn(cls) && !!st && (vaultMet(st, cls) || kdPass(st, cls) || kdBreakOk(st, cls)) && kdTimeOk(cls);
+const kdMet = (st, cls) => { const b = kdBreak(st, cls); return b ? b.ok : vaultMet(st, cls); };   // a break week: 600 XP + 125 of each ring (the Vault rule would skip the rings)
+export const kdUnlocked = (st, cls) => kdOn(cls) && !!st && (kdMet(st, cls) || kdPass(st, cls)) && kdTimeOk(cls);
 export const kdTodo = (st, cls) => { if (!kdUnlocked(st, cls)) return false; const k = kdOf(st, cls); return !k.t || !k.c || (Number(k.dv) || 0) < KD_DIVES; };
 // which minigame this week: the 1st–4th Monday of the month (a 5th Monday plays week 1 again)
 export const tripGame = cls => (typeof window !== "undefined" && window.__kdGame != null) ? window.__kdGame : (Math.ceil(Number(String(wk(cls)).slice(8, 10)) / 7) - 1) % 4;
@@ -127,9 +127,7 @@ function gateHTML(st, cls) {
 function breakGate(st, cls) {
   const b = kdBreak(st, cls); if (!b) return "";
   const chip = (ok, txt) => '<span class="kdreq' + (ok ? " ok" : "") + '">' + txt + (ok ? " ✅" : "") + "</span>";
-  return '<p style="margin:12px 0 4px;"><b>\u{1F983} Break bonus!</b> Open the gate <b>today</b> with <b>' + b.day.goal + " XP + your rings</b> today:</p><div class=\"kdreqs\">" +
-    chip(b.day.xp >= b.day.goal, "⭐ " + Math.min(b.day.xp, b.day.goal) + " / " + b.day.goal + " XP today") + b.day.rows.map(r => chip(r.have >= r.need, esc(r.name) + " " + Math.min(r.have, r.need) + " / " + r.need + " today")).join("") +
-    '</div><p style="margin:10px 0 4px;">…or open it for the rest of the week with <b>600 XP + all your rings</b> this week:</p><div class="kdreqs">' +
+  return '<p style="margin:12px 0 4px;"><b>\u{1F983} Break week:</b> the gate opens with <b>600 XP + all your rings</b> this week (25 a day, even on break days):</p><div class="kdreqs">' +
     chip(b.xp >= 600, "⭐ " + Math.min(b.xp, 600) + " / 600 XP") + b.rows.map(r => chip(r.have >= r.need, esc(r.name) + " " + Math.min(r.have, r.need) + " / " + r.need)).join("") + "</div>";
 }
 
