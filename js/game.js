@@ -1,13 +1,14 @@
-import { PARTY_SPOT } from "./party-spot.js?v=20261117e";
-import { CREATURE_LAYOUT, CREATURE_FIT_ID, CREATURE_NECK_ID } from "./creature-fit.js?v=20261117e";
-import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261117e";
-import { heldWeapon } from "./quest.js?v=20261117e";
-import { SNACKS as CAFE_SNACKS, snackKept } from "./cafe-data.js?v=20261117e";
-import { orbitImgOf } from "./shop-data.js?v=20261117e";
+import { PARTY_SPOT } from "./party-spot.js?v=20261117f";
+import { CREATURE_EYES, CREATURE_SPOTS } from "./salon-fit.js?v=20261117f";
+import { CREATURE_LAYOUT, CREATURE_FIT_ID, CREATURE_NECK_ID } from "./creature-fit.js?v=20261117f";
+import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261117f";
+import { heldWeapon } from "./quest.js?v=20261117f";
+import { SNACKS as CAFE_SNACKS, snackKept } from "./cafe-data.js?v=20261117f";
+import { orbitImgOf } from "./shop-data.js?v=20261117f";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261117e";
+export const APP_V = "20261117f";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -630,7 +631,9 @@ const PARTY_FIT = { 9: [0.18, 0, 1.25, 0], 402: [0.2, 0, 0.75, 0], 412: [0, 0.1,
 function partyStyle(c, kind) {
   // Nov 4: creature pictures use a spot worked out from their eyes and the top of their head (js/party-spot.js), so the hat
   // sits ON the head (it was floating above or sitting on the back for a lot of creatures)
-  const sp = c && c.creature && PARTY_SPOT[c.formId];
+  // Nov 17 (Ms. Ariana): the hand-placed head spots (salon) are used for party hats and crowns too
+  const Q = c && c.creature && CREATURE_SPOTS[c.formId], LY = c && c.creature && CREATURE_LAYOUT[c.formId];
+  const sp = Q && LY ? (hw => [LY[0] + 0.125 + Q[3] * LY[2], LY[1] + (Q[4] + hw * 0.08) * LY[2], hw * LY[2] * 0.55])(Math.min(Q[5], 0.34)) : c && c.creature && PARTY_SPOT[c.formId];
   if (sp) { const fs = kind === "hat" ? sp[2] / 0.72 : sp[2] / 1.0;
     return pos(sp[0], sp[1]) + "font-size:" + fs.toFixed(3) + "em;transform:translate(-50%,-" + (kind === "hat" ? 88 : 90) + "%) rotate(" + (kind === "hat" ? -6 : -4) + "deg);transform-origin:50% 90%;"; }
   const f = (c && c.fit) || {}, [x0, y0, sz0, r0] = f.hat || [0.6, 0.2, 0.45, 0];
@@ -640,22 +643,76 @@ function partyStyle(c, kind) {
 }
 /* 🎭 Event outfits (mini events): head pieces bought in a mini event's shop are kept forever (outfits = { id: true }, outfitOn = id).
    During a mini event every companion also wears that event's random costume (js/mini.js adds it through HEAD_FNS). */
-const OF = (ev, dir, list) => list.map(([k, name]) => ({ id: ev + "-" + k, ev, name, img: "assets/" + dir + "/" + (ev === "tot" ? "costume-" : "outfit-") + k + ".webp", neck: NECK.includes(ev + "-" + k) }));
+const OF = (ev, dir, list) => list.map(([k, name]) => ({ id: ev + "-" + k, ev, name, img: "assets/" + dir + "/" + (ev === "tot" ? "costume-" : "outfit-") + k + ".webp", neck: NECK.includes(ev + "-" + k), back: BACK.includes(ev + "-" + k) }));
 // 🧣 Neck pieces (Nov 3): these sit at the companion's neck (under the chin) instead of on the head, so a shop hat can stay on too.
-const NECK = ["space-cometscarf", "leaf-scarf", "orn-lights", "orn-bell", "aur-scarf", "aur-compass", "val-locket", "val-bowtie", "kite-scarf", "kite-whistle", "sea-necklace", "sea-cape"];
+// 🧜 Back pieces (Nov 16): fins and a tail sit BEHIND the companion's body
+const BACK = ["sea-mermaid-fins", "sea-mermaid-tail"];
+const NECK = ["sea-pearl-necklace", "sea-seaweed-scarf", "sea-bubble-wand", "space-cometscarf", "leaf-scarf", "orn-lights", "orn-bell", "aur-scarf", "aur-compass", "val-locket", "val-bowtie", "kite-scarf", "kite-whistle", "sea-necklace", "sea-cape"];
 const outfitByImg = img => OUTFITS.find(o => o.img === img) || null;
 // The neck spot: worked out from the head spot and the eyes (the chin is about as far below the eyes as the eyes are below the top of the head).
 // NECK_FIT nudges one form (by picture id, or "r:" + id for the basic companions): [move right, move down, size ×]
 const NECK_FIT = {};
-function neckStyle(c) {
+function neckPos(c) {
   const f = (c && c.fit) || {}, [hx, hy, hs] = f.hat || [0.6, 0.2, 0.45], [ex, ey] = f.eyes || [hx, hy + 0.2];
   const id = c && c.creature ? (c.formId || "") : "r:" + (c && c.id), adj = NECK_FIT[id] || [0, 0, 1];
   // most creature pictures have a worked-out head spot but a stand-in eye spot (always 0.205 below the head), so their neck comes from the head size
   const guessEyes = !f.eyes || Math.abs(ey - hy - 0.205) < 0.003, dy = Math.max(0.1, ey - hy);
   const N = c && c.creature && CREATURE_NECK_ID[c.formId];   // worked out from the picture
   const x = (N ? N[0] : guessEyes ? hx : ex + (ex - hx) * 0.3) + adj[0], y = (N ? N[1] : guessEyes ? hy + hs * 1.0 : ey + dy * 1.25) + adj[1];
-  const size = Math.max(0.36, Math.min(0.66, hs * 1.15)) * adj[2];
-  return pos(x, y) + "font-size:" + size.toFixed(3) + "em;transform:translate(-50%,-35%);transform-origin:50% 35%;";
+  return { x, y, size: Math.max(0.36, Math.min(0.66, hs * 1.15)) * adj[2], hx, hy, hs, ex, ey, rot: (f.hat || [])[3] || 0, guessEyes };
+}
+function neckStyle(c) { const n = neckPos(c); return pos(n.x, n.y) + "font-size:" + n.size.toFixed(3) + "em;transform:translate(-50%,-35%);transform-origin:50% 35%;"; }
+/* 💄 Nov 17 (Ms. Ariana): the Mermaid Salon pieces each sit in their own spot on every companion:
+   the hair clip at the side of the head (by the ear), the tiara low on the front of the head, the necklace and scarf around the
+   neck (sized to the neck), the bubble wand held in front. SALON_FIT nudges one companion: [right, down, size ×, turn°]
+   (by "r:" + basic companion id, or the creature picture id). */
+export const SALON_KIND = { "sea-starfish-clip": "clip", "sea-shell-tiara": "tiara", "sea-pearl-necklace": "necklace", "sea-seaweed-scarf": "scarf", "sea-bubble-wand": "wand", "sea-jelly-hat": "jhat", "sea-pearl-sunhat": "shat" };
+export const SALON_FIT = {
+  shat: {},
+  jhat: { "r:octopus": [0, 0.08, 0.9, 0], "r:otter": [0.02, 0.04, 0.9, 0], "r:sloth": [0, 0.03, 0.9, 0] },
+  clip: { "r:otter": [0.03, -0.05, 1, 0], "r:sloth": [-0.03, -0.05, 1, 0] },
+  tiara: { "r:octopus": [0, 0.07, 1, 0], "r:golem": [0, -0.08, 0.95, 0] },
+  necklace: { "r:otter": [0.13, 0.1, 1.3, -60], "r:sloth": [0.08, -0.04, 1.1, 0], "r:raccoon": [0, 0, 1.15, 0], "r:fox": [0, 0, 1.1, 0], "r:unicorn": [-0.03, 0.02, 1, 0], "r:pixie": [-0.06, -0.12, 0.9, 0] },
+  scarf: { "r:otter": [0.13, 0.08, 1, -50], "r:sloth": [0.08, -0.13, 1, 0], "r:badger": [0, 0.03, 1, 0], "r:dragon": [0, 0.05, 1, 0], "r:griffin": [0, 0.04, 1, 0], "r:pixie": [-0.06, -0.14, 0.8, 0], "r:raccoon": [0, 0.03, 0.9, 0] },
+  wand: { "r:raccoon": [-0.06, 0.05, 1, 0], "r:fox": [-0.05, 0.05, 1, 0] } };
+function salonStyle(c, kind) {
+  let n = neckPos(c); const id = c && c.creature ? (c.formId || "") : "r:" + (c && c.id), a = (SALON_FIT[kind] || {})[id] || [0, 0, 1, 0];
+  const sp = c && c.creature && PARTY_SPOT[c.formId];
+  if (sp) {   // creature pictures: the head spot found from each picture (top of the head + its width); the neck is under it
+    const [sx, sy, sw] = sp, N = CREATURE_NECK_ID[c.formId];   // the neck spot worked out from each picture, when there is one
+    n = { hx: sx, hy: sy + sw * 0.12, hs: sw * 1.05, ex: sx + sw * 0.08, ey: sy + sw * 0.62, x: N ? N[0] : sx - sw * 0.05, y: N ? N[1] + 0.04 : sy + sw * 1.18, size: Math.max(0.36, Math.min(0.66, sw * 1.15)), rot: 0 }; }
+  const toEyes = Math.max(0.08, n.ey - n.hy), face = n.ex >= n.hx ? 1 : -1;   // which way the face points
+  let x, y, sz, tf, rot = 0;
+  if (kind === "shat") { x = n.hx + (n.ex - n.hx) * 0.2; y = n.hy + toEyes * (sp ? 0.3 : 0.1); sz = n.hs * (sp ? 1.2 : 1.3); tf = "translate(-50%,-90%)"; rot = n.rot * 0.5; }
+  else if (kind === "jhat") { x = n.hx + (n.ex - n.hx) * 0.2; y = n.hy + toEyes * (sp ? 0.2 : -0.05); sz = n.hs * (sp ? 1.0 : 1.05); tf = "translate(-50%,-80%)"; rot = n.rot * 0.5; }
+  else if (kind === "tiara") { x = n.hx + (n.ex - n.hx) * 0.2; y = n.hy + toEyes * 0.28; sz = n.hs * (sp ? 0.8 : 0.95); tf = "translate(-50%,-78%)"; rot = n.rot * 0.6; }
+  else if (kind === "clip") { x = n.hx - face * n.hs * 0.55; y = n.hy + toEyes * 0.15; sz = n.hs * 0.72; tf = "translate(-50%,-55%)"; rot = -face * 28; }
+  else if (kind === "necklace") { x = n.x; y = n.y - n.hs * 0.08; sz = n.size * 0.72; tf = "translate(-50%,-22%)"; rot = n.rot * 0.3; }
+  else if (kind === "scarf") { x = n.x; y = n.y - n.hs * 0.12; sz = n.size * 0.7; tf = "translate(-50%,-20%)"; rot = n.rot * 0.3; }
+  else { x = n.x + face * n.hs * 0.4; y = n.y + n.hs * 0.42; sz = n.hs * 0.62; tf = "translate(-50%,-50%)"; rot = face * 18; }
+  // 👀 Nov 17: hand-placed from looking at each creature picture: [neck x, neck y, neck width, head-top x, head-top y, head width] (share of the picture)
+  const Q = c && c.creature && CREATURE_SPOTS[c.formId], LY = c && c.creature && CREATURE_LAYOUT[c.formId];
+  if (Q && LY) { const [l0, t0, w0] = LY, X = f => l0 + 0.125 + f * w0, Y = f => t0 + f * w0, E2 = CREATURE_EYES[c.formId], fc = E2 ? E2[4] : (Q[3] >= 0.5 ? 1 : -1);
+    if (kind === "necklace") { x = X(Q[0]); y = Y(Q[1]); sz = Math.min(Q[2], 0.3) * w0 * 0.95; tf = "translate(-50%,-22%)"; rot = 0; }
+    else if (kind === "scarf") { x = X(Q[0]); y = Y(Q[1]); sz = Math.min(Q[2], 0.3) * w0 * 1.05; tf = "translate(-50%,-20%)"; rot = 0; }
+    else if (kind === "shat") { const hw = Math.min(Q[5], 0.34); x = X(Q[3]); y = Y(Q[4] + hw * 0.22); sz = hw * w0 * 1.5; tf = "translate(-50%,-92%)"; rot = 0; }
+    else if (kind === "jhat") { const hw = Math.min(Q[5], 0.34); x = X(Q[3]); y = Y(Q[4] + hw * 0.12); sz = hw * w0 * 1.2; tf = "translate(-50%,-80%)"; rot = 0; }
+    else if (kind === "tiara") { x = X(Q[3]); y = Y(Q[4] + Math.min(Q[5], 0.32) * 0.18); sz = Math.min(Q[5], 0.32) * w0 * 0.95; tf = "translate(-50%,-78%)"; rot = 0; }
+    else if (kind === "clip") { x = X(Q[3] - fc * Q[5] * 0.38); y = Y(Q[4] + Q[5] * 0.12); sz = Q[5] * w0 * 0.5; tf = "translate(-50%,-50%)"; rot = -fc * 22; }
+    else { x = X(Q[0] + fc * Q[2] * 0.6); y = Y(Q[1] + Q[2] * 0.5); sz = Q[2] * w0 * 0.9; tf = "translate(-50%,-50%)"; rot = fc * 18; }
+    x += a[0]; y += a[1]; sz *= a[2]; rot += a[3];
+    return pos(x, y) + "font-size:" + Math.max(0.12, sz).toFixed(3) + "em;transform:" + tf + " rotate(" + rot.toFixed(1) + "deg);transform-origin:50% 50%;"; }
+  const E = c && c.creature && CREATURE_EYES[c.formId];   // creature pictures: placed from their eyes (found from each picture)
+  if (E) { const [ex, ey, dd, eh, fc] = E;
+    if (kind === "necklace") { x = ex; y = ey + eh * 1.9; sz = dd * 1.4; tf = "translate(-50%,-12%)"; rot = 0; }
+    else if (kind === "scarf") { x = ex; y = ey + eh * 1.8; sz = dd * 1.45; tf = "translate(-50%,-8%)"; rot = 0; }
+    else if (kind === "shat") { x = ex; y = ey - eh * 1.2; sz = dd * 2.5; tf = "translate(-50%,-75%)"; rot = 0; }
+    else if (kind === "jhat") { x = ex; y = ey - eh * 1.4; sz = dd * 2.0; tf = "translate(-50%,-80%)"; rot = 0; }
+    else if (kind === "tiara") { x = ex; y = ey - eh * 1.3; sz = dd * 1.7; tf = "translate(-50%,-85%)"; rot = 0; }
+    else if (kind === "clip") { x = ex - fc * dd * 1.05; y = ey - eh * 1.4; sz = dd * 0.85; tf = "translate(-50%,-50%)"; rot = -fc * 22; }
+    else { x = ex + fc * dd * 1.1; y = ey + eh * 3.2; sz = dd * 1.2; tf = "translate(-50%,-50%)"; rot = fc * 18; } }
+  x += a[0]; y += a[1]; sz *= a[2]; rot += a[3];
+  return pos(x, y) + "font-size:" + Math.max(0.12, sz).toFixed(3) + "em;transform:" + tf + " rotate(" + rot.toFixed(1) + "deg);transform-origin:50% 50%;";
 }
 export const OUTFITS = [].concat(
   OF("space", "planet/shop", [["spacehelmet", "Astronaut Bubble Helmet"], ["captainhat", "Star Captain Hat"], ["antennae", "Alien Antennae"], ["cometscarf", "Comet Scarf"]]),   // 🛒 Planet JP Space Shop (Nov 8)
@@ -669,10 +726,15 @@ export const OUTFITS = [].concat(
   OF("aur", "aur", [["aurora", "Aurora Headband"], ["beanie", "Snowflake Beanie"], ["headlamp", "Explorer Headlamp"], ["nightcap", "Starry Nightcap"], ["trapper", "Plaid Trapper Hat"], ["moon", "Moon Crown"], ["scarf", "Aurora Scarf"], ["compass", "Explorer Compass"]]),   // 🌌 Northern Lights Camp (Nov 3)
   OF("val", "val", [["mailcap", "Mail Carrier Cap"], ["heartband", "Bouncy Heart Headband"], ["cupid", "Cupid Halo & Wings"], ["rosecrown", "Rose Crown"], ["bow", "Polka-Dot Bow"], ["beret", "Cherry Heart Beret"], ["locket", "Heart Locket"], ["bowtie", "Heart Bow Tie"]]),   // 💌 Valentine Mailroom (Nov 3)
   OF("kite", "kite", [["propeller", "Propeller Beanie"], ["aviator", "Aviator Cap"], ["pinwheel", "Pinwheel Headband"], ["daisy", "Daisy Crown"], ["sunhat", "Breezy Sun Hat"], ["cloud", "Rainbow Cloud Hat"], ["scarf", "Spring Stripe Scarf"], ["whistle", "Kite Captain Whistle"]]),
-  OF("sea", "kingdom", [["crown", "Coral Pearl Crown"], ["necklace", "Shell Pearl Necklace"], ["cape", "Sea-Blue Fin Cape"], ["goggles", "Diving Goggles"], ["knight-helmet", "Knight Shell Helmet"]]),   // + the Knight rank prize (Nov 16)   // 🌊 Axolotl Kingdom Pearl Shop (Nov 11)
+  OF("sea", "kingdom", [["crown", "Coral Pearl Crown"], ["necklace", "Shell Pearl Necklace"], ["cape", "Sea-Blue Fin Cape"], ["goggles", "Diving Goggles"], ["knight-helmet", "Knight Shell Helmet"],
+    ["shell-tiara", "Shell Tiara"], ["starfish-clip", "Starfish Hair Clip"], ["pearl-necklace", "Big Pink Pearl Necklace"], ["seaweed-scarf", "Seaweed Scarf"], ["bubble-wand", "Bubble Wand"], ["jelly-hat", "Jellyfish Hat"], ["pearl-sunhat", "Pearl Sun Hat"]]),   // + Mermaid Salon + Baron prize (Nov 16)   // + the Knight rank prize (Nov 16)   // 🌊 Axolotl Kingdom Pearl Shop (Nov 11)
   OF("lib", "lib", [["candles", "Candle Crown"], ["nightcap", "Starry Nightcap"], ["wizard", "Wizard Reading Cap"], ["bookhat", "Book Hat"], ["bun", "Ghost Librarian Bun"], ["scholar", "Moonlight Scholar Cap"], ["owl", "Owl Ear Headband"], ["bookworm", "Bookworm Antennae"]]));
 export const outfitOf = id => OUTFITS.find(o => o.id === id) || null;
 export const headImg = (c, img) => { const o = outfitByImg(img);
+  if (o && SALON_KIND[o.id]) { const k = SALON_KIND[o.id], nk = k === "necklace" || k === "scarf" || k === "wand";
+    const im2 = k === "scarf" ? img.replace("outfit-seaweed-scarf.webp", "outfit-seaweed-scarf-front.webp") : img;   // Nov 17: the back of the scarf goes behind the neck
+    return '<span class="phat cos sal sal-' + k + (nk ? " neck" : "") + '" style="' + (c ? salonStyle(c, k) : "") + '"><img src="' + im2 + '" alt=""></span>'; }
+  if (o && o.back) return '<span class="phat cos back b-' + o.id + '"><img src="' + img + '" alt=""></span>';
   return o && o.neck ? '<span class="phat cos neck" style="' + (c ? neckStyle(c) : "") + '"><img src="' + img + '" alt=""></span>'
     : '<span class="phat cos" style="' + (c ? partyStyle(c, "hat") : "") + '"><img src="' + img + '" alt=""></span>'; };
 export const HEAD_FNS = [st => (st && st.planet && st.planet.mb && st.planet.mb.cr === azToday() ? "assets/planet/moon/palace-crown.webp" : ""), st => { const o = st && st.outfitOn && ((st.outfits || {})[st.outfitOn]) ? outfitOf(st.outfitOn) : null; return o ? o.img : ""; }];
@@ -693,7 +755,7 @@ export const paintClass = st => {
 };
 export const painted = (st, html) => { const k = paintClass(st); if (k) html = html.replace('class="petwrap', 'class="petwrap' + k);
   const ob = orbitImgOf(st); return ob ? onPet(html, '<span class="orbitb"><img src="' + ob + '" alt=""></span>') : html; };   // 🌙 Space Shop orbit buddy
-export const petWithHead = (st, c, worn, held) => { const x = headExtra(st, c), nk = x.includes("phat cos neck"); return painted(st, withVipHat(st, onPet(petHTML(c, x && !nk ? headFree(worn) : vipWorn(st, worn), held), x), c)); };   // a neck piece keeps the shop hat on
+export const petWithHead = (st, c, worn, held) => { const x = headExtra(st, c), nk = x.includes("phat cos neck") || x.includes("phat cos back"); return painted(st, withVipHat(st, onPet(petHTML(c, x && !nk ? headFree(worn) : vipWorn(st, worn), held), x), c)); };   // a neck piece keeps the shop hat on
 export const partyHat = (c, seed) => hatHTML(seed, "", c ? partyStyle(c, "hat") : "");
 export const partyCrown = c => '<span class="pcrown"' + (c ? ' style="' + partyStyle(c, "crown") + '"' : "") + ">\u{1F451}</span>";
 // While a party hat or crown is on, a shop hat comes off (shades and snacks stay)

@@ -14,11 +14,11 @@
      sub { own:{key:1}, use, trail, trails:{key:1} }, seen { area: 1 }.
    Weekly parts (a new week starts fresh): qd { quest: 1 } claimed quests, qx chest pearls, wb best dive this week,
      wn new creatures this week, vq { place: 1 } places visited this week, ws pearls spent this week. */
-import { esc } from "./game.js?v=20261117e";
-import { startPaint } from "./hangar.js?v=20261117e";
+import { esc, companionOf, petWithHead } from "./game.js?v=20261117f";
+import { startPaint } from "./hangar.js?v=20261117f";
 
 const K = "assets/kingdom/";
-export const KEEP2 = ["aq", "aqf", "cg", "sub", "seen", "sh", "rk", "rkp", "ship", "hx"];
+export const KEEP2 = ["aq", "aqf", "cg", "sub", "seen", "sh", "rk", "rkp", "ship", "hx", "sc", "bk"];
 export const kd2On = (cls, preview) => !!preview || !!(cls && cls.kd2On);
 
 /* ----- ranks: weeks the student reached the Kingdom (= Treasures of the Week they have) ----- */
@@ -87,6 +87,14 @@ const cur = () => { const C = A && A.C(); return C && C.st ? { C, st: C.st, cls:
 
 /* ----- guide ducks ----- */
 const GUIDE = {
+  town: { duck: "salon", name: "Salon Duck", hi: "Welcome to Coral Town!",
+    how: "Welcome to <b>Coral Town</b>! Bake a sea treat at the <b>Bubble Bakery</b> once a week (up to 30 pearls), or visit my <b>Mermaid Salon</b> for fancy undersea outfits!" },
+  bakery: { duck: "", img: K + "town/baker.webp", name: "Baker Crab", hi: "Welcome to the Bubble Bakery!",
+    how: "Welcome to the <b>Bubble Bakery</b>! Every week there\u2019s a <b>new recipe</b>. Add the ingredients in order, stir fast, and take it out of the oven at just the right time. More stars = more pearls!" },
+  salon: { duck: "salon", name: "Salon Duck", hi: "Welcome back, darling!",
+    how: "Welcome to the <b>Mermaid Salon</b>! Tap <b>Try</b> to see an outfit on your companion in the mirror. Buy it with pearls and it\u2019s yours forever. Wear it any time from <b>Gear</b>!" },
+  beach: { duck: "sand", name: "Sandcastle Duck", hi: "Welcome back to Seashell Beach!",
+    how: "Welcome to <b>Seashell Beach</b>! Let\u2019s build a sandcastle! Every week you reach the Kingdom you <b>pick one new piece</b> and it pops right into its spot. There are 10 pieces. Want more? Extra pieces cost 100 pearls. You can see your classmates\u2019 castles too!" },
   lagoon: { duck: "hatchery", name: "Hatchery Duck", hi: "Welcome back to the Royal Hatchery!",
     how: "Welcome to the <b>Royal Hatchery</b>! Every week you reach the Kingdom you get a <b>free baby axolotl egg</b>. It rests in the nest and <b>hatches 2 minutes later</b>. Every egg is a <b>new color</b> (there are 20!), and babies grow up after 2 more Kingdom weeks. Want more? I sell extra eggs for 150 pearls." },
   ship: { duck: "ship", name: "Deckhand Duck", hi: "Ahoy! Welcome back to the Sunken Ship!",
@@ -446,6 +454,13 @@ if (typeof document !== "undefined") document.addEventListener("click", ev => {
   else if (a === "shrace") startRace();
   else if (a === "room") exploreRoom(Number(x));
   else if (a === "hxfree") layEgg(true);
+  else if (a === "scpick") startPick(x);
+  else if (a === "town") { townView = x || ""; salonTry = null; A.rer(); scrollTo({ top: 0 }); }
+  else if (a === "bake") startBake();
+  else if (a === "stry") { salonTry = salonTry === x ? null : x; A.rer(); }
+  else if (a === "sbuy") salonBuy(x);
+  else if (a === "swear") salonWear(x);
+  else if (a === "scput") putPiece(x);
   else if (a === "hxbuy") layEgg(false);
   else if (a === "hxtap") tapEgg();
   else if (a === "shiptreasure") openTreasure();
@@ -454,7 +469,7 @@ if (typeof document !== "undefined") document.addEventListener("click", ev => {
     o.k.rk = nm; const gear = RANK_GEAR[nm], st0 = o.st;
     A.save(o.k, gear && !((st0.outfits || {})[gear[0]]) ? { outfits: Object.assign({}, st0.outfits || {}, { [gear[0]]: true }) } : null); A.rer(); }
 });
-export function resetViews() { aqTank = -1; dockSay = null; shPick = shName = null; feedOn = false; }
+export function resetViews() { aqTank = -1; dockSay = null; shPick = shName = null; feedOn = false; townView = ""; salonTry = null; }
 
 /* ===================== 🐎 Seahorse Stable (opens at Page, week 2) =====================
    Adopt one seahorse (4 colors, a name from a safe list), feed it once a week (it gets faster, up to 10),
@@ -767,9 +782,336 @@ function showHatch(c, dup) {
     root.remove(); A.rer(); };
 }
 
-export const RANK_PRIZE = { Page: 50, Squire: 50 };
+
+/* ===================== 🏖️ Seashell Beach: Sandcastle Builder (opens at Captain, week 6) =====================
+   Every week a student reaches the Kingdom (from week 6) they pick ONE new sandcastle piece, and it pops into its own
+   spot on their sandcastle (pieces fit together like a puzzle, so every castle looks finished, never messy).
+   Extra pieces: 100 pearls. All 10 = a finished castle. Classmates' castles show along the beach (from the class cards
+   the page already has: no new reads). Save: kd.sc = { p: [piece keys], fw: week of the free piece }. */
+// [key, name, x (% of the castle box), bottom (%), width (%), layer]
+export const SAND = [
+  ["moat", "Sparkly Moat", 50, 0, 98, 0], ["dome", "Starfish Dome", 50, 58, 30, 1], ["wall", "Castle Wall", 50, 30, 64, 2],
+  ["tower-round", "Round Tower", 19, 26, 30, 3], ["tower-square", "Square Tower", 80, 26, 25, 3], ["window", "Shell Window", 19, 46, 11, 4],
+  ["flag", "Seaweed Flag", 84, 70, 14, 2], ["door", "Seashell Door", 50, 30, 16.5, 4], ["bridge", "Sand Bridge", 50, -3, 30, 5], ["statue", "Axolotl Statue", 92, -2, 13, 5]];
+const SAND_PRICE = 100, sandImg = k => K + "beach/" + k + ".webp";
+let scPick = false, scNew = null, scSay = null;
+export function castleHTML(pieces, cls2) {
+  const has = new Set(pieces || []);
+  return '<div class="kq-castle' + (cls2 ? " " + cls2 : "") + '"><img class="kq-cspot" src="' + sandImg("spot") + '" alt="">' + SAND.filter(([k]) => has.has(k)).map(pieceEl).join("") + "</div>";
+}
+const pieceEl = ([k, n, x, b, w, z]) => '<img class="kq-cp' + (k === scNew ? " pop" : "") + '" src="' + sandImg(k) + '" alt="' + esc(n) + '" style="left:' + x + "%;bottom:" + b + "%;width:" + w + "%;z-index:" + (z + 2) + '">';
+export function beachHTML(st, cls) {
+  visit("beach");
+  const o = cur(), k = o ? o.k : {}, wk = A.wk(cls), sc = k.sc || { p: [] }, have = sc.p || [], left = SAND.filter(([key]) => !have.includes(key)), freeOk = sc.fw !== wk;
+  let h = '<div class="kdscene kq-beach" style="background-image:url(' + K + 'beach/beach-bg.webp)">' + castleHTML(have) + (scNew ? '<div class="kq-sparkle"></div>' : "");
+  if (scPick && left.length) h += '<div class="kq-sandpick"><b>Pick your new piece!</b><div>' + left.map(([key, n]) => '<button data-kd2="scput:' + key + '"><img src="' + sandImg(key) + '" alt=""><span>' + esc(n) + "</span></button>").join("") +
+    '</div><button class="btn small ghost" data-kd2="scpick:0">Not now</button></div>';
+  h += '<div class="kq-shbtns">' + (!left.length ? '<span class="kq-tag">\u{1F3F0} Your sandcastle is finished!</span>' : scPick ? "" : freeOk ? '<button class="btn gold" data-kd2="scpick:free">\u{1F381} Pick this week’s free piece</button>' :
+    '<button class="btn ' + ((Number(k.p) || 0) >= SAND_PRICE ? "gold" : "ghost") + '" data-kd2="scpick:buy">\u{1F3D6}️ Buy a piece (⚪ ' + SAND_PRICE + ")</button>") + "</div>";
+  const line = scSay || (!left.length ? "What a castle! It’s the best one on the beach!" : freeOk ? "A new piece is waiting for you this week!" : have.length ? "Looking good! Come back next week for another piece." : "");
+  h += guide("beach", st, scSay ? "cheer" : null, line || null) + "</div>";
+  // classmates' castles (from the cards already loaded)
+  const mates = ((o && o.C.mates) || []).filter(s => s && s.id !== st.id && s.kd && s.kd.sc && (s.kd.sc.p || []).length).slice(0, 12);
+  h += '<div class="kq-log"><b>\u{1F3D6}️ Classmates’ sandcastles</b> <span class="small">' + have.length + " of " + SAND.length + " pieces on yours</span>" +
+    (mates.length ? '<div class="kq-mates">' + mates.map(s => '<div class="kq-mate">' + castleHTML(s.kd.sc.p, "mini") + "<small>" + esc(String(s.name || "").split(" ")[0]) + " · " + s.kd.sc.p.length + "/" + SAND.length + "</small></div>").join("") + "</div>"
+      : '<p class="small muted" style="margin:6px 0 0;">No one else has built yet. You’re first!</p>') + "</div>";
+  scSay = null; if (scNew) setTimeout(() => { scNew = null; }, 50);
+  return h;
+}
+function startPick(how) {
+  const o = cur(); if (!o) return; const k = o.k, wk = A.wk(o.cls), sc = k.sc || { p: [] };
+  if (how === "0") { scPick = false; A.rer(); return; }
+  if (how === "free" && sc.fw === wk) return;
+  if (how === "buy" && (Number(k.p) || 0) < SAND_PRICE) { scSay = "You need <b>" + (SAND_PRICE - (Number(k.p) || 0)) + " more pearls</b> for a piece. Try a Pearl Dive!"; A.rer(); return; }
+  scPick = how; A.rer();
+}
+function putPiece(key) {
+  const o = cur(); if (!o || !scPick) return; const k = o.k, wk = A.wk(o.cls), sc = { p: ((k.sc || {}).p || []).slice(), fw: (k.sc || {}).fw || "" };
+  if (sc.p.includes(key) || !SAND.some(s => s[0] === key)) return;
+  if (scPick === "free") { if (sc.fw === wk) return; sc.fw = wk; } else { if ((Number(k.p) || 0) < SAND_PRICE) return; k.p = (Number(k.p) || 0) - SAND_PRICE; }
+  sc.p.push(key); k.sc = sc; scPick = false; scNew = key;
+  scSay = sc.p.length >= SAND.length ? "\u{1F3F0} You finished your sandcastle! Amazing!" : "Ooh, the <b>" + esc((SAND.find(s => s[0] === key) || [])[1]) + "</b>! It fits right in!";
+  A.save(k);
+}
+
+
+/* ===================== 🏘️ Coral Town (opens at Baron, week 8): Bubble Bakery + Mermaid Salon =====================
+   • Bubble Bakery: bake ONE sea treat a week with the Baker in 3 quick steps (add the ingredients in order, stir fast,
+     take it out of the oven at the right moment). 1–3 stars = +10 / +20 / +30 pearls, and the treat goes in the Treat Box.
+     Save: kd.bk = { w: week baked, t: { treat: times baked } }.
+   • Mermaid Salon: undersea outfits bought with pearls, kept forever in Gear (outfits = { id: true }, outfitOn = id).
+     The mirror shows the student's own companion trying each one on. */
+// [key, name, the 3 steps] (Nov 16: her bakery art in assets/kingdom/town/bake/)
+//   order = tap the things in the right order (they go into "into") · mash = tap fast · stop = tap when the marker is in the green
+//   hold = press and hold, let go in the green
+export const TREATS = [
+  ["kelp-cupcake", "Kelp Cupcake", [{ t: "order", items: ["egg", "flour", "kelp-flakes"], into: "bowl", frames: ["bowl-fit", "bowl-1-egg", "bowl-2-flour", "bowl-3-kelp"], say: "Add the ingredients to the bowl" }, { t: "mash", fx: "stir", img: "bowl-dough", tool: "whisk", say: "Stir it up!" }, { t: "stop", fx: "into", item: "cupcake-tray", into: "oven", say: "Bake it in the clam oven" }]],
+  // Nov 16 (her step art): frames = the picture for each step, swapped as the student goes
+  ["bubble-tea", "Bubble Tea", [{ t: "order", items: ["boba-jar"], frames: ["boba-1-empty", "boba-2-pearls"], drop: "boba-pearl", say: "Drop the boba pearls in the cup" },
+    { t: "hold", item: "tea-pitcher", base: "boba-2-pearls", fill: [["boba-3-half", 5, 50], ["boba-4-full", 50, 80]], col: "#FFB3D1", say: "Pour the pink sea tea" },
+    { t: "mash", fx: "shake", frames: ["boba-4-full"], say: "Shake it up!" }]],
+  ["starfish-cookie", "Starfish Cookie", [{ t: "order", items: ["egg", "flour", "sea-sugar"], into: "bowl", frames: ["bowl-fit", "bowl-1-egg", "bowl-2-flour", "bowl-3-sugar"], say: "Add the ingredients to the bowl" }, { t: "mash", fx: "stir", img: "bowl-dough", tool: "whisk", say: "Stir it up!" }, { t: "stop", fx: "into", item: "cookie-tray", into: "oven", say: "Bake it in the clam oven" }]],
+  ["coral-candy", "Coral Candy", [{ t: "hold", item: "syrup-pot", base: "candy-mold-fit", fill: [["candy-1-syrup", 5, 78]], col: "#FF5FA2", say: "Pour the pink syrup into the coral mold" },
+    { t: "stop", fx: "cool", item: "candy-1-syrup", after: "candy-2-set", into: "fridge", say: "Cool it in the cold clam" }, { t: "mash", fx: "wiggle", frames: ["candy-2-set", "candy-mold-fit"], pop: "coral-candy", say: "Wiggle it out of the mold!" }]],
+  ["jellyfish-jelly", "Jellyfish Jelly", [{ t: "hold", item: "jelly-pitcher", base: "jelly-mold-fit", fill: [["jelly-1-fill", 5, 78]], col: "#5BC8FF", say: "Pour the jelly into the jellyfish mold" },
+    { t: "stop", fx: "cool", item: "jelly-1-fill", after: "jelly-2-set", into: "fridge", say: "Cool it in the cold clam" }, { t: "mash", fx: "wiggle", frames: ["jelly-2-set", "jelly-mold-fit"], pop: "jellyfish-jelly", say: "Wiggle it out of the mold!" }]],
+  ["pretzel", "Sea-Salt Pretzel", [{ t: "mash", fx: "knead", img: "dough-ball", say: "Knead the dough!" }, { t: "stop", fx: "sprinkle", item: "sea-salt", into: "pretzel-tray", say: "Sprinkle the sea salt" }, { t: "stop", fx: "into", item: "pretzel-tray", into: "oven", say: "Bake it in the clam oven" }]],
+  ["sushi", "Seaweed Sushi Roll", [{ t: "order", items: ["seaweed", "rice", "fillings"], frames: ["sushi-1-mat", "sushi-2-nori", "sushi-3-rice", "sushi-4-fill"], say: "Put them on the mat" },
+    { t: "mash", fx: "rollpic", frames: ["sushi-4-fill", "sushi-5-half", "sushi-6-rolled"], say: "Roll it up!" }, { t: "knife", say: "Chop the sushi!" }]],
+  ["rainbow-cake", "Rainbow Shell Cake", [{ t: "order", items: ["batter-cups"], into: "cake-pan", frames: ["cake-pan-fit", "cake-pan-1-batter"], say: "Pour the rainbow batter in the pan" }, { t: "stop", fx: "into", item: "cake-pan-1-batter", after: "cake-pan-2-baked", into: "oven", say: "Bake it in the clam oven" }, { t: "mash", fx: "frost", frames: ["cake-pan-2-baked", "cake-pan-fit"], tool: "frosting", pop: "rainbow-cake", say: "Frost the cake!" }]]];
+const BAKE_NAMES = { egg: "Pearl egg", flour: "Sea flour", "kelp-flakes": "Kelp flakes", "sea-sugar": "Sea sugar", "boba-jar": "Boba pearls", seaweed: "Seaweed", rice: "Rice", fillings: "Fillings", "batter-cups": "Rainbow batter" };
+const bkImg = f => K + "town/bake/" + f + ".webp";
+// the sushi mat drawn in code so it can start empty and fill up layer by layer
+const MAT = (layers, log) => '<span class="kq-mat"><span class="kq-sheet">' + layers + "</span>" + (log || "") + "</span>";
+const INBOWL = { egg: "egg", flour: "flour", "kelp-flakes": "kelp", "sea-sugar": "sugar", "sea-salt": "salt" };   // drawn in the bowl
+const BAKE_PEARLS = [0, 10, 20, 30], treatImg = k => K + "town/treat-" + k + ".webp";
+// [outfit id, picture name, name, price]
+export const SALON = [["sea-starfish-clip", "starfish-clip", "Starfish Hair Clip", 100], ["sea-pearl-sunhat", "pearl-sunhat", "Pearl Sun Hat", 150],
+  ["sea-jelly-hat", "jelly-hat", "Jellyfish Hat", 120], ["sea-bubble-wand", "bubble-wand", "Bubble Wand", 120]];
+let townView = "", salonTry = null, salonSay = null, bakeSay = null, BK = null;
+export function townHTML(st, cls) {
+  visit("town");
+  if (townView === "bakery") return bakeryHTML(st, cls);
+  if (townView === "salon") return salonHTML(st, cls);
+  return '<div class="kdscene kq-town" style="background-image:url(' + K + 'town/town-bg.webp)">' +
+    '<button class="kq-spot" style="left:18%;top:52%" data-kd2="town:bakery"><span>\u{1F9C1} Bubble Bakery</span></button>' +
+    '<button class="kq-spot" style="left:82%;top:52%" data-kd2="town:salon"><span>\u{1F484} Mermaid Salon</span></button>' +
+    guide("town", st, null, "Pick a shop! Bake a treat or try on something fancy.") + "</div>";
+}
+const backTown = '<div class="row" style="margin:0 0 8px;"><button class="btn ghost small" data-kd2="town:">← Coral Town</button></div>';
+function treatOfWeek(cls) { const f = typeof window !== "undefined" && window.__kqTreat && TREATS.find(t => t[0] === window.__kqTreat); return f || TREATS[Math.floor(hash01("bake|" + A.wk(cls)) * TREATS.length)]; }   // __kqTreat: preview videos only
+function bakeryHTML(st, cls) {
+  const o = cur(), k = o ? o.k : {}, wk = A.wk(cls), bk = k.bk || { t: {} }, done = bk.w === wk, T = treatOfWeek(cls);
+  let h = backTown + '<div class="kdscene kq-bakery" style="background-image:url(' + K + 'town/bakery-bg.webp)">';
+  h += '<div class="kq-recipe"><small>This week’s treat</small><img src="' + treatImg(T[0]) + '" alt=""><b>' + esc(T[1]) + '</b><div class="kq-ings">' + T[2].map((st2, i) => "<span>" + (i + 1) + ". " + esc(st2.say) + "</span>").join("") + "</div></div>";
+  h += '<div class="kq-shbtns">' + (done ? '<span class="kq-tag">✅ You baked this week’s treat!</span>' : '<button class="btn gold big" data-kd2="bake:1">\u{1F9C1} Bake it!</button>') + "</div>";
+  h += guide("bakery", st, bakeSay ? "cheer" : null, bakeSay || (done ? "Delicious! Come back next week for a new recipe." : "This week we’re baking the " + T[1] + "!")) + "</div>";
+  h += '<div class="kq-log"><b>\u{1F9FA} My Treat Box</b> <span class="small">' + Object.keys(bk.t || {}).length + " of " + TREATS.length + " treats</span><div>" + TREATS.map(([key, n]) =>
+    '<span class="kq-logslot' + ((bk.t || {})[key] ? " got" : "") + '"><img src="' + treatImg(key) + '" alt=""><small>' + ((bk.t || {})[key] ? esc(n) + ((bk.t[key] > 1) ? " ×" + bk.t[key] : "") : "???") + "</small></span>").join("") + "</div>" +
+    '<p class="small muted" style="margin:6px 0 0;">A new recipe every week. 3 stars = +30 pearls.</p></div>';
+  bakeSay = null; return h;
+}
+// the 3-step bake, in its own layer (each step: Perfect 3 / Good 2 / Oops 1, like the Space Café)
+function startBake() {
+  const o = cur(); if (!o || BK) return; const wk = A.wk(o.cls); if ((o.k.bk || {}).w === wk) return;
+  const T = treatOfWeek(o.cls), score = [], V = {};
+  const vOf = nm => V[nm] = V[nm] || { items: [], col: "", lv: 0, boba: false, rainbow: false };
+  // a pan / cup / mold drawn with what's in it so far (added ingredients, poured liquid, boba, rainbow batter)
+  const vessel = (nm, cls) => { const v = V[nm] || {}; return '<span class="kq-ves v-' + nm + '"><img class="' + cls + '" src="' + bkImg(nm) + '" alt="">' +
+    (v.rainbow ? '<span class="kq-vliq rainbow" style="height:55%"></span>' : v.col ? '<span class="kq-vliq" style="height:' + v.lv + "%;background:" + v.col + '"></span>' : "") +
+    (v.boba ? '<span class="kq-boba"></span>' : "") + ((v.items || []).length ? '<span class="kq-vin">' + v.items.map(x => INBOWL[x] ? '<i class="kq-in ' + INBOWL[x] + '"></i>' : '<img class="kq-inimg" src="' + bkImg(x) + '" alt="">').join("") + "</span>" : "") + "</span>"; };
+  // 🥚 Nov 17 (Ms. Ariana): how each thing goes in. crack = the egg cracks above the bowl, scoop = one scoop of flour,
+  // shake = the jar tips over the bowl and shakes flakes / sugar in
+  const HOWIN = { egg: "crack", flour: "scoop", "kelp-flakes": "shake", "sea-sugar": "shake", "sea-salt": "shake" };
+  const SHAKECOL = { "kelp-flakes": ["#3FAE4F", "#7BD36A", "#2E7D3A"], "sea-sugar": ["#FFC3E1", "#FFFFFF", "#FF8CC6"], "sea-salt": ["#FFFFFF", "#E6F4FF"] };
+  // drops / flakes falling from (x, y) into the bowl, in page pixels
+  const rain = (x, y, toY, cols, n, w0, kind) => { for (let q = 0; q < n; q++) { const d = document.createElement("i"); d.className = "kq-rain " + (kind || "");
+      const sz = w0 * (0.6 + Math.random() * 0.8); d.style.cssText = "left:" + (x + (Math.random() - 0.5) * w0 * 4) + "px;top:" + y + "px;width:" + sz + "px;height:" + sz + "px;background:" + cols[q % cols.length] + ";--fall:" + Math.max(20, toY - y) + "px;animation-delay:" + (q * 0.035) + "s";
+      document.body.appendChild(d); setTimeout(() => d.remove(), 1500); } };
+  const addIn = (it, btnImg, tg) => new Promise(done => {
+    const how = HOWIN[it], a1 = btnImg.getBoundingClientRect(), a2 = tg.getBoundingClientRect(), W = Math.min(a2.width * 0.8, 170), cx = a2.left + a2.width / 2;
+    const fl = document.createElement("img"); fl.className = "kq-fly2"; fl.src = bkImg(how === "scoop" ? "flour-scoop" : it); fl.onerror = () => { fl.onerror = null; fl.src = bkImg(it); };
+    fl.style.cssText = "left:" + a1.left + "px;top:" + a1.top + "px;width:" + a1.width + "px;height:" + a1.height + "px"; document.body.appendChild(fl);
+    const above = a2.top - W * 0.72;
+    requestAnimationFrame(() => { fl.style.left = (cx - W / 2) + "px"; fl.style.top = above + "px"; fl.style.width = W + "px"; fl.style.height = W + "px"; });
+    const bowlY = a2.top + a2.height * 0.42;
+    if (how === "crack") setTimeout(() => {   // the egg taps the rim, cracks in two and the egg drops in
+      const r = fl.getBoundingClientRect(); fl.remove();
+      ["top", "bot"].forEach(k => { const h = document.createElement("img"); h.className = "kq-half " + k; h.src = bkImg("egg"); h.style.cssText = "left:" + r.left + "px;top:" + r.top + "px;width:" + r.width + "px;height:" + r.height + "px"; document.body.appendChild(h); setTimeout(() => h.remove(), 900); });
+      const y = document.createElement("i"); y.className = "kq-yolkdrop"; y.style.cssText = "left:" + (cx - W * 0.22) + "px;top:" + (r.top + r.height * 0.5) + "px;width:" + (W * 0.44) + "px;height:" + (W * 0.36) + "px;--fall:" + Math.max(10, bowlY - r.top - r.height * 0.5) + "px";
+      document.body.appendChild(y); setTimeout(() => { y.remove(); done(); }, 650); }, 650);
+    else if (how === "scoop") setTimeout(() => { fl.classList.add("tipit"); setTimeout(() => rain(cx, above + W * 0.6, bowlY, ["#FFFFFF", "#F6F1E7", "#FFF8EC"], 26, Math.max(5, W * 0.06), "powder"), 200);
+      setTimeout(() => { fl.src = bkImg("flour-scoop-empty"); }, 750); setTimeout(() => { fl.style.opacity = "0"; }, 1050); setTimeout(() => { fl.remove(); done(); }, 1300); }, 650);
+    // Nov 17: the jar tips around its middle, moved over so its LID (where the flakes come out) is right above the bowl
+    // sea sugar: the shell lid pops off first, and the sugar pours from the open mouth (Nov 17)
+    else if (how === "shake") setTimeout(() => { const op = it === "sea-sugar", mx = op ? 0.107 : 0.344, my = op ? 0.075 : 0.241, gap = op ? 0.12 : 0.05;
+      if (op) { const r0 = fl.getBoundingClientRect(), lid = document.createElement("img"); lid.className = "kq-lidpop"; lid.src = bkImg("sea-sugar-lid");
+        lid.style.cssText = "left:" + (r0.left + r0.width * 0.17) + "px;top:" + r0.top + "px;width:" + (r0.width * 0.66) + "px"; document.body.appendChild(lid); setTimeout(() => lid.remove(), 1100); fl.src = bkImg("sea-sugar-open"); }
+      fl.style.left = (cx + W * mx - W / 2) + "px"; fl.style.top = (a2.top - W * (my + gap) - W / 2) + "px"; fl.classList.add("shakeit2"); setTimeout(() => rain(cx, a2.top - W * gap, bowlY, SHAKECOL[it] || ["#fff"], 30, Math.max(4, W * 0.05), it === "kelp-flakes" ? "flake" : "crystal"), 150);
+      setTimeout(() => { fl.style.opacity = "0"; }, 1100); setTimeout(() => { fl.remove(); done(); }, 1350); }, 650);
+    else { requestAnimationFrame(() => { fl.style.transform = "scale(.5) rotate(40deg)"; fl.style.opacity = "0"; }); setTimeout(() => { fl.remove(); done(); }, 700); }
+  });
+  // her step pictures stacked in one frame; only one (or a cross-fade) shows at a time
+  const pic = (srcs, cls) => '<span class="kq-pic ' + (cls || "") + '">' + srcs.map((x, i) => '<img class="pf pf' + i + '" src="' + bkImg(x) + '" alt=""' + (i ? ' style="opacity:0"' : "") + ">").join("") + "</span>";
+  const showFrame = (el, i) => { if (!el) return; el.querySelectorAll(".pf").forEach((im, j) => { im.style.opacity = j === i ? 1 : 0; }); el.classList.remove("plop"); void el.offsetWidth; el.classList.add("plop"); };
+  const root = document.createElement("div"); root.className = "kdgame"; root.id = "kqbake";
+  root.innerHTML = '<div class="kdstage kq-bakestage"><div class="kdbg" style="background-image:url(' + K + 'town/bakery-bg.webp)"></div><div class="kdui"></div></div>';
+  document.body.appendChild(root); BK = root; const ui = root.querySelector(".kdui");
+  const crab = pose => '<img class="kq-bakecrab" src="' + bkImg("baker-" + pose) + '" alt="">';
+  const card = (n, sayTxt, body, pose) => crab(pose || "point") + '<div class="kdbox kq-bakebox"><small class="kq-stepn">Step ' + n + " of 3</small><h2>" + esc(sayTxt) + "</h2>" + body + "</div>";
+  const result = (n, pts, nextFn, wait) => { score.push(pts); const w = pts === 3 ? "\u{1F31F} Perfect!" : pts === 2 ? "\u{1F44D} Good!" : "\u{1F605} Oops!";
+    const b = ui.querySelector(".kq-bakebox"); if (b) b.insertAdjacentHTML("beforeend", '<p class="kq-stepres r' + pts + '">' + w + "</p>");
+    const c = ui.querySelector(".kq-bakecrab"); if (c) c.src = bkImg(pts === 1 ? "baker-oops" : "baker-cheer");
+    setTimeout(nextFn, wait || 1100); };
+  const steps = T[2];
+  const run = i => {
+    if (i >= steps.length) return finish();
+    const S = steps[i], n = i + 1, next = () => run(i + 1);
+    ui.onclick = null; ui.onpointerdown = null; ui.onpointerup = null;
+    if (S.t === "order") {
+      const sh = S.items.map((x, j) => [x, j]).sort(() => Math.random() - 0.5); let nx = 0, miss = 0;
+      ui.innerHTML = card(n, S.say, (S.items.length > 1 ? "<p>In order: " + S.items.map((x, j) => "<b>" + (j + 1) + ". " + esc(BAKE_NAMES[x] || x) + "</b>").join(" → ") + "</p>" : "<p>Tap it!</p>") +
+        '<div class="kq-bakescene' + (S.items.some(x => HOWIN[x]) ? " roomtop" : "") + '">' + (S.frames ? pic(S.frames, "kq-bk-into") : S.into === "sushi-mat" ? MAT("") : vessel(S.into, "kq-bk-into")) + '</div><div class="kq-ingbtns">' +
+        sh.map(([x, j]) => '<button data-ing="' + j + '"><img src="' + bkImg(x) + '" alt=""><small>' + esc(BAKE_NAMES[x] || x) + "</small></button>").join("") + "</div>");
+      ui.onclick = ev => { const b = ev.target.closest("[data-ing]"); if (!b || b.disabled) return;
+        if (Number(b.dataset.ing) === nx) { b.disabled = true; b.classList.add("in"); nx++;
+          { const im = b.querySelector("img"), tg = ui.querySelector(".kq-bk-into"); if (im && tg && HOWIN[S.items[nx - 1]]) { const it1 = S.items[nx - 1], vv1 = vOf(S.into), k3 = nx; ui.classList.add("kq-busy");
+              addIn(it1, im, tg).then(() => { ui.classList.remove("kq-busy"); if (S.frames) { showFrame(ui.querySelector(".kq-pic.kq-bk-into"), k3); return; } if (!vv1.items.includes(it1)) vv1.items.push(it1); const w = ui.querySelector(".kq-ves.v-" + S.into); if (w) w.outerHTML = vessel(S.into, "kq-bk-into plop");
+                if (nx >= S.items.length && S.after) setTimeout(() => { const w2 = ui.querySelector(".kq-ves.v-" + S.into); if (w2) w2.outerHTML = vessel(S.after, "kq-bk-into plop"); }, 450); }); }
+            else if (im && tg) { const a1 = im.getBoundingClientRect(), a2 = tg.getBoundingClientRect(), fl = im.cloneNode(); fl.className = "kq-fly";
+            fl.style.cssText = "left:" + a1.left + "px;top:" + a1.top + "px;width:" + a1.width + "px;height:" + a1.height + "px"; document.body.appendChild(fl);
+            requestAnimationFrame(() => { fl.style.left = (a2.left + a2.width / 2 - a1.width / 2) + "px"; fl.style.top = (a2.top + a2.height * 0.2) + "px"; fl.style.transform = "scale(.5) rotate(40deg)"; fl.style.opacity = "0"; }); setTimeout(() => fl.remove(), 700); } } const t = ui.querySelector(".kq-bk-into") || ui.querySelector(".kq-mat"); t.classList.remove("plop"); void t.offsetWidth; t.classList.add("plop");
+          if (S.frames && HOWIN[S.items[nx - 1]]) { /* her picture changes when its animation ends (above) */ }
+          else if (S.frames) { const fr = ui.querySelector(".kq-pic.kq-bk-into"), k2 = nx;
+            if (S.drop && fr) { for (let q = 0; q < 9; q++) { const d = document.createElement("img"); d.className = "kq-drop"; d.src = bkImg(S.drop); d.style.left = (30 + Math.random() * 40) + "%"; d.style.animationDelay = (q * 0.06) + "s"; fr.appendChild(d); setTimeout(() => d.remove(), 1200); } }
+            setTimeout(() => showFrame(fr, k2), S.drop ? 650 : 250); }
+          else if (HOWIN[S.items[nx - 1]] && S.into !== "sushi-mat") { /* added when its animation ends (above) */ }
+          else { const it0 = S.items[nx - 1], vv = vOf(S.into);
+            if (it0 === "boba-jar") vv.boba = true; else if (it0 === "batter-cups") vv.rainbow = true; else if (S.into !== "sushi-mat") vv.items.push(it0);
+            if (S.into !== "sushi-mat") { const w = ui.querySelector(".kq-ves.v-" + S.into); if (w) w.outerHTML = vessel(S.into, "kq-bk-into plop"); } }
+          if (S.into === "sushi-mat") { const ly = ui.querySelector(".kq-sheet"); if (ly) ly.insertAdjacentHTML("beforeend", '<i class="ly ' + S.items[nx - 1] + '"></i>'); }
+          if (nx >= S.items.length) { if (S.after && !HOWIN[S.items[nx - 1]]) { setTimeout(() => { const w = ui.querySelector(".kq-ves.v-" + S.into); if (w) w.outerHTML = vessel(S.after, "kq-bk-into plop"); }, 450); } ui.onclick = null; result(n, miss === 0 ? 3 : miss === 1 ? 2 : 1, next, HOWIN[S.items[nx - 1]] ? 2300 : 1100); } }
+        else { miss++; b.classList.add("no"); setTimeout(() => b.classList.remove("no"), 400); } };
+    } else if (S.t === "mash") {
+      let c = 0, t0 = 0, over = false;
+      const fxx = S.fx || "";
+      const extra = fxx === "chop" ? '<span class="kq-fxlog"><i class="kq-log2"></i></span><span class="kq-fxknife">\u{1F52A}</span><span class="kq-fxpieces"></span>' :
+        (fxx === "wiggle" || fxx === "frost") && S.pop ? '<img class="kq-fxpop" src="' + treatImg(S.pop) + '" alt="">' : "";
+      ui.innerHTML = card(n, S.say, '<p>Tap it as fast as you can!</p><button class="kq-stir fx-' + fxx + '" data-stir="1">' + (S.frames ? pic(S.frames, "kq-mimg") : fxx === "roll" ? MAT('<i class="ly seaweed"></i><i class="ly rice"></i><i class="ly fillings"></i>', '<i class="kq-log2 rolling"></i>') : vessel(S.img, "kq-mimg")) + extra + (S.tool ? '<img class="kq-tool" src="' + bkImg(S.tool) + '" alt="">' : "") + '</button><div class="kq-meter"><i></i></div><p class="small" id="kqstirt">5 seconds</p>');
+      { const tl0 = ui.querySelector(".kq-stir.fx-stir .kq-tool"); if (tl0) { tl0.style.left = "62%"; tl0.style.top = "34%"; } }
+      const end = () => { if (over) return; over = true; ui.onclick = null; result(n, c >= 15 ? 3 : c >= 9 ? 2 : 1, next); };
+      ui.onclick = ev => { if (!ev.target.closest("[data-stir]") || over) return;
+        if (!t0) { t0 = performance.now(); const iv = setInterval(() => { const left = 5 - (performance.now() - t0) / 1000, e = document.getElementById("kqstirt"); if (e) e.textContent = Math.max(0, Math.ceil(left)) + " seconds"; if (left <= 0 || over) { clearInterval(iv); end(); } }, 100); }
+        c++; const m = ui.querySelector(".kq-meter i"); if (m) m.style.width = Math.min(100, c / 15 * 100) + "%";
+        const u = Math.min(1, c / 15), st = ui.querySelector(".kq-stir"), mi = ui.querySelector(".kq-mimg"), tl = ui.querySelector(".kq-tool");
+        if (fxx === "rollpic" && mi) { const fi = c >= 15 ? S.frames.length - 1 : Math.min(S.frames.length - 1, Math.floor(u * S.frames.length)); if (mi.dataset.f !== String(fi)) { mi.dataset.f = fi; showFrame(mi, fi); } mi.style.transform = "scale(" + (c % 2 ? 1.03 : .97) + ",1)"; }
+        else if (fxx === "shake" && mi) { mi.style.transform = "rotate(" + (c % 2 ? 12 : -12) + "deg) translateY(" + (c % 2 ? -6 : 0) + "px)"; }
+        else if (fxx === "stir" && tl) { const ang = c * 0.9; tl.style.left = (50 + Math.cos(ang) * 12) + "%"; tl.style.top = (34 + Math.sin(ang) * 4) + "%"; tl.style.rotate = (Math.cos(ang) * 14) + "deg"; }
+        else if (fxx === "knead" && mi) { mi.style.transform = c % 2 ? "scale(1.18,.82)" : "scale(.9,1.1)"; }
+        else if (fxx === "roll") {   // the sheet rolls up from the bottom edge into a log that turns as it goes
+          const sh = ui.querySelector(".kq-sheet"), lg = ui.querySelector(".kq-log2"); const left = 1 - u * 0.86;
+          if (sh) sh.style.clipPath = "inset(0 0 " + ((1 - left) * 100) + "% 0)";
+          if (lg) { const th = 12 + u * 22; lg.style.height = th + "%"; lg.style.top = "calc(" + (8 + left * 84) + "% - " + th / 2 + "%)"; lg.style.backgroundPosition = "0 " + (c * 14) + "px"; } }
+        else if (fxx === "chop") { const kn = ui.querySelector(".kq-fxknife"); if (kn) { kn.classList.remove("cut"); void kn.offsetWidth; kn.classList.add("cut"); kn.style.left = (30 + (c % 5) * 10) + "%"; }
+          if (c % 3 === 0) { const pc = ui.querySelector(".kq-fxpieces"); const lg = ui.querySelector(".kq-fxlog .kq-log2"); if (pc && pc.children.length < 5) { pc.insertAdjacentHTML("beforeend", '<img src="' + treatImg("sushi") + '" alt="">'); if (lg) lg.style.width = (100 - pc.children.length * 19) + "%"; } } }
+        else if (fxx === "wiggle" && mi) { mi.style.transform = "rotate(" + (c % 2 ? 9 : -9) + "deg)"; const pp = ui.querySelector(".kq-fxpop"); if (pp) { pp.style.opacity = u > 0.6 ? (u - 0.6) / 0.4 : 0; pp.style.transform = "translate(-50%," + (-50 - u * 70) + "%) scale(" + (0.6 + 0.4 * u) + ")"; }
+          if (S.frames && S.frames.length > 1) { const ims = mi.querySelectorAll(".pf"), e = Math.max(0, Math.min(1, (u - 0.55) / 0.35)); if (ims[0]) ims[0].style.opacity = 1 - e; if (ims[1]) ims[1].style.opacity = e; } }
+        else if (fxx === "frost") { const pp = ui.querySelector(".kq-fxpop"); if (pp) { pp.style.opacity = Math.min(1, u * 1.4); pp.style.transform = "translate(-50%," + (-50 - Math.max(0, u - 0.6) / 0.4 * 38) + "%) scale(" + (0.5 + 0.5 * u) + ")"; }
+          { const lq = ui.querySelector(".kq-stir .kq-vliq"); if (lq) lq.style.opacity = String(0.8 * (1 - Math.max(0, Math.min(1, (u - 0.6) / 0.35)))); }
+          if (S.frames && S.frames.length > 1 && mi) { const ims = mi.querySelectorAll(".pf"), e = Math.max(0, Math.min(1, (u - 0.6) / 0.35)); if (ims[0]) ims[0].style.opacity = 1 - e; if (ims[1]) ims[1].style.opacity = e; } if (tl) { tl.style.left = (35 + (c % 4) * 10) + "%"; tl.style.rotate = (c % 2 ? -20 : 10) + "deg"; } }
+        else { st.classList.remove("wig"); void st.offsetWidth; st.classList.add("wig"); if (tl) tl.style.rotate = (c % 2 ? 25 : -25) + "deg"; }
+        if (c >= 15) end(); };
+    } else if (S.t === "stop") {
+      let x = 0, dir = 1, done = false, raf = 0, last = performance.now();
+      ui.innerHTML = card(n, S.say, '<p>Tap <b>Now!</b> when the marker is in the <b style="color:#2a9d4b">green</b>.</p><div class="kq-bakescene' + (S.fx === "sprinkle" ? " roomtop" : "") + '"><span class="kq-bk-item">' + vessel(S.item, "") + '</span><span class="kq-arrow">➡️</span>' + vessel(S.into, "kq-bk-into") + '</div>' +
+        '<div class="kq-heat"><span class="g"></span><i></i></div><button class="btn gold big" data-out="1">\u{1F44F} Now!</button>');
+      const go = now => { if (done) return; const dt = (now - last) / 1000; last = now; x += dir * dt * 75; if (x > 100) { x = 100; dir = -1; } if (x < 0) { x = 0; dir = 1; } const m = ui.querySelector(".kq-heat i"); if (m) m.style.left = x + "%"; raf = requestAnimationFrame(go); };
+      raf = requestAnimationFrame(go);
+      ui.onclick = ev => { if (!ev.target.closest("[data-out]") || done) return; done = true; cancelAnimationFrame(raf); ui.onclick = null; const d = Math.abs(x - 50);
+        const it = ui.querySelector(".kq-bk-item"), into = ui.querySelector(".kq-bk-into");
+        const ar = ui.querySelector(".kq-bakescene .kq-arrow"); if (ar) ar.style.opacity = "0";
+        const a = it && it.getBoundingClientRect(), b = into && into.getBoundingClientRect();
+        if (S.fx === "sprinkle" && a && b) {   // the shaker goes above the pretzel and shakes the salt down onto it
+          // Nov 17: the shaker's holes (the gold cap, about 30% across and 58% down its picture) go right above the pretzel
+          const hx = a.left + a.width * 0.3, hy = a.top + a.height * 0.58, dx = b.left + b.width / 2 - hx, dy = b.top + b.height * 0.05 - hy;
+          it.style.transition = "transform .55s ease-in-out"; it.style.transform = "translate(" + dx + "px," + dy + "px)"; it.style.zIndex = "3";
+          setTimeout(() => { it.classList.add("shakeit"); rain(b.left + b.width / 2, b.top + b.height * 0.05, b.top + b.height * 0.45, ["#FFFFFF", "#EAF6FF"], 34, 6, "crystal"); }, 600);
+          result(n, d <= 8 ? 3 : d <= 20 ? 2 : 1, next, 2200); }
+        else if (a && b) {   // into the oven / the cold clam, for real
+          const dx = b.left + b.width / 2 - (a.left + a.width / 2), dy = b.top + b.height * 0.55 - (a.top + a.height / 2);
+          it.style.transition = "transform .8s cubic-bezier(.5,0,.4,1), opacity .3s ease .6s"; it.style.transform = "translate(" + dx + "px," + dy + "px) scale(.42)"; it.style.zIndex = "3";
+          setTimeout(() => { it.style.opacity = "0"; }, 650);
+          setTimeout(() => into.classList.add(S.fx === "cool" ? "freezing" : "baking"), 800);
+          if (S.after) setTimeout(() => { const sc = ui.querySelector(".kq-bakescene"); if (sc) sc.innerHTML = pic([S.after], "kq-bk-into plop kq-afterpic") + '<span class="kq-sparkle">✨</span>'; }, 1900);
+          result(n, d <= 8 ? 3 : d <= 20 ? 2 : 1, next, S.after ? 3200 : 2300); }
+        else result(n, d <= 8 ? 3 : d <= 20 ? 2 : 1, next); };
+    } else if (S.t === "knife") {
+      // 🔪 Nov 17 (Ms. Ariana): the knife is already in place above the sushi, held flat like a real kitchen knife. Tap to chop!
+      let cuts = 0, busy = false, t0 = 0; const NEED = 5;
+      ui.innerHTML = card(n, S.say, '<p><b>Tap</b> to chop the sushi into 5 pieces!</p>' +
+        '<div class="kq-knifescene"><div class="kq-kboard" data-chop="1"><img class="kq-kbimg" src="' + bkImg("board-shell") + '" alt=""><span class="kq-klog"><img src="' + bkImg("sushi-7-log") + '" alt=""></span>' +
+        '<img class="kq-kknife" src="' + bkImg("knife-side") + '" alt="Knife"></div></div>' +
+        '<div class="kq-kpieces"></div><p class="small" id="kqkhint">\u{1F363} 0 of ' + NEED + " pieces</p>");
+      const bd = ui.querySelector(".kq-kboard"), lg = ui.querySelector(".kq-klog"), kn = ui.querySelector(".kq-kknife"), hint = ui.querySelector("#kqkhint");
+      // where the next cut goes (from the right end of the roll), as a share of the board
+      const cutAt = k => { const L = 0.12, W = 0.76; return L + W * (1 - (k + 1) / (NEED + 1)); };
+      const place = () => { kn.style.left = (cutAt(cuts) * 100 - 11.5) + "%"; };
+      place();
+      const chop = () => {
+        if (busy || cuts >= NEED) return; busy = true; if (!t0) t0 = performance.now();
+        { const kr = kn.getBoundingClientRect(), lr = lg.getBoundingClientRect(); kn.style.setProperty("--dy", Math.max(10, lr.top + lr.height * 0.55 - kr.bottom) + "px"); }
+        kn.classList.remove("chop"); void kn.offsetWidth; kn.classList.add("chop");
+        setTimeout(() => {
+          cuts++; lg.style.clipPath = "inset(0 " + ((1 - (cutAt(cuts - 1) - 0.12) / 0.76) * 100) + "% 0 0)";
+          ui.querySelector(".kq-kpieces").insertAdjacentHTML("beforeend", '<img src="' + bkImg("sushi-8-piece") + '" alt="">');
+          hint.innerHTML = "\u{1F363} " + cuts + " of " + NEED + " pieces";
+        }, 160);
+        setTimeout(() => { busy = false; if (cuts >= NEED) { ui.onclick = null; const secs = (performance.now() - t0) / 1000; result(n, secs <= 5 ? 3 : secs <= 9 ? 2 : 1, next); } else place(); }, 380);
+      };
+      ui.onclick = ev => { if (ev.target.closest("[data-chop]")) chop(); };
+    } else if (S.t === "hold") {
+      let lvl = 0, holding = false, done = false, raf = 0, last = 0;
+      ui.innerHTML = card(n, S.say, '<p>Press and <b>hold</b>, then let go when it’s in the <b style="color:#2a9d4b">green</b>.</p><div class="kq-bakescene"><img class="kq-bk-item pour" src="' + bkImg(S.item) + '" alt=""><span class="kq-stream" style="background:' + (S.col || "#FFB3D1") + '"></span><span class="kq-intowrap">' +
+        (S.base ? pic([S.base].concat(S.fill.map(f => f[0])), "kq-bk-into kq-pourpic") : vessel(S.into, "kq-bk-into") + '<span class="kq-liq" style="background:' + (S.col || "#FFB3D1") + '"></span>') + '</span><div class="kq-fill"><i></i><span class="g"></span></div></div>' +
+        '<button class="btn gold big kq-holdbtn" data-hold="1">\u{1FAD7} Hold to pour</button>');
+      const go = now => { if (done || !holding) return; const dt = last ? (now - last) / 1000 : 0; last = now; lvl = Math.min(100, lvl + dt * 32); const f = ui.querySelector(".kq-fill i"); if (f) f.style.height = lvl + "%"; const lq = ui.querySelector(".kq-liq"); if (lq) lq.style.height = (lvl * 0.6) + "%";
+        if (S.base) { const ims = ui.querySelectorAll(".kq-pourpic .pf"); ims[0].style.opacity = 1; S.fill.forEach((f, j) => { ims[j + 1].style.opacity = Math.max(0, Math.min(1, (lvl - f[1]) / (f[2] - f[1]))); }); } if (lvl >= 100) return stop(); raf = requestAnimationFrame(go); };
+      const stop = () => { if (done) return; done = true; holding = false; potIn(false); cancelAnimationFrame(raf); const it = ui.querySelector(".kq-bk-item"); if (it) it.classList.remove("tip"); const sm = ui.querySelector(".kq-stream"); if (sm) sm.classList.remove("on"); const vv = vOf(S.into); vv.col = S.col || "#FFB3D1"; vv.lv = Math.round(lvl * 0.6); const d = Math.abs(lvl - 78); result(n, d <= 7 ? 3 : d <= 16 ? 2 : 1, next); };
+      // 🫗 Nov 17 (Ms. Ariana): the pot moves over the mold and tips, and the stream falls from its spout into the mold
+      const real = S.base && S.item !== "tea-pitcher";
+      let sm = null;
+      const potIn = on => { const it = ui.querySelector(".kq-bk-item"), mo = ui.querySelector(".kq-intowrap"); if (!real || !it || !mo) return;
+        if (!sm) { sm = document.createElement("i"); sm.className = "kq-pourline"; document.body.appendChild(sm); }
+        if (!on) { it.style.transform = ""; sm.remove(); return; }
+        it.style.transform = ""; const a = it.getBoundingClientRect(), b = mo.getBoundingClientRect();
+        const L = S.item === "jelly-pitcher" ? -1 : 1;   // the jelly pitcher's spout is on its left, so it tips the other way
+        const cx = b.left + b.width * (L > 0 ? 0.3 : 0.7), cy = b.top - a.height * 0.2;   // where the pot's middle goes
+        it.style.transition = "transform .35s ease-out"; it.style.transformOrigin = "50% 50%"; it.style.zIndex = "4";
+        it.style.transform = "translate(" + (cx - (a.left + a.width / 2)) + "px," + (cy - (a.top + a.height / 2)) + "px) rotate(" + (55 * L) + "deg)";
+        setTimeout(() => { if (!holding) return; const sx = cx + L * a.width * 0.5, sy = cy + a.height * 0.08, ey = b.top + b.height * 0.5;
+          if (!sm.isConnected) return; sm.style.cssText = "display:block;position:fixed;left:" + (sx - 5) + "px;top:" + sy + "px;width:10px;height:" + Math.max(10, ey - sy) + "px;margin:0;background:" + (S.col || "#FFB3D1") + ";border-radius:5px;opacity:.9;z-index:9999;pointer-events:none"; }, 330); };
+      if (real) { const sm0 = ui.querySelector(".kq-stream"); if (sm0) sm0.style.display = "none"; const sc0 = ui.querySelector(".kq-bakescene"); if (sc0) sc0.classList.add("roomtop"); }
+      ui.onpointerdown = ev => { if (!ev.target.closest("[data-hold]") || done) return; ev.preventDefault(); holding = true; last = 0; const it = ui.querySelector(".kq-bk-item"); if (it) it.classList.add("tip"); const sm = ui.querySelector(".kq-stream"); if (sm) sm.classList.add("on"); potIn(true); raf = requestAnimationFrame(go); };
+      ui.onpointerup = () => { if (holding && !done) stop(); };
+    }
+  };
+  const finish = () => {
+    const stars = Math.max(1, Math.round(score.reduce((a, b) => a + b, 0) / score.length)), pearls = BAKE_PEARLS[stars];
+    const k = A.kdOf(o.st, o.cls), bk = { w: wk, t: Object.assign({}, (k.bk || {}).t || {}) }; bk.t[T[0]] = (Number(bk.t[T[0]]) || 0) + 1; k.bk = bk; k.p = (Number(k.p) || 0) + pearls; A.save(k);
+    ui.innerHTML = crab("cheer") + '<div class="kdbox kq-bakebox"><h2>\u{1F389} You baked a ' + esc(T[1]) + '!</h2><img class="kq-bakeout" src="' + treatImg(T[0]) + '" alt=""><p class="kq-stars">' + "⭐".repeat(stars) + '<span style="opacity:.25">' + "⭐".repeat(3 - stars) + "</span></p><p><b>+" + pearls + " pearls!</b> It’s in your Treat Box.</p>" +
+      '<button class="btn gold" data-bkdone="1">Back to the Bakery</button></div>';
+    ui.onclick = ev => { if (!ev.target.closest("[data-bkdone]")) return; root.remove(); BK = null; bakeSay = stars === 3 ? "Perfect! Three stars! You’re a real sea baker!" : "Yum! Nice baking!"; A.rer(); };
+  };
+  ui.innerHTML = crab("point") + '<div class="kdbox kq-bakebox"><h2>\u{1F9C1} Let’s bake a ' + esc(T[1]) + "!</h2><p>3 quick steps. Each one can be <b>Perfect</b>, <b>Good</b> or <b>Oops</b>. More stars = more pearls!</p>" +
+    '<img class="kq-bakeout" src="' + treatImg(T[0]) + '" alt=""><button class="btn gold big" data-bkgo="1">\u{1F44C} Start!</button></div>';
+  ui.onclick = ev => { if (ev.target.closest("[data-bkgo]")) run(0); };
+}
+function salonHTML(st, cls) {
+  const o = cur(), k = o ? o.k : {}, own = (st && st.outfits) || {}, on = st && st.outfitOn, c = companionOf(st);
+  const tryId = salonTry || on, look = Object.assign({}, st, { outfits: Object.assign({}, own, tryId ? { [tryId]: true } : {}), outfitOn: tryId || "" });
+  let h = backTown + '<div class="kdscene kq-salon" style="background-image:url(' + K + 'town/salon-bg.webp)">' +
+    '<div class="kq-mirror">' + (c ? petWithHead(look, c, null, null) : "") + "<small>" + (salonTry ? "\u{1F440} Trying on: " + esc((SALON.concat([["sea-shell-tiara", "", "Shell Tiara"]]).find(x => x[0] === salonTry) || [])[2] || "") : "\u{1FA9E} The mirror") + "</small></div>" +
+    '<div class="kq-salonshop">' + SALON.concat(own["sea-shell-tiara"] ? [["sea-shell-tiara", "shell-tiara", "Shell Tiara (Baron prize)", 0]] : []).map(([id, pic, n, price]) => {
+      const mine = !!own[id], wearing = on === id;
+      return '<div class="kq-salonitem' + (salonTry === id ? " try" : "") + '"><img src="' + K + "outfit-" + pic + '.webp" alt=""><b>' + esc(n) + "</b>" +
+        '<div class="row" style="gap:4px;justify-content:center;flex-wrap:wrap;"><button class="btn small ghost" data-kd2="stry:' + id + '">\u{1F440} Try</button>' +
+        (mine ? '<button class="btn small' + (wearing ? "" : " gold") + '" data-kd2="swear:' + id + '">' + (wearing ? "✅ Wearing" : "Wear it") + "</button>" : '<button class="btn small' + ((Number(k.p) || 0) >= price ? " gold" : " ghost") + '" data-kd2="sbuy:' + id + '">⚪ ' + price + "</button>") + "</div></div>"; }).join("") + "</div>" +
+    guide("salon", st, salonSay ? "cheer" : null, salonSay || "Try anything on! Everything you buy is yours forever.") + "</div>";
+  salonSay = null; return h;
+}
+function salonBuy(id) {
+  const o = cur(); if (!o) return; const it = SALON.find(x => x[0] === id); if (!it) return; const st = o.st, k = o.k, own = st.outfits || {};
+  if (own[id]) return; const p = Number(k.p) || 0;
+  if (p < it[3]) { salonSay = "You need <b>" + (it[3] - p) + " more pearls</b> for the " + esc(it[2]) + "."; A.rer(); return; }
+  if (typeof confirm === "function" && !confirm("Buy the " + it[2] + " for " + it[3] + " pearls?")) return;
+  k.p = p - it[3]; salonTry = null; salonSay = "Gorgeous! The <b>" + esc(it[2]) + "</b> is yours! You’re wearing it now.";
+  A.save(k, { outfits: Object.assign({}, own, { [id]: true }), outfitOn: id });
+}
+function salonWear(id) { const o = cur(); if (!o) return; const st = o.st; if (!(st.outfits || {})[id]) return; salonTry = null; A.save(o.k, { outfitOn: st.outfitOn === id ? "" : id }); }
+
+export const RANK_PRIZE = { Page: 50, Squire: 50, Captain: 75 };   // Baron: the Shell Tiara (Nov 16, the fins were removed)
 // rank prizes that are gear: [outfit id, picture name, name]
-export const RANK_GEAR = { Knight: ["sea-knight-helmet", "knight-helmet", "Knight Shell Helmet"] };   // Nov 15: Page = 50 pearls; Squire 50 (draft, others decided later)
+export const RANK_GEAR = { Knight: ["sea-knight-helmet", "knight-helmet", "Knight Shell Helmet"], Baron: ["sea-shell-tiara", "shell-tiara", "Shell Tiara"] };   // Nov 15: Page = 50 pearls; Squire 50 (draft, others decided later)
 export function rankUpHTML(st) {
   const o = cur(); if (!o) return ""; const k = o.k, r = rankOf(st);
   if (r.n < 2 || k.rk === r.name) return "";

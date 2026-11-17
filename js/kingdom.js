@@ -12,10 +12,10 @@
    Saved on the student as kd = { w: the week (Monday), c: clam opened this week, t: trip done this week, dv: dives this week,
      p: pearls, g: { "Monday date": 1 } treasures, best: best dive, n: clams opened, v: visits, sb: shop buys }.
    One save per clam, per dive, per trip and per buy (a buy also saves roomOwned or outfits). Games run in their own layer. */
-import { esc, weekKey } from "./game.js?v=20261117e";
-import { azToday, azNow } from "./collect.js?v=20261117e";
-import { vaultMet, vaultGoal, subReq, addDays } from "./doors.js?v=20261117e";
-import { guide as guide2, bind as bind2, KEEP2, kd2On, rankChip, rankOf as rankOf2, map2HTML, questsHTML, questsWaiting, aquariumHTML, gardenHTML, dockHTML, stableHTML, shipHTML, shipOpen, hatchHTML, rankUpHTML, catchCreature, pickCreature, keepCreature, aqImg, AQSZ, catchCard, subSprite, subImg, trailHTML, resetViews } from "./kingdom2.js?v=20261117e";
+import { esc, weekKey } from "./game.js?v=20261117f";
+import { azToday, azNow } from "./collect.js?v=20261117f";
+import { vaultMet, vaultGoal, subReq, addDays } from "./doors.js?v=20261117f";
+import { guide as guide2, bind as bind2, KEEP2, kd2On, rankChip, rankOf as rankOf2, map2HTML, questsHTML, questsWaiting, aquariumHTML, gardenHTML, dockHTML, stableHTML, shipHTML, shipOpen, hatchHTML, beachHTML, townHTML, rankUpHTML, catchCreature, pickCreature, keepCreature, aqImg, AQSZ, catchCard, subSprite, subImg, trailHTML, resetViews } from "./kingdom2.js?v=20261117f";
 
 const K = "assets/kingdom/";
 export const KD_DIVES = 3, KD_CLOSE = 22 * 60, DIVE_SECS = 45, TRIP_SECS = 35, TRIP_MAX = 20;
@@ -488,6 +488,8 @@ export function kingdomTab(st, cls) {
     if (view === "stable" && rankOf2(st).n >= 2) return head + back + stableHTML(st, cls);
     if (view === "ship" && rankOf2(st).n >= 3) return head + back + shipHTML(st, cls);
     if (view === "lagoon" && rankOf2(st).n >= 4) return head + back + hatchHTML(st, cls);
+    if (view === "beach" && rankOf2(st).n >= 6) return head + back + beachHTML(st, cls);
+    if (view === "town" && rankOf2(st).n >= 8) return head + back + townHTML(st, cls);
     if (view === "grotto" && !C.preview && !(k.vq || {}).grotto) { k.vq = Object.assign({}, k.vq || {}, { grotto: 1 }); save(k); }
   }
   if (view === "throne") return head + back + throneHTML(st, cls);
@@ -496,7 +498,7 @@ export function kingdomTab(st, cls) {
   if (view === "shop") return head + back + shopHTML(st, cls);
   if (on2() && view === "map") {
     const dl = Math.max(0, KD_DIVES - (Number(k.dv) || 0));
-    return head + rankUpHTML(st) + map2HTML(st, cls, k, { throne: (!k.c ? 1 : 0) + questsWaiting(k, wk(cls)), dive: dl, ship: rankOf2(st).n >= 3 ? Math.max(0, shipOpen(st) - Object.keys((k.ship || {}).f || {}).length) : 0, lagoon: rankOf2(st).n >= 4 ? (!k.hx || !k.hx.e ? (((k.hx || {}).fw) !== wk(cls) ? 1 : 0) : 1) : 0, stable: rankOf2(st).n >= 2 && (!k.sh || k.sh.fw !== wk(cls)) ? 1 : 0 }) + '<div class="row" style="margin-top:8px;gap:8px;align-items:center;flex-wrap:wrap;"><span class="small">' +
+    return head + rankUpHTML(st) + map2HTML(st, cls, k, { throne: (!k.c ? 1 : 0) + questsWaiting(k, wk(cls)), dive: dl, ship: rankOf2(st).n >= 3 ? Math.max(0, shipOpen(st) - Object.keys((k.ship || {}).f || {}).length) : 0, beach: rankOf2(st).n >= 6 && ((k.sc || {}).p || []).length < 10 && (k.sc || {}).fw !== wk(cls) ? 1 : 0, lagoon: rankOf2(st).n >= 4 ? (!k.hx || !k.hx.e ? (((k.hx || {}).fw) !== wk(cls) ? 1 : 0) : 1) : 0, stable: rankOf2(st).n >= 2 && (!k.sh || k.sh.fw !== wk(cls)) ? 1 : 0 }) + '<div class="row" style="margin-top:8px;gap:8px;align-items:center;flex-wrap:wrap;"><span class="small">' +
       (k.c ? "✅ You got this week’s treasure." : "\u{1F451} This week’s treasure is waiting in the Throne Room!") + " · \u{1FAE7} " + dl + " of " + KD_DIVES + ' dives left</span><button class="btn ghost small" data-kd="trip">\u{1F986} Watch the trip again</button></div>';
   }
   return head + mapHTML(st, cls);

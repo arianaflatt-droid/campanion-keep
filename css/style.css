@@ -3981,12 +3981,98 @@ body.kdmode .kdhead h2{ display:none; }
 .kq-rankgear{ display:flex; align-items:center; gap:10px; background:#fff; border-radius:16px; padding:6px 12px; margin:6px auto; max-width:420px; box-shadow:0 2px 8px rgba(0,0,0,.12); text-align:left; }
 .kq-rankgear img{ width:64px; height:64px; object-fit:contain; }
 .wstest{ background:#FFF3C4; color:#5A3B00; border-radius:12px; padding:8px 12px; margin:0 0 8px; font-size:14px; }
-
+/* 🏖️ Seashell Beach sandcastle (Captain, Nov 16) */
+.kq-castle{ position:absolute; left:50%; bottom:6%; width:44%; aspect-ratio:1.25; transform:translateX(-50%); z-index:2; }
+.kq-castle .kq-cspot{ position:absolute; left:50%; bottom:0; width:100%; transform:translateX(-50%); z-index:1; filter:drop-shadow(0 6px 10px rgba(0,0,0,.25)); }
+.kq-castle .kq-cp{ position:absolute; transform:translateX(-50%); filter:drop-shadow(0 4px 6px rgba(0,0,0,.2)); }
+.kq-castle .kq-cp.pop{ animation:kqsanddrop .9s cubic-bezier(.3,1.5,.5,1) both; }
+@keyframes kqsanddrop{ from{ transform:translate(-50%,-140%) scale(.6); opacity:0; } 60%{ opacity:1; } to{ transform:translate(-50%,0) scale(1); } }
+.kq-sparkle{ position:absolute; left:50%; bottom:20%; width:40%; height:50%; transform:translateX(-50%); z-index:6; pointer-events:none; background:radial-gradient(circle, rgba(255,250,200,.9) 0, rgba(255,240,150,0) 60%); animation:kqspark 1.2s ease-out forwards; }
+@keyframes kqspark{ from{ opacity:0; transform:translateX(-50%) scale(.3); } 30%{ opacity:1; } to{ opacity:0; transform:translateX(-50%) scale(1.6); } }
+.kq-sandpick{ position:absolute; left:50%; top:4%; transform:translateX(-50%); width:86%; background:rgba(255,255,255,.96); color:#2D2150; border-radius:18px; padding:10px 14px; z-index:7; text-align:center; }
+.kq-sandpick > div{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin:8px 0; }
+.kq-sandpick button[data-kd2]{ width:12%; min-width:74px; border:2px solid #F3D28A; background:#FFF8E6; border-radius:14px; padding:6px 4px; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:3px; font:inherit; color:#2D2150; }
+.kq-sandpick button[data-kd2]:hover{ transform:translateY(-3px); box-shadow:0 0 0 3px #FFC93C; } .kq-sandpick img{ height:52px; max-width:100%; object-fit:contain; } .kq-sandpick span{ font-size:11px; font-weight:800; }
+.kq-mates{ display:flex; gap:10px; flex-wrap:wrap; margin-top:8px; } .kq-mate{ width:140px; background:linear-gradient(#BDEBFF,#F7E3B5); border-radius:12px; padding:6px; text-align:center; }
+.kq-castle.mini{ position:relative; left:auto; bottom:auto; transform:none; width:100%; margin:6px 0 2px; } .kq-mate small{ font-weight:800; font-size:11px; }
+/* 🏘️ Coral Town: Bubble Bakery + Mermaid Salon (Baron, Nov 16) */
+.kq-recipe{ position:absolute; right:4%; top:8%; width:30%; background:rgba(255,250,240,.96); color:#2D2150; border-radius:18px; padding:10px 12px; text-align:center; z-index:3; box-shadow:0 8px 20px rgba(0,0,0,.2); }
+.kq-recipe img{ width:46%; display:block; margin:2px auto; } .kq-recipe b{ font-size:max(14px,1.8cqw); } .kq-recipe small{ font-weight:800; color:#B0558A; }
+.kq-ings{ display:flex; flex-direction:column; gap:3px; margin-top:6px; text-align:left; font-size:max(11px,1.25cqw); font-weight:700; }
+.kq-bakebox{ width:min(600px,80%); } .kq-bowl{ font-size:64px; margin:4px 0; display:inline-block; } .kq-bowl.plop{ animation:kqpop .4s ease-out; }
+.kq-ingbtns{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; } .kq-ingbtns button{ width:110px; border:3px solid #F3D28A; background:#FFF8E6; border-radius:16px; padding:8px; cursor:pointer; font:inherit; display:flex; flex-direction:column; align-items:center; }
+.kq-ingbtns button span{ font-size:44px; line-height:1.1; } .kq-ingbtns button small{ font-weight:800; } .kq-ingbtns button.in{ opacity:.35; } .kq-ingbtns button.no{ animation:kqshake .4s; border-color:#E5484D; }
+.kq-stir{ font-size:90px; background:none; border:0; cursor:pointer; position:relative; line-height:1; } .kq-stir i{ position:absolute; left:50%; top:10%; font-size:50px; font-style:normal; transform-origin:50% 90%; transition:rotate .1s; }
+.kq-meter{ height:16px; background:#EEE; border-radius:99px; overflow:hidden; margin:8px 10%; } .kq-meter i{ display:block; height:100%; width:0; background:linear-gradient(90deg,#FFC93C,#FF7A59); }
+.kq-oven{ font-size:64px; } .kq-heat{ position:relative; height:26px; margin:8px 6% 14px; border-radius:99px; background:linear-gradient(90deg,#7FC8FF,#FFE27A 35%,#7BE07A 42%,#7BE07A 58%,#FFB347 65%,#E5484D); }
+.kq-heat i{ position:absolute; top:-6px; width:6px; height:38px; background:#2D2150; border-radius:3px; transform:translateX(-50%); }
+.kq-bakeout{ width:38%; animation:kqbaby .7s ease-out; } .kq-stars{ font-size:38px; margin:4px 0; }
+.kq-mirror{ position:absolute; left:4%; top:8%; width:30%; height:74%; background:radial-gradient(ellipse at 50% 45%, rgba(255,255,255,.92), rgba(255,230,245,.85) 70%); border:6px solid #F6C7E3; border-radius:48% 48% 22px 22px; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:3; box-shadow:0 0 0 4px #fff, 0 10px 26px rgba(0,0,0,.25); }
+.kq-mirror .petwrap{ font-size:max(70px,10cqw); margin:10px 0 0; } .kq-mirror small{ font-weight:800; color:#B0558A; margin-top:6px; font-size:max(11px,1.2cqw); }
+.kq-salonshop{ position:absolute; right:3%; top:6%; width:58%; display:grid; grid-template-columns:repeat(3,1fr); gap:8px; z-index:3; }
+.kq-salonitem{ background:rgba(255,255,255,.95); border-radius:14px; padding:6px; text-align:center; color:#2D2150; display:flex; flex-direction:column; align-items:center; gap:3px; } .kq-salonitem.try{ box-shadow:0 0 0 3px #FF8FC0; }
+.kq-salonitem img{ height:max(40px,6cqw); max-width:90%; object-fit:contain; } .kq-salonitem b{ font-size:max(10px,1.15cqw); }
+.kq-salon .kq-guide:not(.first){ display:none; }
+.kq-bakebox .kq-bakescene img{ width:min(130px,11cqw) !important; height:min(130px,11cqw) !important; object-fit:contain; max-width:none; }
+.kq-bakebox .kq-ingbtns button img{ width:min(70px,6cqw) !important; height:min(70px,6cqw) !important; object-fit:contain; }
+.kq-bakebox .kq-stir > img:first-child{ width:min(150px,13cqw) !important; height:min(150px,13cqw) !important; }
+.kq-bakebox .kq-tool{ width:min(70px,6cqw) !important; height:auto !important; }
+.kq-bakebox .kq-bakeout{ width:min(200px,16cqw) !important; height:auto; }
+.kq-bakebox{ max-height:92%; overflow:auto; }
+/* bakery fx (Nov 16, like the Space Café: you SEE it happen) */
+.kq-fly{ position:fixed; z-index:9999; pointer-events:none; object-fit:contain; transition:all .6s ease-in; }
+.kq-stir{ position:relative; display:inline-block; } .kq-mimg{ transition:transform .15s; transform-origin:50% 90%; }
+.kq-stir.fx-stir .kq-tool, .kq-stir.fx-frost .kq-tool{ position:absolute; transform:translate(-50%,-50%); transition:left .12s, top .12s, rotate .12s; right:auto; }
+.kq-fxroll{ position:absolute; left:50%; top:55%; width:45%; opacity:0; transform:translate(-50%,-50%) scale(.4); transition:transform .15s, opacity .15s; pointer-events:none; }
+.kq-fxlog{ position:absolute; left:28%; top:22%; width:44%; } .kq-fxsushi{ width:100%; display:block; transition:clip-path .2s; }
+.kq-fxknife{ position:absolute; top:-6%; font-size:min(48px,4cqw); transform:rotate(-30deg); pointer-events:none; } .kq-fxknife.cut{ animation:kqchop .25s; }
+@keyframes kqchop{ 0%{ transform:rotate(-30deg) translateY(-20%); } 50%{ transform:rotate(-10deg) translateY(40%); } 100%{ transform:rotate(-30deg) translateY(-20%); } }
+.kq-fxpieces{ position:absolute; left:8%; bottom:4%; display:flex; gap:2px; } .kq-fxpieces img{ width:min(34px,3cqw) !important; height:min(34px,3cqw) !important; animation:kqpop .3s; }
+.kq-fxpop{ position:absolute; left:50%; top:50%; width:55%; opacity:0; transform:translate(-50%,-50%); pointer-events:none; transition:transform .15s, opacity .15s; }
+.kq-intowrap{ position:relative; display:inline-block; } .kq-liq{ position:absolute; left:22%; right:22%; bottom:14%; height:0; border-radius:0 0 30% 30%; opacity:.75; mix-blend-mode:multiply; transition:height .08s; }
+.kq-stream{ width:8px; height:0; align-self:flex-start; margin-top:40px; border-radius:4px; opacity:.85; transition:height .2s; } .kq-stream.on{ height:90px; }
+.kq-bk-into.baking{ animation:kqbake 1s ease-in-out infinite alternate; } @keyframes kqbake{ to{ filter:drop-shadow(0 0 18px #FF9A3C) brightness(1.15); } }
+.kq-bk-into.freezing{ animation:kqfreeze 1s ease-in-out infinite alternate; } @keyframes kqfreeze{ to{ filter:drop-shadow(0 0 18px #9FE7FF) brightness(1.1) hue-rotate(-10deg); } }
+.kq-bk-item.shakeit{ animation:kqwob .2s 4; }
+.kq-salt{ position:absolute; top:20%; width:5px; height:5px; border-radius:50%; background:#fff; box-shadow:0 0 3px #9ad; animation:kqsalt .8s ease-in forwards; }
+@keyframes kqsalt{ from{ transform:translateY(0); opacity:1; } to{ transform:translateY(90px); opacity:.2; } }
+/* 🍣 sushi mat drawn in code (Nov 16): empty bamboo mat → seaweed → rice → fillings, then it rolls up */
+.kq-mat{ position:relative; display:inline-block; width:min(220px,19cqw); aspect-ratio:1.25; border-radius:6px; background:repeating-linear-gradient(90deg,#E9C77E 0 9%,#C9A055 9% 10%), #E3BD6E; box-shadow:0 6px 12px rgba(0,0,0,.2), inset 0 0 0 3px #B88C40; }
+.kq-mat.plop{ animation:kqpop .35s; }
+.kq-sheet{ position:absolute; left:8%; right:8%; top:8%; bottom:8%; transition:clip-path .15s; }
+.kq-sheet .ly{ position:absolute; display:block; animation:kqpop .35s; }
+.kq-sheet .ly.seaweed{ inset:0; border-radius:4px; background:linear-gradient(135deg,#1E3B1F,#2E5A2A 50%,#1B331B); }
+.kq-sheet .ly.rice{ left:3%; right:3%; top:3%; bottom:20%; border-radius:6px; background:radial-gradient(circle at 30% 30%,#fff 0 18%,transparent 20%) 0 0/9px 9px, #F6F3EA; box-shadow:inset 0 0 0 2px #e8e2d2; }
+.kq-sheet .ly.fillings{ left:6%; right:6%; bottom:30%; height:18%; border-radius:4px; background:linear-gradient(#FF8A65 0 34%,#8BC34A 34% 67%,#FFD54F 67%); }
+.kq-log2{ position:absolute; left:6%; right:6%; top:80%; height:12%; border-radius:999px; background:repeating-linear-gradient(0deg,#1E3B1F 0 6px,#2E5A2A 6px 12px); box-shadow:0 4px 6px rgba(0,0,0,.35), inset 0 3px 0 rgba(255,255,255,.15); }
+.kq-log2.rolling{ transition:top .15s, height .15s; }
+.kq-fxlog{ position:absolute; left:18%; top:30%; width:64%; height:22%; } .kq-fxlog .kq-log2{ position:absolute; left:0; right:auto; top:0; width:100%; height:100%; transition:width .2s; }
+.kq-stir .kq-mat i.kq-log2{ left:6%; right:6%; width:auto; font-size:0; rotate:0deg; transform:none; transform-origin:50% 50%;
+  background:radial-gradient(circle at 7% 50%, #FF8A65 0 7%, #F6F3EA 7.5% 15%, transparent 15.5%), repeating-linear-gradient(0deg,#1E3B1F 0 6px,#2E5A2A 6px 12px); }
+.kq-stir .kq-fxlog i.kq-log2{ left:0; top:0; right:auto; width:100%; height:100%; font-size:0; transform:none; rotate:0deg;
+  background:radial-gradient(circle at 4% 50%, #FF8A65 0 9%, #8BC34A 9.5% 13%, #F6F3EA 13.5% 30%, transparent 31%), repeating-linear-gradient(90deg,#1E3B1F 0 14px,#2E5A2A 14px 16px); }
+.kq-sheet .ly.fillings{ bottom:10% !important; }
+.kq-stir .kq-mat i.ly{ position:absolute; left:auto; top:auto; font-size:0; transform:none; }
+.kq-stir .kq-mat i.ly.seaweed{ inset:0; } .kq-stir .kq-mat i.ly.rice{ left:3%; right:3%; top:3%; bottom:3%; } .kq-stir .kq-mat i.ly.fillings{ left:6%; right:6%; height:16%; }
+.kq-sheet .ly.rice{ bottom:3% !important; }
+/* bakery: what's inside each pan / cup / mold stays with it from step to step */
+.kq-ves{ position:relative; display:inline-block; line-height:0; }
+.kq-vliq{ position:absolute; left:22%; right:22%; bottom:14%; border-radius:0 0 30% 30%; opacity:.7; mix-blend-mode:multiply; pointer-events:none; }
+.v-candy-mold .kq-vliq, .v-jelly-mold .kq-vliq{ left:12%; right:12%; bottom:18%; top:22%; height:auto !important; border-radius:18%; opacity:.55; }
+.v-cake-pan .kq-vliq.rainbow, .kq-vliq.rainbow{ left:12%; right:12%; bottom:18%; border-radius:12%; background:linear-gradient(#FF6B6B,#FFB347,#FFE066,#7BE07A,#5BC8FF,#B07BFF); opacity:.8; }
+.v-tea-cup .kq-vliq{ left:30%; right:30%; bottom:10%; }
+.kq-boba{ position:absolute; left:32%; right:32%; bottom:9%; height:16%; background:radial-gradient(circle,#3B1F3D 0 40%,transparent 44%) 0 0/9px 9px; pointer-events:none; }
+.kq-vmini{ position:absolute; left:20%; right:20%; top:30%; display:flex; justify-content:center; gap:2px; pointer-events:none; }
+.kq-bakebox .kq-vmini img{ width:32% !important; height:auto !important; animation:kqpop .35s; }
+.kq-bk-item .kq-ves img{ width:min(130px,11cqw) !important; height:min(130px,11cqw) !important; object-fit:contain; }
+.kq-stir .kq-ves .kq-mimg{ width:min(150px,13cqw) !important; height:min(150px,13cqw) !important; }
+.kq-bakebox .kq-vmini img{ width:44% !important; }
+.kq-stir.fx-frost .kq-tool{ top:30%; }
+.kq-stir.fx-frost .kq-fxpop{ top:42%; width:62%; }
 /* ⚠️ rewards removed notice (Nov 16): blocks the Keep until I Understand */
 .xrlock{ position:fixed; inset:0; z-index:2147483000; background:rgba(20,16,40,.88); display:grid; place-items:center; padding:16px; }
 .xrbox{ background:#fff; color:#2D2150; border-radius:22px; padding:26px 24px; max-width:460px; text-align:center; box-shadow:0 0 0 5px #E5484D, 0 20px 50px rgba(0,0,0,.4); }
 .xrbox h2{ margin:6px 0 10px; } .xrbox p{ font-size:18px; line-height:1.4; margin:0 0 18px; } .xric{ font-size:54px; }
-
 /* 📝 teacher checklist (Nov 16) */
 .tk-sec{ border-top:1px solid var(--line-2); padding-top:10px; margin-top:10px; } .tk-sec h3{ margin:0 0 8px; font-size:16px; }
 .tk-chips{ display:flex; flex-wrap:wrap; gap:4px; margin:6px 0; } .tk-chip{ font:inherit; font-size:12.5px; border:1px solid var(--line-2); background:var(--panel); color:inherit; border-radius:99px; padding:3px 10px; cursor:pointer; }
@@ -3996,7 +4082,6 @@ body.kdmode .kdhead h2{ display:none; }
 .tk-group{ margin:10px 0 4px; } .tk-item{ display:flex; align-items:center; gap:8px; padding:5px 8px; margin:3px 0; border-radius:10px; background:var(--panel); cursor:pointer; }
 .tk-item span{ flex:1; } .tk-item.done span{ text-decoration:line-through; opacity:.55; } .tk-seg{ display:inline-flex; gap:4px; }
 .tk-x{ border:1px solid var(--line-2); background:var(--panel); color:inherit; border-radius:8px; min-width:26px; height:24px; font-size:12px; cursor:pointer; padding:0 6px; } .tk-x:disabled{ opacity:.3; cursor:default; }
-
 /* 📣 Shoutouts (Nov 16): a big, slow scrolling list on every screen */
 .sh-g{ margin:8px 0; } .tk-chip.offn{ opacity:.45; text-decoration:line-through; }
 #shroot{ position:fixed; inset:0; z-index:296; overflow:hidden; display:flex; flex-direction:column; align-items:center; background:radial-gradient(circle at 50% 20%,#3B2A8F 0%,#1B1347 60%,#0E0A2B 100%); color:#fff; }
@@ -4080,6 +4165,78 @@ body.kdmode .kdhead h2{ display:none; }
 @keyframes kdvsplash{ 0%,44%{ opacity:0; transform:translateX(-50%) scaleY(.2); } 52%{ opacity:1; transform:translateX(-50%) scaleY(1.2); } 70%{ opacity:0; transform:translateX(-50%) scaleY(.6); } 100%{ opacity:0; } }
 @keyframes kdvbub{ 0%{ opacity:0; transform:translateY(0); } 15%{ opacity:1; } 100%{ opacity:0; transform:translateY(-70vh) translateX(20px); } }
 @media (prefers-reduced-motion: reduce){ #kddive .kdvsub,#kddive .kdvsea,#kddive .kdvbub,#kddive .kdvsplash{ animation:none; display:none; } }
+
+/* 🧁 Nov 16: Bubble Bakery step pictures (her art), the drop-in boba and the turn-the-knife chop */
+.kq-bakebox .kq-pic{ position:relative; display:inline-block; line-height:0; width:min(300px,26cqw); vertical-align:middle; transition:transform .12s; }
+.kq-bakebox .kq-pic img.pf{ display:block; width:100% !important; height:auto !important; max-width:none; transition:opacity .3s; }
+.kq-bakebox .kq-pic img.pf + img.pf{ position:absolute; left:0; top:0; height:100% !important; object-fit:contain; }
+.kq-bakebox .kq-pic.plop{ animation:kqpop .35s; }
+.kq-bakebox .kq-stir .kq-pic{ width:min(320px,28cqw); }
+.kq-bakebox .kq-stir.fx-shake .kq-pic, .kq-bakebox .kq-bakescene .kq-pic:has(img[src*="boba-"]){ width:min(150px,13cqw); }
+.kq-bakebox .kq-stir.fx-shake .kq-pic{ width:min(150px,13cqw); transform-origin:50% 90%; }
+.kq-bakebox .kq-bk-item .kq-ves img[src*="-1-"]{ object-fit:contain; }
+.kq-bakebox img.kq-drop{ position:absolute; top:-30%; width:14% !important; height:auto !important; animation:kqdrop .6s ease-in forwards; z-index:2; }
+@keyframes kqdrop{ from{ transform:translateY(0); opacity:1; } 85%{ opacity:1; } to{ transform:translateY(min(260px,22cqw)); opacity:0; } }
+.kq-bakebox .kq-afterpic{ width:min(260px,22cqw); }
+.kq-bakebox .kq-sparkle{ font-size:min(40px,3.5cqw); animation:kqpop .5s; align-self:flex-start; }
+.kq-knifescene{ display:flex; gap:14px; align-items:center; justify-content:center; margin:6px 0; }
+.kq-kboard{ position:relative; width:min(300px,26cqw); line-height:0; cursor:pointer; }
+.kq-kboard .kq-kbimg{ width:100% !important; height:auto !important; max-width:none; }
+.kq-kboard .kq-klog{ position:absolute; left:12%; width:76%; top:38%; transition:clip-path .2s; pointer-events:none; }
+.kq-kboard .kq-klog img{ width:100% !important; height:auto !important; max-width:none; }
+.kq-kside{ display:flex; flex-direction:column; align-items:center; gap:8px; }
+.kq-knife{ display:inline-block; line-height:0; cursor:grab; touch-action:none; transition:rotate .15s; position:relative; z-index:3; }
+.kq-knife img{ width:min(46px,4cqw) !important; height:auto !important; max-width:none; pointer-events:none; filter:drop-shadow(0 4px 6px rgba(0,0,0,.25)); }
+.kq-knife.ok img{ filter:drop-shadow(0 0 10px #7BE07A) drop-shadow(0 4px 6px rgba(0,0,0,.25)); }
+.kq-knife.bump{ animation:kqshake .4s; }
+.kq-kpieces{ display:flex; gap:6px; justify-content:center; min-height:min(56px,5cqw); }
+.kq-kpieces img{ width:min(56px,5cqw) !important; height:min(56px,5cqw) !important; object-fit:contain; animation:kqpop .35s; }
+.kq-bakebox .kq-bakescene{ display:flex; align-items:center; justify-content:center; gap:10px; position:relative; }
+.kq-bakebox .kq-fill{ position:relative; flex:none; width:22px; height:min(160px,14cqw); border-radius:12px; background:#F1ECF7; border:2px solid #CFC3E0; overflow:hidden; }
+.kq-bakebox .kq-fill i{ position:absolute; left:0; right:0; bottom:0; height:0; background:linear-gradient(#FFB3D1,#FF5FA2); }
+.kq-bakebox .kq-fill .g{ position:absolute; left:0; right:0; bottom:71%; height:14%; border-block:3px solid #2a9d4b; background:rgba(123,224,122,.4); }
 /* 🎁 Nov 17: a winner's prize list waiting on their screen after the wheel closed (no wheel, just the prizes) */
 #wsroot.owed .wswrap{ display:none; }
 #wsroot.owed .wsbox{ max-width:min(900px,96vw); }
+/* 🥚 Nov 17: ingredients go in for real (cracked egg, a scoop of flour, flakes shaken in), pans into the oven, the flat knife */
+.kq-bakebox .kq-ves{ position:relative; }
+.kq-vin{ position:absolute; left:22%; right:22%; top:16%; height:34%; pointer-events:none; }
+.kq-vin .kq-in{ position:absolute; display:block; animation:kqpop .35s; }
+.kq-vin .kq-in.egg{ left:22%; top:22%; width:56%; height:62%; border-radius:48% 52% 45% 55%; background:radial-gradient(circle at 50% 50%,#FFC531 0 26%,#FFB000 30%,rgba(255,250,235,.95) 33%,rgba(255,250,235,.8) 62%,transparent 66%); }
+.kq-vin .kq-in.flour{ left:8%; top:8%; width:56%; height:70%; border-radius:50% 50% 40% 40%; background:radial-gradient(ellipse at 50% 40%,#fff 0 45%,#F2EBDD 70%,transparent 72%); }
+.kq-vin .kq-in.kelp, .kq-vin .kq-in.sugar, .kq-vin .kq-in.salt{ inset:10% 6%; border-radius:50%; }
+.kq-vin .kq-in.kelp{ background:radial-gradient(circle,#2E9E45 0 2px,transparent 3px) 0 0/11px 9px, radial-gradient(circle,#7BD36A 0 2px,transparent 3px) 5px 4px/13px 11px; }
+.kq-vin .kq-in.sugar{ background:radial-gradient(circle,#FF8CC6 0 2px,transparent 3px) 0 0/10px 9px, radial-gradient(circle,#fff 0 2px,transparent 3px) 5px 4px/12px 10px; }
+.kq-vin .kq-in.salt{ background:radial-gradient(circle,#fff 0 2px,transparent 3px) 0 0/10px 9px; }
+.kq-vin .kq-inimg{ position:absolute; left:30%; top:10%; width:40% !important; height:auto !important; }
+.kq-fly2{ position:fixed; z-index:9999; pointer-events:none; object-fit:contain; transition:left .6s ease-in-out, top .6s ease-in-out, width .6s, height .6s, opacity .25s, transform .35s; transform-origin:30% 70%; }
+.kq-fly2.tipit{ transform:rotate(-115deg); }
+.kq-fly2.shakeit2{ animation:kqtipshake 1s ease-in-out forwards; }
+@keyframes kqtipshake{ 0%{ transform:rotate(0); } 20%{ transform:rotate(-130deg); } 35%{ transform:rotate(-115deg); } 50%{ transform:rotate(-135deg); } 65%{ transform:rotate(-115deg); } 80%{ transform:rotate(-135deg); } 100%{ transform:rotate(-120deg); } }
+.kq-half{ position:fixed; z-index:9999; pointer-events:none; object-fit:contain; animation:kqhalf .8s ease-out forwards; }
+.kq-half.top{ clip-path:polygon(0 0,100% 0,100% 48%,80% 54%,62% 46%,45% 55%,28% 47%,12% 54%,0 49%); --dx:-40%; --rot:-35deg; }
+.kq-half.bot{ clip-path:polygon(0 49%,12% 54%,28% 47%,45% 55%,62% 46%,80% 54%,100% 48%,100% 100%,0 100%); --dx:40%; --rot:35deg; }
+@keyframes kqhalf{ 0%{ transform:none; opacity:1; } 30%{ transform:translateY(-4%) rotate(calc(var(--rot) * .2)); } 100%{ transform:translateX(var(--dx)) rotate(var(--rot)); opacity:0; } }
+.kq-yolkdrop{ position:fixed; z-index:9998; pointer-events:none; border-radius:48% 52% 45% 55%; background:radial-gradient(circle,#FFC531 0 30%,#FFB000 34%,rgba(255,250,235,.95) 38%,rgba(255,250,235,.7) 66%,transparent 70%); animation:kqyolk .55s ease-in forwards; }
+@keyframes kqyolk{ 0%{ transform:translateY(0) scaleY(1.3); } 80%{ transform:translateY(var(--fall)) scaleY(1.1); } 100%{ transform:translateY(var(--fall)) scale(1.2,.7); opacity:0; } }
+.kq-rain{ position:fixed; z-index:9998; pointer-events:none; border-radius:50%; animation:kqrain .7s ease-in forwards; }
+.kq-rain.flake{ border-radius:2px 6px; } .kq-rain.crystal{ border-radius:2px; transform:rotate(45deg); box-shadow:0 0 3px rgba(255,255,255,.8); }
+.kq-rain.powder{ box-shadow:0 0 6px 3px rgba(255,255,255,.7); }
+@keyframes kqrain{ 0%{ transform:translateY(0); opacity:1; } 85%{ opacity:1; } 100%{ transform:translateY(var(--fall)); opacity:0; } }
+.kdui.kq-busy .kq-ingbtns{ pointer-events:none; }
+.kq-bakebox .kq-bakescene .kq-bk-item{ position:relative; display:inline-block; }
+.kq-kboard{ position:relative; }
+.kq-kboard .kq-kknife{ position:absolute; top:22%; width:46% !important; height:auto !important; max-width:none; pointer-events:none; transition:left .2s ease; filter:drop-shadow(0 6px 6px rgba(0,0,0,.25)); transform-origin:85% 50%; z-index:3; }
+.kq-kboard .kq-kknife.chop{ animation:kqchop2 .32s ease-in-out; }
+@keyframes kqchop2{ 0%{ transform:none; } 45%{ transform:translateY(var(--dy,40px)) rotate(-3deg); } 60%{ transform:translateY(var(--dy,40px)) rotate(1deg); } 100%{ transform:none; } }
+.kq-knifescene{ padding-right:12%; }
+.kq-bakebox .kq-bakescene.roomtop{ padding-top:min(120px,10cqw); }
+/* 💄 Nov 17: Mermaid Salon pieces, each in its own spot */
+.phat.cos.sal{ width:1em; }
+.phat.cos.sal.sal-wand{ z-index:6; }
+.kq-bakebox .kq-pic:has(img[src*="bowl-"]){ width:min(210px,18cqw); }
+.kq-bakebox .kq-pic:has(img[src*="cake-pan"]){ width:min(230px,20cqw); }
+.kq-fly2.shakeit2{ transform-origin:50% 50%; }
+@keyframes kqtipshake{ 0%{ transform:rotate(0); } 20%{ transform:rotate(-130deg); } 35%{ transform:rotate(-118deg); } 50%{ transform:rotate(-132deg); } 65%{ transform:rotate(-118deg); } 80%{ transform:rotate(-132deg); } 100%{ transform:rotate(-125deg); } }
+.kq-lidpop{ position:fixed; z-index:10000; pointer-events:none; height:auto; animation:kqlidpop 1s ease-out forwards; }
+@keyframes kqlidpop{ 0%{ transform:none; opacity:1; } 60%{ transform:translate(70%,-60%) rotate(35deg); opacity:1; } 100%{ transform:translate(110%,-40%) rotate(60deg); opacity:0; } }
