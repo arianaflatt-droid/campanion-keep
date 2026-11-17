@@ -7,10 +7,10 @@
    and the zone badge; all 3 of a zone's aliens = its alien badge (badges.js works these out from the album).
    Saved on the student in planet: alb = { "c<id>" or alien key: photos }, saf = { d: day, u: film used, b: film bought },
    pg = [zone keys already paid], ms = milestones paid. One write per photo (≤3 a day unless they buy film). Preview saves nothing. */
-import { CREATURES } from "./creatures.js?v=20261117b";
-import { ALIEN_CREATURES, ALIEN_FAM } from "./aliens.js?v=20261117b";
-import { esc } from "./game.js?v=20261117b";
-import { azToday, azNow } from "./collect.js?v=20261117b";
+import { CREATURES } from "./creatures.js?v=20261117c";
+import { ALIEN_CREATURES, ALIEN_FAM } from "./aliens.js?v=20261117c";
+import { esc } from "./game.js?v=20261117c";
+import { azToday, azNow } from "./collect.js?v=20261117c";
 // ✨ Sparkles (Nov 7): now and then a creature shows up in its Sparkle colors. A photo of one = +10 ⭐ (first time) and a ✨ on its album spot;
 // catching one makes that creature Sparkle in the Collector for good (like a Sparkle hatch). Saved as planet.spk = { key: 1 }.
 export const SAF_SPARKLE = 0.04, SPARKLE_DUST = 10;

@@ -11,9 +11,9 @@
    so it shows on the console's Prize winners list to order.
    Saved on the class (teacher only): wspin = { id, kind, duck, label, names: [{ i, n }], slices: [name index], win, extra, at, open }
    and wsGoal (the weekly number). The wheel draws in its own layer (#wsroot), so page redraws never interrupt the spin. */
-import { esc, weekKey } from "./game.js?v=20261117b";
-import { addDays, histWeekTotal, subReq, subRuleOn, ringPass, mondayOf, ringDay, SUB_REQ, vaultGift } from "./doors.js?v=20261117b";
-import { getSpinPrizes } from "./db.js?v=20261117b";
+import { esc, weekKey } from "./game.js?v=20261117c";
+import { addDays, histWeekTotal, subReq, subRuleOn, ringPass, mondayOf, ringDay, SUB_REQ, vaultGift } from "./doors.js?v=20261117c";
+import { getSpinPrizes } from "./db.js?v=20261117c";
 
 const COLORS = ["#F2545B", "#F4B942", "#2EC4B6", "#7B61FF", "#06D6A0", "#3A86FF"];
 export const WS_DAILY = 120, WS_WEEKLY = 600, SPIN_MS = 4200;
@@ -42,6 +42,23 @@ export function makeSpin(pool, opts) {
   return { id: "w" + Date.now().toString(36), kind: opts.kind, duck: !!opts.duck, label: opts.label || "", names, slices,
     win: Math.floor(Math.random() * slices.length), extra: 5 + Math.floor(Math.random() * 3), at: new Date().toISOString(), open: true };
 }
+// 🎁 Nov 17 (Ms. Ariana): a winner who hasn't picked yet keeps the prize list on their screen until they pick,
+// even after she closes the wheel (and the next time they open the Keep). cls.wsOwed = { spinId: { sid, n, kind, at } }
+// (teacher-only, added when she spins, or by hand from the Spin card). Picked = a spinLog entry with ws === that id.
+export const wsPicked = (st, id) => ((st && st.spinLog) || []).some(x => x && x.src === "wheel" && x.ws === id);
+export function owedList(cls, students) {
+  const O = (cls && cls.wsOwed) || {};
+  return Object.keys(O).map(id => Object.assign({ id }, O[id])).filter(o => o && o.sid).map(o => Object.assign(o, { st: (students || []).find(x => x.id === o.sid) || null }))
+    .sort((a, b) => String(a.at || "").localeCompare(String(b.at || "")));
+}
+// the next prize pick this student still owes (oldest first)
+function owedFor(cls, me) {
+  if (!me) return null; const O = (cls && cls.wsOwed) || {};
+  const id = Object.keys(O).filter(k => O[k] && O[k].sid === me.id && !wsPicked(me, k) && !owedDone[k]).sort((a, b) => String(O[a].at || "").localeCompare(String(O[b].at || "")))[0];
+  if (!id) return null; const x = O[id];
+  return { id, kind: x.kind === "weekly" ? "weekly" : "daily", duck: false, owed: true, label: "", names: [{ i: me.id, n: String(x.n || me.name || "You") }], slices: [0], win: 0, extra: 0, at: x.at || "2000-01-01T00:00:00Z", open: true };
+}
+const owedDone = {};
 export const winnerOf = w => (w && w.names && w.slices ? w.names[w.slices[w.win]] : null) || null;
 
 /* ----- the layer ----- */
@@ -71,6 +88,7 @@ function finalRot(w) {
 const easeOut = t => 1 - Math.pow(1 - t, 5);
 function build(w) {
   if (!root) { root = document.createElement("div"); root.id = "wsroot"; document.body.appendChild(root); }
+  root.classList.toggle("owed", !!w.owed);
   lastH = "";
   root.innerHTML = '<div class="wsbox"><h2 class="wstitle">' + esc(titleOf(w)) + "</h2>" + (w.label ? '<p class="wslabel">' + esc(w.label) + "</p>" : "") +
     '<div class="wswrap"><div class="wspointer"></div><canvas width="640" height="640"></canvas><div class="wshub"></div></div><div class="wsbottom"></div></div>';
@@ -93,16 +111,17 @@ function paintBottom() {
   if (w.test) h += '<p class="wstest">\u{1F9EA} <b>Test spin</b>: only you can see this. Nothing is saved and no prize is given.</p>';
   if (!S.done) h += '<p class="wswait">\u{1F3B6} Spinning…</p>';
   else {
-    h += '<div class="wswinner"><span>' + (S.isWinner ? "\u{1F389} It’s YOU!" : "\u{1F389} It landed on") + "</span><b>" + esc(name) + "</b></div>";
+    h += w.owed ? '<div class="wswinner"><span>\u{1F389} You won the ' + (w.kind === "weekly" ? "Weekly" : "120 XP") + " Prize Spin!</span><b>Pick your prize</b></div>"
+      : '<div class="wswinner"><span>' + (S.isWinner ? "\u{1F389} It’s YOU!" : "\u{1F389} It landed on") + "</span><b>" + esc(name) + "</b></div>";
     if (w.duck) h += '<p class="wsmsg">\u{1F986} ' + (S.isWinner ? "You get to dress the duck!" : esc(name) + " gets to dress the duck!") + "</p>";
     else if (S.isWinner) {
-      const set = w.kind === "weekly" ? "weekly" : "daily", picked = S.picked || (S.me && S.me.wsPick === w.id);
-      if (picked) h += '<p class="wsmsg">✅ You picked <b>' + esc(S.pickedName || "your prize") + "</b>! Ms. Ariana will order it for you.</p>";
+      const set = w.kind === "weekly" ? "weekly" : "daily", picked = S.picked || (S.me && (S.me.wsPick === w.id || wsPicked(S.me, w.id)));
+      if (picked) h += '<p class="wsmsg">✅ You picked <b>' + esc(S.pickedName || "your prize") + "</b>! Ms. Ariana will order it for you.</p>" + (w.owed ? '<button class="btn gold wsclose" data-wsclose="1">✔ Done</button>' : "");
       else if (S.preview) h += '<p class="wsmsg">(Preview: the winner picks a prize here.)</p>';
       else if (!prizes) h += '<p class="wsmsg">Loading the prizes…</p>';
       else {
         const list = prizes.filter(p => (p.set || "daily") === set);
-        if (!list.length) h += '<p class="wsmsg">Ms. Ariana will help you pick your prize!</p>';
+        if (!list.length) h += '<p class="wsmsg">Ms. Ariana will help you pick your prize!</p>' + (w.owed ? '<button class="btn gold wsclose" data-wsclose="1">✔ OK</button>' : "");
         else if (choose) { const p = list.find(x => x.id === choose), lk = p && linkOk(p.link);
           h += '<div class="wsconfirm">' + (p && p.img ? '<img src="' + esc(p.img) + '" alt="">' : "") + "<p>Pick <b>" + esc((p && p.name) || "this prize") + "</b>?</p>" +
             (lk ? '<a class="btn ghost small wslook" href="' + esc(p.link) + '" target="_blank" rel="noopener">\u{1F440} See it in the store (opens a new tab)</a>' : "") +
@@ -148,8 +167,16 @@ export const testOn = () => !!testW;
 export function wheelSync(o) {
   lastO = o;
   if (testW && o.teacher) o = Object.assign({}, o, { cls: Object.assign({}, o.cls, { wspin: testW }), close: () => { testW = null; wheelSync(lastO); } });
-  const w = o.cls && o.cls.wspin;
-  if (!w || !w.open || !w.slices || !w.slices.length) { if (root) { root.remove(); root = null; } S = null; choose = null; return; }
+  let w = o.cls && o.cls.wspin;
+  if (!w || !w.open || !w.slices || !w.slices.length) {
+    // the wheel is closed: a winner who hasn't picked still gets the prize list (it stays until they pick)
+    const ow = !o.teacher && !o.preview && o.me ? owedFor(o.cls, o.me) : null;
+    if (ow && S && S.w.id === ow.id) { w = S.w; w.owed = true; }   // the same spin they were picking from: keep it as it is
+    else if (ow) w = ow;
+    else if (S && S.w.owed && S.picked && !owedDone[S.w.id] && !o.teacher) w = S.w;   // just picked: show the ✅ until they tap Done
+    else { if (root) { root.remove(); root = null; } S = null; choose = null; return; }
+    o = Object.assign({}, o, { close: () => { owedDone[w.id] = 1; if (root) { root.remove(); root = null; } S = null; choose = null; } });
+  }
   const win = winnerOf(w), isWinner = !!(o.me && win && o.me.id === win.i && !o.teacher);
   if (!S || S.w.id !== w.id) { S = { w, done: false, isWinner, me: o.me, teacher: !!o.teacher, students: o.students, preview: !!o.preview, save: o.save, close: o.close }; choose = null; build(w); return; }
   Object.assign(S, { me: o.me, students: o.students, save: o.save, close: o.close, isWinner });

@@ -3,24 +3,24 @@
    Each step checks itself off from the student's save; tapping a step opens the tab where it's done.
    The Treasure Vault step is "check your progress", so it counts as done once the student opens it today
    (remembered on this computer only). */
-import { rvStarted, rvStock, rvBeatCount } from "./revenge.js?v=20261117b";
-import { heistTodo } from "./heist.js?v=20261117b";
-import { axoOn } from "./axolotl.js?v=20261117b";
-import { newsKeyOf, shownNews } from "./news.js?v=20261117b";
-import { freeReady } from "./pets.js?v=20261117b";
-import { tbLeft, tbLive } from "./teachbattle.js?v=20261117b";
-import { esc, simulate, companionOf, goalXP } from "./game.js?v=20261117b";
+import { rvStarted, rvStock, rvBeatCount } from "./revenge.js?v=20261117c";
+import { heistTodo } from "./heist.js?v=20261117c";
+import { axoOn } from "./axolotl.js?v=20261117c";
+import { newsKeyOf, shownNews } from "./news.js?v=20261117c";
+import { freeReady } from "./pets.js?v=20261117c";
+import { tbLeft, tbLive } from "./teachbattle.js?v=20261117c";
+import { esc, simulate, companionOf, goalXP } from "./game.js?v=20261117c";
 import { azToday, azNow, todayXP, pullsLeft, legendaryLeft, birthdayLeft, pickleLeft, vaultLegLeft, BOSS2_LIST, boss2EggLeft, candyLegLeft, snowLegLeft,
-  gingerLegLeft, feastLegLeft, brewLegLeft, goalLeft, themeLeft, hasStarter, bankXP, LEVEL_XP } from "./collect.js?v=20261117b";
-import { mqReady } from "./morning.js?v=20261117b";
-import { doorsLive, doorName, goldenReady, weekDoorState, vaultState, vaultGoal, subReq, todayPlan, SUBJECT_KEYS } from "./doors.js?v=20261117b";
-import { soloOn, soloReady, soloCfg } from "./solobrew.js?v=20261117b";
-import { passReady } from "./pass.js?v=20261117b";
-import { pettedToday } from "./bond.js?v=20261117b";
-import { mealsReady } from "./meals.js?v=20261117b";
-import { readyTests } from "./quest.js?v=20261117b";
-import { unthanked } from "./kindness.js?v=20261117b";
-import { kdTodo } from "./kingdom.js?v=20261117b";
+  gingerLegLeft, feastLegLeft, brewLegLeft, goalLeft, themeLeft, hasStarter, bankXP, LEVEL_XP } from "./collect.js?v=20261117c";
+import { mqReady } from "./morning.js?v=20261117c";
+import { doorsLive, doorName, goldenReady, weekDoorState, vaultState, vaultGoal, subReq, todayPlan, SUBJECT_KEYS } from "./doors.js?v=20261117c";
+import { soloOn, soloReady, soloCfg } from "./solobrew.js?v=20261117c";
+import { passReady } from "./pass.js?v=20261117c";
+import { pettedToday } from "./bond.js?v=20261117c";
+import { mealsReady } from "./meals.js?v=20261117c";
+import { readyTests } from "./quest.js?v=20261117c";
+import { unthanked } from "./kindness.js?v=20261117c";
+import { kdTodo } from "./kingdom.js?v=20261117c";
 
 const seenKey = (id, what) => "ck-seen-" + azToday() + "-" + id + "-" + what;
 // 📣 the class announcement (Nov 9): a new one gets a new key, so it shows up on the list again

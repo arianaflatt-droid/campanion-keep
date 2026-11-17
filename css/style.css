@@ -4080,3 +4080,6 @@ body.kdmode .kdhead h2{ display:none; }
 @keyframes kdvsplash{ 0%,44%{ opacity:0; transform:translateX(-50%) scaleY(.2); } 52%{ opacity:1; transform:translateX(-50%) scaleY(1.2); } 70%{ opacity:0; transform:translateX(-50%) scaleY(.6); } 100%{ opacity:0; } }
 @keyframes kdvbub{ 0%{ opacity:0; transform:translateY(0); } 15%{ opacity:1; } 100%{ opacity:0; transform:translateY(-70vh) translateX(20px); } }
 @media (prefers-reduced-motion: reduce){ #kddive .kdvsub,#kddive .kdvsea,#kddive .kdvbub,#kddive .kdvsplash{ animation:none; display:none; } }
+/* 🎁 Nov 17: a winner's prize list waiting on their screen after the wheel closed (no wheel, just the prizes) */
+#wsroot.owed .wswrap{ display:none; }
+#wsroot.owed .wsbox{ max-width:min(900px,96vw); }
