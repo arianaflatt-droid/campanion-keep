@@ -7,11 +7,12 @@
    The step lives on the class doc (cls.mm = { on, k, i, id }), one small write per step.
    📰 "Pop it open on every screen": cls.newsShow = { id, open } puts the announcements over every student's page until
    she closes it (students can tap "Got it" to close it on their own screen). */
-import { esc, battleOn } from "./game.js?v=20261117g";
-import { soloOn } from "./solobrew.js?v=20261117g";
-import { azToday } from "./collect.js?v=20261117g";
-import { newsPage, shownNews } from "./news.js?v=20261117g";
-import { p120On, p60On } from "./party.js?v=20261117g";
+import { esc, battleOn } from "./game.js?v=20261117i";
+import { soloOn } from "./solobrew.js?v=20261117i";
+import { azToday } from "./collect.js?v=20261117i";
+import { newsPage, shownNews } from "./news.js?v=20261117i";
+import { secretBanner } from "./secret.js?v=20261117i";
+import { p120On, p60On } from "./party.js?v=20261117i";
 
 export const MM_STEPS = {
   am: [
@@ -26,6 +27,7 @@ export const MM_STEPS = {
   pm: [
     { k: "shout", ic: "\u{1F4E3}", t: "Shoutouts", tab: "daily", card: "shoutCard", rockets: true, tip: "Show the shoutouts, then blast off today’s rockets." },
     { k: "news", ic: "\u{1F4F0}", t: "Announcements", tab: "daily", card: "newsCard", tip: "Pop the announcements open on every screen to read them together." },
+    { k: "sd", ic: "\u{1F986}", t: "Duck Showdown", tab: "daily", card: "sdCard", tip: "Turn on Show to students, then open the Duck Showdown." },
     { k: "battle", ic: "⚔️", t: "Boss attacks", tab: "events", card: "", tip: "" },
     { k: "party", ic: "\u{1F388}", t: "60 XP Party", tab: "daily", card: "partyCard", party: "60", tip: "Start the 60 XP Party. The student screen opens the party when it starts." }]
 };
@@ -90,7 +92,7 @@ export function mmScreenChip(cls) {
   return '<div class="mmchip">\u{1F4FA} ' + (S ? esc(MM_NAME[S.k]) + " · " + S.step.ic + " " + esc(S.step.t) : "Student screen") + "</div>";
 }
 export function mmNewsScreen(cls, students, pics) {
-  return '<div class="mmnews"><h1>\u{1F4F0} Announcements</h1>' + newsPage(null, cls, students, pics, true) + "</div>";
+  return '<div class="mmnews"><h1>\u{1F4F0} Announcements</h1>' + newsPage(null, cls, students, pics, true, secretBanner(cls)) + "</div>";   // 🕵️ Secret Students winners at the top
 }
 
 /* ---------- 📰 announcements popped open on every screen ---------- */
@@ -104,7 +106,7 @@ export function newsPopSync(o) {
   if (!nRoot) { nRoot = document.createElement("div"); nRoot.id = "nwroot"; document.body.appendChild(nRoot); }
   const html = '<div class="nwbox"><div class="nwhead"><h1>\u{1F4E3} Announcements</h1>' +
     (o.teacher ? '<button class="btn danger" data-nwpop="close">✖ Close it on every screen</button>' : '<button class="btn gold" data-nwpop="ok">✔ Got it</button>') + "</div>" +
-    '<div class="nwlist">' + newsPage(o.st || null, o.cls, o.students, o.pics, !!o.teacher || !o.st) + "</div></div>";
+    '<div class="nwlist">' + newsPage(o.st || null, o.cls, o.students, o.pics, !!o.teacher || !o.st, secretBanner(o.cls)) + "</div></div>";
   if (html !== nHtml) { const l = nRoot.querySelector(".nwlist"), top = l ? l.scrollTop : 0; nRoot.innerHTML = html; nHtml = html; const l2 = nRoot.querySelector(".nwlist"); if (l2) l2.scrollTop = top; }
   if (nShown !== N.id) { nShown = N.id; if (o.seen) try { o.seen(); } catch (e) {} }
 }

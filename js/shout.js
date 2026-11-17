@@ -7,11 +7,11 @@
    She can untick anyone, then "Show on every screen": a big, slow, read-aloud scrolling list takes over every student's
    screen until she closes it. Saved on the class doc (cls.shout = { id, open, title, groups: [{ ic, t, names: [{ n, w }] }] }),
    which every screen already watches: no new reads. Names shown are display names only (first name + last initial). */
-import { esc, simulate, weekKey } from "./game.js?v=20261117g";
-import { azToday } from "./collect.js?v=20261117g";
-import { addDays, mondayOf } from "./doors.js?v=20261117g";
-import { dailyPool } from "./wheel.js?v=20261117g";
-import { phase } from "./planet.js?v=20261117g";
+import { esc, simulate, weekKey } from "./game.js?v=20261117i";
+import { azToday } from "./collect.js?v=20261117i";
+import { addDays, mondayOf } from "./doors.js?v=20261117i";
+import { dailyPool } from "./wheel.js?v=20261117i";
+import { phase } from "./planet.js?v=20261117i";
 
 const DUCK = "assets/lvlup/duck.webp";
 let ctx = {}, root = null, shownId = "", mode = null, off = {}, mDraft = { n: "", w: "" };
@@ -38,7 +38,7 @@ export function shoutGroups(students, cls, when) {
     const d = lastSchoolDay(cls);
     add("120", "\u{1F4AF}", "120 XP + all rings closed (" + new Date(d + "T12:00:00").toLocaleDateString("en-US", { weekday: "long" }) + ")", dailyPool(kids, cls, d).map(r => ({ id: r.x.id, n: dn(r.x), w: r.xp + " XP" })));
   } else {
-    add("120", "\u{1F4AF}", "120 XP + all rings closed today", dailyPool(kids, cls, today).map(r => ({ id: r.x.id, n: dn(r.x), w: r.xp + " XP" })));
+    // Nov 17 (Ms. Ariana): the afternoon shoutout is only who's heading to Planet JP (no 120 XP list)
     add("pj", "\u{1F680}", "Ready for Planet JP or exploring it now", kids.map(s => { let p = "off"; try { p = phase(s, cls); } catch (e) {} return [s, p]; })
       .filter(([s, p]) => p === "landed" || p === "ready" || p === "go").map(([s, p]) => ({ id: s.id, n: dn(s), w: p === "landed" ? "on Planet JP!" : "tanks full, ready for liftoff!" })));
   }
