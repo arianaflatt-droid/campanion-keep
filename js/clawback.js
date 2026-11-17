@@ -10,9 +10,9 @@
      • regular eggs: eggs come from XP, so the egg count drops by itself; eggs already hatched are taken back by removing the
        newest creatures hatched since that day (not their companion or starter)
    Things worked out from XP fix themselves: streaks, gear, companion health, 120-day spins, event tickets, Kingdom entry. */
-import { esc } from "./game.js?v=20261116j";
-import { pullsEarned, owned, formOf } from "./collect.js?v=20261116j";
-import { doorsFor, dayDoors, doorMet, approved, addDays, mondayOf, vaultMet, vaultGift, subReq, ringDay, REWARD_XP, GOAL_CANDY, DOOR_OPEN_DUST, WEEK_DOOR_DUST, DOOR_DUST } from "./doors.js?v=20261116j";
+import { esc } from "./game.js?v=20261116M";
+import { pullsEarned, owned, formOf } from "./collect.js?v=20261116M";
+import { doorsFor, dayDoors, doorMet, approved, addDays, mondayOf, vaultMet, vaultGift, subReq, ringDay, REWARD_XP, GOAL_CANDY, DOOR_OPEN_DUST, WEEK_DOOR_DUST, DOOR_DUST } from "./doors.js?v=20261116M";
 
 const DROP_MIN = 3;   // ignore wobbles of 1–2 XP
 const SUBN = { m: "Math", f: "Fast Math", r: "Reading", w: "Writing", l: "Language", v: "Vocabulary", sc: "Science", ss: "Social Studies" };
@@ -35,7 +35,7 @@ export function openDrops(st) {
   Object.entries((st && st.xpDrop) || {}).forEach(([date, o]) => {
     const h = ((st.xpHist || {})[date]) || {}, now = dayTot(h), ns = h.sub || {};
     const subs = Object.keys(o.sub || {}).map(k => [k, Number(o.sub[k]) || 0, Number(ns[k]) || 0]).filter(([k, a, b]) => a - b >= DROP_MIN);
-    if (o.d - now >= DROP_MIN || subs.length) out.push({ date, was: o.d, now, subs });
+    if (o.d - now >= DROP_MIN) out.push({ date, was: o.d, now, subs });   // only when the TOTAL went down (Nov 16 fix)
   });
   return out.sort((a, b) => a.date < b.date ? -1 : 1);
 }
