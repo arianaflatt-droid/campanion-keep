@@ -17,10 +17,10 @@
       pty60 / pty120 = { id, in, hat, mv, mn, pops, drop, solo, ch: { k, n }, hits }   (live party state; others read it)
       partyGot = { partyId: true, partyId + "-p": true }   partyAlbum = [ { id, d, who: [{ id, n, p }] } ]   vipDay
    Party music is made in the browser (no sound files); it only starts when someone taps 🎵. */
-import { esc, goalXP, companionOf, petHTML, wornItem, simulate, eventMode, seasonOf, hatHTML, randomHat, onPet, vipToday, partyHat, partyCrown, headFree } from "./game.js?v=20261117c";
-import { azToday } from "./collect.js?v=20261117c";
-import { heldWeapon } from "./quest.js?v=20261117c";
-import { tricksFor } from "./bond.js?v=20261117c";
+import { esc, goalXP, companionOf, petHTML, wornItem, simulate, eventMode, seasonOf, hatHTML, randomHat, onPet, vipToday, partyHat, partyCrown, headFree } from "./game.js?v=20261117e";
+import { azToday } from "./collect.js?v=20261117e";
+import { heldWeapon } from "./quest.js?v=20261117e";
+import { tricksFor } from "./bond.js?v=20261117e";
 
 export const PARTY_MIN = 10, PARTY_XP = 60;
 const DROP_MS = 20000, SOLO_MS = 15000, A = "assets/party/";
@@ -40,7 +40,8 @@ export const prevVIP = (st, cls) => prevDays().some(d => xpAt(st, d) >= goalXP(c
 export const isGuest = st => lh(st) || xpOn(st) >= PARTY_XP;
 export const isVIP = (st, cls) => lh(st) || xpOn(st) >= goalXP(cls) || prevVIP(st, cls);
 export const p60On = cls => !!(cls && cls.party60 && Date.now() < Number(cls.party60.end));
-export const p120On = cls => !!(cls && cls.party120 && (cls.party120.on != null ? cls.party120.on : cls.party120.end && Date.now() < Number(cls.party120.end)));
+// Nov 17 (Ms. Ariana): the VIP Party also ends by itself after 10 minutes (end), or when she taps Turn off (on: false)
+export const p120On = cls => { const P0 = cls && cls.party120; if (!P0) return false; if (P0.on === false) return false; if (P0.end && Date.now() >= Number(P0.end)) return false; return P0.on != null ? !!P0.on : !!P0.end; };
 // The countdown text: the 60 XP Party shows time left, the VIP Party is open until Ms. Ariana closes it
 const timeTxt = (k, cls) => (k === "120" ? "open" : mmss(leftS(k, cls)) + " left");
 const P = (k, cls) => (cls && (k === "60" ? cls.party60 : cls.party120)) || null;
@@ -260,7 +261,7 @@ function updateControls() {
       const solo = activeSolo();
       h += '<div class="pextras">' +
         (solo && solo.s.id !== me.id ? '<button class="btn gold" data-party="cheer">\u{1F44F} Cheer for ' + esc(petName(solo.s)) + "!</button>" : "") +
-        (!x.solo && !solo ? '<button class="btn gold" data-party="solo">\u{1F3A4} Spotlight Solo</button>' : x.solo && !solo ? '<span class="pmsg small">✅ You had your solo!</span>' : "") +
+        (!x.solo ? '<button class="btn gold" data-party="solo">\u{1F3A4} Spotlight Solo' + (solo ? " (get in line)" : "") + "</button>" : soloWaiting(me.id) >= 0 ? '<span class="pmsg small">\u{1F3A4} You’re #' + (soloWaiting(me.id) + 1) + " in line for your solo!</span>" : !solo || solo.s.id !== me.id ? '<span class="pmsg small">✅ You had your solo!</span>' : "") +
         '<button class="btn ghost" data-party="photo">\u{1F4F8} Group photo</button><button class="btn ghost" data-party="album">\u{1F4D6} Album</button></div>';
     }
   }
@@ -411,11 +412,16 @@ async function claimPinata() {
 }
 
 /* ---------- 🎤 Spotlight Solo ---------- */
-function activeSolo() {
+// Nov 17 (Ms. Ariana): solos line up one after another, so a student who taps while someone else is singing gets their
+// whole turn right after (before, the second solo started at once and the first one got cut off / skipped)
+function soloLine() {
   const { students, cls } = LAST, now = Date.now();
-  const on = guestsOf(students, "120", cls).map(s => ({ s, t: Number((mine(s, "120", cls) || {}).solo) || 0 })).filter(o => o.t && now - o.t < SOLO_MS && o.t - now < 5000);
-  return on.sort((a, b) => a.t - b.t)[0] || null;
+  const L = guestsOf(students, "120", cls).map(s => ({ s, t0: Number((mine(s, "120", cls) || {}).solo) || 0 })).filter(o => o.t0 && now - o.t0 < 15 * 60000).sort((a, b) => a.t0 - b.t0 || String(a.s.id).localeCompare(String(b.s.id)));
+  let end = 0; L.forEach(o => { o.t = Math.max(o.t0, end); end = o.t + SOLO_MS; });
+  return L;
 }
+function activeSolo() { const now = Date.now(); return soloLine().find(o => now >= o.t && now < o.t + SOLO_MS) || null; }
+const soloWaiting = id => soloLine().filter(o => o.t > Date.now()).findIndex(o => o.s.id === id);
 function cheersFor(solo) {
   const key = solo.s.id + ":" + solo.t, { students, cls, me } = LAST;
   return guestsOf(students, "120", cls).reduce((n, s) => { const ch = (mine(s, "120", cls) || {}).ch;
@@ -431,7 +437,8 @@ function updateSolo() {
     box.dataset.k = key; el.classList.add("solo");
     box.innerHTML = '<div class="pbeam"></div><div class="psolopet">' + onPet(petHTML(companionOf(solo.s), headFree(wornItem(solo.s, simulate(solo.s, LAST.cls)))), partyCrown(companionOf(solo.s))) + "</div>" +
       '<div class="psoloname">\u{1F3A4} ' + esc(petName(solo.s)) + "’s Spotlight Solo! <span data-solol></span></div><div class=\"pcheers\"></div>";
-    clearInterval(soloTick); soloTick = setInterval(() => { if (!roomEl() || !activeSolo()) { clearInterval(soloTick); soloTick = null; if (roomEl()) { updateSolo(); updateControls(); } return; } paintSolo(); }, 500);
+    clearInterval(soloTick); soloTick = setInterval(() => { if (!roomEl() || !activeSolo()) { clearInterval(soloTick); soloTick = null; if (roomEl()) { updateSolo(); updateControls(); } return; }
+      { const a2 = activeSolo(), bx = roomEl().querySelector(".psolo"); if (bx && a2.s.id + ":" + a2.t !== bx.dataset.k) { updateSolo(); updateControls(); return; } } paintSolo(); }, 500);   // next in line takes over
   }
   paintSolo();
 }
@@ -480,7 +487,7 @@ export async function partyClick(el, c) {
     const p = document.createElement("span"); p.className = "pwho mine"; p.textContent = "\u{1F4A5}"; p.style.left = (25 + Math.random() * 50) + "%"; el.parentNode.appendChild(p); setTimeout(() => p.remove(), 900);
     updatePinata(); flush(); return;
   }
-  if (a === "solo") { if (activeSolo() || (mine(s, k, cls) || {}).solo) return; await save({ solo: Date.now() }); updateSolo(); updateControls(); return; }
+  if (a === "solo") { if ((mine(s, k, cls) || {}).solo) return; await save({ solo: Date.now() }); updateSolo(); updateControls(); return; }
   if (a === "cheer") {
     const solo = activeSolo(); if (!solo || solo.s.id === s.id) return;
     const key = solo.s.id + ":" + solo.t; if (mineLocal.cheerK !== key) { mineLocal.cheerK = key; mineLocal.cheer = 0; }
@@ -538,16 +545,16 @@ export function partyAdmin(students, cls) {
       ? stats + '<button class="btn small" data-party="watch' + k + '">\u{1F4FA} Party screen</button><button class="btn ghost small" data-act="' + stopAct + '">' + (k === "120" ? "Turn off" : "End early") + "</button>"
       : '<span class="small muted">' + desc + " (" + elig + " can come right now)</span><button class=\"btn small\" data-act=\"" + startAct + '">Start</button>') + "</div>";
   };
-  return '<div class="card" id="partyCard"><div class="card-head"><h2>\u{1F389} Party Time</h2><span class="fact">60 XP: 10 minutes · VIP: until you turn it off</span></div>' +
+  return '<div class="card" id="partyCard"><div class="card-head"><h2>\u{1F389} Party Time</h2><span class="fact">Both parties: 10 minutes</span></div>' +
     row("60", "\u{1F388} 60 XP Party", "Dance floor + Balloon Drop for everyone at 60+ XP. Favor when it ends.", "party60Start", "party60Stop") +
     row("120", "\u{1F451} " + goal + " XP VIP Party", "VIP Lounge, piñata, Spotlight Solos, group photo for everyone at " + goal + " XP today or on the last school day. Mystery Box + VIP look for the day.", "party120On", "party120Off") +
-    '<p class="small muted">The 60 XP Party ends by itself after 10 minutes. The VIP Party stays open until you tap Turn off, so anyone who reaches 120 later can still come in. Favors open when a party ends.</p></div>';
+    '<p class="small muted">The 60 XP Party ends by itself after 10 minutes. The VIP Party also ends by itself after 10 minutes (or tap Turn off). Favors open when a party ends.</p></div>';
 }
 export function partyAction(act, cls, students) {
   const n = kids(students).length || 10;
   if (act === "party60Start") return { party60: { id: "p60-" + Date.now(), end: Date.now() + PARTY_MIN * 60000 } };
   if (act === "party60Stop") return cls.party60 ? { "party60.end": Date.now() } : null;
-  if (act === "party120On") return { party120: { id: "p120-" + Date.now(), on: true, hp: Math.max(150, n * 15) } };
+  if (act === "party120On") return { party120: { id: "p120-" + Date.now(), on: true, end: Date.now() + PARTY_MIN * 60000, hp: Math.max(150, n * 15) } };
   if (act === "party120Off") return cls.party120 ? { "party120.on": false, "party120.end": Date.now() } : null;
   return null;
 }

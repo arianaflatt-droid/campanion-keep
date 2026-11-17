@@ -12,13 +12,13 @@
    Saved on each student: planet.stn = { s: station id, g: given, got: { stage: 1 }, dd: 1 (Double Stardust waiting) or the date used }
    through safari.js planetSave: one write per donation, one per claim. The class total = the sum of classmates' public cards
    (already read for the page), so no new reads and no class-document writes. */
-import { esc } from "./game.js?v=20261117c";
-import { azToday } from "./collect.js?v=20261117c";
-import { planetNow, planetSave, planetCtx, freshSt } from "./safari.js?v=20261117c";
-import { breakRuns } from "./calendar.js?v=20261117c";
-import { duckImgOf } from "./shop-data.js?v=20261117c";
-import { ownedOf, nebHTML, NEB, PERSONALITIES } from "./pets.js?v=20261117c";
-import { openCrateFree } from "./spaceshop.js?v=20261117c";
+import { esc } from "./game.js?v=20261117e";
+import { azToday } from "./collect.js?v=20261117e";
+import { planetNow, planetSave, planetCtx, freshSt } from "./safari.js?v=20261117e";
+import { breakRuns } from "./calendar.js?v=20261117e";
+import { duckImgOf } from "./shop-data.js?v=20261117e";
+import { ownedOf, nebHTML, NEB, PERSONALITIES } from "./pets.js?v=20261117e";
+import { openCrateFree } from "./spaceshop.js?v=20261117e";
 
 const S = "assets/planet/station/";
 export const STN_FALL = 450, STN_SPRING = 750, STN_CREW = 250;

@@ -10,10 +10,10 @@
    Picks: teacher-only doc private/secret = { days: { date: { picks: [{ sid, m, ok }], note, revealed, winners } }, last: { sid: date } }.
    Class doc (no names): cls.secretOn, cls.secretDay = { date, n }, cls.secretShout = { date, names }.
    Winner's save (teacher writes): secretWin = { date, m, prize, note }, secretWins (count). Student writes secretSeen = date. */
-import { esc } from "./game.js?v=20261117c";
-import { azToday } from "./collect.js?v=20261117c";
-import { subFor, SUB_NAMES } from "./teams.js?v=20261117c";
-import { doorsFor, doorState, approved } from "./doors.js?v=20261117c";
+import { esc } from "./game.js?v=20261117e";
+import { azToday } from "./collect.js?v=20261117e";
+import { subFor, SUB_NAMES } from "./teams.js?v=20261117e";
+import { doorsFor, doorState, approved } from "./doors.js?v=20261117e";
 
 export const MISSIONS = {
   rings: { icon: "\u{1F3AF}", name: "Close all 3 rings", short: "Rings", how: "25 Math, 25 Reading and 25 Language (or their own subjects)" },
@@ -67,7 +67,7 @@ const pending = (sec, today) => Object.keys((sec && sec.days) || {}).filter(d =>
 let viewDay = null;
 export function secretAdmin(students, cls, sec) {
   const today = azToday(), on = secretOn(cls), byId = id => students.find(s => s.id === id) || { name: "(gone)" };
-  let h = '<div class="card secretcard"><div class="card-head"><h2>\u{1F575}️ Secret Students</h2><span class="fact">' + (on ? "on" : "off") + "</span></div>";
+  let h = '<div class="card secretcard" id="secretCard"><div class="card-head"><h2>\u{1F575}️ Secret Students</h2><span class="fact">' + (on ? "on" : "off") + "</span></div>";
   h += '<p class="lede" style="font-size:13.5px;">Every school day, 3 students are secretly picked, each with a mission: \u{1F3AF} close all 3 rings, \u{1F4D3} show their notebook, \u{1F4F7} camera on most of the day. ' +
     "Nobody knows who it is. Press <b>Reveal</b> when you’re ready: winners get a mystery prize (an egg, a Rare+ egg, corn or a Sparkle Charm) and a shout-out on The Keep. Anyone who didn’t make it stays secret.</p>" +
     '<button class="btn' + (on ? " ghost" : "") + ' small" data-sec="toggle">' + (on ? "Turn off" : "\u{1F575}️ Turn on") + "</button>";

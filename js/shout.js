@@ -7,11 +7,11 @@
    She can untick anyone, then "Show on every screen": a big, slow, read-aloud scrolling list takes over every student's
    screen until she closes it. Saved on the class doc (cls.shout = { id, open, title, groups: [{ ic, t, names: [{ n, w }] }] }),
    which every screen already watches: no new reads. Names shown are display names only (first name + last initial). */
-import { esc, simulate, weekKey } from "./game.js?v=20261117c";
-import { azToday } from "./collect.js?v=20261117c";
-import { addDays, mondayOf } from "./doors.js?v=20261117c";
-import { dailyPool } from "./wheel.js?v=20261117c";
-import { phase } from "./planet.js?v=20261117c";
+import { esc, simulate, weekKey } from "./game.js?v=20261117e";
+import { azToday } from "./collect.js?v=20261117e";
+import { addDays, mondayOf } from "./doors.js?v=20261117e";
+import { dailyPool } from "./wheel.js?v=20261117e";
+import { phase } from "./planet.js?v=20261117e";
 
 const DUCK = "assets/lvlup/duck.webp";
 let ctx = {}, root = null, shownId = "", mode = null, off = {}, mDraft = { n: "", w: "" };
@@ -32,7 +32,9 @@ export function shoutGroups(students, cls, when) {
   const kids = (students || []).filter(s => !s.isTeacher && s.companionId), today = azToday(), G = [];
   const add = (key, ic, t, L) => { if (L.length) G.push({ key, ic, t, names: L }); };
   if (when === "am") {
-    add("mq", "\u{1F305}", "Morning Quest heroes", kids.filter(s => Number((s.mqDays || {})[today]) >= 1).map(s => ({ id: s.id, n: dn(s), w: (s.mqDays[today] >= 12 ? "finished the whole board!" : s.mqDays[today] + " quest" + (s.mqDays[today] === 1 ? "" : "s") + " this morning") })));
+    // Nov 17 (Ms. Ariana): anyone whose morning XP opened Morning Quests counts, even if they haven't played them yet
+    add("mq", "\u{1F305}", "Morning Quest heroes", kids.map(s => { const done = Number((s.mqDays || {})[today]) || 0, mo = Number((((s.xpHist || {})[today]) || {}).mo) || 0, open = Math.min(12, Math.floor(mo / 10)); return { s, done, open }; })
+      .filter(o => o.done >= 1 || o.open >= 1).map(({ s, done, open }) => ({ id: s.id, n: dn(s), w: done >= 12 ? "finished the whole board!" : open >= 12 ? "unlocked the whole board!" : done >= open ? done + " quest" + (done === 1 ? "" : "s") + " this morning" : "unlocked " + open + " quest" + (open === 1 ? "" : "s") + " this morning" })));
     const d = lastSchoolDay(cls);
     add("120", "\u{1F4AF}", "120 XP + all rings closed (" + new Date(d + "T12:00:00").toLocaleDateString("en-US", { weekday: "long" }) + ")", dailyPool(kids, cls, d).map(r => ({ id: r.x.id, n: dn(r.x), w: r.xp + " XP" })));
   } else {
@@ -78,7 +80,7 @@ function build(S) {
   if (!root) { root = document.createElement("div"); root.id = "shroot"; document.body.appendChild(root); }
   const me = ctx.me, isMe = x => me && (x.id === me.id);
   const rows = []; (S.groups || []).forEach((g, gi) => { rows.push('<div class="sh-head c' + (gi % 6) + '"><span>' + g.ic + "</span>" + esc(g.t) + "</div>");
-    g.names.forEach(x => rows.push('<div class="sh-row c' + (gi % 6) + (isMe(x) ? " me" : "") + '"><b>' + esc(String(x.n).toUpperCase()) + "</b>" + (x.w ? "<i>" + esc(x.w) + "</i>" : "") + (isMe(x) ? "<small>\u{1F31F} That’s YOU!</small>" : "") + "</div>")); });
+    g.names.forEach(x => rows.push('<div class="sh-row c' + (gi % 6) + (isMe(x) ? " me" : "") + '"><b>' + esc(String(x.n).toUpperCase()) + "</b>" + (x.w && !/^\d+\s*XP$/i.test(String(x.w)) ? "<i>" + esc(x.w) + "</i>" : "") + (isMe(x) ? "<small>\u{1F31F} That’s YOU!</small>" : "") + "</div>")); });
   const secs = Math.max(14, rows.length * 3.2);   // slow enough to read every name out loud
   root.innerHTML = '<div class="lvconf"></div><div class="sh-top"><img src="' + DUCK + '" alt=""><h1>\u{1F4E3} SHOUTOUTS! \u{1F389}</h1></div>' +
     '<div class="sh-win"><div class="sh-roll" style="animation-duration:' + secs.toFixed(0) + 's">' + rows.join("") + '<div class="sh-end">\u{1F44F} Great job, everyone! \u{1F44F}</div></div></div>' +
@@ -110,7 +112,7 @@ if (typeof document !== "undefined") {
     if (a === "mclear") { ctx.saveManual && ctx.saveManual([]); return; }
     if (a === "show") {
       const when = mode || (new Date().getHours() < 12 ? "am" : "pm");
-      const groups = shoutGroups(ctx.students, ctx.cls, when).map(g => ({ ic: g.ic, t: g.t, names: g.names.filter(y => !off[g.key + y.id]).map(y => ({ id: y.id, n: y.n, w: y.w })) })).filter(g => g.names.length);
+      const groups = shoutGroups(ctx.students, ctx.cls, when).map(g => ({ ic: g.ic, t: g.t, names: g.names.filter(y => !off[g.key + y.id]).map(y => ({ id: y.id, n: y.n, w: g.key === "120" ? "" : y.w })) })).filter(g => g.names.length);   // Nov 17: no XP totals on students' screens
       if (M.length) groups.push({ ic: "⭐", t: "Special shoutouts", names: M.map(y => ({ n: y.n, w: y.w })) });
       if (!groups.length) return;
       ctx.show && ctx.show({ id: "sh" + Date.now().toString(36), open: true, at: new Date().toISOString(), groups });

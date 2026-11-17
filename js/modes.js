@@ -1,20 +1,22 @@
 /* ---------- ☀️ Morning mode / 🌇 Afternoon mode (Nov 16, Ms. Ariana) ----------
    One Start button walks her through the console in order, with a ◀ Back / Next ▶ bar that stays at the top:
-     ☀️ Morning:   ⬆️ Level-ups → 📣 Shoutouts → 📰 Announcements → 🎡 Spin wheel → 🦆 Duck Showdown → ⚔️ Battle (or the event screen) → 👑 120 XP VIP Party
+     ☀️ Morning:   ⬆️ Level-ups → 🕵️ Secret Students → 📣 Shoutouts → 📰 Announcements → 🎡 Spin wheel → 🦆 Duck Showdown → ⚔️ Battle (or the event screen) → 👑 120 XP VIP Party
      🌇 Afternoon: 📣 Shoutouts (+ 🚀 replay today's rockets) → 📰 Announcements → ⚔️ Boss attacks (or the event screen) → 🎈 60 XP Party
    📺 The Student screen: a second tab of the console (?screen=1) she shares/projects. It shows what students see and follows
    the step she is on (the Keep, the announcements, the Battle Area or event screen, the party). Her controls stay in this tab.
    The step lives on the class doc (cls.mm = { on, k, i, id }), one small write per step.
    📰 "Pop it open on every screen": cls.newsShow = { id, open } puts the announcements over every student's page until
    she closes it (students can tap "Got it" to close it on their own screen). */
-import { esc, battleOn } from "./game.js?v=20261117c";
-import { soloOn } from "./solobrew.js?v=20261117c";
-import { azToday } from "./collect.js?v=20261117c";
-import { newsPage, shownNews } from "./news.js?v=20261117c";
+import { esc, battleOn } from "./game.js?v=20261117e";
+import { soloOn } from "./solobrew.js?v=20261117e";
+import { azToday } from "./collect.js?v=20261117e";
+import { newsPage, shownNews } from "./news.js?v=20261117e";
+import { p120On, p60On } from "./party.js?v=20261117e";
 
 export const MM_STEPS = {
   am: [
     { k: "lvl", ic: "⬆️", t: "Level-ups", tab: "daily", card: "lvCard", tip: "Show the level-up shoutout from the card below (it pops up on every screen)." },
+    { k: "secret", ic: "\u{1F575}\uFE0F", t: "Secret Students", tab: "daily", card: "secretCard", tip: "Reveal the Secret Student winners (they get their prize and the Keep shouts them out)." },
     { k: "shout", ic: "\u{1F4E3}", t: "Shoutouts", tab: "daily", card: "shoutCard", tip: "Check the names, then tap “Show on every screen”." },
     { k: "news", ic: "\u{1F4F0}", t: "Announcements", tab: "daily", card: "newsCard", tip: "Pop the announcements open on every screen to read them together." },
     { k: "spin", ic: "\u{1F3A1}", t: "Spin wheel", tab: "daily", card: "spinCard", tip: "Pick the spin, then spin it on everyone’s screen." },
@@ -71,7 +73,7 @@ export function mmBar(cls, students) {
     tip = bk === "solo" ? "The event screen is on the student screen. Watch the class add to it!" : bk === "battle" ? "The Battle Area is on the student screen for " + (S.k === "am" ? "morning attacks." : "boss attacks.") : "No battle or event is on right now. Tap Next.";
   }
   if (st.party) {
-    const on = st.party === "120" ? !!(cls.party120 && cls.party120.on) : !!(cls.party60 && Number(cls.party60.end) > Date.now());
+    const on = st.party === "120" ? p120On(cls) : p60On(cls);
     if (on) tip = "\u{1F389} The party is on! The student screen shows the party floor.";
   }
   return '<div class="mmbar" role="region" aria-label="' + esc(MM_NAME[S.k]) + '"><div class="mmtop"><b>' + MM_NAME[S.k] + "</b>" +
