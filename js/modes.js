@@ -7,12 +7,12 @@
    The step lives on the class doc (cls.mm = { on, k, i, id }), one small write per step.
    📰 "Pop it open on every screen": cls.newsShow = { id, open } puts the announcements over every student's page until
    she closes it (students can tap "Got it" to close it on their own screen). */
-import { esc, battleOn } from "./game.js?v=20261117j";
-import { soloOn } from "./solobrew.js?v=20261117j";
-import { azToday } from "./collect.js?v=20261117j";
-import { newsPage, shownNews } from "./news.js?v=20261117j";
-import { secretBanner } from "./secret.js?v=20261117j";
-import { p120On, p60On } from "./party.js?v=20261117j";
+import { esc, battleOn } from "./game.js?v=20261117m";
+import { soloOn } from "./solobrew.js?v=20261117m";
+import { azToday } from "./collect.js?v=20261117m";
+import { newsPage, shownNews } from "./news.js?v=20261117m";
+import { secretBanner } from "./secret.js?v=20261117m";
+import { p120On, p60On } from "./party.js?v=20261117m";
 
 export const MM_STEPS = {
   am: [
@@ -23,7 +23,9 @@ export const MM_STEPS = {
     { k: "spin", ic: "\u{1F3A1}", t: "Spin wheel", tab: "daily", card: "spinCard", tip: "Pick the spin, then spin it on everyone’s screen." },
     { k: "sd", ic: "\u{1F986}", t: "Duck Showdown", tab: "daily", card: "sdCard", tip: "Turn on Show to students, then open the Duck Showdown." },
     { k: "battle", ic: "⚔️", t: "Battle", tab: "events", card: "", tip: "" },
-    { k: "party", ic: "\u{1F451}", t: "120 XP Party", tab: "daily", card: "partyCard", party: "120", tip: "Start the VIP Party. The student screen opens the party when it starts." }],
+    { k: "party", ic: "\u{1F451}", t: "120 XP Party", tab: "daily", card: "partyCard", party: "120", tip: "Start the VIP Party. The student screen opens the party when it starts." },
+    { k: "check", ic: "\u2705", t: "Checklist", tab: "daily", card: "", pop: "check", tip: "Open everyone\u2019s Checklist on their own screen so they see what to do today." },
+    { k: "vault", ic: "\u{1F510}", t: "Treasure Vault", tab: "daily", card: "vaultWeekCard", pop: "vault", tip: "Open everyone\u2019s Treasure Vault on their screen to check their progress for the week." }],
   pm: [
     { k: "shout", ic: "\u{1F4E3}", t: "Shoutouts", tab: "daily", card: "shoutCard", rockets: true, tip: "Show the shoutouts, then blast off today’s rockets." },
     { k: "news", ic: "\u{1F4F0}", t: "Announcements", tab: "daily", card: "newsCard", tip: "Pop the announcements open on every screen to read them together." },
@@ -64,6 +66,8 @@ export function mmBar(cls, students) {
     bits.push(open ? '<span class="small">\u{1F4FA} Open on every screen.</span><button class="btn small danger" data-act="mmNewsClose">✖ Close it on every screen</button>'
       : '<button class="btn small gold" data-act="mmNewsOpen"' + (n ? "" : " disabled") + ">\u{1F4FA} Pop " + (n === 1 ? "it" : "them") + " open on every screen</button>" + '<span class="small muted">' + n + " showing</span>");
   }
+  if (st.pop) { const P = cls.popShow, done = P && P.page === st.pop && Date.now() - (Number(P.t) || 0) < 15 * 60000;
+    bits.push('<button class="btn small gold" data-act="mmPop" data-v="' + st.pop + '">\u{1F4FA} Open ' + (st.pop === "check" ? "the Checklist" : "the Treasure Vault") + " on every screen</button>" + (done ? '<span class="small">\u2705 Opened</span>' : "")); }
   if (st.rockets) {
     const l = launchedToday(students);
     bits.push('<button class="btn small gold" data-act="mmRockets"' + (l.length ? "" : " disabled") + ">\u{1F680} Blast off today’s rockets (" + l.length + ")</button>");

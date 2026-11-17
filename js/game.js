@@ -1,14 +1,14 @@
-import { PARTY_SPOT } from "./party-spot.js?v=20261117j";
-import { CREATURE_EYES, CREATURE_SPOTS } from "./salon-fit.js?v=20261117j";
-import { CREATURE_LAYOUT, CREATURE_FIT_ID, CREATURE_NECK_ID } from "./creature-fit.js?v=20261117j";
-import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261117j";
-import { heldWeapon } from "./quest.js?v=20261117j";
-import { SNACKS as CAFE_SNACKS, snackKept } from "./cafe-data.js?v=20261117j";
-import { orbitImgOf } from "./shop-data.js?v=20261117j";
+import { PARTY_SPOT } from "./party-spot.js?v=20261117m";
+import { CREATURE_EYES, CREATURE_SPOTS } from "./salon-fit.js?v=20261117m";
+import { CREATURE_LAYOUT, CREATURE_FIT_ID, CREATURE_NECK_ID } from "./creature-fit.js?v=20261117m";
+import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261117m";
+import { heldWeapon } from "./quest.js?v=20261117m";
+import { SNACKS as CAFE_SNACKS, snackKept } from "./cafe-data.js?v=20261117m";
+import { orbitImgOf } from "./shop-data.js?v=20261117m";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261117j";
+export const APP_V = "20261117m";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);

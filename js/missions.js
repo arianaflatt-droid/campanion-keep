@@ -4,12 +4,12 @@
    has photographed an animal, so there is something in the zoo).  Optional: 🛍️ a Swap Shop deal is waiting (never required: buying costs Stardust).
    All required done = a "Claim +5 ⭐" button (ONE save: planet.ml = { d: date claimed, n: days claimed }; it was planet.mb before Nov 12).
    The map shows a bouncing "!" on a place while it has something to do today (placeBang).  */
-import { azToday } from "./collect.js?v=20261117j";
-import { freshSt, planetSave, planetNow, planetCtx, filmLeft } from "./safari.js?v=20261117j";
-import { zooPicks } from "./zoo.js?v=20261117j";
-import { swapDeal } from "./spaceshop.js?v=20261117j";
-import { careDone, hasNebble } from "./petpark.js?v=20261117j";
-import { boardWaiting, boardLeft } from "./board.js?v=20261117j";
+import { azToday } from "./collect.js?v=20261117m";
+import { freshSt, planetSave, planetNow, planetCtx, filmLeft } from "./safari.js?v=20261117m";
+import { zooPicks } from "./zoo.js?v=20261117m";
+import { swapDeal } from "./spaceshop.js?v=20261117m";
+import { careDone, hasNebble } from "./petpark.js?v=20261117m";
+import { boardWaiting, boardLeft } from "./board.js?v=20261117m";
 
 export const MISSION_BONUS = 5;
 const plOf = st => (st && st.planet) || {};

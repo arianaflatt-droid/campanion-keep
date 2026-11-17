@@ -1,16 +1,16 @@
-import { owned as roomOwned, fitOf as roomFit, FIT_SLOTS, setItems as roomSet } from "./room.js?v=20261117j";
-import { presentsOpened } from "./doors.js?v=20261117j";
-import { PASS_THEMES, passDone } from "./pass.js?v=20261117j";
-import { shopBuys, swapBuys, outfitsOwned, cabinOwned, paintsOwned } from "./shop-data.js?v=20261117j";
-import { REGULARS as CF_REG, SPECIALS as CF_SP, keptCount as cfKept, perfectTotal as cfPerfect, monthPairs as cfPairs } from "./cafe-data.js?v=20261117j";
-import { ZONES as PJ_ZONES, pageCount as pjPage, pageSize as pjSize, aliensFound as pjAl, allAliensFound as pjAllAl, ALIEN_LIST as PJ_ALIENS } from "./safari.js?v=20261117j";
+import { owned as roomOwned, fitOf as roomFit, FIT_SLOTS, setItems as roomSet } from "./room.js?v=20261117m";
+import { presentsOpened } from "./doors.js?v=20261117m";
+import { PASS_THEMES, passDone } from "./pass.js?v=20261117m";
+import { shopBuys, swapBuys, outfitsOwned, cabinOwned, paintsOwned } from "./shop-data.js?v=20261117m";
+import { REGULARS as CF_REG, SPECIALS as CF_SP, keptCount as cfKept, perfectTotal as cfPerfect, monthPairs as cfPairs } from "./cafe-data.js?v=20261117m";
+import { ZONES as PJ_ZONES, pageCount as pjPage, pageSize as pjSize, aliensFound as pjAl, allAliensFound as pjAllAl, ALIEN_LIST as PJ_ALIENS } from "./safari.js?v=20261117m";
 // Badges: worked out from each student's saved data, so nothing extra is stored and no rules change.
 // To add a badge: add an entry with a check(st) that returns how far along the student is,
 // and a goal. Put its picture in assets/badges/ (a transparent WEBP or PNG). Without a picture, the emoji shows.
 const nebOf = st => ((st && st.planet) || {}).pets || {}, nebN = st => Object.keys(nebOf(st).o || {}).length;
 const NEB_SEASON = ["pumpkin", "pie", "candycane", "snowball", "sweetheart", "clover", "egg", "springflower", "sunbeam", "pencil"];
-import { esc, goalXP, candyOf, ghostUnlocked } from "./game.js?v=20261117j";
-import { seenSet, ownedFams, owned, family, formIndex, formOf, STARTERS, CREATURES } from "./collect.js?v=20261117j";
+import { esc, goalXP, candyOf, ghostUnlocked } from "./game.js?v=20261117m";
+import { seenSet, ownedFams, owned, family, formIndex, formOf, STARTERS, CREATURES } from "./collect.js?v=20261117m";
 
 export const hatches = st => (Number(st.pullsUsed) || 0) + (Number(st.legendaryUsed) || 0);
 
@@ -95,7 +95,7 @@ export const candySpentBest = (st, bt, cls) => Math.max(Number(st.spentBest) || 
 export const prizeSpins = st => (st.spinLog || []).filter(e => e.id === "prize" && hauntSpin(e)).length;
 export const steals = (st, bt, cls) => Math.max(Number(st.stolenBest) || 0, hauntLive(cls) ? Number(st.stolen) || 0 : 0, (st.spinLog || []).filter(e => e.id === "steal" && e.amt > 0 && hauntSpin(e)).length);
 // event Legendaries caught (Duckarune, Hexaduck, and any future event creatures)
-const EVENT_FAMS = [...new Set(CREATURES.filter(c => c.event && !c.planet).map(c => c.fam))];   // 👽 Planet JP aliens aren't event Legendaries
+const EVENT_FAMS = [...new Set(CREATURES.filter(c => c.event && !c.planet && !c.kd).map(c => c.fam))];   // (Nov 17: nor the Kingdom Ultra)   // 👽 Planet JP aliens aren't event Legendaries
 /* Battles against Ms. Ariana (the teacher is player id "teacher") */
 const vsTeacher = (st, bt) => finished(st, bt).filter(b => (b.a && b.a.id === "teacher") || (b.b && b.b.id === "teacher"));
 const myTeam = (st, b) => (b.team && b.team[sideOf(st, b)]) || [];

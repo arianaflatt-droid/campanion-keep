@@ -1,5 +1,5 @@
 // Creature Collector: pulls, XP bank, levels, evolutions, lorebook and arena battles.
-import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261117j";
+import { CREATURES, FAMILIES, TYPE_WEAK } from "./creatures.js?v=20261117m";
 
 export const PULL_XP = 120;          // every 120 XP (all-time since the collector started) = 1 pull
 export const LEVEL_XP = 120;         // 120 banked XP = 1 level
@@ -93,11 +93,12 @@ export const HEIST_FAM = "L-43";
    17 dual-type Ultras (L-46 to L-62, rarity "Ultra"). They only come from Ultra eggs, earned from the Ultra goals (ultra.js):
    ultraEggs = earned (the page adds 1 per goal reached), ultraUsed = hatched (the server). A new one joins at level 1;
    one the student already has goes up ULTRA_DUPE levels instead. Never Sparkle, can't be traded or released. */
-export const ULTRA_FAMS = FAMILIES.filter(f => f.ultra && !f.club && !f.pj).map(f => f.id);   // the goal-egg pool (club Ultras only come from finishing a club)
+export const ULTRA_FAMS = FAMILIES.filter(f => f.ultra && !f.club && !f.pj && !f.kd).map(f => f.id);   // the goal-egg pool (club Ultras only come from finishing a club)
 export const CLUB_ULTRA_FAMS = FAMILIES.filter(f => f.ultra && f.club).map(f => f.id);
 export const ULTRA_DUPE = 5;
 export const PJ_ULTRA_FAMS = FAMILIES.filter(f => f.ultra && f.pj).map(f => f.id);   // 🪐 only from the Planet JP Ultra Egg
-export const isUltra = fam => ULTRA_FAMS.includes(fam) || CLUB_ULTRA_FAMS.includes(fam) || PJ_ULTRA_FAMS.includes(fam);
+export const KD_ULTRA_FAMS = FAMILIES.filter(f => f.ultra && f.kd).map(f => f.id);   // 🌊 only from the Kingdom Ultra Egg (Royal rank)
+export const isUltra = fam => ULTRA_FAMS.includes(fam) || CLUB_ULTRA_FAMS.includes(fam) || PJ_ULTRA_FAMS.includes(fam) || KD_ULTRA_FAMS.includes(fam);
 export function ultraLeft(st) { return Math.max(0, (Number(st && st.ultraEggs) || 0) - (Number(st && st.ultraUsed) || 0)); }
 export function ultraPull(st, pool) {
   pool = pool || ULTRA_FAMS; const fam = pool[Math.floor(Math.random() * pool.length)];

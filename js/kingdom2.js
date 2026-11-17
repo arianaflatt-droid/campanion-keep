@@ -14,9 +14,10 @@
      sub { own:{key:1}, use, trail, trails:{key:1} }, seen { area: 1 }.
    Weekly parts (a new week starts fresh): qd { quest: 1 } claimed quests, qx chest pearls, wb best dive this week,
      wn new creatures this week, vq { place: 1 } places visited this week, ws pearls spent this week. */
-import { esc, companionOf, petWithHead } from "./game.js?v=20261117j";
-import { startPaint } from "./hangar.js?v=20261117j";
-import { owned as crOwned, ownedFams, formOf, fighterFrom, resolveRound, hitDamage, MOVES, moveOk, sparkleImg } from "./collect.js?v=20261117j";
+import { esc, companionOf, petWithHead } from "./game.js?v=20261117m";
+import { startPaint } from "./hangar.js?v=20261117m";
+import { KD_ULTRA_FAM } from "./kd-ultra.js?v=20261117m";
+import { owned as crOwned, ownedFams, formOf, fighterFrom, resolveRound, hitDamage, MOVES, moveOk, sparkleImg } from "./collect.js?v=20261117m";
 
 const K = "assets/kingdom/";
 export const KEEP2_NOTE = "ar = this week's arena { w, won, tries }, arb = boss badges { boss: 1 }";
@@ -89,6 +90,8 @@ const cur = () => { const C = A && A.C(); return C && C.st ? { C, st: C.st, cls:
 
 /* ----- guide ducks ----- */
 const GUIDE = {
+  ice: { duck: "pearl", name: "Pearl Diver Duck", hi: "Brrr! Ready for another Ice Cave dive?",
+    how: "Brrr! Welcome to the <b>Ice Cave</b>! The <b>rarest sea creatures</b> in the Kingdom live down here. You get <b>2 Ice Cave dives a week</b> (on top of your Pearl Dives). Grab the pearls, dodge the jellyfish, and swim into the creature that goes by to add it to your <b>Ice Cave tank</b>!" },
   arena: { duck: "volcano", name: "Arena Duck", hi: "Welcome back to the Undersea Arena!",
     how: "Welcome to the <b>Undersea Arena</b>! Every week a new <b>sea boss</b> comes to the Volcano Vents. Pick <b>3 of your creatures</b> and battle it! Hit it with the types it\u2019s <b>weak to</b> for double damage. Win for <b>100 pearls</b> and that boss\u2019s <b>badge</b>. You can try as many times as you like!" },
   town: { duck: "salon", name: "Salon Duck", hi: "Welcome to Coral Town!",
@@ -473,8 +476,13 @@ if (typeof document !== "undefined") document.addEventListener("click", ev => {
   else if (a === "rankok") { if (!o) return; const nm = rankOf(o.st).name; if (o.k.rk === nm) return;
     const got = o.k.rkp || {}; if (RANK_PRIZE[nm] && !got[nm]) { o.k.p = (Number(o.k.p) || 0) + RANK_PRIZE[nm]; o.k.rkp = Object.assign({}, got, { [nm]: 1 }); }   // each rank's prize is paid only once
     o.k.rk = nm; const gear = RANK_GEAR[nm], st0 = o.st, extra = gear && !((st0.outfits || {})[gear[0]]) ? { outfits: Object.assign({}, st0.outfits || {}, { [gear[0]]: true }) } : {};
-    if (RANK_EGG[nm] && !(o.k.rke || {})[nm]) { o.k.rke = Object.assign({}, o.k.rke || {}, { [nm]: 1 }); extra.doorEggs = (Number(st0.doorEggs) || 0) + 1; extra.eggBoost = Object.assign({}, st0.eggBoost || {}, { rare: (Number((st0.eggBoost || {}).rare) || 0) + 1 }); }   // Duke: a Rare egg
-    A.save(o.k, Object.keys(extra).length ? extra : null); A.rer(); }
+    let ultraNow = null;
+    if (RANK_EGG[nm] === "rare" && !(o.k.rke || {})[nm]) { o.k.rke = Object.assign({}, o.k.rke || {}, { [nm]: 1 }); extra.doorEggs = (Number(st0.doorEggs) || 0) + 1; extra.eggBoost = Object.assign({}, st0.eggBoost || {}, { rare: (Number((st0.eggBoost || {}).rare) || 0) + 1 }); }   // Duke: a Rare egg
+    if (RANK_EGG[nm] === "ultra" && !(o.k.rke || {})[nm]) {   // Royal: the Kingdom Ultra Egg hatches Axolumi right here (or +5 levels if they somehow have it)
+      o.k.rke = Object.assign({}, o.k.rke || {}, { [nm]: 1 }); const coll = Object.assign({}, st0.coll || {}), had = coll[KD_ULTRA_FAM];
+      coll[KD_ULTRA_FAM] = had ? Object.assign({}, had, { lvl: Math.min(100, (Number(had.lvl) || 1) + 5) }) : { lvl: 1, at: new Date().toISOString(), caught: true };
+      extra.coll = coll; extra.collTouch = [KD_ULTRA_FAM]; ultraNow = !!had; }
+    A.save(o.k, Object.keys(extra).length ? extra : null); A.rer(); if (ultraNow !== null) showUltraHatch(ultraNow); }
 });
 export function resetViews() { aqTank = -1; dockSay = null; shPick = shName = null; feedOn = false; townView = ""; salonTry = null; }
 
@@ -1118,7 +1126,7 @@ function salonWear(id) { const o = cur(); if (!o) return; const st = o.st; if (!
 
 export const RANK_PRIZE = { Page: 50, Squire: 50, Captain: 75 };   // Baron: the Shell Tiara (Nov 16, the fins were removed)
 // rank prizes that are gear: [outfit id, picture name, name]
-export const RANK_EGG = { Duke: "rare" };   // Nov 17: the Duke prize is a Rare egg (an egg in their Creature Collector, at least Rare)
+export const RANK_EGG = { Duke: "rare", Royal: "ultra" };   // Royal (week 12): the Kingdom Ultra Egg (Axolumi)   // Nov 17: the Duke prize is a Rare egg (an egg in their Creature Collector, at least Rare)
 export const RANK_GEAR = { Knight: ["sea-knight-helmet", "knight-helmet", "Knight Shell Helmet"], Baron: ["sea-shell-tiara", "shell-tiara", "Shell Tiara"] };   // Nov 15: Page = 50 pearls; Squire 50 (draft, others decided later)
 export function rankUpHTML(st) {
   const o = cur(); if (!o) return ""; const k = o.k, r = rankOf(st);
@@ -1128,7 +1136,8 @@ export function rankUpHTML(st) {
     '<img class="kq-rankduck" src="' + K + 'captain-salute.webp" alt="Captain Duck">' +
     "<small>\u{1F389} You reached the Kingdom " + r.n + " weeks!</small><h2>You are now a <b>" + r.name + "</b>!</h2>" +
     (RANK_GEAR[r.name] ? '<div class="kq-rankgear"><img src="' + K + "outfit-" + RANK_GEAR[r.name][1] + '.webp" alt=""><span>\u{1F381} Your rank prize: the <b>' + RANK_GEAR[r.name][2] + "</b>! Wear it from <b>Gear</b>.</span></div>" : "") +
-    (RANK_EGG[r.name] ? '<p class="kq-rankprize">\u{1F95A} Your rank prize: <b>a Rare egg</b>! Hatch it in your <b>Creature Collector</b>.</p>' : "") +
+    (RANK_EGG[r.name] === "rare" ? '<p class="kq-rankprize">\u{1F95A} Your rank prize: <b>a Rare egg</b>! Hatch it in your <b>Creature Collector</b>.</p>' : "") +
+    (RANK_EGG[r.name] === "ultra" ? '<div class="kq-rankgear"><img src="' + K + 'ultra/ultra-egg-360.webp" alt=""><span>\u{1F308} Your rank prize: the <b>Kingdom Ultra Egg</b>! It hatches when you tap Let\u2019s go.</span></div>' : "") +
     (RANK_PRIZE[r.name] ? '<p class="kq-rankprize">\u{1F381} Your rank prize: <b>⚪ ' + RANK_PRIZE[r.name] + " pearls</b></p>" : "") +
     (opens.length ? '<p>A new place just opened on the map:</p><div class="kq-rankopens">' + opens.map(s => "<span>" + s[1] + "</span>").join("") + "</div>" : "") +
     '<button class="btn gold big" data-kd2="rankok:1">\u{1F30A} Let’s go!</button></div></div>';
@@ -1240,4 +1249,15 @@ function arClick(ev) {
   if (R.phase !== "fight" || R.busy) return;
   if (t.dataset.armove) { const mv = { m: t.dataset.armove }; if (!moveOk(R.bt, "A", mv)) return; R.busy = true; arDraw(); setTimeout(() => { R.busy = false; arRound(mv); }, 250); return; }
   if (t.dataset.arswap != null) { const mv = { m: "swap", to: Number(t.dataset.arswap) }; if (!moveOk(R.bt, "A", mv)) return; arRound(mv); }
+}
+
+/* 🌈 Royal rank (week 12): the Kingdom Ultra Egg hatches Axolumi, the Royal Hatchling (Ms. Ariana's Ultra, 4 forms) */
+function showUltraHatch(dupe) {
+  const root = document.createElement("div"); root.className = "kq-rankup"; root.id = "kqultra";
+  root.innerHTML = '<div class="kq-rankbox kq-ultrabox"><div class="kq-ucrack"><img class="kq-uegg" src="' + K + 'ultra/ultra-egg-360.webp" alt=""><img class="kq-ubaby" src="' + K + 'ultra/axolumi-360.webp" alt="Axolumi"><i class="kq-urays"></i></div>' +
+    '<small>\u{1F308} ULTRA LEGENDARY!</small><h2>' + (dupe ? "Axolumi got <b>+5 levels</b>!" : "<b>Axolumi</b>, the Royal Hatchling!") + "</h2>" +
+    '<p>The Kingdom’s most protected pearl cracked open just for you. Find Axolumi in your <b>\u{1F308} Ultra Legendaries</b>. It grows into <b>Corallume</b> at level 25, <b>Regolotl</b> at 50 and <b>Axolarch</b> at 75!</p>' +
+    '<button class="btn gold big" data-kqu="ok">\u{1F49C} Welcome, Axolumi!</button></div>';
+  document.body.appendChild(root);
+  root.onclick = e => { if (e.target.closest("[data-kqu]")) root.remove(); };
 }

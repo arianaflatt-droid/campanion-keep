@@ -12,12 +12,13 @@
    Saved on the student as kd = { w: the week (Monday), c: clam opened this week, t: trip done this week, dv: dives this week,
      p: pearls, g: { "Monday date": 1 } treasures, best: best dive, n: clams opened, v: visits, sb: shop buys }.
    One save per clam, per dive, per trip and per buy (a buy also saves roomOwned or outfits). Games run in their own layer. */
-import { esc, weekKey } from "./game.js?v=20261117j";
-import { azToday, azNow } from "./collect.js?v=20261117j";
-import { vaultMet, vaultGoal, subReq, addDays } from "./doors.js?v=20261117j";
-import { guide as guide2, bind as bind2, KEEP2, kd2On, rankChip, rankOf as rankOf2, map2HTML, questsHTML, questsWaiting, aquariumHTML, gardenHTML, dockHTML, stableHTML, shipHTML, shipOpen, hatchHTML, beachHTML, townHTML, rankUpHTML, catchCreature, pickCreature, keepCreature, aqImg, AQSZ, catchCard, subSprite, subImg, trailHTML, resetViews, arenaHTML } from "./kingdom2.js?v=20261117j";
+import { esc, weekKey } from "./game.js?v=20261117m";
+import { azToday, azNow } from "./collect.js?v=20261117m";
+import { vaultMet, vaultGoal, subReq, addDays } from "./doors.js?v=20261117m";
+import { guide as guide2, bind as bind2, KEEP2, kd2On, rankChip, rankOf as rankOf2, map2HTML, questsHTML, questsWaiting, aquariumHTML, gardenHTML, dockHTML, stableHTML, shipHTML, shipOpen, hatchHTML, beachHTML, townHTML, rankUpHTML, catchCreature, pickCreature, keepCreature, aqImg, AQSZ, catchCard, subSprite, subImg, trailHTML, resetViews, arenaHTML } from "./kingdom2.js?v=20261117m";
 
 const K = "assets/kingdom/";
+export const ICE_DIVES = 2;   // ❄️ Nov 17: Ice Cave dives a week (Royal rank, week 12)
 export const KD_DIVES = 3, KD_CLOSE = 22 * 60, DIVE_SECS = 45, TRIP_SECS = 35, TRIP_MAX = 20;
 
 /* ----- 52 treasures: 12 monthly shelves (4, or 5 in Mar/Jun/Sep/Dec). The first of each month is the royal treasure. ----- */
@@ -372,6 +373,14 @@ function diveHTML(st, cls) {
     (dl ? '<button class="btn gold big" data-kd="dive">\u{1F30A} Dive! (' + dl + " of " + KD_DIVES + " left this week)</button>" : "<p><b>No dives left this week.</b> Come back next week!</p>") +
     (k.best ? '<p class="small">\u{1F3C6} Your best dive: ' + k.best + " pearls</p>" : "") + "</div>" + (on2() ? guide2("dive", st) : "") + "</div>";
 }
+/* ----- ❄️ Ice Cave (Royal, week 12): the same dive in an icy cave, 2 a week, and the sea creature comes from the Ice Cave tank ----- */
+function iceHTML(st, cls) {
+  const k = kdOf(st, cls), dl = Math.max(0, ICE_DIVES - (Number(k.idv) || 0));
+  return '<div class="kdscene" style="background-image:url(' + K + 'ice-bg.webp)"><div class="kdgatebox">' +
+    "<h2>\u2744\uFE0F Ice Cave Diving</h2><p>The coldest, deepest cave in the Kingdom! The <b>rarest sea creatures</b> live here: orcas, belugas, narwhals, penguins and more.</p>" +
+    "<p>Grab the pearls and catch the creature that swims by. " + DIVE_SECS + " seconds.</p>" +
+    (dl ? '<button class="btn gold big" data-kd="icedive">\u2744\uFE0F Dive! (' + dl + " of " + ICE_DIVES + " left this week)</button>" : "<p><b>No Ice Cave dives left this week.</b> Come back next week!</p>") + "</div>" + guide2("ice", st) + "</div>";
+}
 /* Nov 15 (her notes: "a little jolty", controls/jellyfish not clear, "how do they know to get" the creature):
    • the axolotl now has real speed: it speeds up toward your finger, glides, slows down, and turns around smoothly
    • a picture card explains the controls, pearls, jellyfish and the sea creature before the dive starts
@@ -384,9 +393,9 @@ const DIVE_HOW = part2 => '<h2>\u{1FAE7} How to dive</h2><div class="kdhow">' +
   (part2 ? '<div class="sea"><span class="kdhowic">\u{1FAE7}</span><p><b>A sea creature swims by</b> in a glowing bubble. Swim into it to catch it for your aquarium!</p></div>' : "") +
   "</div><p class='small' style='margin:6px 0 0'>" + DIVE_SECS + " seconds.</p>";
 let crLast = false;
-async function runDive() {
-  if (!C || !C.st) return; const k0 = kdOf(C.st, C.cls); if ((Number(k0.dv) || 0) >= KD_DIVES) return;
-  openLayer("dive-bg"); const fx = diverFx(C.st);
+async function runDive(ice) {
+  if (!C || !C.st) return; const k0 = kdOf(C.st, C.cls), MAXD = ice ? ICE_DIVES : KD_DIVES, dkey = ice ? "idv" : "dv"; if ((Number(k0[dkey]) || 0) >= MAXD) return;
+  openLayer(ice ? "ice-bg" : "dive-bg"); const fx = diverFx(C.st); if (ice) L.root.classList.add("kdicedive");
   const dv = document.createElement("img"); dv.className = "kdsp kddiver"; dv.alt = ""; dv.style.filter = fx; L.lay.appendChild(dv);
   const FR = [1, 2, 3, 4, 5, 6, 7, 8].map(n => "assets/axolotl/frame-" + n + ".webp");
   FR.forEach(s => { const i = new Image(); i.src = s; });
@@ -394,7 +403,7 @@ async function runDive() {
   const items = [];
   const show = s => { if (s !== src) { dv.src = s; src = s; } };
   // the sea creature for this dive (part 2): picked now, kept only if caught
-  const part2 = on2(), sea = part2 ? pickCreature(k0) : null;
+  const part2 = on2() || !!ice, sea = part2 ? pickCreature(k0, !!ice) : null;
   let cr = null, crNext = 7 + Math.random() * 4, caught = false, crTimes = 0;
   if (sea) { const i = new Image(); i.src = aqImg(sea, true); }
   if (await panel(DIVE_HOW(part2), [["go", "\u{1F30A} Start diving!"]], "kdboxhow") === null) return;
@@ -446,15 +455,15 @@ async function runDive() {
   });
   if (!L) return;
   L.lay.innerHTML = ""; L.ui.innerHTML = "";
-  const k = kdOf(C.st, C.cls); k.dv = (Number(k.dv) || 0) + 1; k.p = (Number(k.p) || 0) + score; k.best = Math.max(Number(k.best) || 0, score); k.wb = Math.max(Number(k.wb) || 0, score);
+  const k = kdOf(C.st, C.cls); k[dkey] = (Number(k[dkey]) || 0) + 1; k.p = (Number(k.p) || 0) + score; k.best = Math.max(Number(k.best) || 0, score); k.wb = Math.max(Number(k.wb) || 0, score);
   const res = sea && caught ? keepCreature(k, sea) : null; save(k);
-  const left = Math.max(0, KD_DIVES - k.dv), more = left + (left === 1 ? " dive" : " dives") + " left this week.";
+  const left = Math.max(0, MAXD - k[dkey]), more = left + (left === 1 ? (ice ? " Ice Cave dive" : " dive") : (ice ? " Ice Cave dives" : " dives")) + " left this week.";
   let html;
   if (res) html = '<img src="' + K + 'duck/pearl-cheer.webp" alt="" class="kdboximg">' + catchCard(res) + "<p class='small'>Plus <b>+" + score + " pearls</b> from your dive! " + more + "</p>";
   else if (sea) html = '<img src="' + K + 'queen-cheer.webp" alt="" class="kdboximg"><h2>\u{1F389} +' + score + " pearls!</h2><p>The sea creature got away this time. Next dive, swim into it when it goes by!</p><p class='small'>You have ⚪ <b>" + k.p + "</b> pearls. " + more + "</p>";
   else html = '<img src="' + K + 'queen-cheer.webp" alt="" class="kdboximg"><h2>\u{1F389} +' + score + " pearls!</h2><p>You have ⚪ <b>" + k.p + "</b> pearls. " + more + "</p><p class='small'>Spend pearls in the \u{1F41A} Pearl Shop (the shipwreck)!</p>";
   await panel(html, [["go", "Back to the Kingdom"]]);
-  closeLayer(); view = "map"; rer();
+  closeLayer(); view = ice ? "ice" : "map"; rer();
 }
 
 if (typeof document !== "undefined") document.addEventListener("click", ev => {
@@ -463,6 +472,7 @@ if (typeof document !== "undefined") document.addEventListener("click", ev => {
   if (a === "go") { view = k; opened = null; shopSay = null; grotMonth = null; resetViews(); rer(); scrollTo({ top: 0 }); }
   else if (a === "clam") openClam();
   else if (a === "dive") runDive();
+  else if (a === "icedive") runDive(true);
   else if (a === "trip") runTrip(true);
   else if (a === "board") runTrip(false);
   else if (a === "cat") { shopCat = k; shopSay = null; rer(); }
@@ -495,11 +505,12 @@ export function kingdomTab(st, cls) {
   }
   if (view === "throne") return head + back + throneHTML(st, cls);
   if (view === "dive") return head + back + diveHTML(st, cls);
+  if (view === "ice" && rankOf2(st).n >= 12) return head + back + iceHTML(st, cls);
   if (view === "grotto") return head + back + grottoHTML(st, cls);
   if (view === "shop") return head + back + shopHTML(st, cls);
   if (on2() && view === "map") {
     const dl = Math.max(0, KD_DIVES - (Number(k.dv) || 0));
-    return head + rankUpHTML(st) + map2HTML(st, cls, k, { throne: (!k.c ? 1 : 0) + questsWaiting(k, wk(cls)), dive: dl, ship: rankOf2(st).n >= 3 ? Math.max(0, shipOpen(st) - Object.keys((k.ship || {}).f || {}).length) : 0, beach: rankOf2(st).n >= 6 && ((k.sc || {}).p || []).length < 10 && (k.sc || {}).fw !== wk(cls) ? 1 : 0, lagoon: rankOf2(st).n >= 4 ? (!k.hx || !k.hx.e ? (((k.hx || {}).fw) !== wk(cls) ? 1 : 0) : 1) : 0, stable: rankOf2(st).n >= 2 && (!k.sh || k.sh.fw !== wk(cls)) ? 1 : 0, arena: rankOf2(st).n >= 10 && !(k.ar && k.ar.w === wk(cls) && k.ar.won) ? 1 : 0 }) + '<div class="row" style="margin-top:8px;gap:8px;align-items:center;flex-wrap:wrap;"><span class="small">' +
+    return head + rankUpHTML(st) + map2HTML(st, cls, k, { throne: (!k.c ? 1 : 0) + questsWaiting(k, wk(cls)), dive: dl, ship: rankOf2(st).n >= 3 ? Math.max(0, shipOpen(st) - Object.keys((k.ship || {}).f || {}).length) : 0, beach: rankOf2(st).n >= 6 && ((k.sc || {}).p || []).length < 10 && (k.sc || {}).fw !== wk(cls) ? 1 : 0, lagoon: rankOf2(st).n >= 4 ? (!k.hx || !k.hx.e ? (((k.hx || {}).fw) !== wk(cls) ? 1 : 0) : 1) : 0, stable: rankOf2(st).n >= 2 && (!k.sh || k.sh.fw !== wk(cls)) ? 1 : 0, arena: rankOf2(st).n >= 10 && !(k.ar && k.ar.w === wk(cls) && k.ar.won) ? 1 : 0, ice: rankOf2(st).n >= 12 ? Math.max(0, ICE_DIVES - (Number(k.idv) || 0)) : 0 }) + '<div class="row" style="margin-top:8px;gap:8px;align-items:center;flex-wrap:wrap;"><span class="small">' +
       (k.c ? "✅ You got this week’s treasure." : "\u{1F451} This week’s treasure is waiting in the Throne Room!") + " · \u{1FAE7} " + dl + " of " + KD_DIVES + ' dives left</span><button class="btn ghost small" data-kd="trip">\u{1F986} Watch the trip again</button></div>';
   }
   return head + mapHTML(st, cls);
