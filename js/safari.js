@@ -2,15 +2,15 @@
    In each unlocked zone a student can go on a safari: the zone scene fills the screen and creatures peek out and
    hide again. Tapping one before it hides takes its photo (1 film). 5 free film a day (was 3 until Nov 7); an extra roll (3 film) costs
    10 Stardust. A photo of a creature that isn't in the album yet is added; a repeat gives +2 Stardust instead.
-   Nov 7 (v20261116R): each zone's page holds EVERY form of every creature of the zone's types (no Legendaries, Ultras or
+   Nov 7 (v20261116s): each zone's page holds EVERY form of every creature of the zone's types (no Legendaries, Ultras or
    events: 387 in all) + 3 Planet JP–only aliens (21 in all). Every 10 new photos = +25 Stardust; a full page = +100 (once)
    and the zone badge; all 3 of a zone's aliens = its alien badge (badges.js works these out from the album).
    Saved on the student in planet: alb = { "c<id>" or alien key: photos }, saf = { d: day, u: film used, b: film bought },
    pg = [zone keys already paid], ms = milestones paid. One write per photo (≤3 a day unless they buy film). Preview saves nothing. */
-import { CREATURES } from "./creatures.js?v=20261117m";
-import { ALIEN_CREATURES, ALIEN_FAM } from "./aliens.js?v=20261117m";
-import { esc } from "./game.js?v=20261117m";
-import { azToday, azNow } from "./collect.js?v=20261117m";
+import { CREATURES } from "./creatures.js?v=20261117o";
+import { ALIEN_CREATURES, ALIEN_FAM } from "./aliens.js?v=20261117o";
+import { esc } from "./game.js?v=20261117o";
+import { azToday, azNow } from "./collect.js?v=20261117o";
 // ✨ Sparkles (Nov 7): now and then a creature shows up in its Sparkle colors. A photo of one = +10 ⭐ (first time) and a ✨ on its album spot;
 // catching one makes that creature Sparkle in the Collector for good (like a Sparkle hatch). Saved as planet.spk = { key: 1 }.
 export const SAF_SPARKLE = 0.04, SPARKLE_DUST = 10;
@@ -24,7 +24,7 @@ export const PJ_CLOSE_M = 12 * 60 + 55;
 export const PJ_LATE = 15 * 60 + 30;
 /* 🏖️ Break-day launches (Nov 10, Ms. Ariana): on a weekday marked as a break on the calendar (cls.offDays), Planet JP is open
    all day until 10 pm (Arizona). Who can launch (planet.js fuel): if there were school days earlier that week, students who are
-   caught up (the daily goal × those days for the week + core-subject rings closed so far); on a weeklong break, 120 XP that day.
+   caught up (the daily goal × those days for the week + core-subject rings closed so far); on a weeklong break, 120 XP + that day's rings (Nov 17). Either way, 120 XP + that day's rings always works.
    cls.pjBreakOff = true turns it off. */
 export const PJ_BREAK_END = 22 * 60, PJ_BREAK_XP = 240;
 export const pjBreakXP = cls => Number(cls && cls.pjBreakXP) || PJ_BREAK_XP;
@@ -33,17 +33,26 @@ export const pjBreakDay = (cls, iso) => { if (!cls || cls.pjBreakOff || !((cls.o
 /* 🌇 Afternoon launch (Nov 12, Ms. Ariana): on a school day, anyone with all 4 tanks full that day (120 XP + rings) can launch (or go back)
    after 2 pm, until 10 pm (Arizona). planet.js tells this file whose tanks are full (setHitCheck). cls.pjAfterOff = true turns it off. */
 export const PJ_AFTER = 14 * 60, PJ_AFTER_END = 22 * 60;
+/* 🗓️ Mondays from Nov 30, 2026 (Ms. Ariana): the lunch launch is 11:00–12:00, then Planet JP is closed until 1:15, then the
+   afternoon launch (same 4 full tanks) is open 1:15–10 pm. Other days stay 11:00–12:55 and 2–10 pm. */
+export const PJ_MON_FROM = "2026-11-30", PJ_MON_CLOSE = 12 * 60, PJ_MON_AFTER = 13 * 60 + 15;
+const isMon = iso => { const [y, m, d] = String(iso).split("-").map(Number); return new Date(y, m - 1, d).getDay() === 1; };
+export const monSplit = iso => String(iso) >= PJ_MON_FROM && isMon(iso);
+export const pjCloseAt = iso => (monSplit(iso || azToday()) ? PJ_MON_CLOSE : PJ_CLOSE_M);
+export const pjAfterAt = iso => (monSplit(iso || azToday()) ? PJ_MON_AFTER : PJ_AFTER);
+export const pjClock = n => { const h = Math.floor(n / 60), m = n % 60; return (h > 12 ? h - 12 : h) + ":" + String(m).padStart(2, "0"); };
 let hitCheck = null; export const setHitCheck = f => { hitCheck = f; };
 export const afterOn = cls => !(cls && cls.pjAfterOff);
 export const afterHit = (st, cls) => !!(afterOn(cls) && st && hitCheck && !pjBreakDay(cls, azToday()) && hitCheck(st, cls));
 export function pjWindow(st, cls) {
   const W = pjWindow0(st, cls), m = minsNow();
-  if (m >= W.c && afterHit(st, cls)) return m < PJ_AFTER ? { o: PJ_AFTER, c: PJ_AFTER_END, after: true } : { o: Math.min(W.o, PJ_AFTER), c: Math.max(W.c, PJ_AFTER_END), after: true };
-  if (m >= PJ_AFTER && W.c < PJ_AFTER_END && afterHit(st, cls)) return { o: W.o, c: PJ_AFTER_END, after: true };
+  const AF = pjAfterAt();
+  if (m >= W.c && afterHit(st, cls)) return m < AF ? { o: AF, c: PJ_AFTER_END, after: true } : { o: Math.min(W.o, AF), c: Math.max(W.c, PJ_AFTER_END), after: true };
+  if (m >= AF && W.c < PJ_AFTER_END && afterHit(st, cls)) return { o: W.o, c: PJ_AFTER_END, after: true };
   return W;
 }
 function pjWindow0(st, cls) {
-  const today = azToday(); let o = 11 * 60, c = PJ_CLOSE_M; const w = cls && cls.pjWin;
+  const today = azToday(); let o = 11 * 60, c = pjCloseAt(today); const w = cls && cls.pjWin;
   if (pjBreakDay(cls, today)) { o = 0; c = PJ_BREAK_END; }
   if (w && w.d === today) { o = Math.min(o, Number(w.from) || 0); c = Math.max(c, Number(w.to) || c); }
   if (st && st.pjGo === today) { o = 0; c = Math.max(c, PJ_LATE); }

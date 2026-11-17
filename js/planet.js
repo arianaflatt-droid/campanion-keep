@@ -7,22 +7,22 @@
    A launch is saved on the student: planet = { n: launches, last: "YYYY-MM-DD", streak, best } (one write a day).
    Wave 2 adds a space minigame between liftoff and landing; Planet JP itself comes later, one piece at a time.
    Pictures live in assets/planet/ — until one is uploaded (ART below) the stand-in drawing is used. */
-import { esc, weekKey } from "./game.js?v=20261117m";
-import { azToday, azNow } from "./collect.js?v=20261117m";
-import { axoDay, schoolDayFor } from "./axolotl.js?v=20261117m";
-import { addDays, todayPlan, weekTotal, histWeekTotal } from "./doors.js?v=20261117m";
-import { GAMES, gameOfDay, gameByKey, play, preload } from "./spacegames.js?v=20261117m";
-import { setHitCheck, afterOn, PJ_AFTER, PJ_AFTER_END } from "./safari.js?v=20261117m";
-import { ZONES, safariSync, freshSt, albumHTML, filmLeft, pageCount, pageSize, aliensFound, zoneAliens, FREE_FILM, ROLL_COST, shopHTML, netsOf, NETS, netImg, pjWindow, classOpenAll, PJ_LATE, pjBreakDay, pjBreakXP } from "./safari.js?v=20261117m";
-import { cafeHTML } from "./cafe.js?v=20261117m";
-import { shopPageHTML } from "./spaceshop.js?v=20261117m";
-import { hangarHTML } from "./hangar.js?v=20261117m";
-import { stationHTML, stationAdminLine, doubleWaiting } from "./station.js?v=20261117m";
-import { zooHTML } from "./zoo.js?v=20261117m";
-import { adoptHTML, PP as NEB_PP } from "./pets.js?v=20261117m";
-import { parkHTML } from "./petpark.js?v=20261117m";
-import { missionsHTML, placeBang } from "./missions.js?v=20261117m";
-import { duckImgOf, flameFxOf, trailOf } from "./shop-data.js?v=20261117m";
+import { esc, weekKey } from "./game.js?v=20261117o";
+import { azToday, azNow } from "./collect.js?v=20261117o";
+import { axoDay, schoolDayFor } from "./axolotl.js?v=20261117o";
+import { addDays, todayPlan, weekTotal, histWeekTotal } from "./doors.js?v=20261117o";
+import { GAMES, gameOfDay, gameByKey, play, preload } from "./spacegames.js?v=20261117o";
+import { setHitCheck, afterOn, PJ_AFTER, PJ_AFTER_END, pjCloseAt, pjAfterAt, pjClock } from "./safari.js?v=20261117o";
+import { ZONES, safariSync, freshSt, albumHTML, filmLeft, pageCount, pageSize, aliensFound, zoneAliens, FREE_FILM, ROLL_COST, shopHTML, netsOf, NETS, netImg, pjWindow, classOpenAll, PJ_LATE, pjBreakDay, pjBreakXP } from "./safari.js?v=20261117o";
+import { cafeHTML } from "./cafe.js?v=20261117o";
+import { shopPageHTML } from "./spaceshop.js?v=20261117o";
+import { hangarHTML } from "./hangar.js?v=20261117o";
+import { stationHTML, stationAdminLine, doubleWaiting } from "./station.js?v=20261117o";
+import { zooHTML } from "./zoo.js?v=20261117o";
+import { adoptHTML, PP as NEB_PP } from "./pets.js?v=20261117o";
+import { parkHTML } from "./petpark.js?v=20261117o";
+import { missionsHTML, placeBang } from "./missions.js?v=20261117o";
+import { duckImgOf, flameFxOf, trailOf } from "./shop-data.js?v=20261117o";
 
 export const PJ_OPEN = 11 * 60, PJ_CLOSE = 12 * 60 + 55;   // minutes after midnight, Arizona time
 const A = "assets/planet/";
@@ -48,7 +48,8 @@ export function fuel(st, cls) {
       const p = todayPlan(st, cls, iso), wx = Math.round(Math.max(histWeekTotal(st, mon), mon === weekKey(cls) ? weekTotal(st, cls) : 0));
       bt = [{ icon: "⭐", name: "XP this week", have: wx, need: d.goal * sd }];
       if (p) p.rows.forEach(r => { const need = Math.max(0, r.week - r.today + r.target); if (need > 0) bt.push({ icon: ICON[r.src] || "\u{1F4DA}", name: r.name + " this week", have: Math.min(r.week, need), need }); });
-    } else bt = [{ icon: "⭐", name: "XP today", have: hit ? Math.max(xp, d.goal) : xp, need: d.goal }];
+    } else bt = [{ icon: "⭐", name: "XP today", have: hit ? Math.max(xp, d.goal) : xp, need: d.goal }].concat(d.rows.map(r => ({ icon: ICON[r.src] || "\u{1F4DA}", name: r.name + " today", have: r.have, need: r.need })));   // 🦃 Nov 17: a weeklong break needs 120 XP + the day's rings
+    if (sd > 0 && d.good) bt = [{ icon: "⭐", name: "XP today", have: Math.max(xp, d.goal), need: d.goal }].concat(d.rows.map(r => ({ icon: ICON[r.src] || "\u{1F4DA}", name: r.name + " today", have: r.have, need: r.need })));   // 🦃 120 XP + today's rings also works
     const bn = bt.reduce((n, t) => n + t.need, 0), bh = bt.reduce((n, t) => n + Math.min(t.have, t.need), 0);
     if (st && (st.pjGo === iso || classOpenAll(cls))) return { tanks: bt.map(t => Object.assign({}, t, { have: Math.max(t.have, t.need) })), pct: 1, full: true, manual: true, brk: true };
     return { tanks: bt, pct: bn ? bh / bn : 0, full: bt.every(t => t.have >= t.need), brk: true };
@@ -58,7 +59,7 @@ export function fuel(st, cls) {
   // Nov 7: Ms. Ariana can launch a student by hand (tech trouble, work done somewhere else): pjGo = today's date
   if (st && (st.pjGo === iso || classOpenAll(cls))) return { tanks: tanks.map(t => Object.assign({}, t, { have: Math.max(t.have, t.need) })), pct: 1, full: true, manual: true };
   // 🌇 after the lunch window closes, the same 4 tanks open the afternoon launch (2–10 pm)
-  const pw = cls && cls.pjWin, lunchEnd = Math.max(PJ_CLOSE, pw && pw.d === iso ? Number(pw.to) || 0 : 0);
+  const pw = cls && cls.pjWin, lunchEnd = Math.max(pjCloseAt(iso), pw && pw.d === iso ? Number(pw.to) || 0 : 0);
   return { tanks, pct: need ? have / need : 0, full: tanks.every(t => t.have >= t.need), after: afterOn(cls) && mins() >= lunchEnd };
 }
 const launchedToday = st => !!(st && st.planet && st.planet.last === azToday());
@@ -95,13 +96,13 @@ export function planetBar(st, cls, preview) {
   const W = pjWindow(st, cls);
   let msg;
   if (p === "fill" && f.brk) msg = "\u{1F3D6}\uFE0F <b>Break day bonus!</b> " + (f.tanks[0].name === "XP today" ? "Earn <b>" + f.tanks[0].need + " XP today</b>" : "Reach <b>" + f.tanks[0].need + " XP this week</b>" + (f.tanks.length > 1 ? " and catch up your subject rings" : "")) + " to launch to <b>Planet JP</b> (open until " + hhmm(W.c) + " pm).";
-  else if (p === "fill" && f.after) msg = "\u{1F307} <b>Afternoon launch!</b> Fill all 4 tanks today and you can launch to <b>Planet JP</b>" + (mins() < PJ_AFTER ? " after 2:00 pm." : " (open until 10 pm).");
-  else if (p === "ready" && W.after) msg = "\u{1F307} Tanks full! The <b>afternoon launch</b> opens in <b id=\"pjcd\">" + left(W.o) + "</b> (2:00 pm).";
+  else if (p === "fill" && f.after) msg = "\u{1F307} <b>Afternoon launch!</b> Fill all 4 tanks today and you can launch to <b>Planet JP</b>" + (mins() < pjAfterAt() ? " after " + pjClock(pjAfterAt()) + " pm." : " (open until 10 pm).");
+  else if (p === "ready" && W.after) msg = "\u{1F307} Tanks full! The <b>afternoon launch</b> opens in <b id=\"pjcd\">" + left(W.o) + "</b> (" + pjClock(pjAfterAt()) + " pm).";
   else if (p === "fill") msg = "Fill all 4 tanks to launch to <b>Planet JP</b>! " + (mins() < W.o ? "Launch window opens at " + hhmm(W.o) + "." : 'Window closes in <b id="pjcd">' + left(W.c) + "</b>");
   else if (p === "ready") msg = "\u{1F389} Ready for liftoff! The launch window opens in <b id=\"pjcd\">" + left(W.o) + "</b>";
   else if (p === "go") msg = '\u{1F680} Fuel tanks full! <button class="btn small gold" data-pj="open">Launch the S.S. Duck!</button>';
-  else if (p === "landed") msg = (pjOpen(st, cls) ? '<button class="btn small gold" data-pj="tab">\u{1FA90} Explore Planet JP</button> ' : W.after && mins() < W.o ? "\u{1F307} Planet JP opens again at <b>2:00 pm</b>. " : "") + "\u{1FA90} You landed on <b>Planet JP</b>! Launch #" + (pl.n || 1) + ((pl.streak || 0) > 1 ? " · \u{1F525} " + pl.streak + " days in a row" : "") + (pl.dust ? " · ⭐ " + pl.dust + " Stardust" : "");
-  else msg = afterOn(cls) && mins() < PJ_AFTER ? "\u{1F6D1} You missed the lunch launch. Fill all 4 tanks today and you can launch after 2:00 pm!" : "\u{1F6D1} Mission scrubbed, try again tomorrow!";
+  else if (p === "landed") msg = (pjOpen(st, cls) ? '<button class="btn small gold" data-pj="tab">\u{1FA90} Explore Planet JP</button> ' : W.after && mins() < W.o ? "\u{1F307} Planet JP opens again at <b>" + pjClock(pjAfterAt()) + " pm</b>. " : "") + "\u{1FA90} You landed on <b>Planet JP</b>! Launch #" + (pl.n || 1) + ((pl.streak || 0) > 1 ? " · \u{1F525} " + pl.streak + " days in a row" : "") + (pl.dust ? " · ⭐ " + pl.dust + " Stardust" : "");
+  else msg = afterOn(cls) && mins() < pjAfterAt() ? "\u{1F6D1} You missed the lunch launch. Fill all 4 tanks today and you can launch after " + pjClock(pjAfterAt()) + " pm!" : "\u{1F6D1} Mission scrubbed, try again tomorrow!";
   const tanks = p === "landed" || p === "scrubbed" ? "" : '<div class="pjtanks">' + f.tanks.map(t => '<span class="pjtank' + (t.have >= t.need ? " ok" : "") + '">' + t.icon + " " + esc(t.name) + " <b>" + Math.min(t.have, t.need) + "/" + t.need + "</b>" + (t.have >= t.need ? " ✅" : "") + "</span>").join("") + "</div>";
   return '<div class="pjbar ' + p + '"><div class="pjtrack"><div class="pjfill" style="width:' + (pct * 100).toFixed(1) + '%"></div>' +
     (trailOf(st) && pct > 0.02 ? '<div class="pjtrail tr-' + trailOf(st) + '" style="width:calc(' + (pct * 100).toFixed(1) + '% - ' + (pct * 74 - 12).toFixed(0) + 'px)"></div>' : "") +
@@ -270,7 +271,7 @@ function land(skipped) {
     (ART.jpWave ? '<div class="pjjp wave" id="pjwave"><img src="' + A + 'jp-welcome.webp" alt="JP"></div>' : "") +
     '<div class="pjwelcome" id="pjwel"><h1 class="pjtitle">Welcome to Planet JP!</h1><p class="pjsub">The S.S. Duck landed safely, Captain ' + name + "!</p>" +
     '<p class="pjstat">\u{1F680} Launch <b>#' + (s.n || 1) + "</b>" + ((s.streak || 0) > 1 ? " · \u{1F525} <b>" + s.streak + "</b> days in a row" : "") + (s.dust ? " · ⭐ <b>" + s.dust + "</b> Stardust" : "") + "</p>" +
-    '<p class="pjsub small">Explore the map and see who else landed in your <b>\u{1FA90} Planet JP</b> tab (open until 12:55).</p>' +
+    '<p class="pjsub small">Explore the map and see who else landed in your <b>\u{1FA90} Planet JP</b> tab (open until " + pjClock(pjCloseAt()) + ").</p>' +
     '<div class="row" style="justify-content:center;gap:10px;"><button class="btn gold" data-pj="explore">\u{1F5FA}\uFE0F Explore Planet JP</button><button class="btn ghost" data-pj="done">Done</button></div></div>');
   const show = () => { ["pjwel", "pjwave", "pjdust"].forEach(id => { const e = document.getElementById(id); if (e) e.classList.add("on"); }); };
   if (!skipped) later(1900, () => { thud(); show(); }); else show();
@@ -324,7 +325,7 @@ export function planetAdmin(students, cls) {
   return '<div class="card" id="pjCard"><div class="card-head"><h2>\u{1F680} Planet JP</h2><span class="fact">' + (on ? (schoolDayFor(cls, today) ? went.length + " launched today" : "no school today") : "off") + "</span></div>" +
     '<p class="lede" style="font-size:13.5px;">A launch bar across the top of every student’s Keep. It fills with <b>120 XP + 25 Math, Reading and Language</b>. Full tanks can launch the S.S. Duck from <b>11:00 to 12:55</b> (Arizona time); not full by 12:55 = “Mission scrubbed”. School days only (your calendar breaks are skipped). To try it yourself, open a student’s page in preview and press “Preview the launch”.</p>' +
     '<div class="row" style="margin:10px 0;gap:8px;"><button class="btn' + (on ? " ghost" : "") + '" data-act="pjToggle">' + (on ? "Turn Planet JP off" : "\u{1F680} Turn Planet JP on") + "</button></div>" +
-    (on ? winRow(cls) + stationAdminLine(kids, cls) + '<p class="small" style="margin:4px 0 0;">\u{1F47D} <b>Alien Ms. Ariana</b> is hiding on <b>' + arianaToday().name + "</b> today (" + kids.filter(s => s.planet && s.planet.af === today).length + " found her, +10 ⭐ each).</p>" + (afterOn(cls) ? '<p class="small" style="margin:4px 0 0;">\u{1F307} <b>Afternoon launch:</b> on school days, anyone with all 4 tanks full (120 XP + the core-subject rings) can launch (or go back) from 2:00 to 10:00 pm.</p>' : "") : "") +
+    (on ? winRow(cls) + stationAdminLine(kids, cls) + '<p class="small" style="margin:4px 0 0;">\u{1F47D} <b>Alien Ms. Ariana</b> is hiding on <b>' + arianaToday().name + "</b> today (" + kids.filter(s => s.planet && s.planet.af === today).length + " found her, +10 ⭐ each).</p>" + (afterOn(cls) ? '<p class="small" style="margin:4px 0 0;">\u{1F307} <b>Afternoon launch:</b> on school days, anyone with all 4 tanks full (120 XP + the core-subject rings) can launch (or go back) from 2:00 to 10:00 pm. <b>Mondays (from Nov 30):</b> the lunch launch is 11:00–12:00, closed until 1:15, then open 1:15–10:00 pm.</p>' : "") : "") +
     (on && schoolDayFor(cls, today) ? manualRows(kids, cls, went) : "") +
     (on && (went.length || ready.length) ? '<p class="small" style="margin:4px 0;">' + (went.length ? "\u{1FA90} <b>Landed:</b> " + went.map(s => esc(s.name)).join(", ") : "") + (ready.length ? (went.length ? "<br>" : "") + "⛽ <b>Tanks full, not launched yet:</b> " + ready.map(s => esc(s.name)).join(", ") : "") + "</p>" : "") + "</div>";
 }
@@ -409,9 +410,9 @@ function hubHTML(st, n) {
   HUB_PLACES.forEach(p => { h += '<button class="hubplace hub-' + p.k + '" style="left:' + p.x + "%;top:" + p.y + "%;width:" + p.w + '%" ' + (p.k === "colony" ? 'data-pjcolony="1"' : 'data-pjzone="' + p.k + '"') + ">" + p.html() + (placeBang(st, p.k) ? '<span class="hubbang" title="Something to do here today!">!</span>' : "") + '<span class="hublbl">' + p.name + "</span></button>"; });
   return h + "</div></div>";
 }
-import { arianaHTML, arianaToday } from "./ariana.js?v=20261117m";
-import { boardHTML } from "./board.js?v=20261117m";
-import { moonHTML } from "./moon.js?v=20261117m";
+import { arianaHTML, arianaToday } from "./ariana.js?v=20261117o";
+import { boardHTML } from "./board.js?v=20261117o";
+import { moonHTML } from "./moon.js?v=20261117o";
 // 👽 Nov 12: every Planet JP page gets the hidden Alien Ms. Ariana check at the end
 // ◀ ▶ between the zones (locked zones show how many launches they need)
 function zoneArrows(z, n) {
@@ -429,7 +430,7 @@ export function planetTab(st, cls, students, petOf, preview) {
 function planetTab0(st, cls, students, petOf, preview) {
   st = freshSt(st);
   const pl = (st && st.planet) || {}, n = Number(pl.n) || 0, today = azToday();
-  const closeIn = Math.max(0, PJ_CLOSE - mins());
+  const closeIn = Math.max(0, pjCloseAt() - mins());
   let h = '<div class="card pjtab"><div class="pjtabhead">' + planetHTML() + '<div><h2>Planet JP</h2><p class="lede">' +
     (pjOpen(st, cls) ? "Open until <b>" + hhmm(pjWindow(st, cls).c) + "</b> · ⏱️ " + left(pjWindow(st, cls).c) + " left" : preview ? "\u{1F440} Teacher preview" : "Closed for today") +
     '</p></div><div class="pjtabstats"><span>\u{1F680} <b>' + n + "</b> launch" + (n === 1 ? "" : "es") + "</span><span>⭐ <b>" + (Number(pl.dust) || 0) + "</b> Stardust</span>" +

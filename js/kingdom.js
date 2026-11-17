@@ -12,10 +12,12 @@
    Saved on the student as kd = { w: the week (Monday), c: clam opened this week, t: trip done this week, dv: dives this week,
      p: pearls, g: { "Monday date": 1 } treasures, best: best dive, n: clams opened, v: visits, sb: shop buys }.
    One save per clam, per dive, per trip and per buy (a buy also saves roomOwned or outfits). Games run in their own layer. */
-import { esc, weekKey } from "./game.js?v=20261117m";
-import { azToday, azNow } from "./collect.js?v=20261117m";
-import { vaultMet, vaultGoal, subReq, addDays } from "./doors.js?v=20261117m";
-import { guide as guide2, bind as bind2, KEEP2, kd2On, rankChip, rankOf as rankOf2, map2HTML, questsHTML, questsWaiting, aquariumHTML, gardenHTML, dockHTML, stableHTML, shipHTML, shipOpen, hatchHTML, beachHTML, townHTML, rankUpHTML, catchCreature, pickCreature, keepCreature, aqImg, AQSZ, catchCard, subSprite, subImg, trailHTML, resetViews, arenaHTML } from "./kingdom2.js?v=20261117m";
+import { esc, weekKey } from "./game.js?v=20261117o";
+import { azToday, azNow } from "./collect.js?v=20261117o";
+import { vaultMet, vaultGoal, subReq, addDays } from "./doors.js?v=20261117o";
+import { axoDay } from "./axolotl.js?v=20261117o";
+import { pjBreakDay } from "./safari.js?v=20261117o";
+import { guide as guide2, bind as bind2, KEEP2, kd2On, rankChip, rankOf as rankOf2, map2HTML, questsHTML, questsWaiting, aquariumHTML, gardenHTML, dockHTML, stableHTML, shipHTML, shipOpen, hatchHTML, beachHTML, townHTML, rankUpHTML, catchCreature, pickCreature, keepCreature, aqImg, AQSZ, catchCard, subSprite, subImg, trailHTML, resetViews, arenaHTML, cityHTML } from "./kingdom2.js?v=20261117o";
 
 const K = "assets/kingdom/";
 export const ICE_DIVES = 2;   // ❄️ Nov 17: Ice Cave dives a week (Royal rank, week 12)
@@ -60,7 +62,20 @@ export function kdTimeOk(cls) {
 }
 // 🎟️ Nov 15 (Ms. Ariana): a Kingdom pass for this week only (e.g. a student testing their first week): cls.kdPass[week][studentId] = true
 export const kdPass = (st, cls) => !!(st && cls && ((cls.kdPass || {})[wk(cls)] || {})[st.id]);
-export const kdUnlocked = (st, cls) => kdOn(cls) && !!st && (vaultMet(st, cls) || kdPass(st, cls)) && kdTimeOk(cls);
+/* 🦃 Nov 17 (Ms. Ariana): over a break (weekdays marked off on the school calendar) the Kingdom also opens
+   - on a break day when that day has 120 XP + all its rings (25 Math, Reading, Language), any time that day, or
+   - for the rest of a break week once the week has 600 XP + the week's rings closed (25 a day × 5 = 125 of each). */
+const breakWeek = cls => { const mon = wk(cls); for (let i = 0; i < 5; i++) if (pjBreakDay(cls, addDays(mon, i))) return true; return false; };
+export function kdBreak(st, cls) {
+  if (!st || !cls || !breakWeek(cls)) return null;
+  const today = azToday(), mon = wk(cls), d = axoDay(st, cls, today), dayOk = pjBreakDay(cls, today) && d.good;
+  const by = {}; let xp = 0;
+  for (let i = 0; i < 7; i++) { const iso = addDays(mon, i), x = axoDay(st, cls, iso); if (iso > today) break; xp += x.xp; x.rows.forEach(r => { by[r.src] = by[r.src] || { name: r.name, have: 0, need: r.need * 5 }; by[r.src].have += r.have; }); }
+  const rows = Object.values(by), weekOk = xp >= 600 && rows.every(r => r.have >= r.need);
+  return { dayOk, weekOk, ok: dayOk || weekOk, day: d, xp, rows };
+}
+const kdBreakOk = (st, cls) => { const b = kdBreak(st, cls); return !!(b && b.ok); };
+export const kdUnlocked = (st, cls) => kdOn(cls) && !!st && (vaultMet(st, cls) || kdPass(st, cls) || kdBreakOk(st, cls)) && kdTimeOk(cls);
 export const kdTodo = (st, cls) => { if (!kdUnlocked(st, cls)) return false; const k = kdOf(st, cls); return !k.t || !k.c || (Number(k.dv) || 0) < KD_DIVES; };
 // which minigame this week: the 1st–4th Monday of the month (a 5th Monday plays week 1 again)
 export const tripGame = cls => (typeof window !== "undefined" && window.__kdGame != null) ? window.__kdGame : (Math.ceil(Number(String(wk(cls)).slice(8, 10)) / 7) - 1) % 4;
@@ -107,7 +122,15 @@ function gateHTML(st, cls) {
     "<h2>\u{1F512} The Kingdom gate is closed</h2>" +
     (timeOk ? "<p>Reach your <b>weekly XP</b> and close <b>all your rings</b> this week, and the gate opens until Sunday night!</p>" : "<p>The Kingdom closed for this week. A new week starts Monday!</p>") +
     '<div class="kdbar"><i style="width:' + pct.toFixed(1) + '%"></i>' + (on2() ? '<span class="kq-barsub" style="left:' + pct.toFixed(1) + '%">' + trailHTML(st) + '<img src="' + subImg(st) + '" alt=""></span>' : '<img src="' + K + 'duck-sub.webp" alt="" style="left:' + pct.toFixed(1) + '%">') + "</div>" +
-    '<div class="kdreqs">' + rows.join("") + "</div></div></div>";
+    '<div class="kdreqs">' + rows.join("") + "</div>" + breakGate(st, cls) + "</div></div>";
+}
+function breakGate(st, cls) {
+  const b = kdBreak(st, cls); if (!b) return "";
+  const chip = (ok, txt) => '<span class="kdreq' + (ok ? " ok" : "") + '">' + txt + (ok ? " ✅" : "") + "</span>";
+  return '<p style="margin:12px 0 4px;"><b>\u{1F983} Break bonus!</b> Open the gate <b>today</b> with <b>' + b.day.goal + " XP + your rings</b> today:</p><div class=\"kdreqs\">" +
+    chip(b.day.xp >= b.day.goal, "⭐ " + Math.min(b.day.xp, b.day.goal) + " / " + b.day.goal + " XP today") + b.day.rows.map(r => chip(r.have >= r.need, esc(r.name) + " " + Math.min(r.have, r.need) + " / " + r.need + " today")).join("") +
+    '</div><p style="margin:10px 0 4px;">…or open it for the rest of the week with <b>600 XP + all your rings</b> this week:</p><div class="kdreqs">' +
+    chip(b.xp >= 600, "⭐ " + Math.min(b.xp, 600) + " / 600 XP") + b.rows.map(r => chip(r.have >= r.need, esc(r.name) + " " + Math.min(r.have, r.need) + " / " + r.need)).join("") + "</div>";
 }
 
 /* ----- the Kingdom map ----- */
@@ -506,11 +529,12 @@ export function kingdomTab(st, cls) {
   if (view === "throne") return head + back + throneHTML(st, cls);
   if (view === "dive") return head + back + diveHTML(st, cls);
   if (view === "ice" && rankOf2(st).n >= 12) return head + back + iceHTML(st, cls);
+  if (view === "city" && rankOf2(st).n >= 15) return head + back + cityHTML(st, cls);
   if (view === "grotto") return head + back + grottoHTML(st, cls);
   if (view === "shop") return head + back + shopHTML(st, cls);
   if (on2() && view === "map") {
     const dl = Math.max(0, KD_DIVES - (Number(k.dv) || 0));
-    return head + rankUpHTML(st) + map2HTML(st, cls, k, { throne: (!k.c ? 1 : 0) + questsWaiting(k, wk(cls)), dive: dl, ship: rankOf2(st).n >= 3 ? Math.max(0, shipOpen(st) - Object.keys((k.ship || {}).f || {}).length) : 0, beach: rankOf2(st).n >= 6 && ((k.sc || {}).p || []).length < 10 && (k.sc || {}).fw !== wk(cls) ? 1 : 0, lagoon: rankOf2(st).n >= 4 ? (!k.hx || !k.hx.e ? (((k.hx || {}).fw) !== wk(cls) ? 1 : 0) : 1) : 0, stable: rankOf2(st).n >= 2 && (!k.sh || k.sh.fw !== wk(cls)) ? 1 : 0, arena: rankOf2(st).n >= 10 && !(k.ar && k.ar.w === wk(cls) && k.ar.won) ? 1 : 0, ice: rankOf2(st).n >= 12 ? Math.max(0, ICE_DIVES - (Number(k.idv) || 0)) : 0 }) + '<div class="row" style="margin-top:8px;gap:8px;align-items:center;flex-wrap:wrap;"><span class="small">' +
+    return head + rankUpHTML(st) + map2HTML(st, cls, k, { throne: (!k.c ? 1 : 0) + questsWaiting(k, wk(cls)), dive: dl, ship: rankOf2(st).n >= 3 ? Math.max(0, shipOpen(st) - Object.keys((k.ship || {}).f || {}).length) : 0, beach: rankOf2(st).n >= 6 && ((k.sc || {}).p || []).length < 10 && (k.sc || {}).fw !== wk(cls) ? 1 : 0, lagoon: rankOf2(st).n >= 4 ? (!k.hx || !k.hx.e ? (((k.hx || {}).fw) !== wk(cls) ? 1 : 0) : 1) : 0, stable: rankOf2(st).n >= 2 && (!k.sh || k.sh.fw !== wk(cls)) ? 1 : 0, arena: rankOf2(st).n >= 10 && !(k.ar && k.ar.w === wk(cls) && k.ar.won) ? 1 : 0, ice: rankOf2(st).n >= 12 ? Math.max(0, ICE_DIVES - (Number(k.idv) || 0)) : 0, city: rankOf2(st).n >= 15 && ((k.ct || {}).p || []).length < 5 && (k.ct || {}).fw !== wk(cls) ? 1 : 0 }) + '<div class="row" style="margin-top:8px;gap:8px;align-items:center;flex-wrap:wrap;"><span class="small">' +
       (k.c ? "✅ You got this week’s treasure." : "\u{1F451} This week’s treasure is waiting in the Throne Room!") + " · \u{1FAE7} " + dl + " of " + KD_DIVES + ' dives left</span><button class="btn ghost small" data-kd="trip">\u{1F986} Watch the trip again</button></div>';
   }
   return head + mapHTML(st, cls);

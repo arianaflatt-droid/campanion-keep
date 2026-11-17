@@ -1,14 +1,14 @@
-import { PARTY_SPOT } from "./party-spot.js?v=20261117m";
-import { CREATURE_EYES, CREATURE_SPOTS } from "./salon-fit.js?v=20261117m";
-import { CREATURE_LAYOUT, CREATURE_FIT_ID, CREATURE_NECK_ID } from "./creature-fit.js?v=20261117m";
-import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261117m";
-import { heldWeapon } from "./quest.js?v=20261117m";
-import { SNACKS as CAFE_SNACKS, snackKept } from "./cafe-data.js?v=20261117m";
-import { orbitImgOf } from "./shop-data.js?v=20261117m";
+import { PARTY_SPOT } from "./party-spot.js?v=20261117o";
+import { CREATURE_EYES, CREATURE_SPOTS } from "./salon-fit.js?v=20261117o";
+import { CREATURE_LAYOUT, CREATURE_FIT_ID, CREATURE_NECK_ID } from "./creature-fit.js?v=20261117o";
+import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261117o";
+import { heldWeapon } from "./quest.js?v=20261117o";
+import { SNACKS as CAFE_SNACKS, snackKept } from "./cafe-data.js?v=20261117o";
+import { orbitImgOf } from "./shop-data.js?v=20261117o";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261117m";
+export const APP_V = "20261117o";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -666,7 +666,7 @@ function neckStyle(c) { const n = neckPos(c); return pos(n.x, n.y) + "font-size:
    the hair clip at the side of the head (by the ear), the tiara low on the front of the head, the necklace and scarf around the
    neck (sized to the neck), the bubble wand held in front. SALON_FIT nudges one companion: [right, down, size ×, turn°]
    (by "r:" + basic companion id, or the creature picture id). */
-export const SALON_KIND = { "sea-starfish-clip": "clip", "sea-shell-tiara": "tiara", "sea-pearl-necklace": "necklace", "sea-seaweed-scarf": "scarf", "sea-bubble-wand": "wand", "sea-jelly-hat": "jhat", "sea-pearl-sunhat": "shat" };
+export const SALON_KIND = { "sea-starfish-clip": "clip", "sea-shell-tiara": "tiara", "sea-pearl-necklace": "necklace", "sea-seaweed-scarf": "scarf", "sea-bubble-wand": "wand", "sea-jelly-hat": "jhat", "sea-pearl-sunhat": "shat", "sea-lost-crown": "tiara" };   // the Lost Crown (Sunken City) sits where the tiara does
 export const SALON_FIT = {
   shat: {},
   jhat: { "r:octopus": [0, 0.08, 0.9, 0], "r:otter": [0.02, 0.04, 0.9, 0], "r:sloth": [0, 0.03, 0.9, 0] },
@@ -727,7 +727,7 @@ export const OUTFITS = [].concat(
   OF("val", "val", [["mailcap", "Mail Carrier Cap"], ["heartband", "Bouncy Heart Headband"], ["cupid", "Cupid Halo & Wings"], ["rosecrown", "Rose Crown"], ["bow", "Polka-Dot Bow"], ["beret", "Cherry Heart Beret"], ["locket", "Heart Locket"], ["bowtie", "Heart Bow Tie"]]),   // 💌 Valentine Mailroom (Nov 3)
   OF("kite", "kite", [["propeller", "Propeller Beanie"], ["aviator", "Aviator Cap"], ["pinwheel", "Pinwheel Headband"], ["daisy", "Daisy Crown"], ["sunhat", "Breezy Sun Hat"], ["cloud", "Rainbow Cloud Hat"], ["scarf", "Spring Stripe Scarf"], ["whistle", "Kite Captain Whistle"]]),
   OF("sea", "kingdom", [["crown", "Coral Pearl Crown"], ["necklace", "Shell Pearl Necklace"], ["cape", "Sea-Blue Fin Cape"], ["goggles", "Diving Goggles"], ["knight-helmet", "Knight Shell Helmet"],
-    ["shell-tiara", "Shell Tiara"], ["starfish-clip", "Starfish Hair Clip"], ["pearl-necklace", "Big Pink Pearl Necklace"], ["seaweed-scarf", "Seaweed Scarf"], ["bubble-wand", "Bubble Wand"], ["jelly-hat", "Jellyfish Hat"], ["pearl-sunhat", "Pearl Sun Hat"]]),   // + Mermaid Salon + Baron prize (Nov 16)   // + the Knight rank prize (Nov 16)   // 🌊 Axolotl Kingdom Pearl Shop (Nov 11)
+    ["shell-tiara", "Shell Tiara"], ["starfish-clip", "Starfish Hair Clip"], ["pearl-necklace", "Big Pink Pearl Necklace"], ["seaweed-scarf", "Seaweed Scarf"], ["bubble-wand", "Bubble Wand"], ["jelly-hat", "Jellyfish Hat"], ["pearl-sunhat", "Pearl Sun Hat"], ["lost-crown", "The Lost Crown"]]),   // + Mermaid Salon + Baron prize (Nov 16)   // + the Knight rank prize (Nov 16)   // 🌊 Axolotl Kingdom Pearl Shop (Nov 11)
   OF("lib", "lib", [["candles", "Candle Crown"], ["nightcap", "Starry Nightcap"], ["wizard", "Wizard Reading Cap"], ["bookhat", "Book Hat"], ["bun", "Ghost Librarian Bun"], ["scholar", "Moonlight Scholar Cap"], ["owl", "Owl Ear Headband"], ["bookworm", "Bookworm Antennae"]]));
 export const outfitOf = id => OUTFITS.find(o => o.id === id) || null;
 export const headImg = (c, img) => { const o = outfitByImg(img);

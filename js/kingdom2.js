@@ -14,14 +14,14 @@
      sub { own:{key:1}, use, trail, trails:{key:1} }, seen { area: 1 }.
    Weekly parts (a new week starts fresh): qd { quest: 1 } claimed quests, qx chest pearls, wb best dive this week,
      wn new creatures this week, vq { place: 1 } places visited this week, ws pearls spent this week. */
-import { esc, companionOf, petWithHead } from "./game.js?v=20261117m";
-import { startPaint } from "./hangar.js?v=20261117m";
-import { KD_ULTRA_FAM } from "./kd-ultra.js?v=20261117m";
-import { owned as crOwned, ownedFams, formOf, fighterFrom, resolveRound, hitDamage, MOVES, moveOk, sparkleImg } from "./collect.js?v=20261117m";
+import { esc, companionOf, petWithHead } from "./game.js?v=20261117o";
+import { startPaint } from "./hangar.js?v=20261117o";
+import { KD_ULTRA_FAM } from "./kd-ultra.js?v=20261117o";
+import { owned as crOwned, ownedFams, formOf, fighterFrom, resolveRound, hitDamage, MOVES, moveOk, sparkleImg } from "./collect.js?v=20261117o";
 
 const K = "assets/kingdom/";
 export const KEEP2_NOTE = "ar = this week's arena { w, won, tries }, arb = boss badges { boss: 1 }";
-export const KEEP2 = ["aq", "aqf", "cg", "sub", "seen", "sh", "rk", "rkp", "ship", "hx", "sc", "bk", "ar", "arb"];
+export const KEEP2 = ["aq", "aqf", "cg", "sub", "seen", "sh", "rk", "rkp", "ship", "hx", "sc", "bk", "ar", "arb", "rke", "ct", "ws"];
 export const kd2On = (cls, preview) => !!preview || !!(cls && cls.kd2On);
 
 /* ----- ranks: weeks the student reached the Kingdom (= Treasures of the Week they have) ----- */
@@ -90,6 +90,10 @@ const cur = () => { const C = A && A.C(); return C && C.st ? { C, st: C.st, cls:
 
 /* ----- guide ducks ----- */
 const GUIDE = {
+  city: { duck: "city", name: "Explorer Duck", hi: "Welcome back to the Sunken City, explorer!",
+    how: "Welcome to the <b>Sunken City</b>! Long ago the Kingdom\u2019s <b>Lost Crown</b> broke into <b>5 relic pieces</b>, hidden in these ruins. Every week you reach the Kingdom you can <b>search the ruins for one piece</b>. Find all 5 to rebuild the Lost Crown and wear it! Then visit the <b>Whale Song Hall</b> next door." },
+  whale: { duck: "whale", name: "Song Duck", hi: "The whale is ready to sing!",
+    how: "Welcome to the <b>Whale Song Hall</b>! Our whale sings a song on the <b>4 shells</b>. <b>Listen</b>, then tap the shells in the <b>same order</b>. Every round the song gets one note longer. Each round you get right = <b>+5 pearls</b> (2 songs a week pay pearls)." },
   ice: { duck: "pearl", name: "Pearl Diver Duck", hi: "Brrr! Ready for another Ice Cave dive?",
     how: "Brrr! Welcome to the <b>Ice Cave</b>! The <b>rarest sea creatures</b> in the Kingdom live down here. You get <b>2 Ice Cave dives a week</b> (on top of your Pearl Dives). Grab the pearls, dodge the jellyfish, and swim into the creature that goes by to add it to your <b>Ice Cave tank</b>!" },
   arena: { duck: "volcano", name: "Arena Duck", hi: "Welcome back to the Undersea Arena!",
@@ -472,11 +476,16 @@ if (typeof document !== "undefined") document.addEventListener("click", ev => {
   else if (a === "hxtap") tapEgg();
   else if (a === "shiptreasure") openTreasure();
   else if (a === "arpick") arPick(x);
+  else if (a === "city") { cityView = x || ""; A.rer(); scrollTo({ top: 0 }); }
+  else if (a === "dig") digPile(Number(x));
+  else if (a === "crownok") crownDone();
+  else if (a === "wsgo") startSong();
   else if (a === "argo") startArena();
   else if (a === "rankok") { if (!o) return; const nm = rankOf(o.st).name; if (o.k.rk === nm) return;
     const got = o.k.rkp || {}; if (RANK_PRIZE[nm] && !got[nm]) { o.k.p = (Number(o.k.p) || 0) + RANK_PRIZE[nm]; o.k.rkp = Object.assign({}, got, { [nm]: 1 }); }   // each rank's prize is paid only once
     o.k.rk = nm; const gear = RANK_GEAR[nm], st0 = o.st, extra = gear && !((st0.outfits || {})[gear[0]]) ? { outfits: Object.assign({}, st0.outfits || {}, { [gear[0]]: true }) } : {};
     let ultraNow = null;
+    if (RANK_EGG[nm] === "leg" && !(o.k.rke || {})[nm]) { o.k.rke = Object.assign({}, o.k.rke || {}, { [nm]: 1 }); extra.legendaryPulls = (Number(st0.legendaryPulls) || 0) + 1; }   // Grand Royal: a Legendary egg
     if (RANK_EGG[nm] === "rare" && !(o.k.rke || {})[nm]) { o.k.rke = Object.assign({}, o.k.rke || {}, { [nm]: 1 }); extra.doorEggs = (Number(st0.doorEggs) || 0) + 1; extra.eggBoost = Object.assign({}, st0.eggBoost || {}, { rare: (Number((st0.eggBoost || {}).rare) || 0) + 1 }); }   // Duke: a Rare egg
     if (RANK_EGG[nm] === "ultra" && !(o.k.rke || {})[nm]) {   // Royal: the Kingdom Ultra Egg hatches Axolumi right here (or +5 levels if they somehow have it)
       o.k.rke = Object.assign({}, o.k.rke || {}, { [nm]: 1 }); const coll = Object.assign({}, st0.coll || {}), had = coll[KD_ULTRA_FAM];
@@ -1124,9 +1133,9 @@ function salonBuy(id) {
 }
 function salonWear(id) { const o = cur(); if (!o) return; const st = o.st; if (!(st.outfits || {})[id]) return; salonTry = null; A.save(o.k, { outfitOn: st.outfitOn === id ? "" : id }); }
 
-export const RANK_PRIZE = { Page: 50, Squire: 50, Captain: 75 };   // Baron: the Shell Tiara (Nov 16, the fins were removed)
+export const RANK_PRIZE = { Page: 50, Squire: 50, Captain: 75, "Grand Royal": 300 };   // Baron: the Shell Tiara (Nov 16, the fins were removed)
 // rank prizes that are gear: [outfit id, picture name, name]
-export const RANK_EGG = { Duke: "rare", Royal: "ultra" };   // Royal (week 12): the Kingdom Ultra Egg (Axolumi)   // Nov 17: the Duke prize is a Rare egg (an egg in their Creature Collector, at least Rare)
+export const RANK_EGG = { Duke: "rare", Royal: "ultra", "Grand Royal": "leg" };   // Royal (week 12): the Kingdom Ultra Egg (Axolumi)   // Nov 17: the Duke prize is a Rare egg (an egg in their Creature Collector, at least Rare)
 export const RANK_GEAR = { Knight: ["sea-knight-helmet", "knight-helmet", "Knight Shell Helmet"], Baron: ["sea-shell-tiara", "shell-tiara", "Shell Tiara"] };   // Nov 15: Page = 50 pearls; Squire 50 (draft, others decided later)
 export function rankUpHTML(st) {
   const o = cur(); if (!o) return ""; const k = o.k, r = rankOf(st);
@@ -1137,6 +1146,7 @@ export function rankUpHTML(st) {
     "<small>\u{1F389} You reached the Kingdom " + r.n + " weeks!</small><h2>You are now a <b>" + r.name + "</b>!</h2>" +
     (RANK_GEAR[r.name] ? '<div class="kq-rankgear"><img src="' + K + "outfit-" + RANK_GEAR[r.name][1] + '.webp" alt=""><span>\u{1F381} Your rank prize: the <b>' + RANK_GEAR[r.name][2] + "</b>! Wear it from <b>Gear</b>.</span></div>" : "") +
     (RANK_EGG[r.name] === "rare" ? '<p class="kq-rankprize">\u{1F95A} Your rank prize: <b>a Rare egg</b>! Hatch it in your <b>Creature Collector</b>.</p>' : "") +
+    (RANK_EGG[r.name] === "leg" ? '<p class="kq-rankprize">\u{1F95A} Your rank prize: <b>a Legendary egg</b>! Hatch it in your <b>Creature Collector</b>.</p>' : "") +
     (RANK_EGG[r.name] === "ultra" ? '<div class="kq-rankgear"><img src="' + K + 'ultra/ultra-egg-360.webp" alt=""><span>\u{1F308} Your rank prize: the <b>Kingdom Ultra Egg</b>! It hatches when you tap Let\u2019s go.</span></div>' : "") +
     (RANK_PRIZE[r.name] ? '<p class="kq-rankprize">\u{1F381} Your rank prize: <b>⚪ ' + RANK_PRIZE[r.name] + " pearls</b></p>" : "") +
     (opens.length ? '<p>A new place just opened on the map:</p><div class="kq-rankopens">' + opens.map(s => "<span>" + s[1] + "</span>").join("") + "</div>" : "") +
@@ -1260,4 +1270,124 @@ function showUltraHatch(dupe) {
     '<button class="btn gold big" data-kqu="ok">\u{1F49C} Welcome, Axolumi!</button></div>';
   document.body.appendChild(root);
   root.onclick = e => { if (e.target.closest("[data-kqu]")) root.remove(); };
+}
+
+
+/* ===================== 🏛️ Sunken City (opens at Grand Royal, week 15) — Nov 17, Ms. Ariana =====================
+   🗝️ The Lost Crown: 5 relic pieces hidden in the ruins. Each Kingdom week (from week 15) the student searches 6 rubble piles
+   for that week's piece (it's always under one of them). All 5 rebuild the Lost Crown, a wearable crown (outfit sea-lost-crown).
+   🐋 Whale Song Hall: the whale sings a pattern on 4 shells; repeat it. The song grows one note each round.
+   +5 pearls a round on the first 2 songs each week (more songs just for fun). Best song kept.
+   Save: kd.ct = { p: [piece keys], fw: week found, dug: [piles dug this week] }, kd.ws = { w, n: paid songs, best }. */
+export const RELICS = [["band", "Golden Crown Band"], ["shell", "Rainbow Shell"], ["pearl", "Moon Pearl"], ["coral", "Royal Coral"], ["gem", "Ocean Heart Gem"]];
+const CT = K + "city/", PILES = [[16, 70], [34, 80], [50, 66], [66, 82], [82, 70], [42, 54]], SONG_PAY = 5, SONG_PAID = 2;
+let cityView = "", citySay = null;
+const ctOf = k => { const c = k.ct || {}; return { p: (c.p || []).slice(), fw: c.fw || "", dug: (c.dug || []).slice(), dw: c.dw || "" }; };
+export function cityHTML(st, cls) {
+  visit("city");
+  if (cityView === "whale") return whaleHTML(st, cls);
+  const o = cur(), k = o ? o.k : {}, wk = A.wk(cls), c = ctOf(k), done = c.p.length >= RELICS.length, found = c.fw === wk, next = RELICS[c.p.length];
+  const dug = c.dw === wk ? c.dug : [];
+  let h = '<div class="kdscene kq-city" style="background-image:url(' + CT + 'city-bg.webp)">';
+  if (!done && !found) h += PILES.map(([x, y], i) => dug.includes(i) ? '<span class="kq-pile dug" style="left:' + x + "%;top:" + y + '%">\u{1F4A8}</span>'
+    : '<button class="kq-pile" style="left:' + x + "%;top:" + y + '%" data-kd2="dig:' + i + '" title="Search here"><span>\u{1FAA8}</span></button>').join("");
+  h += '<div class="kq-shbtns"><button class="btn" data-kd2="city:whale">\u{1F40B} Whale Song Hall</button></div>';
+  h += guide("city", st, citySay ? "cheer" : null, citySay || (done ? "You rebuilt the <b>Lost Crown</b>! Wear it any time from <b>Gear</b>." : found ? "You found this week’s relic! Come back next week for the next piece." : "This week’s relic is the <b>" + next[1] + "</b>. Tap the rubble piles to search for it!")) + "</div>";
+  h += '<div class="kq-log"><b>\u{1F451} The Lost Crown</b> <span class="small">' + c.p.length + " of " + RELICS.length + ' pieces</span><div class="kq-relics">' +
+    RELICS.map(([key, n]) => '<span class="kq-logslot' + (c.p.includes(key) ? " got" : "") + '"><img src="' + CT + "relic-" + key + '.webp" alt=""><small>' + (c.p.includes(key) ? esc(n) : "???") + "</small></span>").join("") +
+    '<span class="kq-logslot crown' + (done ? " got" : "") + '"><img src="' + CT + 'lost-crown.webp" alt=""><small>' + (done ? "The Lost Crown" : "5 pieces = the crown") + "</small></span></div>" +
+    '<p class="small muted" style="margin:6px 0 0;">One relic piece every week you reach the Kingdom. All 5 rebuild the Lost Crown (wear it from Gear).</p></div>';
+  citySay = null; return h;
+}
+function digPile(i) {
+  const o = cur(); if (!o) return; const k = o.k, wk = A.wk(o.cls), c = ctOf(k); if (c.p.length >= RELICS.length || c.fw === wk) return;
+  if (c.dw !== wk) { c.dw = wk; c.dug = []; } if (c.dug.includes(i)) return; c.dug.push(i);
+  // the piece is under one pile, picked from the week + student, but never more than 4 digs (so it never feels unfair)
+  const hide = Math.floor(hash01("relic|" + wk + "|" + (o.st.id || "")) * PILES.length), hit = i === hide || c.dug.length >= 4;
+  if (hit) { const key = RELICS[c.p.length][0]; c.p.push(key); c.fw = wk; k.ct = c; k.p = (Number(k.p) || 0) + 20; A.save(k);
+    if (c.p.length >= RELICS.length) { showCrown(); return; }
+    showRelic(key); return; }
+  k.ct = c; citySay = ["Just sand and old shells… keep looking!", "Nope, only a sleepy crab here! Try another pile.", "Hmm, not here. It must be close!"][c.dug.length % 3]; A.save(k);
+}
+function showRelic(key) {
+  const R = RELICS.find(r => r[0] === key), root = document.createElement("div"); root.className = "kq-rankup"; root.id = "kqrelic";
+  root.innerHTML = '<div class="kq-rankbox"><img class="kq-relicfound" src="' + CT + "relic-" + key + '.webp" alt=""><small>\u{1F5DD}️ You found a relic!</small><h2>The <b>' + esc(R[1]) + "</b></h2>" +
+    "<p>One more piece of the Lost Crown! <b>+20 pearls</b>. Come back next week for the next piece.</p><button class=\"btn gold big\" data-kqr=\"ok\">\u{1F451} Yay!</button></div>";
+  document.body.appendChild(root); root.onclick = e => { if (e.target.closest("[data-kqr]")) { root.remove(); A.rer(); } };
+}
+function showCrown() {
+  const root = document.createElement("div"); root.className = "kq-rankup"; root.id = "kqcrown";
+  root.innerHTML = '<div class="kq-rankbox kq-crownbox"><div class="kq-crownbuild">' + RELICS.map(([key], i) => '<img class="kq-cpiece p' + i + '" src="' + CT + "relic-" + key + '.webp" alt="">').join("") +
+    '<img class="kq-cfull" src="' + CT + 'lost-crown.webp" alt="The Lost Crown"></div><small>\u{1F389} All 5 relics!</small><h2>You rebuilt <b>the Lost Crown</b>!</h2>' +
+    "<p>It’s yours to wear! You’re wearing it now. Change it any time from <b>Gear</b>.</p><button class=\"btn gold big\" data-kd2=\"crownok:1\">\u{1F451} Wear it!</button></div>";
+  document.body.appendChild(root);
+}
+function crownDone() {
+  const r = document.getElementById("kqcrown"); if (r) r.remove();
+  const o = cur(); if (!o) return; const st = o.st;
+  citySay = "You did it! The <b>Lost Crown</b> shines again!"; A.save(o.k, { outfits: Object.assign({}, st.outfits || {}, { "sea-lost-crown": true }), outfitOn: "sea-lost-crown" });
+}
+
+/* ----- 🐋 Whale Song Hall ----- */
+const SHELLS = ["pink", "blue", "gold", "green"], NOTE = [196, 233, 277, 330];   // low whale calls
+let SONG = null;
+const wsOf = (k, wk) => { const w = k.ws || {}; return { w: wk, n: w.w === wk ? Number(w.n) || 0 : 0, best: Number(w.best) || 0 }; };
+function whaleHTML(st, cls) {
+  visit("whale");
+  const o = cur(), k = o ? o.k : {}, wk = A.wk(cls), ws = wsOf(k, wk), left = Math.max(0, SONG_PAID - ws.n);
+  let h = '<div class="row" style="margin:0 0 8px;"><button class="btn ghost small" data-kd2="city:">← Sunken City</button></div>';
+  h += '<div class="kdscene kq-whale" style="background-image:url(' + CT + 'whale-hall-bg.webp)"><img class="kq-whalesinger" src="' + CT + 'whale.webp" alt="The singing whale">' +
+    '<div class="kq-shells">' + SHELLS.map(c => '<span class="kq-shell"><img src="' + CT + "shell-" + c + '.webp" alt=""></span>').join("") + "</div>" +
+    '<div class="kq-shbtns"><button class="btn gold big" data-kd2="wsgo:1">\u{1F3B5} Listen to the song!</button></div>' +
+    guide("whale", st, null, left ? "You have <b>" + left + " song" + (left === 1 ? "" : "s") + "</b> left this week that pay pearls (+5 a round)." : "No more pearl songs this week, but you can sing just for fun!") + "</div>";
+  h += '<div class="kq-log"><b>\u{1F3B6} My best song</b> <span class="small">' + (ws.best ? ws.best + " notes long" : "no songs yet") + "</span>" +
+    '<p class="small muted" style="margin:6px 0 0;">Each round the song gets one note longer. +' + SONG_PAY + " pearls a round on your first " + SONG_PAID + " songs each week.</p></div>";
+  return h;
+}
+// 🐋 Nov 17 (Ms. Ariana: "deeper, like whale sounds"): a low whale call that swoops up and back down, with a slow wobble and an echo
+function beepNote(i) { try { const a = window.__ckAC || (window.__ckAC = new (window.AudioContext || window.webkitAudioContext)()), t = a.currentTime, f = NOTE[i], D = 0.8;
+  const out = a.createGain(); out.gain.value = 1; const lp = a.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 1400; lp.connect(out); out.connect(a.destination);
+  const dl = a.createDelay(); dl.delayTime.value = 0.28; const fb = a.createGain(); fb.gain.value = 0.35; dl.connect(fb); fb.connect(dl); dl.connect(lp);
+  const lfo = a.createOscillator(), lg = a.createGain(); lfo.frequency.value = 5; lg.gain.value = f * 0.02; lfo.connect(lg); lfo.start(t); lfo.stop(t + D + 0.1);
+  [[1, "sine", 0.32], [2, "sine", 0.1], [0.5, "triangle", 0.06]].forEach(([m, ty, v]) => { const o = a.createOscillator(), g = a.createGain(); o.type = ty;
+    o.frequency.setValueAtTime(f * m * 0.8, t); o.frequency.linearRampToValueAtTime(f * m * 1.1, t + D * 0.4); o.frequency.linearRampToValueAtTime(f * m * 0.95, t + D);
+    if (m === 1) lg.connect(o.frequency);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + 0.12); g.gain.setValueAtTime(v, t + D * 0.55); g.gain.exponentialRampToValueAtTime(0.0001, t + D);
+    o.connect(g); g.connect(lp); g.connect(dl); o.start(t); o.stop(t + D + 0.05); }); } catch (e) {} }
+function startSong() {
+  const o = cur(); if (!o || SONG) return; const wk = A.wk(o.cls), ws = wsOf(o.k, wk), paid = ws.n < SONG_PAID;
+  const root = document.createElement("div"); root.className = "kdgame"; root.id = "kqsong"; document.body.appendChild(root);
+  SONG = { root, seq: [], at: 0, round: 0, phase: "sing", paid, done: 0 };
+  root.innerHTML = '<div class="kdstage kq-songstage"><div class="kdbg" style="background-image:url(' + CT + 'whale-hall-bg.webp)"></div><img class="kq-whalesinger big" src="' + CT + 'whale.webp" alt="">' +
+    '<div class="kq-shells game">' + SHELLS.map((c, i) => '<button class="kq-shell" data-sh="' + i + '"><img src="' + CT + "shell-" + c + '.webp" alt=""></button>').join("") + "</div>" +
+    '<div class="kq-songbar"><b id="kqsongmsg">\u{1F442} Listen…</b><span id="kqsongn"></span></div><button class="btn ghost small kdskip" data-sx="quit">✖ Leave</button></div>';
+  root.onclick = songClick; setTimeout(nextRound, 700);
+}
+function nextRound() {
+  const S = SONG; if (!S) return; S.round++; S.seq.push(Math.floor(Math.random() * 4)); S.at = 0; S.phase = "sing";
+  const msg = S.root.querySelector("#kqsongmsg"), n = S.root.querySelector("#kqsongn"); msg.textContent = "\u{1F442} Listen…"; n.textContent = "Round " + S.round + " · " + S.seq.length + " notes";
+  S.root.querySelector(".kq-whalesinger").classList.add("sing");
+  const gap = Math.max(560, 850 - S.round * 30);   // room for each whale call
+  S.seq.forEach((v, j) => setTimeout(() => { if (SONG !== S) return; flashShell(v); }, 500 + j * gap));
+  setTimeout(() => { if (SONG !== S) return; S.phase = "you"; msg.textContent = "\u{1F449} Your turn! Tap the shells in the same order."; S.root.querySelector(".kq-whalesinger").classList.remove("sing"); }, 500 + S.seq.length * gap);
+}
+function flashShell(i) { const b = SONG && SONG.root.querySelectorAll(".kq-shell")[i]; if (!b) return; b.classList.remove("lit"); void b.offsetWidth; b.classList.add("lit"); beepNote(i); }
+function songClick(ev) {
+  const S = SONG; if (!S) return; const x = ev.target.closest("[data-sx]");
+  if (x) { if (x.dataset.sx === "quit" || x.dataset.sx === "done") { if (x.dataset.sx === "quit" && S.phase !== "over") songEnd(true); S.root.remove(); SONG = null; A.rer(); } return; }
+  const b = ev.target.closest("[data-sh]"); if (!b || S.phase !== "you") return; const v = Number(b.dataset.sh); flashShell(v);
+  if (v !== S.seq[S.at]) { b.classList.add("wrong"); return songEnd(); }
+  S.at++; if (S.at >= S.seq.length) { S.done = S.round; S.phase = "wait"; S.root.querySelector("#kqsongmsg").textContent = "\u{1F31F} Perfect! The song gets longer…"; setTimeout(nextRound, 1100); }
+}
+function songEnd(quiet) {
+  const S = SONG; if (!S || S.phase === "over") return; S.phase = "over";
+  const o = cur(), pearls = S.paid ? S.done * SONG_PAY : 0;
+  if (o) { const k = o.k, wk = A.wk(o.cls), ws = wsOf(k, wk); if (S.paid) ws.n++; ws.best = Math.max(ws.best, S.done); k.ws = ws; k.p = (Number(k.p) || 0) + pearls; A.save(k); }
+  if (quiet) return;
+  { const m = S.root.querySelector(".kq-songbar"); if (m) m.remove(); }
+  const box = document.createElement("div"); box.className = "kdbox kq-songend";
+  box.innerHTML = '<img class="kdboximg" src="' + K + "duck/whale-" + (S.done >= 3 ? "cheer" : "listen") + '.webp" alt=""><h2>' + (S.done ? "\u{1F3B6} You sang " + S.done + " round" + (S.done === 1 ? "" : "s") + "!" : "Oops, wrong shell!") + "</h2>" +
+    "<p>" + (S.paid ? "<b>+" + pearls + " pearls!</b>" : "This one was just for fun.") + " The song was " + S.seq.length + " notes long.</p>" +
+    '<button class="btn gold" data-sx="done">Back to the Whale Song Hall</button>';
+  S.root.querySelector(".kdstage").appendChild(box);
 }
