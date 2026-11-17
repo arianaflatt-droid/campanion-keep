@@ -3,8 +3,8 @@
    watch the class, and when a student finishes this week's submarine trip (kd.t goes 0 → 1 for this week) their duck
    submarine (with its paint, once Kingdom part 2 is on) splashes down across the screen. Several line up one after another.
    Nothing is saved; trips taken before the screen was opened don't play. */
-import { esc, weekKey } from "./game.js?v=20261117a";
-import { subImg, kd2On } from "./kingdom2.js?v=20261117a";
+import { esc, weekKey } from "./game.js?v=20261117b";
+import { subImg, kd2On } from "./kingdom2.js?v=20261117b";
 
 const seen = {}; let primed = false, q = [], busy = false, root = null;
 const tripped = (s, w) => { const k = (s && s.kd) || {}; return k.w === w && k.t ? 1 : 0; };

@@ -8,9 +8,9 @@
    Saved on the student: doors = { "YYYY-MM-DD": { "0": { st: "wait"|"ok"|"no"|"open", at, r }, g: { st: "open", r } } }
    plus lastDoor = "YYYY-MM-DD/<door>" (which door the last save touched; the save rules check it).
    Class: doorsOn (on/off), doorList (default list), doorDays = { "YYYY-MM-DD": [..] } (one-day lists). */
-import { azToday } from "./collect.js?v=20261117a";
-import { SEASON, eventMode, esc, dayXP, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261117a";
-import { subFor, SUB_NAMES } from "./teams.js?v=20261117a";
+import { azToday } from "./collect.js?v=20261117b";
+import { SEASON, eventMode, esc, dayXP, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261117b";
+import { subFor, SUB_NAMES } from "./teams.js?v=20261117b";
 
 // A door that starts with "!" is always open (not locked behind the first doors). The "!" isn't shown.
 export const DOOR_DEFAULT = [
@@ -200,11 +200,18 @@ export function doorMet(task, st, sub, total, cls) {
 }
 // The doors map for one student and day after auto-approving everything the data shows as done.
 // Doors already approved/opened or marked "Not yet" by the teacher are left alone. Locked doors only open once the first ones are approved.
+// ☀️ Nov 17 (Ms. Ariana): "Earn 25 XP Before School Starts" opens by itself from the morning XP
+// (xpHist[date].mo: saved by live XP until 8:15, or by "Use as morning data"). She can still approve it by hand.
+export function beforeSchoolMet(task, st, date) {
+  const m = /(\d+)\s*xp\s+before\s+school/.exec(String(task || "").toLowerCase()); if (!m) return null;
+  const mo = Number((((st && st.xpHist) || {})[date] || {}).mo);
+  return mo >= Number(m[1]) ? true : null;
+}
 export function autoDoors(st, cls, date, sub, total) {
   const list = doorsFor(cls, date), doors = JSON.parse(JSON.stringify((st && st.doors) || {})), day = Object.assign({}, doors[date] || {});
   let n = 0;
   const tryDoor = i => { const cur = (day[String(i)] || {}).st || ""; if (approved(cur) || cur === "no") return;
-    if (doorMet(list[i], st, sub, total, cls) === true) { day[String(i)] = { st: "ok", at: (day[String(i)] || {}).at || new Date().toISOString(), auto: true, checked: new Date().toISOString() }; n++; } };
+    if (beforeSchoolMet(list[i], st, date) === true || doorMet(list[i], st, sub, total, cls) === true) { day[String(i)] = { st: "ok", at: (day[String(i)] || {}).at || new Date().toISOString(), auto: true, checked: new Date().toISOString() }; n++; } };
   const gate = gateDoors(cls, date);
   list.forEach((t, i) => { if (isFree(t) || gate.includes(i)) tryDoor(i); });
   const sim = Object.assign({}, st, { doors: Object.assign({}, doors, { [date]: day }) });
