@@ -14,11 +14,13 @@
      sub { own:{key:1}, use, trail, trails:{key:1} }, seen { area: 1 }.
    Weekly parts (a new week starts fresh): qd { quest: 1 } claimed quests, qx chest pearls, wb best dive this week,
      wn new creatures this week, vq { place: 1 } places visited this week, ws pearls spent this week. */
-import { esc, companionOf, petWithHead } from "./game.js?v=20261117i";
-import { startPaint } from "./hangar.js?v=20261117i";
+import { esc, companionOf, petWithHead } from "./game.js?v=20261117j";
+import { startPaint } from "./hangar.js?v=20261117j";
+import { owned as crOwned, ownedFams, formOf, fighterFrom, resolveRound, hitDamage, MOVES, moveOk, sparkleImg } from "./collect.js?v=20261117j";
 
 const K = "assets/kingdom/";
-export const KEEP2 = ["aq", "aqf", "cg", "sub", "seen", "sh", "rk", "rkp", "ship", "hx", "sc", "bk"];
+export const KEEP2_NOTE = "ar = this week's arena { w, won, tries }, arb = boss badges { boss: 1 }";
+export const KEEP2 = ["aq", "aqf", "cg", "sub", "seen", "sh", "rk", "rkp", "ship", "hx", "sc", "bk", "ar", "arb"];
 export const kd2On = (cls, preview) => !!preview || !!(cls && cls.kd2On);
 
 /* ----- ranks: weeks the student reached the Kingdom (= Treasures of the Week they have) ----- */
@@ -87,6 +89,8 @@ const cur = () => { const C = A && A.C(); return C && C.st ? { C, st: C.st, cls:
 
 /* ----- guide ducks ----- */
 const GUIDE = {
+  arena: { duck: "volcano", name: "Arena Duck", hi: "Welcome back to the Undersea Arena!",
+    how: "Welcome to the <b>Undersea Arena</b>! Every week a new <b>sea boss</b> comes to the Volcano Vents. Pick <b>3 of your creatures</b> and battle it! Hit it with the types it\u2019s <b>weak to</b> for double damage. Win for <b>100 pearls</b> and that boss\u2019s <b>badge</b>. You can try as many times as you like!" },
   town: { duck: "salon", name: "Salon Duck", hi: "Welcome to Coral Town!",
     how: "Welcome to <b>Coral Town</b>! Bake a sea treat at the <b>Bubble Bakery</b> once a week (up to 30 pearls), or visit my <b>Mermaid Salon</b> for fancy undersea outfits!" },
   bakery: { duck: "", img: K + "town/baker.webp", name: "Baker Crab", hi: "Welcome to the Bubble Bakery!",
@@ -464,10 +468,13 @@ if (typeof document !== "undefined") document.addEventListener("click", ev => {
   else if (a === "hxbuy") layEgg(false);
   else if (a === "hxtap") tapEgg();
   else if (a === "shiptreasure") openTreasure();
+  else if (a === "arpick") arPick(x);
+  else if (a === "argo") startArena();
   else if (a === "rankok") { if (!o) return; const nm = rankOf(o.st).name; if (o.k.rk === nm) return;
     const got = o.k.rkp || {}; if (RANK_PRIZE[nm] && !got[nm]) { o.k.p = (Number(o.k.p) || 0) + RANK_PRIZE[nm]; o.k.rkp = Object.assign({}, got, { [nm]: 1 }); }   // each rank's prize is paid only once
-    o.k.rk = nm; const gear = RANK_GEAR[nm], st0 = o.st;
-    A.save(o.k, gear && !((st0.outfits || {})[gear[0]]) ? { outfits: Object.assign({}, st0.outfits || {}, { [gear[0]]: true }) } : null); A.rer(); }
+    o.k.rk = nm; const gear = RANK_GEAR[nm], st0 = o.st, extra = gear && !((st0.outfits || {})[gear[0]]) ? { outfits: Object.assign({}, st0.outfits || {}, { [gear[0]]: true }) } : {};
+    if (RANK_EGG[nm] && !(o.k.rke || {})[nm]) { o.k.rke = Object.assign({}, o.k.rke || {}, { [nm]: 1 }); extra.doorEggs = (Number(st0.doorEggs) || 0) + 1; extra.eggBoost = Object.assign({}, st0.eggBoost || {}, { rare: (Number((st0.eggBoost || {}).rare) || 0) + 1 }); }   // Duke: a Rare egg
+    A.save(o.k, Object.keys(extra).length ? extra : null); A.rer(); }
 });
 export function resetViews() { aqTank = -1; dockSay = null; shPick = shName = null; feedOn = false; townView = ""; salonTry = null; }
 
@@ -1111,6 +1118,7 @@ function salonWear(id) { const o = cur(); if (!o) return; const st = o.st; if (!
 
 export const RANK_PRIZE = { Page: 50, Squire: 50, Captain: 75 };   // Baron: the Shell Tiara (Nov 16, the fins were removed)
 // rank prizes that are gear: [outfit id, picture name, name]
+export const RANK_EGG = { Duke: "rare" };   // Nov 17: the Duke prize is a Rare egg (an egg in their Creature Collector, at least Rare)
 export const RANK_GEAR = { Knight: ["sea-knight-helmet", "knight-helmet", "Knight Shell Helmet"], Baron: ["sea-shell-tiara", "shell-tiara", "Shell Tiara"] };   // Nov 15: Page = 50 pearls; Squire 50 (draft, others decided later)
 export function rankUpHTML(st) {
   const o = cur(); if (!o) return ""; const k = o.k, r = rankOf(st);
@@ -1120,8 +1128,116 @@ export function rankUpHTML(st) {
     '<img class="kq-rankduck" src="' + K + 'captain-salute.webp" alt="Captain Duck">' +
     "<small>\u{1F389} You reached the Kingdom " + r.n + " weeks!</small><h2>You are now a <b>" + r.name + "</b>!</h2>" +
     (RANK_GEAR[r.name] ? '<div class="kq-rankgear"><img src="' + K + "outfit-" + RANK_GEAR[r.name][1] + '.webp" alt=""><span>\u{1F381} Your rank prize: the <b>' + RANK_GEAR[r.name][2] + "</b>! Wear it from <b>Gear</b>.</span></div>" : "") +
+    (RANK_EGG[r.name] ? '<p class="kq-rankprize">\u{1F95A} Your rank prize: <b>a Rare egg</b>! Hatch it in your <b>Creature Collector</b>.</p>' : "") +
     (RANK_PRIZE[r.name] ? '<p class="kq-rankprize">\u{1F381} Your rank prize: <b>⚪ ' + RANK_PRIZE[r.name] + " pearls</b></p>" : "") +
     (opens.length ? '<p>A new place just opened on the map:</p><div class="kq-rankopens">' + opens.map(s => "<span>" + s[1] + "</span>").join("") + "</div>" : "") +
     '<button class="btn gold big" data-kd2="rankok:1">\u{1F30A} Let’s go!</button></div></div>';
 }
 
+
+
+/* ===================== 🌋 Undersea Arena (opens at Duke, week 10) — Nov 17, Ms. Ariana =====================
+   A new sea boss every Kingdom week (4 take turns). Students pick up to 3 of their own collector creatures and battle it
+   with the moves they know (Attack, Power Move, Guard, Heal, their Special, Swap). Hitting its weak types does double.
+   Tries are unlimited; the first win each week pays 100 pearls and that boss's badge (kept forever).
+   Save: kd.ar = { w: week, won: 1, tries }, kd.arb = { kraken: 1, ... } (badges). Nothing else is saved. */
+export const ARENA_BOSSES = [
+  { k: "kraken", n: "The Kraken", type: "Water", weak: ["Electric", "Nature"], atk: "Tentacle Slam", line: "Who dares enter MY volcano vents? I’ll squish you with all eight arms!" },
+  { k: "shark-king", n: "The Shark King", type: "Water", weak: ["Electric", "Nature"], atk: "Royal Chomp", line: "Bow before your king! Nobody beats my trident and my 300 teeth!" },
+  { k: "ghost-crab", n: "The Ghost Pirate Crab", type: "Ghost", weak: ["Light", "Dark"], atk: "Phantom Pinch", line: "Arrr! Yer treasure belongs to ME now! Snip snip!" },
+  { k: "anglerfish", n: "The Giant Anglerfish", type: "Dark", weak: ["Light", "Fire"], atk: "Lantern Lure", line: "Ooh, look at my pretty light… come closer… CHOMP!" }];
+export const ARENA_PAY = 100;
+const AR = K + "arena/";
+const bossOf = wk => (typeof window !== "undefined" && window.__kqBoss && ARENA_BOSSES.find(b => b.k === window.__kqBoss)) || ARENA_BOSSES[Math.floor(hash01("arena|" + wk) * 1e6) % ARENA_BOSSES.length];   // __kqBoss: preview videos only
+let arTeam = null, arSay = null, ARB = null;
+function arFams(st) { return ownedFams(st).sort((a, b) => (crOwned(st)[b].lvl || 1) - (crOwned(st)[a].lvl || 1)); }
+function arPick(f) { const o = cur(); if (!o) return; arTeam = arTeam || arFams(o.st).slice(0, 3); const i = arTeam.indexOf(f);
+  if (i >= 0) arTeam.splice(i, 1); else if (arTeam.length < 3) arTeam.push(f); else { arSay = "You can bring <b>3 creatures</b>. Tap one to take it out first."; } A.rer(); }
+const crImg = (st, f) => { const e = crOwned(st)[f], c = formOf(f, e.lvl || 1); return e.sparkle ? sparkleImg(c) : c.img; };
+export function arenaHTML(st, cls) {
+  visit("arena");
+  const o = cur(), k = o ? o.k : {}, wk = A.wk(cls), B = bossOf(wk), ar = k.ar && k.ar.w === wk ? k.ar : {}, arb = k.arb || {}, fams = arFams(st);
+  if (!arTeam) arTeam = fams.slice(0, 3); arTeam = arTeam.filter(f => crOwned(st)[f]);
+  let h = '<div class="kdscene kq-arena" style="background-image:url(' + AR + 'arena-bg.webp)">' +
+    '<div class="kq-arboss"><img class="kq-arbossimg" src="' + AR + "boss-" + B.k + '.webp" alt="' + esc(B.n) + '"><span class="kq-tag">' + (ar.won ? "✅ You beat " : "\u{1F525} This week: ") + "<b>" + esc(B.n) + "</b></span></div>" +
+    '<div class="kq-arweak"><b>Weak to:</b> ' + B.weak.map(t => '<span class="kq-artype">' + t + "</span>").join(" ") + "</div>";
+  h += guide("arena", st, arSay ? null : ar.won ? "cheer" : null, arSay || (ar.won ? "You beat " + esc(B.n) + " this week! A new boss comes next week. You can battle again just for fun." : "<b>" + esc(B.n) + ":</b> “" + esc(B.line) + "”")) + "</div>";
+  h += '<div class="kq-log"><b>⚔️ Pick your team</b> <span class="small">' + arTeam.length + " of 3</span>" +
+    (fams.length ? '<div class="kq-arpick">' + fams.map(f => { const e = crOwned(st)[f], c = formOf(f, e.lvl || 1), on = arTeam.includes(f), wk2 = B.weak.some(t => (c.types || []).includes(t) || c.atkType === t);
+      return '<button class="kq-arcr' + (on ? " on" : "") + '" data-kd2="arpick:' + esc(f) + '"><img src="' + esc(crImg(st, f)) + '" alt=""><b>' + esc(e.nick || c.name) + "</b><small>Lv " + (e.lvl || 1) + (wk2 ? " · ⚡ strong!" : "") + "</small></button>"; }).join("") + "</div>" +
+      '<div class="row" style="justify-content:center;margin-top:10px;"><button class="btn gold big" data-kd2="argo:1"' + (arTeam.length ? "" : " disabled") + ">⚔️ Battle " + esc(B.n) + "!</button></div>"
+      : "<p>You need a creature first! Hatch one in your <b>Creature Collector</b>.</p>") + "</div>";
+  h += '<div class="kq-log"><b>\u{1F3C5} Boss badges</b> <span class="small">' + ARENA_BOSSES.filter(b => arb[b.k]).length + " of " + ARENA_BOSSES.length + '</span><div class="kq-arbadges">' +
+    ARENA_BOSSES.map(b => '<span class="kq-logslot' + (arb[b.k] ? " got" : "") + '"><img src="assets/badges/badge-boss-' + b.k + '.webp" alt=""><small>' + (arb[b.k] ? esc(b.n) : "???") + "</small></span>").join("") + "</div>" +
+    '<p class="small muted" style="margin:6px 0 0;">A new boss every week you reach the Kingdom. First win each week: +' + ARENA_PAY + " pearls and the boss’s badge.</p></div>";
+  arSay = null; return h;
+}
+function startArena() {
+  const o = cur(); if (!o || ARB) return; const st = o.st, wk = A.wk(o.cls), B = bossOf(wk);
+  const team = (arTeam || []).filter(f => crOwned(st)[f]).slice(0, 3).map(f => fighterFrom(st, f)).filter(Boolean); if (!team.length) return;
+  // the boss is sized to this team: about 9 good hits to beat it, and it takes about 4 of its hits to knock out one creature
+  const base = fighterFrom(st, team[0].fam), boss = Object.assign({}, base, { fam: "boss", id: "boss", name: B.n, species: B.n, img: AR + "boss-" + B.k + ".webp", sparkle: false, face: "L", type: B.type, types: [B.type], weak: B.weak.slice(), attack: B.atk,
+    dodge: 0, poison: 0, daze: 0, alt: null, more: null, pierce: 0, sp: [], ux: null, boosts: null, candyFx: false, brewFx: false, atkHeal: 0, atkDefDown: 0 });
+  boss.df = 40;
+  const avgD = team.reduce((n, f) => n + hitDamage(f, Object.assign({}, boss, { weak: [] }), false).dmg, 0) / team.length;
+  const avgHp = team.reduce((n, f) => n + f.hp, 0) / team.length, avgDf = team.reduce((n, f) => n + f.df, 0) / team.length;
+  boss.hp = boss.cur = Math.max(30, Math.round(avgD * (team.length === 1 ? 6 : team.length === 2 ? 8 : 9)));
+  boss.dmg = Math.max(1, Math.round(avgHp / 4 * (50 + avgDf) / 50));
+  const bt = { a: { id: "me", name: st.name || "You" }, b: { id: "boss", name: B.n }, team: { A: team, B: [boss] }, active: { A: 0, B: 0 }, moves: { A: null, B: null }, log: [], status: "fight", turn: "A", round: 0 };
+  const root = document.createElement("div"); root.className = "kdgame kq-argame"; root.id = "kqarena"; document.body.appendChild(root);
+  ARB = { root, bt, B, lines: ["\u{1F30B} <b>" + esc(B.n) + "</b> rises from the volcano vents!"], phase: "fight", busy: false };
+  const k0 = A.kdOf(st, o.cls), ar0 = k0.ar && k0.ar.w === wk ? Object.assign({}, k0.ar) : { w: wk }; ar0.tries = (Number(ar0.tries) || 0) + 1; ARB.won0 = !!ar0.won; ARB.ar = ar0;
+  arDraw(); root.onclick = arClick;
+}
+const fmtLine = e => e.k === "hit" ? "<b>" + esc(e.a) + "</b> used " + esc(e.atk) + "! " + (e.miss ? "It missed!" : (e.weak ? "<b>Super effective!</b> " : "") + e.dmg + " damage.") : e.k === "faint" ? "\u{1F4AB} <b>" + esc(e.n) + "</b> fainted!" :
+  e.k === "guard" ? "\u{1F6E1}️ <b>" + esc(e.n) + "</b> is guarding." : e.k === "heal" ? "\u{1F49A} <b>" + esc(e.n) + "</b> healed " + (e.amt || "") + " HP!" : e.k === "swap" ? "\u{1F504} Go, <b>" + esc(e.n) + "</b>!" : e.k === "ux" ? esc(e.t) : "";
+function arDraw(fx) {
+  const R = ARB; if (!R) return; const bt = R.bt, bo = bt.team.B[0];
+  if (!bt.team.A[bt.active.A]) bt.active.A = Math.max(0, bt.team.A.findIndex(f => f.cur > 0));
+  const me = bt.team.A[bt.active.A];
+  const hp = f => '<span class="qhp"><span style="width:' + Math.max(0, f.cur / f.hp * 100) + '%"></span></span><small>' + Math.max(0, f.cur) + " / " + f.hp + "</small>";
+  let h = '<div class="kdstage kq-arstage"><div class="kdbg" style="background-image:url(' + AR + 'arena-bg.webp)"></div>' +
+    '<div class="kq-arfoe' + (fx === "hitB" ? " hit" : "") + '"><div class="qbbar"><b>' + esc(bo.name) + "</b>" + hp(bo) + '</div><img src="' + esc(bo.img) + '" alt=""></div>' +
+    '<div class="kq-armine' + (fx === "hitA" ? " hit" : "") + '"><div class="qbbar"><b>' + esc(me.name) + "</b> <small>Lv " + me.lvl + "</small>" + hp(me) + '</div><img src="' + esc(me.img) + '" alt=""></div>' +
+    '<div class="kq-arteam">' + bt.team.A.map((f, i) => '<button class="kq-armate' + (i === bt.active.A ? " on" : "") + (f.cur <= 0 ? " out" : "") + '" data-arswap="' + i + '"' + (i === bt.active.A || f.cur <= 0 || R.phase !== "fight" ? " disabled" : "") + ' title="Swap in"><img src="' + esc(f.img) + '" alt=""><i style="width:' + Math.max(0, f.cur / f.hp * 100) + '%"></i></button>').join("") + "</div>" +
+    '<div class="kdbox kq-arbox' + (R.phase !== "fight" ? " end" : "") + '"><p class="kq-arlog">' + ((R.phase !== "fight" ? R.lines.slice(-2) : R.lines).join("<br>") || "&nbsp;") + "</p>";
+  if (R.phase === "won") h += '<div class="kq-arend"><img class="kq-arduck" src="' + K + 'duck/volcano-victory.webp" alt=""><div><h2>\u{1F3C6} You beat ' + esc(R.B.n) + "!</h2>" +
+    (R.paid ? '<p><b>+' + ARENA_PAY + " pearls</b> and the <b>" + esc(R.B.n) + "</b> badge!</p>" : "<p>You already won this week, so this one was just for fun!</p>") +
+    (R.paid ? '<img class="kq-arbadge" src="assets/badges/badge-boss-' + R.B.k + '.webp" alt="">' : "") + '<button class="btn gold big" data-ar="done">\u{1F30A} Back to the Arena</button></div></div>';
+  else if (R.phase === "lost") h += '<div class="kq-arend"><img class="kq-arduck" src="' + K + 'duck/volcano-tryagain.webp" alt=""><div><h2>\u{1F4A8} So close!</h2><p>Your team needs a rest. ' + esc(R.B.n) + " is weak to <b>" + R.B.weak.join(" and ") + "</b>, so try again with creatures of those types!</p>" +
+    '<div class="row" style="gap:8px;justify-content:center;"><button class="btn gold big" data-ar="again">\u{1F501} Try again</button><button class="btn" data-ar="done">Leave</button></div></div></div>';
+  else { const d = hitDamage(me, bo, false), b = (m, label, sub, ok) => '<button class="mvbtn mv-' + m + '" data-armove="' + m + '"' + (ok && !R.busy ? "" : " disabled") + ">" + MOVES[m].icon + " <b>" + label + "</b><small>" + sub + "</small></button>";
+    h += '<div class="mvgrid">' + b("attack", esc(me.attack), "about " + d.dmg + " damage" + (d.weak ? " · super effective!" : ""), true) + b("power", "Power Move", "about " + Math.round(d.dmg * MOVES.power.mult) + " · 75% to hit", true) +
+      (me.alt ? b("alt", esc(me.alt.name), "your special", moveOk(bt, "A", { m: "alt" })) : "") + b("guard", "Guard", "take half damage", true) + b("heal", "Heal", me.healed ? "already used" : "+35% HP (once)", moveOk(bt, "A", { m: "heal" })) + "</div>" +
+      '<p class="small" style="margin:6px 0 0;">Tap a teammate at the bottom to swap them in (uses your turn).</p>'; }
+  h += '</div><button class="btn ghost small kdskip" data-ar="quit">✖ Leave</button></div>';
+  R.root.innerHTML = h;
+}
+function arRound(mv) {
+  const R = ARB, bt = R.bt, before = bt.log.length, bo = bt.team.B[0], hpB = bo.cur, me0 = bt.team.A[bt.active.A], hpA = me0.cur;
+  const r = Math.random(); bt.moves = { A: mv, B: r < 0.7 ? { m: "attack" } : r < 0.85 ? { m: "power" } : { m: "guard" } };
+  resolveRound(bt);
+  R.lines = bt.log.slice(before).map(fmtLine).filter(Boolean);
+  const fx = bo.cur < hpB ? "hitB" : me0.cur < hpA ? "hitA" : "";
+  if (bo.cur <= 0) return arWin(fx);
+  if (bt.team.A.every(f => f.cur <= 0)) { R.phase = "lost"; R.lines.push("All your creatures are tired out!"); arSave(false); return arDraw(fx); }
+  if (!bt.team.A[bt.active.A] || bt.team.A[bt.active.A].cur <= 0) { const n = bt.team.A.findIndex(f => f.cur > 0); bt.active.A = n; R.lines.push("\u{1F504} Go, <b>" + esc(bt.team.A[n].name) + "</b>!"); }
+  arDraw(fx);
+}
+function arWin(fx) {
+  const R = ARB; R.phase = "won"; R.lines.push("\u{1F389} <b>" + esc(R.B.n) + "</b> swims away! You WIN!"); R.paid = !R.won0; arSave(true); arDraw(fx);
+  try { for (let i = 0; i < 26; i++) { const c = document.createElement("i"); c.className = "kq-arconf"; c.style.left = Math.random() * 100 + "%"; c.style.animationDelay = Math.random() * 0.8 + "s"; c.style.background = ["#FFD45C", "#FF6FB5", "#5BC8FF", "#7BE07A"][i % 4]; R.root.appendChild(c); } } catch (e) {}
+}
+function arSave(won) {
+  const o = cur(); if (!o) return; const R = ARB, k = A.kdOf(o.st, o.cls), ar = Object.assign({}, R.ar);
+  if (won && !R.won0) { ar.won = 1; k.p = (Number(k.p) || 0) + ARENA_PAY; k.arb = Object.assign({}, k.arb || {}, { [R.B.k]: 1 }); }
+  k.ar = ar; A.save(k);
+}
+function arClick(ev) {
+  const R = ARB; if (!R) return; const t = ev.target.closest("[data-armove],[data-arswap],[data-ar]"); if (!t) return;
+  if (t.dataset.ar === "quit" || t.dataset.ar === "done") { R.root.remove(); ARB = null; A.rer(); return; }
+  if (t.dataset.ar === "again") { R.root.remove(); ARB = null; startArena(); return; }
+  if (R.phase !== "fight" || R.busy) return;
+  if (t.dataset.armove) { const mv = { m: t.dataset.armove }; if (!moveOk(R.bt, "A", mv)) return; R.busy = true; arDraw(); setTimeout(() => { R.busy = false; arRound(mv); }, 250); return; }
+  if (t.dataset.arswap != null) { const mv = { m: "swap", to: Number(t.dataset.arswap) }; if (!moveOk(R.bt, "A", mv)) return; arRound(mv); }
+}
