@@ -4,7 +4,7 @@
      The checklist groups them by reason, most important reason first. She ranks reasons with ▲ ▼.
    • Tests: pick a student + a subject + "New test" or "Testing loop" (how many times). Its own checklist.
    Everything checks off; "Clear checked" removes the done ones. One small save per change. */
-import { esc } from "./game.js?v=20261116U";
+import { esc } from "./game.js?v=20261117a";
 
 export const TALK_SUBJECTS = ["Math", "Reading", "Language", "Writing", "Vocabulary", "Science", "Social Studies", "Fast Math"];
 let ctx = {}, pick = { sid: "", rid: "", tsid: "", sub: "", kind: "new", n: 2 }, draft = { name: "", note: "", reason: "", tname: "" };
@@ -67,7 +67,9 @@ export function talkCard(students, doc, open) {
 
 // o = { doc, students, save(newDoc), flash, rerender, open }
 export function talkSync(o) { ctx = o || {}; }
-const save = d => ctx.save && ctx.save(Object.assign({}, ctx.doc || {}, d));
+// Nov 17 fix: the new list is kept right away (a second add before the page redraws used the old list and replaced the first),
+// and anything empty is dropped so the save can't be refused.
+const save = d => { const nd = JSON.parse(JSON.stringify(Object.assign({}, ctx.doc || {}, d))); ctx.doc = nd; if (ctx.save) ctx.save(nd); };
 const blank = (...ids) => ids.forEach(i => { const e = document.getElementById(i); if (e) { e.value = ""; e.defaultValue = ""; } });
 if (typeof document !== "undefined") {
   document.addEventListener("input", ev => { const t = ev.target; if (!t || !t.id) return;

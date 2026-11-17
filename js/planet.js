@@ -7,22 +7,22 @@
    A launch is saved on the student: planet = { n: launches, last: "YYYY-MM-DD", streak, best } (one write a day).
    Wave 2 adds a space minigame between liftoff and landing; Planet JP itself comes later, one piece at a time.
    Pictures live in assets/planet/ — until one is uploaded (ART below) the stand-in drawing is used. */
-import { esc, weekKey } from "./game.js?v=20261116U";
-import { azToday, azNow } from "./collect.js?v=20261116U";
-import { axoDay, schoolDayFor } from "./axolotl.js?v=20261116U";
-import { addDays, todayPlan, weekTotal, histWeekTotal } from "./doors.js?v=20261116U";
-import { GAMES, gameOfDay, gameByKey, play, preload } from "./spacegames.js?v=20261116U";
-import { setHitCheck, afterOn, PJ_AFTER, PJ_AFTER_END } from "./safari.js?v=20261116U";
-import { ZONES, safariSync, freshSt, albumHTML, filmLeft, pageCount, pageSize, aliensFound, zoneAliens, FREE_FILM, ROLL_COST, shopHTML, netsOf, NETS, netImg, pjWindow, classOpenAll, PJ_LATE, pjBreakDay, pjBreakXP } from "./safari.js?v=20261116U";
-import { cafeHTML } from "./cafe.js?v=20261116U";
-import { shopPageHTML } from "./spaceshop.js?v=20261116U";
-import { hangarHTML } from "./hangar.js?v=20261116U";
-import { stationHTML, stationAdminLine, doubleWaiting } from "./station.js?v=20261116U";
-import { zooHTML } from "./zoo.js?v=20261116U";
-import { adoptHTML, PP as NEB_PP } from "./pets.js?v=20261116U";
-import { parkHTML } from "./petpark.js?v=20261116U";
-import { missionsHTML, placeBang } from "./missions.js?v=20261116U";
-import { duckImgOf, flameFxOf, trailOf } from "./shop-data.js?v=20261116U";
+import { esc, weekKey } from "./game.js?v=20261117a";
+import { azToday, azNow } from "./collect.js?v=20261117a";
+import { axoDay, schoolDayFor } from "./axolotl.js?v=20261117a";
+import { addDays, todayPlan, weekTotal, histWeekTotal } from "./doors.js?v=20261117a";
+import { GAMES, gameOfDay, gameByKey, play, preload } from "./spacegames.js?v=20261117a";
+import { setHitCheck, afterOn, PJ_AFTER, PJ_AFTER_END } from "./safari.js?v=20261117a";
+import { ZONES, safariSync, freshSt, albumHTML, filmLeft, pageCount, pageSize, aliensFound, zoneAliens, FREE_FILM, ROLL_COST, shopHTML, netsOf, NETS, netImg, pjWindow, classOpenAll, PJ_LATE, pjBreakDay, pjBreakXP } from "./safari.js?v=20261117a";
+import { cafeHTML } from "./cafe.js?v=20261117a";
+import { shopPageHTML } from "./spaceshop.js?v=20261117a";
+import { hangarHTML } from "./hangar.js?v=20261117a";
+import { stationHTML, stationAdminLine, doubleWaiting } from "./station.js?v=20261117a";
+import { zooHTML } from "./zoo.js?v=20261117a";
+import { adoptHTML, PP as NEB_PP } from "./pets.js?v=20261117a";
+import { parkHTML } from "./petpark.js?v=20261117a";
+import { missionsHTML, placeBang } from "./missions.js?v=20261117a";
+import { duckImgOf, flameFxOf, trailOf } from "./shop-data.js?v=20261117a";
 
 export const PJ_OPEN = 11 * 60, PJ_CLOSE = 12 * 60 + 55;   // minutes after midnight, Arizona time
 const A = "assets/planet/";
@@ -409,9 +409,9 @@ function hubHTML(st, n) {
   HUB_PLACES.forEach(p => { h += '<button class="hubplace hub-' + p.k + '" style="left:' + p.x + "%;top:" + p.y + "%;width:" + p.w + '%" ' + (p.k === "colony" ? 'data-pjcolony="1"' : 'data-pjzone="' + p.k + '"') + ">" + p.html() + (placeBang(st, p.k) ? '<span class="hubbang" title="Something to do here today!">!</span>' : "") + '<span class="hublbl">' + p.name + "</span></button>"; });
   return h + "</div></div>";
 }
-import { arianaHTML, arianaToday } from "./ariana.js?v=20261116U";
-import { boardHTML } from "./board.js?v=20261116U";
-import { moonHTML } from "./moon.js?v=20261116U";
+import { arianaHTML, arianaToday } from "./ariana.js?v=20261117a";
+import { boardHTML } from "./board.js?v=20261117a";
+import { moonHTML } from "./moon.js?v=20261117a";
 // 👽 Nov 12: every Planet JP page gets the hidden Alien Ms. Ariana check at the end
 // ◀ ▶ between the zones (locked zones show how many launches they need)
 function zoneArrows(z, n) {
