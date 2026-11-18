@@ -6,9 +6,9 @@
    excused (status "e" + xpHist[date].e, so companion health, streaks and the daily count skip it). Those are marked
    xpHist[date].eo ("excused by the calendar"), so un-marking the break puts them back. One write per student, only
    when something changes. */
-import { esc, arr5, dateOfDay, hitOn } from "./game.js?v=20261118a";
-import { azToday } from "./collect.js?v=20261118a";
-import { addDays } from "./doors.js?v=20261118a";
+import { esc, arr5, dateOfDay, hitOn } from "./game.js?v=20261118d";
+import { azToday } from "./collect.js?v=20261118d";
+import { addDays } from "./doors.js?v=20261118d";
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const wd = iso => { const [y, m, d] = iso.split("-").map(Number); return new Date(y, m - 1, d).getDay(); };
@@ -74,13 +74,17 @@ export function calendarEdit(kind, el, cls) {
 }
 
 // Student updates for the current week's break days (see the top). [[id, data], ...]
+// 🆕 Nov 18 (Ms. Ariana): a new student (joined = the day they picked their starter) is excused for their first week
+// while they test and get set up. Same marks as a calendar break day (e + eo), so it comes off the same way.
+const monOf = iso => { const t = new Date(iso + "T12:00:00Z"), k = (t.getUTCDay() + 6) % 7; t.setUTCDate(t.getUTCDate() - k); return t.toISOString().slice(0, 10); };
+export const newWeekDay = (s, date) => !!(s && s.joined && monOf(date) === monOf(s.joined));   // the whole first week (the days before they joined too, so the companion doesn't start out sick)
 export function autoExcuse(students, cls) {
   const off = (cls && cls.offDays) || {}, out = [];
   students.filter(s => s.companionId).forEach(s => {
     const st = arr5(s.status, ""), hist = s.xpHist || {}, up = {}; let ch = false;
     for (let d = 0; d < 5; d++) {
       const date = dateOfDay(d), h = hist[date] || {};
-      if (off[date]) {
+      if (off[date] || newWeekDay(s, date)) {
         if (st[d] === "" && !hitOn(s, d, cls)) { st[d] = "e"; ch = true; up["xpHist." + date + ".e"] = true; up["xpHist." + date + ".eo"] = true; }
       } else if (h.eo) {
         if (st[d] === "e") { st[d] = ""; ch = true; }

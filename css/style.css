@@ -4391,7 +4391,20 @@ body.kdmode .kdhead h2{ display:none; }
 body.ck{ --ck-red1:#C8323A; --ck-red2:#8E1A24; --ck-gold1:#FFE38A; --ck-gold2:#E6A92C; --ck-gold3:#8A5A10; --ck-ink:#3A2410; --ck-wood:#6B3F1D;
   --ck-parch:url(../assets/keep/parchment.webp); --ck-woodtex:url(../assets/keep/wood-sign.webp);
   background:#5D6390; color:var(--ck-ink); }
-body.ck:not([class*="mini-"])::before{ content:""; position:fixed; inset:0; pointer-events:none; z-index:0; background:url(../assets/keep/bg-keep-wall.webp) center top / cover no-repeat, #5D6390; }
+/* the castle wall stays behind every page; a mini event shows its own decorated wall (assets/keep/wall-<event>.webp) when that picture is uploaded,
+   otherwise the plain wall, and the event's falling leaves / snow (body.mini-*::before) float on top of it */
+body.ck{ --ckwall:url(../assets/keep/bg-keep-wall.webp); }
+body.ck::after{ content:""; position:fixed; inset:0; pointer-events:none; z-index:-1; background-color:#5D6390; background-image:var(--ckwall); background-size:cover; background-position:center top; background-repeat:no-repeat; }
+body.ck.mini-tot{ --ckwall:url(../assets/keep/wall-tot.webp), url(../assets/keep/bg-keep-wall.webp); }
+body.ck.mini-fest{ --ckwall:url(../assets/keep/wall-fest.webp), url(../assets/keep/bg-keep-wall.webp); }
+body.ck.mini-xmas{ --ckwall:url(../assets/keep/wall-xmas.webp), url(../assets/keep/bg-keep-wall.webp); }
+body.ck.mini-lib{ --ckwall:url(../assets/keep/wall-lib.webp), url(../assets/keep/bg-keep-wall.webp); }
+body.ck.mini-leaf{ --ckwall:url(../assets/keep/wall-leaf.webp), url(../assets/keep/bg-keep-wall.webp); }
+body.ck.mini-orn{ --ckwall:url(../assets/keep/wall-orn.webp), url(../assets/keep/bg-keep-wall.webp); }
+body.ck.mini-aur{ --ckwall:url(../assets/keep/wall-aur.webp), url(../assets/keep/bg-keep-wall.webp); }
+body.ck.mini-val{ --ckwall:url(../assets/keep/wall-val.webp), url(../assets/keep/bg-keep-wall.webp); }
+body.ck.mini-kite{ --ckwall:url(../assets/keep/wall-kite.webp), url(../assets/keep/bg-keep-wall.webp); }
+
 body.ck .wrap{ max-width:900px !important; position:relative; z-index:1; }
 body.ck h1, body.ck h2, body.ck h3{ font-family:Lora, Georgia, serif; font-weight:700; }
 
@@ -4461,3 +4474,19 @@ body.ck .pick.on{ background:linear-gradient(180deg,#FFF0B0,#F2C14E); box-shadow
 body.ck .todayitem{ border-radius:12px; border:3px solid #8A5A10; background:rgba(255,250,232,.95); box-shadow:0 4px 0 #6A4208; }
 body.ck .nudge{ border-radius:12px; border:3px solid #8A5A10; border-left-width:3px; background:var(--ck-parch) center/512px, #F4E4BE; box-shadow:0 4px 0 #6A4208, 0 8px 12px rgba(0,0,0,.3); }
 body.ck .nudge .btn{ background:radial-gradient(circle at 40% 35%, #E5525A 0%, #B3242E 55%, #7A1018 100%); color:#FFF3D6; border:0; border-radius:99px; box-shadow:0 3px 0 #4A0A10; font-family:Lora, Georgia, serif; }
+
+/* ===== 🥚 New student: starter pick + 🧭 tour (Nov 18) ===== */
+.startpick{ grid-template-columns:repeat(auto-fill,minmax(170px,1fr)); }
+.startpick .pick{ padding:14px 8px 12px; }
+.startpick .pick img{ display:block; width:120px; height:120px; object-fit:contain; margin:0 auto 6px; filter:drop-shadow(0 6px 6px rgba(60,30,0,.25)); }
+.startpick .pick .n{ display:block; font-size:17px; } .startpick .pick .tp{ display:block; font-size:12px; color:#7A5A30; margin-top:2px; }
+#tourroot{ position:fixed; inset:0; z-index:400; pointer-events:auto; }
+#tourroot .tourspot{ position:fixed; border-radius:16px; box-shadow:0 0 0 4px #FFD861, 0 0 22px 6px rgba(255,216,97,.8), 0 0 0 9999px rgba(12,10,30,.62); transition:all .35s ease; pointer-events:none; }
+#tourroot .tourbub{ position:fixed; z-index:2; padding:16px 18px 14px; border-radius:14px; color:#3A2410; text-align:left;
+  background:url(../assets/keep/parchment.webp) center/512px, #F4E4BE; border:12px solid transparent; border-image:url(../assets/keep/wood-sign.webp) 80 / 12px / 0 stretch;
+  box-shadow:0 18px 40px rgba(0,0,0,.55); transition:top .35s ease, left .35s ease; }
+#tourroot .tourbub small{ font-weight:800; color:#8A5A10; letter-spacing:.04em; }
+#tourroot .tourbub h3{ font-family:Lora, Georgia, serif; font-size:21px; margin:4px 0 6px; color:#8E1A24; }
+#tourroot .tourbub p{ margin:0 0 12px; font-size:15.5px; line-height:1.45; }
+#tourroot .tourbtns{ display:flex; justify-content:space-between; gap:10px; align-items:center; }
+body.touring .bparty{ display:none !important; }   /* badge / record parties wait until the tour is over */

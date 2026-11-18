@@ -1,14 +1,14 @@
-import { PARTY_SPOT } from "./party-spot.js?v=20261118a";
-import { CREATURE_EYES, CREATURE_SPOTS } from "./salon-fit.js?v=20261118a";
-import { CREATURE_LAYOUT, CREATURE_FIT_ID, CREATURE_NECK_ID } from "./creature-fit.js?v=20261118a";
-import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261118a";
-import { heldWeapon } from "./quest.js?v=20261118a";
-import { SNACKS as CAFE_SNACKS, snackKept } from "./cafe-data.js?v=20261118a";
-import { orbitImgOf } from "./shop-data.js?v=20261118a";
+import { PARTY_SPOT } from "./party-spot.js?v=20261118d";
+import { CREATURE_EYES, CREATURE_SPOTS } from "./salon-fit.js?v=20261118d";
+import { CREATURE_LAYOUT, CREATURE_FIT_ID, CREATURE_NECK_ID } from "./creature-fit.js?v=20261118d";
+import { formOf, sparkleImg, azNow, azToday, dayXPs, MAX_LEVEL, BOSS2, BOSS2_LIST } from "./collect.js?v=20261118d";
+import { heldWeapon } from "./quest.js?v=20261118d";
+import { SNACKS as CAFE_SNACKS, snackKept } from "./cafe-data.js?v=20261118d";
+import { orbitImgOf } from "./shop-data.js?v=20261118d";
 // Shared rules + drawing for the teacher console and the student page.
 // The code version. Bump it with every update (it matches the ?v= tags). The teacher console saves it on the class;
 // any page still running older code (a tab left open all day) reloads itself so everyone plays with the same rules.
-export const APP_V = "20261118a";
+export const APP_V = "20261118d";
 export function checkVersion(cls, isTeacher, save) {
   const live = (cls && cls.appVersion) || "";
   if (isTeacher && APP_V > live && save) save(APP_V);
@@ -376,6 +376,9 @@ function histRun(st, cls, mon) {
 }
 export function simulate(st, cls) {
   const status = arr5(st.status, "");
+  // 🆕 Nov 18: a new student's first week counts as excused right away (the console also saves it), so their companion never starts out sick
+  if (st && st.joined) { const mon = dateOfDay(0), sun = new Date(mon + "T12:00:00Z"); sun.setUTCDate(sun.getUTCDate() + 6);
+    if (st.joined >= mon && st.joined <= sun.toISOString().slice(0, 10)) for (let d = 0; d < 5; d++) if (!status[d] && !hitOn(st, d, cls)) status[d] = "e"; }
   const items = st.items || [];
   const rec = recordedDays(cls);
   const capesOwned = items.filter(it => it.id === "cape").length;
@@ -666,7 +669,7 @@ function neckStyle(c) { const n = neckPos(c); return pos(n.x, n.y) + "font-size:
    the hair clip at the side of the head (by the ear), the tiara low on the front of the head, the necklace and scarf around the
    neck (sized to the neck), the bubble wand held in front. SALON_FIT nudges one companion: [right, down, size ×, turn°]
    (by "r:" + basic companion id, or the creature picture id). */
-export const SALON_KIND = { "sea-starfish-clip": "clip", "sea-shell-tiara": "tiara", "sea-pearl-necklace": "necklace", "sea-seaweed-scarf": "scarf", "sea-bubble-wand": "wand", "sea-jelly-hat": "jhat", "sea-pearl-sunhat": "shat", "sea-lost-crown": "tiara" };   // the Lost Crown (Sunken City) sits where the tiara does
+export const SALON_KIND = { "sea-starfish-clip": "clip", "sea-shell-tiara": "tiara", "sea-pearl-necklace": "necklace", "sea-seaweed-scarf": "scarf", "sea-bubble-wand": "wand", "sea-jelly-hat": "jhat", "sea-pearl-sunhat": "shat", "sea-lost-crown": "tiara", "fest-earmuffs": "muffs", "orn-earmuffs": "muffs" };   // 🎧 Nov 18: earmuffs sit around the head (band on top, muffs at the ears)   // the Lost Crown (Sunken City) sits where the tiara does
 export const SALON_FIT = {
   shat: {},
   jhat: { "r:octopus": [0, 0.08, 0.9, 0], "r:otter": [0.02, 0.04, 0.9, 0], "r:sloth": [0, 0.03, 0.9, 0] },
@@ -683,7 +686,8 @@ function salonStyle(c, kind) {
     n = { hx: sx, hy: sy + sw * 0.12, hs: sw * 1.05, ex: sx + sw * 0.08, ey: sy + sw * 0.62, x: N ? N[0] : sx - sw * 0.05, y: N ? N[1] + 0.04 : sy + sw * 1.18, size: Math.max(0.36, Math.min(0.66, sw * 1.15)), rot: 0 }; }
   const toEyes = Math.max(0.08, n.ey - n.hy), face = n.ex >= n.hx ? 1 : -1;   // which way the face points
   let x, y, sz, tf, rot = 0;
-  if (kind === "shat") { x = n.hx + (n.ex - n.hx) * 0.2; y = n.hy + toEyes * (sp ? 0.3 : 0.1); sz = n.hs * (sp ? 1.2 : 1.3); tf = "translate(-50%,-90%)"; rot = n.rot * 0.5; }
+  if (kind === "muffs") { x = n.hx + (n.ex - n.hx) * 0.1; y = n.hy; sz = n.hs * 0.95; tf = "translate(-50%,-68%)"; rot = n.rot * 0.5; }   // like ear warmers on the ears at the top of the head, so the face stays clear
+  else if (kind === "shat") { x = n.hx + (n.ex - n.hx) * 0.2; y = n.hy + toEyes * (sp ? 0.3 : 0.1); sz = n.hs * (sp ? 1.2 : 1.3); tf = "translate(-50%,-90%)"; rot = n.rot * 0.5; }
   else if (kind === "jhat") { x = n.hx + (n.ex - n.hx) * 0.2; y = n.hy + toEyes * (sp ? 0.2 : -0.05); sz = n.hs * (sp ? 1.0 : 1.05); tf = "translate(-50%,-80%)"; rot = n.rot * 0.5; }
   else if (kind === "tiara") { x = n.hx + (n.ex - n.hx) * 0.2; y = n.hy + toEyes * 0.28; sz = n.hs * (sp ? 0.8 : 0.95); tf = "translate(-50%,-78%)"; rot = n.rot * 0.6; }
   else if (kind === "clip") { x = n.hx - face * n.hs * 0.55; y = n.hy + toEyes * 0.15; sz = n.hs * 0.72; tf = "translate(-50%,-55%)"; rot = -face * 28; }
@@ -697,6 +701,7 @@ function salonStyle(c, kind) {
     else if (kind === "scarf") { x = X(Q[0]); y = Y(Q[1]); sz = Math.min(Q[2], 0.3) * w0 * 1.05; tf = "translate(-50%,-20%)"; rot = 0; }
     else if (kind === "shat") { const hw = Math.min(Q[5], 0.34); x = X(Q[3]); y = Y(Q[4] + hw * 0.22); sz = hw * w0 * 1.5; tf = "translate(-50%,-92%)"; rot = 0; }
     else if (kind === "jhat") { const hw = Math.min(Q[5], 0.34); x = X(Q[3]); y = Y(Q[4] + hw * 0.12); sz = hw * w0 * 1.2; tf = "translate(-50%,-80%)"; rot = 0; }
+    else if (kind === "muffs") { const hw = Math.min(Q[5], 0.4); x = X(Q[3]); y = Y(Q[4] + hw * 0.06); sz = hw * w0 * 1.0; tf = "translate(-50%,-68%)"; rot = 0; }
     else if (kind === "tiara") { x = X(Q[3]); y = Y(Q[4] + Math.min(Q[5], 0.32) * 0.18); sz = Math.min(Q[5], 0.32) * w0 * 0.95; tf = "translate(-50%,-78%)"; rot = 0; }
     else if (kind === "clip") { x = X(Q[3] - fc * Q[5] * 0.38); y = Y(Q[4] + Q[5] * 0.12); sz = Q[5] * w0 * 0.5; tf = "translate(-50%,-50%)"; rot = -fc * 22; }
     else { x = X(Q[0] + fc * Q[2] * 0.6); y = Y(Q[1] + Q[2] * 0.5); sz = Q[2] * w0 * 0.9; tf = "translate(-50%,-50%)"; rot = fc * 18; }
@@ -709,6 +714,7 @@ function salonStyle(c, kind) {
     else if (kind === "shat") { x = ex; y = ey - eh * 1.2; sz = dd * 2.5; tf = "translate(-50%,-75%)"; rot = 0; }
     else if (kind === "jhat") { x = ex; y = ey - eh * 1.4; sz = dd * 2.0; tf = "translate(-50%,-80%)"; rot = 0; }
     else if (kind === "tiara") { x = ex; y = ey - eh * 1.3; sz = dd * 1.7; tf = "translate(-50%,-85%)"; rot = 0; }
+    else if (kind === "muffs") { x = ex; y = ey - eh * 1.7; sz = dd * 1.8; tf = "translate(-50%,-68%)"; rot = 0; }
     else if (kind === "clip") { x = ex - fc * dd * 1.05; y = ey - eh * 1.4; sz = dd * 0.85; tf = "translate(-50%,-50%)"; rot = -fc * 22; }
     else { x = ex + fc * dd * 1.1; y = ey + eh * 3.2; sz = dd * 1.2; tf = "translate(-50%,-50%)"; rot = fc * 18; } }
   x += a[0]; y += a[1]; sz *= a[2]; rot += a[3];
