@@ -3,7 +3,7 @@
    It runs on its own layer (#tourroot), so page redraws don't stop it; it finds its target again every few moments.
    Who sees it: students with `joined` (set when they pick their starter) and no `tutDone`. Finishing or skipping saves tutDone: true
    (one write). A teacher preview can try it with ?tour=1 (nothing is saved). */
-import { esc } from "./game.js?v=20261118m";
+import { esc } from "./game.js?v=20261118o";
 
 let T = null;   // { i, steps, done, poll }
 const STEPS = (s, has) => {

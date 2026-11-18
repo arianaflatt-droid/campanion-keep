@@ -7,12 +7,12 @@
    She can untick anyone, then "Show on every screen": a big, slow, read-aloud scrolling list takes over every student's
    screen until she closes it. Saved on the class doc (cls.shout = { id, open, title, groups: [{ ic, t, names: [{ n, w }] }] }),
    which every screen already watches: no new reads. Names shown are display names only (first name + last initial). */
-import { esc, simulate, weekKey } from "./game.js?v=20261118m";
-import { azToday } from "./collect.js?v=20261118m";
-import { addDays, mondayOf } from "./doors.js?v=20261118m";
-import { dailyPool } from "./wheel.js?v=20261118m";
-import { phase } from "./planet.js?v=20261118m";
-import { kdOn, kdUnlocked } from "./kingdom.js?v=20261118m";
+import { esc, simulate, weekKey } from "./game.js?v=20261118o";
+import { azToday } from "./collect.js?v=20261118o";
+import { addDays, mondayOf } from "./doors.js?v=20261118o";
+import { dailyPool } from "./wheel.js?v=20261118o";
+import { phase } from "./planet.js?v=20261118o";
+import { kdOn, kdUnlocked } from "./kingdom.js?v=20261118o";
 
 const DUCK = "assets/lvlup/duck.webp";
 let ctx = {}, root = null, shownId = "", mode = null, off = {}, mDraft = { n: "", w: "" };

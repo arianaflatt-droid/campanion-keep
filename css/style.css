@@ -4572,3 +4572,36 @@ body.ck .ckitem:hover, .ckitem:hover{ box-shadow:none !important; transform:tran
 body.ck .checklist .cklist{ gap:6px; }
 .ckitem.done{ filter:drop-shadow(0 5px 5px rgba(70,35,0,.28)) saturate(.6) brightness(1.03); }
 @media (max-width:520px){ body.ck .ckitem, .ckitem{ border-width:18px 26px !important; border-image-width:18px 26px !important; grid-template-columns:30px 34px 1fr !important; } .ckitem .ckgo, body.ck .ckitem .ckgo{ display:none !important; } }
+/* 📜 the goal bar, Today's subjects and the test bar sit on the scroll too */
+body.ck .ckgoal, body.ck .ckwork{ border-style:solid !important; border-color:transparent !important; border-width:24px 38px !important; border-radius:0 !important;
+  border-image:url(../assets/ui/ck/scroll.webp) 95 130 fill / 24px 38px / 0 stretch !important; background:none !important; box-shadow:none !important;
+  padding:4px 10px !important; filter:drop-shadow(0 5px 5px rgba(70,35,0,.28)); margin-top:8px; }
+body.ck .ckwork .ckwrow{ background:rgba(255,255,255,.35); }
+@media (max-width:520px){ body.ck .ckgoal, body.ck .ckwork{ border-width:18px 26px !important; border-image-width:18px 26px !important; } }
+.tube .tlabel{ inset:auto; left:50%; top:50%; transform:translate(-50%,-50%); padding:1px 10px; border-radius:99px; background:rgba(30,15,5,.55); font-size:13px; }
+
+/* 🎀 card titles on Ms. Ariana's red ribbon (ends keep their shape, the middle stretches) */
+:where(body.ck) .card .card-head h2, body.ck .card:not(.vaultcard):not(.spcard):not(.newscard) .card-head h2{ clip-path:none !important; background:none !important; box-shadow:none !important;
+  border-style:solid; border-color:transparent; border-width:0 34px; border-image:url(../assets/keep/title-ribbon.webp) 0 140 fill / 0 34px / 0 stretch;
+  padding:8px 6px 14px !important; margin-left:-6px; filter:drop-shadow(0 3px 3px rgba(60,10,0,.3)); }
+/* 👑 VIP day on the castle stage: the party picture fills the stage area (instead of a box behind the companion) with a gold pedestal */
+body.ck .mypet.vip{ background:linear-gradient(180deg, rgba(244,228,190,0) 44cqw, #F4E4BE 57cqw), var(--vipbg) top center / 100% 58cqw no-repeat, #F4E4BE; }
+body.ck .mypet .stage.vipstage{ background:none !important; box-shadow:none !important; border-radius:0; }
+body.ck .mypet.vip .stage::after{ content:""; position:absolute; left:50%; bottom:-1cqw; width:46%; height:7cqw; transform:translateX(-50%); z-index:0; border-radius:50%;
+  background:radial-gradient(ellipse at 50% 35%, #FFF0B0 0%, #F2B93A 50%, #A8761C 100%); box-shadow:0 1.2cqw 0 #6A4208, 0 2cqw 3cqw rgba(0,0,0,.35); }
+body.ck .mypet.vip .stage > *{ position:relative; z-index:1; }
+/* ✨ Nov 18: the tubes fill with Ms. Ariana's sparkly strips (one per subject color), drifting slowly, with her twinkle stars */
+.ckwork, .ckgoal{ --tfill:url(../assets/ui/ck/fill-gold.webp); }
+.s-m{ --tfill:url(../assets/ui/ck/fill-blue.webp); } .s-r{ --tfill:url(../assets/ui/ck/fill-green.webp); } .s-l{ --tfill:url(../assets/ui/ck/fill-purple.webp); }
+.s-f{ --tfill:url(../assets/ui/ck/fill-orange.webp); } .s-w{ --tfill:url(../assets/ui/ck/fill-pink.webp); } .s-v{ --tfill:url(../assets/ui/ck/fill-teal.webp); }
+.s-sc{ --tfill:url(../assets/ui/ck/fill-lime.webp); } .s-ss{ --tfill:url(../assets/ui/ck/fill-gold.webp); }
+.tube .tfill{ background:var(--tfill) 0 50% / 66px 44px repeat-x, var(--tc2) !important; animation:tflow 4s linear infinite; box-shadow:inset 0 -2px 0 rgba(0,0,0,.18), inset 0 2px 0 rgba(255,255,255,.35), 0 0 10px var(--tc2) !important; }
+@keyframes tflow{ to{ background-position:66px 50%, 0 0; } }
+.tube .tfill::before{ opacity:.55; }
+.tube .tshine{ background:none !important; animation:none !important; }
+.tube .tshine::before, .tube .tshine::after{ content:""; position:absolute; top:50%; width:16px; height:16px; background:url(../assets/ui/ck/twinkle.webp) center/contain no-repeat;
+  transform:translate(-50%,-50%) scale(0); animation:ttwk2 2.2s ease-in-out infinite; filter:drop-shadow(0 0 3px #fff); }
+.tube .tshine::before{ left:28%; } .tube .tshine::after{ left:70%; animation-delay:1.1s; width:12px; height:12px; }
+@keyframes ttwk2{ 0%,100%{ transform:translate(-50%,-50%) scale(0) rotate(0); opacity:0; } 50%{ transform:translate(-50%,-50%) scale(1) rotate(30deg); opacity:1; } }
+.tube .tbub{ display:none; }
+@media (prefers-reduced-motion: reduce){ .tube .tfill, .tube .tshine::before, .tube .tshine::after{ animation:none !important; } }

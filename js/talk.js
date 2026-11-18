@@ -4,7 +4,7 @@
      The checklist groups them by reason, most important reason first. She ranks reasons with ▲ ▼.
    • Tests: pick a student + a subject + "New test" or "Testing loop" (how many times). Its own checklist.
    Everything checks off; "Clear checked" removes the done ones. One small save per change. */
-import { esc } from "./game.js?v=20261118m";
+import { esc } from "./game.js?v=20261118o";
 
 export const TALK_SUBJECTS = ["Math", "Reading", "Language", "Writing", "Vocabulary", "Science", "Social Studies", "Fast Math"];
 let ctx = {}, pick = { sid: "", rid: "", tsid: "", sub: "", kind: "new", n: 2 }, draft = { name: "", note: "", reason: "", tname: "" };
