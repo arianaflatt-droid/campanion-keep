@@ -3,24 +3,24 @@
    Each step checks itself off from the student's save; tapping a step opens the tab where it's done.
    The Treasure Vault step is "check your progress", so it counts as done once the student opens it today
    (remembered on this computer only). */
-import { rvStarted, rvStock, rvBeatCount } from "./revenge.js?v=20261118o";
-import { heistTodo } from "./heist.js?v=20261118o";
-import { axoOn } from "./axolotl.js?v=20261118o";
-import { newsKeyOf, shownNews } from "./news.js?v=20261118o";
-import { freeReady } from "./pets.js?v=20261118o";
-import { tbLeft, tbLive } from "./teachbattle.js?v=20261118o";
-import { esc, simulate, companionOf, goalXP, SEASON } from "./game.js?v=20261118o";
+import { rvStarted, rvStock, rvBeatCount } from "./revenge.js?v=20261118q";
+import { heistTodo } from "./heist.js?v=20261118q";
+import { axoOn } from "./axolotl.js?v=20261118q";
+import { newsKeyOf, shownNews } from "./news.js?v=20261118q";
+import { freeReady } from "./pets.js?v=20261118q";
+import { tbLeft, tbLive } from "./teachbattle.js?v=20261118q";
+import { esc, simulate, companionOf, goalXP, SEASON } from "./game.js?v=20261118q";
 import { azToday, azNow, todayXP, pullsLeft, legendaryLeft, birthdayLeft, pickleLeft, vaultLegLeft, BOSS2_LIST, boss2EggLeft, candyLegLeft, snowLegLeft,
-  gingerLegLeft, feastLegLeft, brewLegLeft, goalLeft, themeLeft, hasStarter, bankXP, LEVEL_XP } from "./collect.js?v=20261118o";
-import { mqReady } from "./morning.js?v=20261118o";
-import { DOOR_ART, doorsLive, doorName, goldenReady, weekDoorState, vaultState, vaultGoal, subReq, todayPlan, SUBJECT_KEYS } from "./doors.js?v=20261118o";
-import { soloOn, soloReady, soloCfg } from "./solobrew.js?v=20261118o";
-import { passReady } from "./pass.js?v=20261118o";
-import { pettedToday } from "./bond.js?v=20261118o";
-import { mealsReady } from "./meals.js?v=20261118o";
-import { readyTests } from "./quest.js?v=20261118o";
-import { unthanked } from "./kindness.js?v=20261118o";
-import { kdTodo } from "./kingdom.js?v=20261118o";
+  gingerLegLeft, feastLegLeft, brewLegLeft, goalLeft, themeLeft, hasStarter, bankXP, LEVEL_XP } from "./collect.js?v=20261118q";
+import { mqReady } from "./morning.js?v=20261118q";
+import { DOOR_ART, doorsLive, doorName, goldenReady, weekDoorState, vaultState, vaultGoal, subReq, todayPlan, SUBJECT_KEYS } from "./doors.js?v=20261118q";
+import { soloOn, soloReady, soloCfg } from "./solobrew.js?v=20261118q";
+import { passReady } from "./pass.js?v=20261118q";
+import { pettedToday } from "./bond.js?v=20261118q";
+import { mealsReady } from "./meals.js?v=20261118q";
+import { readyTests } from "./quest.js?v=20261118q";
+import { unthanked } from "./kindness.js?v=20261118q";
+import { kdTodo } from "./kingdom.js?v=20261118q";
 
 const seenKey = (id, what) => "ck-seen-" + azToday() + "-" + id + "-" + what;
 // 📣 the class announcement (Nov 9): a new one gets a new key, so it shows up on the list again
@@ -34,6 +34,9 @@ const ART = "assets/ui/ck/";   // new step pictures from Ms. Ariana (until a pic
 const PICOR = (file, emo) => '<img class="ckimg" src="' + ART + file + '.webp" alt="" onerror="this.replaceWith(document.createTextNode(\'' + emo + '\'))">';
 const petPic = c => !c ? "\u{1F43E}" : c.creature ? String(c.glyph || "\u{1F43E}") : PIC("assets/emoji/pet-" + c.id + ".webp");   // their own companion
 const BREW_PIC = { haunt: "assets/potion/cauldron.webp", gobble: "assets/feast/turkey.webp", jingle: "assets/ginger/house-10.webp", frost: "assets/snowman/snowman-10.webp", lucky: "assets/lucky/trap-10.webp" };
+// 🎊 Nov 18: falling confetti made of Ms. Ariana's pieces (coin, gems, ribbons, star), each with its own spot, speed, size and spin
+const CONF = [[4,0,3.1,26,1],[13,1.4,4.2,20,4],[22,.6,3.6,22,2],[31,2.2,4.8,18,5],[40,.2,3.3,24,6],[49,1.8,4.4,20,3],[58,.9,3.8,26,1],[67,2.6,4.1,18,4],[76,.4,3.4,22,5],[85,1.6,4.6,20,2],[94,1.1,3.9,24,6],[18,3,4.3,16,3],[63,3.4,3.7,18,6],[88,2.9,4.9,16,1]];
+const confHTML = () => '<span class="ckconf" aria-hidden="true">' + CONF.map(([x, d, t, w, k], i) => '<img src="assets/ui/ck/conf-' + k + '.webp" alt="" style="left:' + x + "%;width:" + w + "px;animation-delay:-" + d + "s;animation-duration:" + t + "s;--sp:" + (i % 2 ? -1 : 1) * (200 + i * 23) + 'deg">').join("") + "</span>";
 const plural = (n, w) => n + " " + w + (n === 1 ? "" : "s");
 
 export function eggsLeft(s, cls) {
@@ -155,8 +158,8 @@ export function checklistTab(s, cls, students, battles) {
     (left ? '<p class="lede" style="margin-bottom:10px;">Go down your list. Tap a step to go do it. Done steps disappear!' + (list.length - left ? ' <span class="ckdone">✅ ' + (list.length - left) + " done</span>" : "") + '</p><div class="cklist">' +
     list.filter(x => !x.done).map((x, i) => '<button class="ckitem" data-tab="' + x.tab + '" data-ck="' + x.id + '"><span class="ckn">' + (i + 1) + '</span><span class="ckic">' + x.icon +
       '</span><span class="cktxt"><b>' + esc(x.title) + "</b><small>" + esc(x.text) + '</small></span><span class="ckgo"><span>Go</span></span></button>').join("") + "</div>"
-      : '<div class="ckalldone"><span>\u{1F389}</span><b>Your checklist is all done for today!</b><small>Now get learning. New steps show up here when there\u2019s something to do.</small>' +
-        (((s.planet || {}).ckd === azToday()) ? '<small>\u2B50 You got your <b>+10 Stardust</b> for today!</small>' : '<button class="btn gold" data-act="ckClaim" style="margin-top:8px;">\u2B50 Claim +10 Stardust</button>') + "</div>") +
+      : '<div class="ckalldone">' + confHTML() + '<img class="ckchest" src="assets/morning/mq-chest-open.webp" alt=""><b>Quest complete!</b><span class="ckad">Your checklist is all done for today</span><small>Now get learning. New steps show up here when there\u2019s something to do.</small>' +
+        (((s.planet || {}).ckd === azToday()) ? '<span class="ckgot"><img src="assets/planet/stardust.webp" alt=""> You got your <b>+10 Stardust</b> today!</span>' : '<button class="ckclaim" data-act="ckClaim"><img src="assets/planet/stardust.webp" alt=""> Claim +10 Stardust</button>') + "</div>") +
     '<div class="ckgoal ckxp"><div class="ckgrow"><span class="ckwic big"><img class="subic" src="assets/ui/subj/xp.webp" alt="" onerror="this.replaceWith(document.createTextNode(\'\u{1F3AF}\'))"></span><span class="ckgtxt"><b>Then: earn ' + goal + " XP today!</b><small>" +
       (xp >= goal ? "You did it \u2014 every 120 more earns another egg! \u{1F389}" : "Keep going, you\u2019re on your way!") + '</small></span></div>' + tube(xp / goal * 100, "xp", xp.toLocaleString() + " / " + goal + " XP", "xp") + "</div>" +
     workCard(s, cls) + testCard(s) +

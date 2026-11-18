@@ -4,11 +4,11 @@
    (the zoo tour needs a photographed animal, the Pet Park needs a Nebble).
    Every check reads data the app already saves, so the board adds NO reads. Claiming a finished mission = ONE save:
    planet.ms = { d: today, c: { missionKey: 1 } }, plus the Stardust (through safari.js planetSave). */
-import { esc } from "./game.js?v=20261118o";
-import { azToday } from "./collect.js?v=20261118o";
-import { freshSt, planetSave, planetNow, planetCtx } from "./safari.js?v=20261118o";
-import { cafeDone, safariDone, zooHas, zooDone } from "./missions.js?v=20261118o";
-import { careDone, hasNebble } from "./petpark.js?v=20261118o";
+import { esc } from "./game.js?v=20261118q";
+import { azToday } from "./collect.js?v=20261118q";
+import { freshSt, planetSave, planetNow, planetCtx } from "./safari.js?v=20261118q";
+import { cafeDone, safariDone, zooHas, zooDone } from "./missions.js?v=20261118q";
+import { careDone, hasNebble } from "./petpark.js?v=20261118q";
 
 const B = "assets/planet/board/";
 const plOf = st => (st && st.planet) || {};

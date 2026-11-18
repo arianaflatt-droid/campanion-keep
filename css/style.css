@@ -4605,3 +4605,42 @@ body.ck .mypet.vip .stage > *{ position:relative; z-index:1; }
 @keyframes ttwk2{ 0%,100%{ transform:translate(-50%,-50%) scale(0) rotate(0); opacity:0; } 50%{ transform:translate(-50%,-50%) scale(1) rotate(30deg); opacity:1; } }
 .tube .tbub{ display:none; }
 @media (prefers-reduced-motion: reduce){ .tube .tfill, .tube .tshine::before, .tube .tshine::after{ animation:none !important; } }
+/* 🚩 Nov 18: seasonal banners are Ms. Ariana's art (the plain banner keeps the drawn red one until its wide art comes) */
+body.ck .hero.haunt{ --hb:url(../assets/keep/hero-banner-haunt.webp); }
+body.ck .hero.gobble{ --hb:url(../assets/keep/hero-banner-gobble.webp); }
+body.ck .hero.jingle{ --hb:url(../assets/keep/hero-banner-jingle.webp); }
+body.ck .hero.frost{ --hb:url(../assets/keep/hero-banner-frost.webp); }
+body.ck .hero.heart{ --hb:url(../assets/keep/hero-banner-heart.webp); }
+body.ck .hero.lucky{ --hb:url(../assets/keep/hero-banner-lucky.webp); }
+body.ck .hero.haunt{ background:var(--hb) center / 100% 100% no-repeat !important; box-shadow:none !important; border-radius:0 !important; clip-path:none !important;
+  margin:6px 0 18px !important; min-height:calc(min(900px, 100vw) * .3); padding:5.2% 13% 9.5% !important; display:flex; flex-direction:column; justify-content:center;
+  filter:drop-shadow(0 10px 14px rgba(0,0,0,.4)); }
+body.ck .hero.haunt::before, body.ck .hero.haunt::after{ display:none !important; }
+body.ck .hero.haunt h2{ font-size:clamp(15px,2.9vw,26px); text-shadow:0 2px 0 rgba(0,0,0,.55), 0 0 8px rgba(0,0,0,.35); }
+body.ck .hero.haunt .haunt-tag{ font-size:clamp(10px,1.4vw,13px); margin:0 0 2px; }
+body.ck .hero.haunt .haunt-sub, body.ck .hero.haunt small{ font-size:clamp(9px,1.25vw,12.5px); text-shadow:0 1px 0 rgba(0,0,0,.6); }
+/* 🏆 Checklist all done: a quest-complete scroll with the open treasure chest */
+body.ck .ckalldone, .ckalldone{ position:relative; overflow:visible; display:flex; flex-direction:column; align-items:center; gap:2px; text-align:center; padding:6px 10px 10px !important;
+  border-style:solid !important; border-color:transparent !important; border-width:26px 40px !important; border-radius:0 !important; background:none !important;
+  border-image:url(../assets/ui/ck/scroll.webp) 95 130 fill / 26px 40px / 0 stretch !important; filter:drop-shadow(0 6px 6px rgba(70,35,0,.3)); color:#3A2410; }
+.ckalldone .ckchest{ width:110px; height:auto; margin:-6px 0 2px; filter:drop-shadow(0 6px 8px rgba(120,70,0,.35)); animation:ckchest 2.4s ease-in-out infinite; }
+@keyframes ckchest{ 50%{ transform:translateY(-4px) scale(1.03); filter:drop-shadow(0 0 16px rgba(255,210,80,.9)); } }
+.ckalldone b{ font-family:Lora, Georgia, serif; font-size:28px !important; color:#8E1A24; text-shadow:0 2px 0 #FFE38A; letter-spacing:.3px; }
+.ckalldone .ckad{ font-family:Lora, Georgia, serif; font-weight:700; font-size:17px; color:#5A3A08; }
+.ckalldone small{ color:#7A5A30; font-size:13px; }
+.ckalldone .ckclaim, .ckalldone .ckgot{ display:inline-flex; align-items:center; gap:8px; margin-top:10px; font-family:Lora, Georgia, serif; font-weight:700; }
+.ckalldone .ckclaim{ border:3px solid #FFF4C2; border-radius:99px; padding:9px 20px; font-size:17px; color:#4A2A00; cursor:pointer;
+  background:linear-gradient(180deg,#FFE79A,#F2B93A 55%,#D7951C); box-shadow:0 5px 0 #6A4208, 0 0 18px rgba(255,200,70,.8); animation:ckpulse 1.6s ease-in-out infinite; }
+@keyframes ckpulse{ 50%{ transform:scale(1.05); } }
+.ckalldone .ckclaim img, .ckalldone .ckgot img{ width:26px; height:26px; object-fit:contain; }
+.ckalldone .ckgot{ font-size:15px; color:#5A3A08; background:#FFF1C9; border:2px solid #D9A94A; border-radius:99px; padding:4px 14px; }
+.ckalldone .ckgot b{ font-size:15px !important; text-shadow:none; color:#8E1A24; }
+.ckalldone .ckconf{ position:absolute; inset:-14px -20px 0; overflow:hidden; pointer-events:none; z-index:0; }
+.ckalldone > :not(.ckconf){ position:relative; z-index:1; }
+.ckalldone .ckconf img{ position:absolute; top:-30px; height:auto; filter:drop-shadow(0 2px 2px rgba(80,40,0,.25)); animation:ckfall 4s linear infinite; }
+@keyframes ckfall{ 0%{ transform:translate(0,0) rotate(0); opacity:0; } 8%{ opacity:1; } 50%{ transform:translate(14px,110px) rotate(calc(var(--sp) * .5)); } 85%{ opacity:1; } 100%{ transform:translate(-8px,230px) rotate(var(--sp)); opacity:0; } }
+@media (prefers-reduced-motion: reduce){ .ckalldone .ckchest, .ckalldone .ckclaim, .ckalldone .ckconf img{ animation:none; } .ckalldone .ckconf{ display:none; } }
+/* banner text clear of the decorations; on phones the small line is hidden */
+body.ck .hero.haunt{ padding:7.5% 15% 11% !important; }
+body.ck .hero.haunt .haunt-tag{ position:absolute; left:50%; top:20%; transform:translateX(-50%); opacity:0; pointer-events:none; }
+@media (max-width:600px){ body.ck .hero.haunt .haunt-sub{ display:none; } body.ck .hero.haunt{ padding:10.5% 14% 12% !important; min-height:0; } body.ck .hero.haunt h2{ font-size:clamp(13px,3.6vw,18px); } }
