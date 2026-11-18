@@ -7,11 +7,12 @@
    She can untick anyone, then "Show on every screen": a big, slow, read-aloud scrolling list takes over every student's
    screen until she closes it. Saved on the class doc (cls.shout = { id, open, title, groups: [{ ic, t, names: [{ n, w }] }] }),
    which every screen already watches: no new reads. Names shown are display names only (first name + last initial). */
-import { esc, simulate, weekKey } from "./game.js?v=20261118h";
-import { azToday } from "./collect.js?v=20261118h";
-import { addDays, mondayOf } from "./doors.js?v=20261118h";
-import { dailyPool } from "./wheel.js?v=20261118h";
-import { phase } from "./planet.js?v=20261118h";
+import { esc, simulate, weekKey } from "./game.js?v=20261118j";
+import { azToday } from "./collect.js?v=20261118j";
+import { addDays, mondayOf } from "./doors.js?v=20261118j";
+import { dailyPool } from "./wheel.js?v=20261118j";
+import { phase } from "./planet.js?v=20261118j";
+import { kdOn, kdUnlocked } from "./kingdom.js?v=20261118j";
 
 const DUCK = "assets/lvlup/duck.webp";
 let ctx = {}, root = null, shownId = "", mode = null, off = {}, mDraft = { n: "", w: "" };
@@ -41,6 +42,9 @@ export function shoutGroups(students, cls, when) {
     // Nov 17 (Ms. Ariana): the afternoon shoutout is only who's heading to Planet JP (no 120 XP list)
     add("pj", "\u{1F680}", "Ready for Planet JP or exploring it now", kids.map(s => { let p = "off"; try { p = phase(s, cls); } catch (e) {} return [s, p]; })
       .filter(([s, p]) => p === "landed" || p === "ready" || p === "go").map(([s, p]) => ({ id: s.id, n: dn(s), w: p === "landed" ? "on Planet JP!" : "tanks full, ready for liftoff!" })));
+    // Nov 18 (Ms. Ariana): and who has the Axolotl Kingdom open this week. Nothing else in the afternoon.
+    if (kdOn(cls)) add("kd", "\u{1F30A}", "Ready for the Axolotl Kingdom this week", kids.filter(s => { try { return kdUnlocked(s, cls); } catch (e) { return false; } }).map(s => ({ id: s.id, n: dn(s), w: "the Kingdom is open!" })));
+    return G;
   }
   const wk = weekKey(cls), lw = addDays(wk, -7), mon = new Date(today + "T12:00:00").getDay() === 1;
   add("vault", "\u{1F48E}", "Opened their Treasure Vault", kids.filter(s => (s.vault || {})[wk] === "open" || (mon && (s.vault || {})[lw] === "open")).map(s => ({ id: s.id, n: dn(s), w: (s.vault || {})[wk] === "open" ? "this week" : "last week" })));

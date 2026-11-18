@@ -4496,3 +4496,53 @@ body.touring .bparty{ display:none !important; }   /* badge / record parties wai
 /* 🖼️ Checklist step pictures (Nov 18) */
 .ckitem .ckic img, .ckitem .ckic .ckimg{ display:block; width:40px; height:40px; object-fit:contain; margin:0 auto; filter:drop-shadow(0 2px 2px rgba(0,0,0,.2)); }
 body.ck .ckitem .ckic img, body.ck .ckitem .ckic .ckimg{ width:42px; height:42px; }
+
+/* ===== 🧪 Checklist bars (Nov 18): glowing glass tubes in a wooden frame ===== */
+.ckwork, .ckgoal{ --tc1:#FFE680; --tc2:#F2B33D; --tc3:#C47A12; }
+.s-m{ --tc1:#8FD3FF; --tc2:#2E8BEA; --tc3:#1858A8; } .s-r{ --tc1:#A6F08A; --tc2:#3DBA4A; --tc3:#217A2C; } .s-l{ --tc1:#E1B4FF; --tc2:#9B4BE8; --tc3:#5E22A8; }
+.s-f{ --tc1:#FFD08A; --tc2:#F2862E; --tc3:#A8501A; } .s-w{ --tc1:#FFB3D6; --tc2:#E8458C; --tc3:#A11C5A; } .s-v{ --tc1:#8FF2E3; --tc2:#1FB8A6; --tc3:#0E7468; }
+.s-sc{ --tc1:#D9F58A; --tc2:#8BC72E; --tc3:#557A12; } .s-ss{ --tc1:#FFE08A; --tc2:#E0A21E; --tc3:#8A5A0A; }
+.tube{ position:relative; display:block; height:28px; border-radius:99px; overflow:visible;
+  background:linear-gradient(180deg,#2A1608 0%,#4A2A12 55%,#3A200C 100%); box-shadow:inset 0 3px 6px rgba(0,0,0,.6), 0 0 0 3px #8A5A10, 0 0 0 5px #3B220E, 0 3px 0 5px #2A1608; }
+.tube .tfill{ position:absolute; left:3px; top:3px; bottom:3px; max-width:calc(100% - 6px); min-width:0; border-radius:99px; overflow:hidden;
+  background:linear-gradient(180deg,var(--tc1) 0%,var(--tc2) 55%,var(--tc3) 100%); box-shadow:inset 0 -3px 0 rgba(0,0,0,.18), 0 0 10px var(--tc2);
+  transition:width .9s cubic-bezier(.3,1.3,.5,1); }
+.tube .tfill[style*="width:0%"]{ box-shadow:none; }
+.tube .tfill::before{ content:""; position:absolute; left:6px; right:6px; top:2px; height:35%; border-radius:99px; background:linear-gradient(180deg,rgba(255,255,255,.75),rgba(255,255,255,0)); }
+.tube .tshine{ position:absolute; inset:0; background:repeating-linear-gradient(115deg,rgba(255,255,255,0) 0 14px,rgba(255,255,255,.22) 14px 24px); animation:tshine 1.6s linear infinite; }
+@keyframes tshine{ to{ background-position:38px 0; } }
+.tube .tbub{ position:absolute; bottom:2px; width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.7); left:20%; animation:tbub 2.4s ease-in infinite; }
+.tube .tbub.b2{ left:55%; width:4px; height:4px; animation-delay:.9s; } .tube .tbub.b3{ left:80%; width:5px; height:5px; animation-delay:1.6s; }
+@keyframes tbub{ 0%{ transform:translateY(0); opacity:0; } 20%{ opacity:.9; } 100%{ transform:translateY(-16px); opacity:0; } }
+.tube .tlabel{ position:absolute; inset:0; display:grid; place-items:center; font-weight:900; font-size:13.5px; color:#fff; letter-spacing:.2px; text-shadow:0 1px 0 #000, 0 0 4px rgba(0,0,0,.8); pointer-events:none; }
+.tube .tcap{ position:absolute; right:-8px; top:50%; width:30px; height:30px; transform:translateY(-50%); border-radius:50%; display:grid; place-items:center; font-weight:900; font-size:15px; color:#fff;
+  background:radial-gradient(circle at 35% 30%,#8A7A66,#4A3A28); box-shadow:0 0 0 3px #3B220E, inset 0 -2px 0 rgba(0,0,0,.3); }
+.tube.full .tcap{ background:radial-gradient(circle at 35% 30%,#FFF6B8 0%,#FFD034 45%,#E59A12 100%); color:#6A3B00; box-shadow:0 0 0 3px #8A5A10, 0 0 14px rgba(255,210,60,.9); animation:tcap 1.6s ease-in-out infinite; }
+@keyframes tcap{ 50%{ box-shadow:0 0 0 3px #8A5A10, 0 0 22px rgba(255,220,80,1); } }
+.tube.full .tfill{ max-width:calc(100% - 6px); }
+@media (prefers-reduced-motion: reduce){ .tube .tshine, .tube .tbub, .tube.full .tcap{ animation:none; } }
+.subic{ display:block; width:38px; height:38px; object-fit:contain; filter:drop-shadow(0 2px 2px rgba(0,0,0,.25)); }
+.ckwic{ display:grid; place-items:center; width:42px; font-size:28px; line-height:1; } .ckwic.big{ width:52px; font-size:34px; } .ckwic.big .subic{ width:50px; height:50px; }
+.ckbarhead{ display:flex; flex-direction:column; gap:2px; margin-bottom:6px; } .ckbarhead b{ font-family:Lora, Georgia, serif; font-size:17px; }
+.ckwork .ckwrow{ display:grid; grid-template-columns:42px minmax(92px,150px) 1fr 86px; align-items:center; gap:4px 14px; padding:10px 8px; border-radius:12px; background:rgba(255,255,255,.45); }
+.ckwork .ckwrow + .ckwrow{ margin-top:8px; }
+.ckwork .ckwrow small{ grid-column:auto; margin:0; }
+.ckwork .ckwname{ display:flex; flex-direction:column; font-family:Lora, Georgia, serif; font-weight:700; font-size:16px; line-height:1.15; }
+.ckwork .ckwmore{ font-family:var(--body); font-size:11.5px; color:#9a4a00; font-weight:800; margin-top:2px; }
+.ckwork .ckwweek{ display:flex; flex-direction:column; align-items:center; padding:4px 6px; border-radius:10px; background:#FFF1C9; border:2px solid #D9A94A; line-height:1.1; }
+.ckwork .ckwweek small{ font-size:10.5px; color:#8A5A10; font-weight:800; text-transform:uppercase; letter-spacing:.04em; } .ckwork .ckwweek b{ font-size:14px; color:#4A2A00; }
+.ckwork .ckwrow.ok{ background:rgba(214,245,200,.55); }
+.ckalls{ margin-top:10px; text-align:center; font-weight:900; color:#1d7a3e; }
+.ckgoal .ckgrow{ display:flex; align-items:center; gap:12px; margin-bottom:10px; }
+.ckgoal .ckgtxt{ flex:1; display:flex; flex-direction:column; } .ckgoal .ckgtxt b{ font-family:Lora, Georgia, serif; font-size:17px; } .ckgoal .ckgtxt small{ font-size:13px; color:#6A4A20; }
+.ckgoal .ckgpct{ font-family:Lora, Georgia, serif; font-weight:700; font-size:26px; color:var(--tc3); text-shadow:0 1px 0 #fff; }
+.ckgoal .ckgnote{ display:block; margin-top:10px; font-size:12px; color:#7A5A30; }
+.ckgoal .tube{ margin-right:10px; } .ckwork .tube{ margin-right:8px; }
+.cktest{ background:none; }
+@media (max-width:560px){ .ckwork .ckwrow{ grid-template-columns:36px 1fr 70px; } .ckwork .ckwrow .tube{ grid-column:1 / -1; grid-row:2; } }
+.ckwork .ckwweek b{ white-space:nowrap; }
+/* the tubes fill up once when the page opens (not on every redraw) */
+body:not(.tubeready) .tube .tfill{ animation:tgrow 1.3s cubic-bezier(.3,1.2,.5,1) both; }
+@keyframes tgrow{ from{ clip-path:inset(0 100% 0 0 round 99px); } to{ clip-path:inset(0 0 0 0 round 99px); } }
+/* 🔔 an alert took the teacher to this card */
+.goflash{ animation:goflash 2.2s ease-out; } @keyframes goflash{ 0%,40%{ box-shadow:0 0 0 4px #FFC93C, 0 0 30px rgba(255,200,60,.9); } 100%{ box-shadow:none; } }

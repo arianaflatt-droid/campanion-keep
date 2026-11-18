@@ -3,24 +3,24 @@
    Each step checks itself off from the student's save; tapping a step opens the tab where it's done.
    The Treasure Vault step is "check your progress", so it counts as done once the student opens it today
    (remembered on this computer only). */
-import { rvStarted, rvStock, rvBeatCount } from "./revenge.js?v=20261118h";
-import { heistTodo } from "./heist.js?v=20261118h";
-import { axoOn } from "./axolotl.js?v=20261118h";
-import { newsKeyOf, shownNews } from "./news.js?v=20261118h";
-import { freeReady } from "./pets.js?v=20261118h";
-import { tbLeft, tbLive } from "./teachbattle.js?v=20261118h";
-import { esc, simulate, companionOf, goalXP, SEASON } from "./game.js?v=20261118h";
+import { rvStarted, rvStock, rvBeatCount } from "./revenge.js?v=20261118j";
+import { heistTodo } from "./heist.js?v=20261118j";
+import { axoOn } from "./axolotl.js?v=20261118j";
+import { newsKeyOf, shownNews } from "./news.js?v=20261118j";
+import { freeReady } from "./pets.js?v=20261118j";
+import { tbLeft, tbLive } from "./teachbattle.js?v=20261118j";
+import { esc, simulate, companionOf, goalXP, SEASON } from "./game.js?v=20261118j";
 import { azToday, azNow, todayXP, pullsLeft, legendaryLeft, birthdayLeft, pickleLeft, vaultLegLeft, BOSS2_LIST, boss2EggLeft, candyLegLeft, snowLegLeft,
-  gingerLegLeft, feastLegLeft, brewLegLeft, goalLeft, themeLeft, hasStarter, bankXP, LEVEL_XP } from "./collect.js?v=20261118h";
-import { mqReady } from "./morning.js?v=20261118h";
-import { DOOR_ART, doorsLive, doorName, goldenReady, weekDoorState, vaultState, vaultGoal, subReq, todayPlan, SUBJECT_KEYS } from "./doors.js?v=20261118h";
-import { soloOn, soloReady, soloCfg } from "./solobrew.js?v=20261118h";
-import { passReady } from "./pass.js?v=20261118h";
-import { pettedToday } from "./bond.js?v=20261118h";
-import { mealsReady } from "./meals.js?v=20261118h";
-import { readyTests } from "./quest.js?v=20261118h";
-import { unthanked } from "./kindness.js?v=20261118h";
-import { kdTodo } from "./kingdom.js?v=20261118h";
+  gingerLegLeft, feastLegLeft, brewLegLeft, goalLeft, themeLeft, hasStarter, bankXP, LEVEL_XP } from "./collect.js?v=20261118j";
+import { mqReady } from "./morning.js?v=20261118j";
+import { DOOR_ART, doorsLive, doorName, goldenReady, weekDoorState, vaultState, vaultGoal, subReq, todayPlan, SUBJECT_KEYS } from "./doors.js?v=20261118j";
+import { soloOn, soloReady, soloCfg } from "./solobrew.js?v=20261118j";
+import { passReady } from "./pass.js?v=20261118j";
+import { pettedToday } from "./bond.js?v=20261118j";
+import { mealsReady } from "./meals.js?v=20261118j";
+import { readyTests } from "./quest.js?v=20261118j";
+import { unthanked } from "./kindness.js?v=20261118j";
+import { kdTodo } from "./kingdom.js?v=20261118j";
 
 const seenKey = (id, what) => "ck-seen-" + azToday() + "-" + id + "-" + what;
 // 📣 the class announcement (Nov 9): a new one gets a new key, so it shows up on the list again
@@ -102,20 +102,28 @@ export function steps(s, cls, students, battles) {
 }
 export const todoCount = (s, cls, students, battles) => steps(s, cls, students, battles).filter(x => !x.done).length;
 
-const SUB_IC = { m: "\u2795", r: "\u{1F4D6}", l: "\u270F\uFE0F", f: "\u26A1", w: "\u{1F4DD}", v: "\u{1F524}", sc: "\u{1F52C}", ss: "\u{1F30E}" };
+const SUB_IC = { m: "➕", r: "\u{1F4D6}", l: "✏️", f: "⚡", w: "\u{1F4DD}", v: "\u{1F524}", sc: "\u{1F52C}", ss: "\u{1F30E}" };
+/* 🧪 Nov 18 (Ms. Ariana): the bars are glass tubes in a wooden/iron frame, each subject fills with its own glowing color,
+   with a moving shine, little bubbles and a gold cap at the end when it's full. Subject pictures: assets/ui/subj/<key>.webp
+   (the emoji shows until that picture is uploaded). */
+const SUBIC = k => '<img class="subic" src="assets/ui/subj/' + esc(k || "x") + '.webp" alt="" onerror="this.replaceWith(document.createTextNode(\'' + (SUB_IC[k] || "\u{1F4D8}") + '\'))">';
+function tube(pct, cls, label) {
+  const p = Math.max(0, Math.min(100, pct || 0));
+  return '<span class="tube ' + (cls || "") + (p >= 100 ? " full" : "") + '"><span class="tfill" style="width:' + p + '%"><i class="tshine"></i><i class="tbub"></i><i class="tbub b2"></i><i class="tbub b3"></i></span>' +
+    (label ? '<span class="tlabel">' + label + "</span>" : "") + '<span class="tcap">' + (p >= 100 ? "✔" : "") + "</span></span>";
+}
 // 📚 Today's work: each core subject's XP today against what today needs (25 a day, plus catch-up from earlier days this week)
 function workCard(s, cls) {
   const p = todayPlan(s, cls, azToday()); if (!p || (!p.schoolToday && p.rows.every(r => !r.target))) return "";
   const all = p.rows.every(r => r.today >= r.target);
-  return '<div class="ckwork"><b>\u{1F4DA} ' + (p.weekend ? "Make-up work this weekend" : "Today\u2019s subjects") + "</b>" +
-    '<span class="small">' + (p.weekend ? "Finish what\u2019s still missing this week:" : "Do these every school day (they add up for your Treasure Vault):") + "</span>" +
-    p.rows.map(r => { const ok = r.today >= r.target;
-      return '<div class="ckwrow' + (ok ? " ok" : "") + '"><span class="ckwname">' + (SUB_IC[r.src] || "\u{1F4D8}") + " " + esc(r.name) + "</span>" +
-        '<span class="pbar"><span style="width:' + (r.target ? Math.min(100, r.today / r.target * 100) : 100) + '%"></span></span>' +
-        '<span class="ckwnum">' + (ok ? "\u2705 " : "") + r.today + " / " + r.target + "</span>" +
-        (r.extra ? '<small class="ckwmore">' + (p.weekend ? "" : r.per + " for today + " + r.extra + " to catch up") + "</small>" : "") +
-        '<small class="ckwweek">This week: ' + Math.min(r.week, r.need) + " / " + r.need + "</small></div>"; }).join("") +
-    (all ? '<span class="small"><b>\u{1F389} All your subjects are done' + (p.weekend ? "" : " for today") + "!</b></span>" : "") + "</div>";
+  return '<div class="ckwork"><div class="ckbarhead"><b>' + (p.weekend ? "Make-up work this weekend" : "Today’s subjects") + "</b>" +
+    '<span class="small">' + (p.weekend ? "Finish what’s still missing this week:" : "Do these every school day (they add up for your Treasure Vault):") + "</span></div>" +
+    p.rows.map(r => { const ok = r.today >= r.target, pct = r.target ? r.today / r.target * 100 : 100;
+      return '<div class="ckwrow s-' + esc(r.src) + (ok ? " ok" : "") + '"><span class="ckwic">' + SUBIC(r.src) + "</span>" +
+        '<span class="ckwname">' + esc(r.name) + (r.extra && !p.weekend ? '<small class="ckwmore">' + r.per + " today + " + r.extra + " catch-up</small>" : "") + "</span>" +
+        tube(pct, "sub", (ok ? "✅ " : "") + r.today + " / " + r.target) +
+        '<span class="ckwweek"><small>This week</small><b>' + Math.min(r.week, r.need) + " / " + r.need + "</b></span></div>"; }).join("") +
+    (all ? '<div class="ckalls">\u{1F389} All your subjects are done' + (p.weekend ? "" : " for today") + "!</div>" : "") + "</div>";
 }
 /* 🎯 Goal Subject test bar (Nov 10): XP left in the course for the student's Goal Subject, from Timeback (the feeder → testXp, saved by
    the teacher console). Timeback updates its number now and then, so XP earned in that subject on days AFTER that update counts down here. */
@@ -129,10 +137,10 @@ export function testLeftNow(s, today) {
 function testCard(s) {
   const x = testLeftNow(s, azToday()); if (!x) return "";
   const pct = Math.min(100, Math.max(0, x.done / x.tot * 100));
-  return '<div class="ckgoal cktest"><b>' + (SUB_IC[x.k] || "\u{1F4D8}") + " " + esc(x.sub) + " goal: " +
-    (x.left ? x.left.toLocaleString() + " XP left until your test!" : x.tbDone ? "\u{1F389} You finished! Your test is next." : "\u{1F525} Almost there! Your test is very close.") + "</b>" +
-    '<span class="pbar"><span style="width:' + pct + '%"></span></span>' +
-    '<small class="muted">' + esc(x.t) + " \u00B7 " + Math.round(x.done).toLocaleString() + " / " + x.tot.toLocaleString() + " XP</small></div>";
+  return '<div class="ckgoal cktest s-' + esc(x.k || "x") + '"><div class="ckgrow"><span class="ckwic big">' + SUBIC(x.k) + '</span><span class="ckgtxt"><b>' + esc(x.sub) + " goal</b><small>" +
+    (x.left ? "<b>" + x.left.toLocaleString() + " XP</b> left until your test!" : x.tbDone ? "\u{1F389} You finished! Your test is next." : "\u{1F525} Almost there! Your test is very close.") + "</small></span>" +
+    '<span class="ckgpct">' + Math.round(pct) + "%</span></div>" + tube(pct, "test", Math.round(x.done).toLocaleString() + " / " + x.tot.toLocaleString() + " XP") +
+    '<small class="ckgnote">' + esc(x.t) + "</small></div>";
 }
 export function checklistTab(s, cls, students, battles) {
   const list = steps(s, cls, students, battles), left = list.filter(x => !x.done).length, goal = goalXP(cls), xp = todayXP(s, cls);
@@ -144,8 +152,8 @@ export function checklistTab(s, cls, students, battles) {
       '</span><span class="cktxt"><b>' + esc(x.title) + "</b><small>" + esc(x.text) + '</small></span><span class="ckgo">Go →</span></button>').join("") + "</div>"
       : '<div class="ckalldone"><span>\u{1F389}</span><b>Your checklist is all done for today!</b><small>Now get learning. New steps show up here when there\u2019s something to do.</small>' +
         (((s.planet || {}).ckd === azToday()) ? '<small>\u2B50 You got your <b>+10 Stardust</b> for today!</small>' : '<button class="btn gold" data-act="ckClaim" style="margin-top:8px;">\u2B50 Claim +10 Stardust</button>') + "</div>") +
-    '<div class="ckgoal"><b>\u{1F3AF} Then: earn ' + goal + " XP today!</b> " + (xp >= goal ? "You did it — every 120 more earns another egg! \u{1F389}" : xp.toLocaleString() + " / " + goal + " so far") +
-    '<span class="pbar"><span style="width:' + Math.min(100, xp / goal * 100) + '%"></span></span></div>' +
+    '<div class="ckgoal ckxp"><div class="ckgrow"><span class="ckwic big"><img class="subic" src="assets/ui/subj/xp.webp" alt="" onerror="this.replaceWith(document.createTextNode(\'\u{1F3AF}\'))"></span><span class="ckgtxt"><b>Then: earn ' + goal + " XP today!</b><small>" +
+      (xp >= goal ? "You did it \u2014 every 120 more earns another egg! \u{1F389}" : "Keep going, you\u2019re on your way!") + '</small></span></div>' + tube(xp / goal * 100, "xp", xp.toLocaleString() + " / " + goal + " XP") + "</div>" +
     workCard(s, cls) + testCard(s) +
     "</div>";
   return h;
