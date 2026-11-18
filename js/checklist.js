@@ -3,24 +3,24 @@
    Each step checks itself off from the student's save; tapping a step opens the tab where it's done.
    The Treasure Vault step is "check your progress", so it counts as done once the student opens it today
    (remembered on this computer only). */
-import { rvStarted, rvStock, rvBeatCount } from "./revenge.js?v=20261118k";
-import { heistTodo } from "./heist.js?v=20261118k";
-import { axoOn } from "./axolotl.js?v=20261118k";
-import { newsKeyOf, shownNews } from "./news.js?v=20261118k";
-import { freeReady } from "./pets.js?v=20261118k";
-import { tbLeft, tbLive } from "./teachbattle.js?v=20261118k";
-import { esc, simulate, companionOf, goalXP, SEASON } from "./game.js?v=20261118k";
+import { rvStarted, rvStock, rvBeatCount } from "./revenge.js?v=20261118m";
+import { heistTodo } from "./heist.js?v=20261118m";
+import { axoOn } from "./axolotl.js?v=20261118m";
+import { newsKeyOf, shownNews } from "./news.js?v=20261118m";
+import { freeReady } from "./pets.js?v=20261118m";
+import { tbLeft, tbLive } from "./teachbattle.js?v=20261118m";
+import { esc, simulate, companionOf, goalXP, SEASON } from "./game.js?v=20261118m";
 import { azToday, azNow, todayXP, pullsLeft, legendaryLeft, birthdayLeft, pickleLeft, vaultLegLeft, BOSS2_LIST, boss2EggLeft, candyLegLeft, snowLegLeft,
-  gingerLegLeft, feastLegLeft, brewLegLeft, goalLeft, themeLeft, hasStarter, bankXP, LEVEL_XP } from "./collect.js?v=20261118k";
-import { mqReady } from "./morning.js?v=20261118k";
-import { DOOR_ART, doorsLive, doorName, goldenReady, weekDoorState, vaultState, vaultGoal, subReq, todayPlan, SUBJECT_KEYS } from "./doors.js?v=20261118k";
-import { soloOn, soloReady, soloCfg } from "./solobrew.js?v=20261118k";
-import { passReady } from "./pass.js?v=20261118k";
-import { pettedToday } from "./bond.js?v=20261118k";
-import { mealsReady } from "./meals.js?v=20261118k";
-import { readyTests } from "./quest.js?v=20261118k";
-import { unthanked } from "./kindness.js?v=20261118k";
-import { kdTodo } from "./kingdom.js?v=20261118k";
+  gingerLegLeft, feastLegLeft, brewLegLeft, goalLeft, themeLeft, hasStarter, bankXP, LEVEL_XP } from "./collect.js?v=20261118m";
+import { mqReady } from "./morning.js?v=20261118m";
+import { DOOR_ART, doorsLive, doorName, goldenReady, weekDoorState, vaultState, vaultGoal, subReq, todayPlan, SUBJECT_KEYS } from "./doors.js?v=20261118m";
+import { soloOn, soloReady, soloCfg } from "./solobrew.js?v=20261118m";
+import { passReady } from "./pass.js?v=20261118m";
+import { pettedToday } from "./bond.js?v=20261118m";
+import { mealsReady } from "./meals.js?v=20261118m";
+import { readyTests } from "./quest.js?v=20261118m";
+import { unthanked } from "./kindness.js?v=20261118m";
+import { kdTodo } from "./kingdom.js?v=20261118m";
 
 const seenKey = (id, what) => "ck-seen-" + azToday() + "-" + id + "-" + what;
 // 📣 the class announcement (Nov 9): a new one gets a new key, so it shows up on the list again
@@ -107,10 +107,15 @@ const SUB_IC = { m: "➕", r: "\u{1F4D6}", l: "✏️", f: "⚡", w: "\u{1F4DD}"
    with a moving shine, little bubbles and a gold cap at the end when it's full. Subject pictures: assets/ui/subj/<key>.webp
    (the emoji shows until that picture is uploaded). */
 const SUBIC = k => '<img class="subic" src="assets/ui/subj/' + esc(k || "x") + '.webp" alt="" onerror="this.replaceWith(document.createTextNode(\'' + (SUB_IC[k] || "\u{1F4D8}") + '\'))">';
-function tube(pct, cls, label) {
-  const p = Math.max(0, Math.min(100, pct || 0));
-  return '<span class="tube ' + (cls || "") + (p >= 100 ? " full" : "") + '"><span class="tfill" style="width:' + p + '%"><i class="tshine"></i><i class="tbub"></i><i class="tbub b2"></i><i class="tbub b3"></i></span>' +
-    (label ? '<span class="tlabel">' + label + "</span>" : "") + '<span class="tcap">' + (p >= 100 ? "✔" : "") + "</span></span>";
+/* 💎 Nov 18: the end of each tube is an empty socket; when the bar is full that subject's gem sits in it.
+   The first time a bar fills each day (this computer) the gem pops in with sparkles. */
+const GEM = { m: "blue", r: "green", l: "purple", f: "orange", w: "pink", v: "teal", sc: "lime", ss: "gold", xp: "gold" };
+function gemPop(key) { const k = "ck-gem-" + azToday() + "-" + key; try { if (localStorage.getItem(k)) return false; localStorage.setItem(k, "1"); } catch (e) { return false; } return true; }
+function tube(pct, cls, label, key) {
+  const p = Math.max(0, Math.min(100, pct || 0)), full = p >= 100, pop = full && gemPop((cls || "") + ":" + (key || "x"));
+  return '<span class="tube ' + (cls || "") + (full ? " full" : "") + '"><span class="tfill" style="width:' + p + '%"><i class="tshine"></i><i class="tbub"></i><i class="tbub b2"></i><i class="tbub b3"></i></span>' +
+    (label ? '<span class="tlabel">' + label + "</span>" : "") + '<span class="tcap' + (pop ? " pop" : "") + '"><img class="tsock" src="assets/ui/ck/socket.webp" alt="">' +
+    (full ? '<img class="tgem" src="assets/ui/ck/gem-' + (GEM[key] || "gold") + '.webp" alt="Done!"><i class="tspark"></i>' : "") + "</span></span>";
 }
 // 📚 Today's work: each core subject's XP today against what today needs (25 a day, plus catch-up from earlier days this week)
 function workCard(s, cls) {
@@ -121,7 +126,7 @@ function workCard(s, cls) {
     p.rows.map(r => { const ok = r.today >= r.target, pct = r.target ? r.today / r.target * 100 : 100;
       return '<div class="ckwrow s-' + esc(r.src) + (ok ? " ok" : "") + '"><span class="ckwic">' + SUBIC(r.src) + "</span>" +
         '<span class="ckwname">' + esc(r.name) + (r.extra && !p.weekend ? '<small class="ckwmore">' + r.per + " today + " + r.extra + " catch-up</small>" : "") + "</span>" +
-        tube(pct, "sub", (ok ? "✅ " : "") + r.today + " / " + r.target) +
+        tube(pct, "sub", r.today + " / " + r.target, r.src) +
         '<span class="ckwweek"><small>This week</small><b>' + Math.min(r.week, r.need) + " / " + r.need + "</b></span></div>"; }).join("") +
     (all ? '<div class="ckalls">\u{1F389} All your subjects are done' + (p.weekend ? "" : " for today") + "!</div>" : "") + "</div>";
 }
@@ -139,7 +144,7 @@ function testCard(s) {
   const pct = Math.min(100, Math.max(0, x.done / x.tot * 100));
   return '<div class="ckgoal cktest s-' + esc(x.k || "x") + '"><div class="ckgrow"><span class="ckwic big">' + SUBIC(x.k) + '</span><span class="ckgtxt"><b>' + esc(x.sub) + " goal</b><small>" +
     (x.left ? "<b>" + x.left.toLocaleString() + " XP</b> left until your test!" : x.tbDone ? "\u{1F389} You finished! Your test is next." : "\u{1F525} Almost there! Your test is very close.") + "</small></span>" +
-    '<span class="ckgpct">' + Math.round(pct) + "%</span></div>" + tube(pct, "test", Math.round(x.done).toLocaleString() + " / " + x.tot.toLocaleString() + " XP") +
+    '<span class="ckgpct">' + Math.round(pct) + "%</span></div>" + tube(pct, "test", Math.round(x.done).toLocaleString() + " / " + x.tot.toLocaleString() + " XP", x.k) +
     '<small class="ckgnote">' + esc(x.t) + "</small></div>";
 }
 export function checklistTab(s, cls, students, battles) {
@@ -149,11 +154,11 @@ export function checklistTab(s, cls, students, battles) {
     // Nov 7: finished steps leave the list; when everything's done the list goes away for the day
     (left ? '<p class="lede" style="margin-bottom:10px;">Go down your list. Tap a step to go do it. Done steps disappear!' + (list.length - left ? ' <span class="ckdone">✅ ' + (list.length - left) + " done</span>" : "") + '</p><div class="cklist">' +
     list.filter(x => !x.done).map((x, i) => '<button class="ckitem" data-tab="' + x.tab + '" data-ck="' + x.id + '"><span class="ckn">' + (i + 1) + '</span><span class="ckic">' + x.icon +
-      '</span><span class="cktxt"><b>' + esc(x.title) + "</b><small>" + esc(x.text) + '</small></span><span class="ckgo">Go →</span></button>').join("") + "</div>"
+      '</span><span class="cktxt"><b>' + esc(x.title) + "</b><small>" + esc(x.text) + '</small></span><span class="ckgo"><span>Go</span></span></button>').join("") + "</div>"
       : '<div class="ckalldone"><span>\u{1F389}</span><b>Your checklist is all done for today!</b><small>Now get learning. New steps show up here when there\u2019s something to do.</small>' +
         (((s.planet || {}).ckd === azToday()) ? '<small>\u2B50 You got your <b>+10 Stardust</b> for today!</small>' : '<button class="btn gold" data-act="ckClaim" style="margin-top:8px;">\u2B50 Claim +10 Stardust</button>') + "</div>") +
     '<div class="ckgoal ckxp"><div class="ckgrow"><span class="ckwic big"><img class="subic" src="assets/ui/subj/xp.webp" alt="" onerror="this.replaceWith(document.createTextNode(\'\u{1F3AF}\'))"></span><span class="ckgtxt"><b>Then: earn ' + goal + " XP today!</b><small>" +
-      (xp >= goal ? "You did it \u2014 every 120 more earns another egg! \u{1F389}" : "Keep going, you\u2019re on your way!") + '</small></span></div>' + tube(xp / goal * 100, "xp", xp.toLocaleString() + " / " + goal + " XP") + "</div>" +
+      (xp >= goal ? "You did it \u2014 every 120 more earns another egg! \u{1F389}" : "Keep going, you\u2019re on your way!") + '</small></span></div>' + tube(xp / goal * 100, "xp", xp.toLocaleString() + " / " + goal + " XP", "xp") + "</div>" +
     workCard(s, cls) + testCard(s) +
     "</div>";
   return h;

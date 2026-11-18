@@ -7,12 +7,12 @@
    The step lives on the class doc (cls.mm = { on, k, i, id }), one small write per step.
    📰 "Pop it open on every screen": cls.newsShow = { id, open } puts the announcements over every student's page until
    she closes it (students can tap "Got it" to close it on their own screen). */
-import { esc, battleOn } from "./game.js?v=20261118k";
-import { soloOn } from "./solobrew.js?v=20261118k";
-import { azToday } from "./collect.js?v=20261118k";
-import { newsPage, shownNews } from "./news.js?v=20261118k";
-import { secretBanner } from "./secret.js?v=20261118k";
-import { p120On, p60On } from "./party.js?v=20261118k";
+import { esc, battleOn } from "./game.js?v=20261118m";
+import { soloOn } from "./solobrew.js?v=20261118m";
+import { azToday } from "./collect.js?v=20261118m";
+import { newsPage, shownNews } from "./news.js?v=20261118m";
+import { secretBanner } from "./secret.js?v=20261118m";
+import { p120On, p60On } from "./party.js?v=20261118m";
 
 export const MM_STEPS = {
   am: [
