@@ -4644,3 +4644,23 @@ body.ck .ckalldone, .ckalldone{ position:relative; overflow:visible; display:fle
 body.ck .hero.haunt{ padding:7.5% 15% 11% !important; }
 body.ck .hero.haunt .haunt-tag{ position:absolute; left:50%; top:20%; transform:translateX(-50%); opacity:0; pointer-events:none; }
 @media (max-width:600px){ body.ck .hero.haunt .haunt-sub{ display:none; } body.ck .hero.haunt{ padding:10.5% 14% 12% !important; min-height:0; } body.ck .hero.haunt h2{ font-size:clamp(13px,3.6vw,18px); } }
+/* 🚩 Nov 18: banner words stay in the plain middle of the cloth, bright with a dark outline */
+body.ck .hero.haunt{ padding:7.5% 19% 12.5% !important; }
+body.ck .hero.haunt h2{ font-size:clamp(13px,2.45vw,22px) !important; color:#FFFBEA !important; line-height:1.2;
+  text-shadow:-2px -2px 0 #3A1606, 2px -2px 0 #3A1606, -2px 2px 0 #3A1606, 2px 2px 0 #3A1606, 0 3px 0 #3A1606, 0 0 10px rgba(0,0,0,.6) !important; }
+body.ck .hero.haunt h2 b{ color:#FFE45C !important; }
+body.ck .hero.haunt .haunt-sub{ display:none !important; }
+@media (max-width:600px){ body.ck .hero.haunt{ padding:10.5% 17% 13% !important; } body.ck .hero.haunt h2{ font-size:clamp(11px,3.2vw,15px) !important; } }
+/* 📜 announcements (the pinned one on every page and the Announcements page) sit on the scroll */
+body.ck .card.newscard{ border-style:solid !important; border-color:transparent !important; border-width:26px 40px !important; border-radius:0 !important;
+  border-image:url(../assets/ui/ck/scroll.webp) 95 130 fill / 26px 40px / 0 stretch !important; background:none !important; box-shadow:none !important;
+  padding:6px 10px !important; filter:drop-shadow(0 6px 6px rgba(70,35,0,.3)); }
+body.ck .card.newscard h2{ font-family:Lora, Georgia, serif; color:#8E1A24 !important; }
+body.ck .card.newscard .newsbig, body.ck .card.newscard .newspic{ border-radius:10px; box-shadow:0 0 0 3px #D9A94A, 0 4px 8px rgba(0,0,0,.25); }
+@media (max-width:520px){ body.ck .card.newscard{ border-width:18px 26px !important; border-image-width:18px 26px !important; } }
+/* the countdown, Duck Showdown and Secret Students bars (Announcements page) sit on the scroll too */
+body.ck .countdown, body.ck .sdpill, body.ck .secretbar{ border-style:solid !important; border-color:transparent !important; border-width:20px 34px !important; border-radius:0 !important;
+  border-image:url(../assets/ui/ck/scroll.webp) 95 130 fill / 20px 34px / 0 stretch !important; background:none !important; box-shadow:none !important;
+  color:#3A2410 !important; filter:drop-shadow(0 5px 5px rgba(70,35,0,.28)); margin-bottom:10px; width:100%; }
+body.ck .countdown b{ color:#8E1A24 !important; font-family:Lora, Georgia, serif; } body.ck .countdown .cdleft{ color:#3A2410 !important; font-family:Lora, Georgia, serif; }
+body.ck .sdpill span{ color:#8E1A24 !important; } body.ck .secretbar *{ color:#3A2410; } body.ck .secretbar b{ color:#8E1A24; }
