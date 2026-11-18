@@ -3,24 +3,24 @@
    Each step checks itself off from the student's save; tapping a step opens the tab where it's done.
    The Treasure Vault step is "check your progress", so it counts as done once the student opens it today
    (remembered on this computer only). */
-import { rvStarted, rvStock, rvBeatCount } from "./revenge.js?v=20261118f";
-import { heistTodo } from "./heist.js?v=20261118f";
-import { axoOn } from "./axolotl.js?v=20261118f";
-import { newsKeyOf, shownNews } from "./news.js?v=20261118f";
-import { freeReady } from "./pets.js?v=20261118f";
-import { tbLeft, tbLive } from "./teachbattle.js?v=20261118f";
-import { esc, simulate, companionOf, goalXP, SEASON } from "./game.js?v=20261118f";
+import { rvStarted, rvStock, rvBeatCount } from "./revenge.js?v=20261118h";
+import { heistTodo } from "./heist.js?v=20261118h";
+import { axoOn } from "./axolotl.js?v=20261118h";
+import { newsKeyOf, shownNews } from "./news.js?v=20261118h";
+import { freeReady } from "./pets.js?v=20261118h";
+import { tbLeft, tbLive } from "./teachbattle.js?v=20261118h";
+import { esc, simulate, companionOf, goalXP, SEASON } from "./game.js?v=20261118h";
 import { azToday, azNow, todayXP, pullsLeft, legendaryLeft, birthdayLeft, pickleLeft, vaultLegLeft, BOSS2_LIST, boss2EggLeft, candyLegLeft, snowLegLeft,
-  gingerLegLeft, feastLegLeft, brewLegLeft, goalLeft, themeLeft, hasStarter, bankXP, LEVEL_XP } from "./collect.js?v=20261118f";
-import { mqReady } from "./morning.js?v=20261118f";
-import { DOOR_ART, doorsLive, doorName, goldenReady, weekDoorState, vaultState, vaultGoal, subReq, todayPlan, SUBJECT_KEYS } from "./doors.js?v=20261118f";
-import { soloOn, soloReady, soloCfg } from "./solobrew.js?v=20261118f";
-import { passReady } from "./pass.js?v=20261118f";
-import { pettedToday } from "./bond.js?v=20261118f";
-import { mealsReady } from "./meals.js?v=20261118f";
-import { readyTests } from "./quest.js?v=20261118f";
-import { unthanked } from "./kindness.js?v=20261118f";
-import { kdTodo } from "./kingdom.js?v=20261118f";
+  gingerLegLeft, feastLegLeft, brewLegLeft, goalLeft, themeLeft, hasStarter, bankXP, LEVEL_XP } from "./collect.js?v=20261118h";
+import { mqReady } from "./morning.js?v=20261118h";
+import { DOOR_ART, doorsLive, doorName, goldenReady, weekDoorState, vaultState, vaultGoal, subReq, todayPlan, SUBJECT_KEYS } from "./doors.js?v=20261118h";
+import { soloOn, soloReady, soloCfg } from "./solobrew.js?v=20261118h";
+import { passReady } from "./pass.js?v=20261118h";
+import { pettedToday } from "./bond.js?v=20261118h";
+import { mealsReady } from "./meals.js?v=20261118h";
+import { readyTests } from "./quest.js?v=20261118h";
+import { unthanked } from "./kindness.js?v=20261118h";
+import { kdTodo } from "./kingdom.js?v=20261118h";
 
 const seenKey = (id, what) => "ck-seen-" + azToday() + "-" + id + "-" + what;
 // 📣 the class announcement (Nov 9): a new one gets a new key, so it shows up on the list again
@@ -30,6 +30,10 @@ export function markSeen(id, what) { try { localStorage.setItem(seenKey(id, what
 const seen = (id, what) => { try { return localStorage.getItem(seenKey(id, what)) === "1"; } catch (e) { return false; } };
 // 🖼️ Nov 18 (Ms. Ariana): pictures instead of emoji for some steps
 const PIC = src => '<img class="ckimg" src="' + src + '" alt="">';
+const ART = "assets/ui/ck/";   // new step pictures from Ms. Ariana (until a picture is uploaded the emoji shows instead)
+const PICOR = (file, emo) => '<img class="ckimg" src="' + ART + file + '.webp" alt="" onerror="this.replaceWith(document.createTextNode(\'' + emo + '\'))">';
+const petPic = c => !c ? "\u{1F43E}" : c.creature ? String(c.glyph || "\u{1F43E}") : PIC("assets/emoji/pet-" + c.id + ".webp");   // their own companion
+const BREW_PIC = { haunt: "assets/potion/cauldron.webp", gobble: "assets/feast/turkey.webp", jingle: "assets/ginger/house-10.webp", frost: "assets/snowman/snowman-10.webp", lucky: "assets/lucky/trap-10.webp" };
 const plural = (n, w) => n + " " + w + (n === 1 ? "" : "s");
 
 export function eggsLeft(s, cls) {
@@ -50,21 +54,21 @@ export function steps(s, cls, students, battles) {
   const school = !["Sat", "Sun"].includes(azNow().day);
 
   // 0. 📣 the announcement (Nov 9)
-  if (newsKey(cls)) { const L = shownNews(cls); add("news", "news", "\u{1F4E3}", L.length > 1 ? "Read the announcements" : "Read the announcement", (L.length > 1 ? L.length + " announcements: " : "") + (L[0].title ? "\u201C" + L[0].title + "\u201D" : "Something new from the teacher!"), newsRead(s, cls)); }
+  if (newsKey(cls)) { const L = shownNews(cls); add("news", "news", PICOR("news", "\u{1F4E3}"), L.length > 1 ? "Read the announcements" : "Read the announcement", (L.length > 1 ? L.length + " announcements: " : "") + (L[0].title ? "\u201C" + L[0].title + "\u201D" : "Something new from the teacher!"), newsRead(s, cls)); }
   // 🎁 the free starter Nebble (when Ms. Ariana has it on)
-  if (freeReady(s, cls)) add("nebfree", "check", "\u{1F381}", "Pick your FREE Nebble!", "Alien Duck brought a Nebble for you. Tap to pick your color!", false);
+  if (freeReady(s, cls)) add("nebfree", "check", PIC("assets/pets/cherry.webp"), "Pick your FREE Nebble!", "Alien Duck brought a Nebble for you. Tap to pick your color!", false);
   // 1. companion
-  add("pet", "pet", "\u{1F43E}", "Check on " + pet,
+  add("pet", "pet", petPic(c), "Check on " + pet,
     (sim.alive ? (sim.atRisk ? "⚠️ " + pet + " needs a " + goalXP(cls) + " XP day to heal. " : pet + " is doing great. ") : pet + " needs your help! ")
     + (pettedToday(s) ? "You petted " + pet + " today \u{1F496}" : "Give " + pet + " a pet!"), pettedToday(s));
   // 🫧 Bubble's Baby (Nov 9): check on it every day
   if (axoOn(cls)) { const an = s.axo && s.axo.name ? s.axo.name : "";
     add("axo", "axo", PIC("assets/axolotl.png"), "Check on " + (an || "Bubble\u2019s Baby"), an ? "Go see how " + an + " is doing today!" : "Go see how the class baby axolotl is doing today!", seen(s.id, "axo")); }
   // 2. Campfire Kitchen
-  { const n = mealsReady(s, cls); add("kitchen", "pet", "\u{1F373}", "Cook in the Campfire Kitchen", n ? (n === 1 ? "A meal is" : n + " meals are") + " ready to cook for a boost!" : "Nothing to cook right now.", !n); }
+  { const n = mealsReady(s, cls); add("kitchen", "pet", PIC("assets/kitchen/kitchen-campfire.webp"), "Cook in the Campfire Kitchen", n ? (n === 1 ? "A meal is" : n + " meals are") + " ready to cook for a boost!" : "Nothing to cook right now.", !n); }
   // 3. Morning Quests
   if (school) { const n = mqReady(s, cls), late = azNow().h * 60 + azNow().m >= 8 * 60 + 30;
-    add("morning", "morning", "\u{1F305}", "Do your Morning Quests", n ? plural(n, "quest") + " ready — finish them before 8:15!" : late ? "The board is closed for today." : "All caught up! Earn more XP before 8:15 to open more.", !n); }
+    add("morning", "morning", PIC("assets/morning/mq-board.webp"), "Do your Morning Quests", n ? plural(n, "quest") + " ready — finish them before 8:15!" : late ? "The board is closed for today." : "All caught up! Earn more XP before 8:15 to open more.", !n); }
   // 5. eggs
   if (hasStarter(s)) { const n = eggsLeft(s, cls), lv = Math.floor(bankXP(s, cls) / LEVEL_XP);
     add("eggs", "collect", PIC("assets/egg-common.webp"), "Hatch your eggs", n ? "You have " + plural(n, "egg") + " to hatch!" : "No eggs right now." + (lv ? " You can level up a creature " + plural(lv, "time") + "!" : " 120 XP in a day earns one."), !n); }
@@ -79,21 +83,21 @@ export function steps(s, cls, students, battles) {
       st === "open" || (st !== "ready" && seen(s.id, "vault"))); }
   // 8. potion cauldron
   if (soloOn(cls)) { const k = soloCfg(cls), n = soloReady(s, cls);
-    add("brew", "haunt", k.icon, k.verb + " in your " + k.where, n ? plural(n, k.one) + " ready to " + k.verb.toLowerCase() + "!" : "Earn XP to collect ingredients for your next " + k.one + ".", !n); }
+    add("brew", "haunt", BREW_PIC[k.key] ? PIC(BREW_PIC[k.key]) : k.icon, k.verb + " in your " + k.where, n ? plural(n, k.one) + " ready to " + k.verb.toLowerCase() + "!" : "Earn XP to collect ingredients for your next " + k.one + ".", !n); }
   // 🦃 Turducken's Revenge (Thanksgiving break)
   if (rvStarted(cls)) { const k = rvStock(s, cls), n = rvBeatCount(s, cls);
-    add("revenge", "pet", "\u{1F983}", "Chase the Turducken", k.energy ? k.energy + " \u26A1 energy ready \u2014 " + (n >= 5 ? "climb the Tower!" : "chapter " + (n + 1) + " of 5!") : "Earn XP for \u26A1 energy (every 10 XP = 1 round).", !k.energy); }
+    add("revenge", "pet", PIC("assets/gobble/turducken.webp"), "Chase the Turducken", k.energy ? k.energy + " \u26A1 energy ready \u2014 " + (n >= 5 ? "climb the Tower!" : "chapter " + (n + 1) + " of 5!") : "Earn XP for \u26A1 energy (every 10 XP = 1 round).", !k.energy); }
   // 🎄 the Great Present Heist (Christmas break)
-  { const t = heistTodo(s, cls); if (t) add("heist", "pet", "\u{1F384}", "Chase the Grinch-a-Duck", t.text, t.done); }
+  { const t = heistTodo(s, cls); if (t) add("heist", "pet", PIC("assets/heist/gd-base.webp"), "Chase the Grinch-a-Duck", t.text, t.done); }
   // 9. Season Pass
-  if (!(cls && cls.passOff)) { const n = passReady(s, cls); add("pass", "pass", "\u{1F39F}️", "Claim Season Pass rewards", n ? plural(n, "reward") + " ready!" : "No rewards waiting.", !n); }
+  if (!(cls && cls.passOff)) { const n = passReady(s, cls); add("pass", "pass", PICOR("pass", "\u{1F39F}️"), "Claim Season Pass rewards", n ? plural(n, "reward") + " ready!" : "No rewards waiting.", !n); }
   // extras (only when there's something to do)
-  if (kdTodo(s, cls)) add("kd", "kd", "\u{1F30A}", "Visit the Axolotl Kingdom", "You made it in this week! Open your Royal Clam and go Pearl Diving.", false);   // Nov 10
-  { const n = readyTests(s).length; if (n) add("tests", "quest", "\u{1F5FA}️", "Grade Level Quest: battle a guardian", "You passed " + plural(n, "test") + "! A guardian battle is waiting. Win it for a Legendary egg!", false); }
+  if (kdTodo(s, cls)) add("kd", "kd", PIC("assets/kingdom/queen-wave.webp"), "Visit the Axolotl Kingdom", "You made it in this week! Open your Royal Clam and go Pearl Diving.", false);   // Nov 10
+  { const n = readyTests(s).length; if (n) add("tests", "quest", PICOR("quest", "\u{1F5FA}️"), "Grade Level Quest: battle a guardian", "You passed " + plural(n, "test") + "! A guardian battle is waiting. Win it for a Legendary egg!", false); }
   { const n = tbLeft(s, cls, battles).length, live = tbLive(s, battles);
-    if (live && live.status === "invite") add("tbattle", "collect", "\u{1F34E}", "Ms. Ariana started your battle!", "Go to the Battle Arena and tap Accept.", false);
-    else if (n && !s.tbAsk && !live) add("tbattle", "collect", "\u{1F34E}", "Ask Ms. Ariana for a battle", "You reached the weekly goal, so you earned a battle with her!", false); }
-  { const n = students ? unthanked(s, students, cls).length : 0; if (n) add("kind", "pet", "\u{1F48C}", "Read your shout-outs", plural(n, "classmate") + " sent you kind words!", false); }
+    if (live && live.status === "invite") add("tbattle", "collect", PICOR("battle", "\u{1F34E}"), "Ms. Ariana started your battle!", "Go to the Battle Arena and tap Accept.", false);
+    else if (n && !s.tbAsk && !live) add("tbattle", "collect", PICOR("battle", "\u{1F34E}"), "Ask Ms. Ariana for a battle", "You reached the weekly goal, so you earned a battle with her!", false); }
+  { const n = students ? unthanked(s, students, cls).length : 0; if (n) add("kind", "pet", PICOR("shoutout", "\u{1F48C}"), "Read your shout-outs", plural(n, "classmate") + " sent you kind words!", false); }
   return out;
 }
 export const todoCount = (s, cls, students, battles) => steps(s, cls, students, battles).filter(x => !x.done).length;

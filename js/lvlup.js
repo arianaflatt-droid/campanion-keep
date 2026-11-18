@@ -3,7 +3,7 @@
    is taken over by the thinking duck congratulating them, until she closes it.
    Saved on the class doc, which every screen already watches (no new reads):
      cls.lvlup = { id, at, open: true|false, list: [{ n: name, s: subject }] } */
-import { esc } from "./game.js?v=20261118f";
+import { esc } from "./game.js?v=20261118h";
 
 export const LV_SUBJECTS = ["Math", "Reading", "Language", "Vocabulary", "Science", "Social Studies", "Writing", "Fast Math"];
 const DUCK = "assets/lvlup/duck.webp";
