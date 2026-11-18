@@ -4409,9 +4409,12 @@ body.ck .wrap{ max-width:900px !important; position:relative; z-index:1; }
 body.ck h1, body.ck h2, body.ck h3{ font-family:Lora, Georgia, serif; font-weight:700; }
 
 /* 🚩 the top banner: a royal cloth banner hanging from a wooden pole */
-body.ck .hero{ position:relative; border-radius:0; margin:18px 10px 26px; padding:22px 26px 46px; overflow:visible;
-  background:linear-gradient(180deg,#B3242E 0%,#8E1A24 100%); box-shadow:inset 0 0 0 4px #E6A92C, inset 0 0 0 7px #8E1A24, inset 0 0 0 9px #FFE38A, 0 16px 26px rgba(0,0,0,.5);
-  clip-path:polygon(0 0,100% 0,100% 100%,75% calc(100% - 26px),50% 100%,25% calc(100% - 26px),0 100%); }
+body.ck .hero{ position:relative; border-radius:0 0 4px 4px; margin:18px 10px 34px; padding:22px 26px 18px; overflow:visible;
+  background:linear-gradient(180deg,#B3242E 0%,#8E1A24 100%); box-shadow:inset 0 0 0 4px #E6A92C, inset 0 0 0 7px #8E1A24, inset 0 0 0 9px #FFE38A, 0 16px 26px rgba(0,0,0,.45); }
+/* the banner's notched tails hang below it (on their own strip, so the gold edge and the text are never cut) */
+body.ck .hero::after{ content:""; position:absolute; left:0; right:0; bottom:-22px; height:24px; pointer-events:none;
+  background:linear-gradient(180deg,#E6A92C 0 4px,#8E1A24 4px 100%);
+  clip-path:polygon(0 0,100% 0,100% 100%,87.5% 35%,75% 100%,62.5% 35%,50% 100%,37.5% 35%,25% 100%,12.5% 35%,0 100%); }
 body.ck .hero::before{ content:""; position:absolute; left:-14px; right:-14px; top:-12px; height:16px; border-radius:8px; background:var(--ck-woodtex) center/cover, #6B3F1D; box-shadow:0 3px 0 #3B220E; }
 body.ck .hero h2{ font-family:Lora, Georgia, serif; font-weight:700; color:#FFF3D6; text-shadow:0 3px 0 #5A0E14; }
 body.ck .hero h2 b{ color:#FFD861; }
