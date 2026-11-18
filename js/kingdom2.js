@@ -14,14 +14,14 @@
      sub { own:{key:1}, use, trail, trails:{key:1} }, seen { area: 1 }.
    Weekly parts (a new week starts fresh): qd { quest: 1 } claimed quests, qx chest pearls, wb best dive this week,
      wn new creatures this week, vq { place: 1 } places visited this week, ws pearls spent this week. */
-import { esc, companionOf, petWithHead } from "./game.js?v=20261117o";
-import { startPaint } from "./hangar.js?v=20261117o";
-import { KD_ULTRA_FAM } from "./kd-ultra.js?v=20261117o";
-import { owned as crOwned, ownedFams, formOf, fighterFrom, resolveRound, hitDamage, MOVES, moveOk, sparkleImg } from "./collect.js?v=20261117o";
+import { esc, companionOf, petWithHead, petHTML } from "./game.js?v=20261118a";
+import { startPaint } from "./hangar.js?v=20261118a";
+import { KD_ULTRA_FAM } from "./kd-ultra.js?v=20261118a";
+import { owned as crOwned, ownedFams, formOf, fighterFrom, resolveRound, hitDamage, MOVES, moveOk, sparkleImg } from "./collect.js?v=20261118a";
 
 const K = "assets/kingdom/";
 export const KEEP2_NOTE = "ar = this week's arena { w, won, tries }, arb = boss badges { boss: 1 }";
-export const KEEP2 = ["aq", "aqf", "cg", "sub", "seen", "sh", "rk", "rkp", "ship", "hx", "sc", "bk", "ar", "arb", "rke", "ct", "ws"];
+export const KEEP2 = ["aq", "aqf", "cg", "sub", "seen", "sh", "rk", "rkp", "ship", "hx", "sc", "bk", "ar", "arb", "rke", "ct", "ws", "lg"];
 export const kd2On = (cls, preview) => !!preview || !!(cls && cls.kd2On);
 
 /* ----- ranks: weeks the student reached the Kingdom (= Treasures of the Week they have) ----- */
@@ -31,7 +31,7 @@ export const weeksIn = st => Object.keys(((st && st.kd) || {}).g || {}).length;
 export function rankOf(st) { const n = Math.max(1, weeksIn(st)); let r = RANKS[0]; RANKS.forEach(x => { if (n >= x[0]) r = x; }); return { n, name: r[1], badge: r[2] }; }
 export function rankChip(st) {
   const r = rankOf(st);
-  return '<span class="kdrank">' + (r.badge ? '<img src="' + K + "rank-" + r.badge + '.webp" alt="">' : "\u{1F3F7}️") + "<b>" + r.name + "</b><small>week " + r.n + "</small></span>";
+  return '<span class="kdrank' + (r.n >= 18 ? " legend" : "") + '">' + (r.badge ? '<img src="' + K + "rank-" + r.badge + '.webp" alt="">' : "\u{1F3F7}️") + "<b>" + r.name + "</b><small>week " + r.n + "</small></span>";
 }
 
 /* ----- the 60 aquarium creatures: tank (0–5), size group, floor = stays on the sand, bob = jelly bob ----- */
@@ -118,6 +118,8 @@ const GUIDE = {
     how: "I’m the <b>Pearl Diver</b>! Swim anywhere and grab ⚪ pearls (\u{1F7E1} golden = 5). Jellyfish make you drop 3. You get <b>3 dives a week</b>. On every dive a <b>sea creature swims by</b> in a glowing bubble. Swim into it to catch it for the Royal Aquarium!" },
   dock: { duck: "paint", name: "Paint Duck", hi: "Back for a new look? Pick a paint job or a bubble trail!",
     how: "Welcome to the <b>Sub Paint Dock</b>! Buy a <b>paint job</b> with pearls, then mix the colors and roll it on your submarine. You can also buy a <b>bubble trail</b>. Your sub shows on your Kingdom bar and on every trip!" },
+  statue: { duck: "", img: K + "captain-cheer.webp", name: "Captain Duck", hi: "Your statue is the shiniest one in the whole Kingdom!",
+    how: "You are a <b>Kingdom Legend</b>! To celebrate, the Queen had a <b>golden statue of your companion</b> made for the castle garden. Everyone who visits can see it! Seaweed and sand get on it every week, so <b>polish it once a week</b> (rub the dirty spots) for <b>+20 pearls</b>." },
   garden: { duck: "", img: K + "captain-point.webp", name: "Captain Duck", hi: "Your corals look thirsty! Water each one once a week.",
     how: "This is the <b>Coral Garden</b>! Plant your 3 corals, then <b>water each one once a week</b> and it grows a little. After 3 waterings it’s in <b>full bloom</b>, and you get <b>+25 pearls</b>!" } };
 const duckSrc = (g, pose) => g.img || K + "duck/" + g.duck + "-" + pose + ".webp";
@@ -317,6 +319,7 @@ export function gardenHTML(st, cls) {
   visit("garden");
   const o = cur(), k = o ? o.k : {}, wk = A.wk(cls), cg = k.cg;
   let h = '<div class="kdscene kq-garden' + (cg && canFor >= 0 ? " watering" : "") + '" style="background-image:url(' + K + 'garden/garden-bg.webp)">';
+  if (rankOf(st).n >= 18) h += '<button class="kq-gstatue" data-kd="go:statue" title="Your Legend statue">' + statueFig(st, (k.lg || {}).u ? "" : " covered") + "</button>";
   if (!cg) h += '<button class="btn gold big kq-plant" data-kd2="plant">\u{1F331} Plant my 3 corals!</button>';
   else CORALS.forEach(([c, n], i) => {
     const s = cg.s[i], did = cg.w[i] === wk;
@@ -425,7 +428,7 @@ const SPOTS = [
   ["throne", "\u{1F451} Throne Room", 50, 15, 1], ["grotto", "\u{1F9F0} Treasure Grotto", 63, 33, 1], ["aquarium", "\u{1F420} Royal Aquarium", 37, 34, 1],
   ["garden", "\u{1F338} Coral Garden", 54, 50, 1], ["dive", "\u{1FAE7} Pearl Caves", 24, 58, 1], ["shop", "\u{1F41A} Pearl Shop", 74, 61, 1], ["dock", "\u{1F3A8} Sub Paint Dock", 44, 80, 1],
   ["stable", "\u{1F40E} Seahorse Stable", 9, 40, 2], ["ship", "⚓ Sunken Ship", 86, 44, 3], ["lagoon", "\u{1F319} Royal Hatchery", 84, 14, 4], ["beach", "\u{1F3D6}️ Seashell Beach", 18, 84, 6],
-  ["town", "\u{1F3D8}️ Coral Town", 66, 88, 8], ["arena", "\u{1F30B} Undersea Arena", 88, 74, 10], ["ice", "❄️ Ice Cave", 13, 13, 12], ["city", "\u{1F3DB}️ Sunken City", 31, 73, 15]];
+  ["town", "\u{1F3D8}️ Coral Town", 66, 88, 8], ["arena", "\u{1F30B} Undersea Arena", 88, 74, 10], ["ice", "❄️ Ice Cave", 13, 13, 12], ["city", "\u{1F3DB}️ Sunken City", 31, 73, 15], ["statue", "\u{1F5FF} Legend Statue", 50, 67, 18]];
 export function map2HTML(st, cls, k, badges) {
   const n = rankOf(st).n;
   return '<div class="kdscene kq-map" style="background-image:url(' + K + 'kd-map-big.webp)">' + SPOTS.map(([v, label, x, y, need]) => {
@@ -480,11 +483,13 @@ if (typeof document !== "undefined") document.addEventListener("click", ev => {
   else if (a === "dig") digPile(Number(x));
   else if (a === "crownok") crownDone();
   else if (a === "wsgo") startSong();
+  else if (a === "unveil") unveil();
   else if (a === "argo") startArena();
   else if (a === "rankok") { if (!o) return; const nm = rankOf(o.st).name; if (o.k.rk === nm) return;
     const got = o.k.rkp || {}; if (RANK_PRIZE[nm] && !got[nm]) { o.k.p = (Number(o.k.p) || 0) + RANK_PRIZE[nm]; o.k.rkp = Object.assign({}, got, { [nm]: 1 }); }   // each rank's prize is paid only once
     o.k.rk = nm; const gear = RANK_GEAR[nm], st0 = o.st, extra = gear && !((st0.outfits || {})[gear[0]]) ? { outfits: Object.assign({}, st0.outfits || {}, { [gear[0]]: true }) } : {};
     let ultraNow = null;
+    const rm = RANK_ROOM[nm]; if (rm && !(st0.roomOwned || []).includes(rm[0])) extra.roomOwned = (st0.roomOwned || []).concat([rm[0]]);   // Legend: the Golden Coral Throne
     if (RANK_EGG[nm] === "leg" && !(o.k.rke || {})[nm]) { o.k.rke = Object.assign({}, o.k.rke || {}, { [nm]: 1 }); extra.legendaryPulls = (Number(st0.legendaryPulls) || 0) + 1; }   // Grand Royal: a Legendary egg
     if (RANK_EGG[nm] === "rare" && !(o.k.rke || {})[nm]) { o.k.rke = Object.assign({}, o.k.rke || {}, { [nm]: 1 }); extra.doorEggs = (Number(st0.doorEggs) || 0) + 1; extra.eggBoost = Object.assign({}, st0.eggBoost || {}, { rare: (Number((st0.eggBoost || {}).rare) || 0) + 1 }); }   // Duke: a Rare egg
     if (RANK_EGG[nm] === "ultra" && !(o.k.rke || {})[nm]) {   // Royal: the Kingdom Ultra Egg hatches Axolumi right here (or +5 levels if they somehow have it)
@@ -1136,6 +1141,7 @@ function salonWear(id) { const o = cur(); if (!o) return; const st = o.st; if (!
 export const RANK_PRIZE = { Page: 50, Squire: 50, Captain: 75, "Grand Royal": 300 };   // Baron: the Shell Tiara (Nov 16, the fins were removed)
 // rank prizes that are gear: [outfit id, picture name, name]
 export const RANK_EGG = { Duke: "rare", Royal: "ultra", "Grand Royal": "leg" };   // Royal (week 12): the Kingdom Ultra Egg (Axolumi)   // Nov 17: the Duke prize is a Rare egg (an egg in their Creature Collector, at least Rare)
+export const RANK_ROOM = { Legend: ["chair_kdthrone", "Golden Coral Throne"] };   // Legend (week 18): a My Room piece (the chair spot)
 export const RANK_GEAR = { Knight: ["sea-knight-helmet", "knight-helmet", "Knight Shell Helmet"], Baron: ["sea-shell-tiara", "shell-tiara", "Shell Tiara"] };   // Nov 15: Page = 50 pearls; Squire 50 (draft, others decided later)
 export function rankUpHTML(st) {
   const o = cur(); if (!o) return ""; const k = o.k, r = rankOf(st);
@@ -1148,6 +1154,8 @@ export function rankUpHTML(st) {
     (RANK_EGG[r.name] === "rare" ? '<p class="kq-rankprize">\u{1F95A} Your rank prize: <b>a Rare egg</b>! Hatch it in your <b>Creature Collector</b>.</p>' : "") +
     (RANK_EGG[r.name] === "leg" ? '<p class="kq-rankprize">\u{1F95A} Your rank prize: <b>a Legendary egg</b>! Hatch it in your <b>Creature Collector</b>.</p>' : "") +
     (RANK_EGG[r.name] === "ultra" ? '<div class="kq-rankgear"><img src="' + K + 'ultra/ultra-egg-360.webp" alt=""><span>\u{1F308} Your rank prize: the <b>Kingdom Ultra Egg</b>! It hatches when you tap Let\u2019s go.</span></div>' : "") +
+    (RANK_ROOM[r.name] ? '<div class="kq-rankgear"><img src="' + K + 'throne-gold.webp" alt=""><span>\u{1F381} Your rank prize: the <b>' + RANK_ROOM[r.name][1] + "</b>! Put it in <b>My Room</b> (in the chair spot) and your companion can sit on it.</span></div>" +
+      '<div class="kq-rankgear"><span class="kq-rgfig">' + statueFig(st, "") + "</span><span>\u{1F5FF} And a <b>golden statue of your companion</b> now stands in the castle garden for everyone to see!</span></div>" : "") +
     (RANK_PRIZE[r.name] ? '<p class="kq-rankprize">\u{1F381} Your rank prize: <b>⚪ ' + RANK_PRIZE[r.name] + " pearls</b></p>" : "") +
     (opens.length ? '<p>A new place just opened on the map:</p><div class="kq-rankopens">' + opens.map(s => "<span>" + s[1] + "</span>").join("") + "</div>" : "") +
     '<button class="btn gold big" data-kd2="rankok:1">\u{1F30A} Let’s go!</button></div></div>';
@@ -1390,4 +1398,69 @@ function songEnd(quiet) {
     "<p>" + (S.paid ? "<b>+" + pearls + " pearls!</b>" : "This one was just for fun.") + " The song was " + S.seq.length + " notes long.</p>" +
     '<button class="btn gold" data-sx="done">Back to the Whale Song Hall</button>';
   S.root.querySelector(".kdstage").appendChild(box);
+}
+
+
+/* ===================== 🗿 Legend (week 18) — Nov 17, Ms. Ariana =====================
+   The top rank. Prize: the Golden Coral Throne (a My Room piece for the chair spot). A golden statue of the student's
+   own companion stands in the castle garden (always their companion right now, so nothing extra is saved for it).
+   First visit: pull the cloth off (the unveiling). Then every week sand and seaweed get on it: rub the dirty spots
+   to polish it, +20 pearls once a week. Classmates who are Legends too show in the Hall of Legends (from the cards already loaded).
+   Save: kd.lg = { u: 1 unveiled, pw: week polished }. */
+const LG_PAY = 20, SMUDGES = [[30, 22, 34], [62, 30, 30], [44, 52, 38], [24, 66, 30], [70, 64, 32], [50, 82, 34], [56, 14, 26]];
+let lgSay = null;
+export function statueFig(st, extra) {
+  const c = companionOf(st);
+  return '<span class="kq-statue' + (extra || "") + '"><img class="kq-ststand" src="' + K + 'garden/statue-stand.webp" alt="">' +
+    '<span class="kq-stfig">' + (c ? petHTML(c, null, null) : "") + "</span>" + (String(extra || "").includes("covered") ? '<img class="kq-minicloth" src="' + K + 'garden/statue-cloth.webp" alt="">' : "") + "</span>";
+}
+const first = st => esc(String((st && st.name) || "").split(" ")[0]);
+export function statueHTML(st, cls) {
+  visit("statue");
+  const o = cur(), k = o ? o.k : {}, wk = A.wk(cls), lg = k.lg || {}, c = companionOf(st), dirty = lg.u && lg.pw !== wk;
+  let h = '<div class="kdscene kq-lgscene" style="background-image:url(' + K + 'garden/garden-bg.webp)"><div class="kq-lgglow"></div>';
+  h += '<div class="kq-lgbig' + (lg.u && !dirty ? " shiny" : "") + (!lg.u ? " veiled" : "") + '">' + statueFig(st, "") +
+    (dirty ? '<span class="kq-smudges">' + SMUDGES.map(([x, y, w], i) => { const v = smKeep(wk)[i]; return v != null && v <= 0.12 ? "" : '<i class="kq-smudge" data-sm="' + i + '" data-v="' + (v == null ? 1 : v) + '" style="left:' + x + "%;top:" + y + "%;width:" + w + "%;opacity:" + (v == null ? 1 : Math.max(0, v)) + '"></i>'; }).join("") + "</span>" : "") +
+    (!lg.u ? '<span class="kq-cloth"><img class="kq-clothon" src="' + K + 'garden/statue-cloth.webp" alt="A cloth covering the statue"><img class="kq-clothfly" src="' + K + 'garden/statue-cloth-fly.webp" alt=""></span>' : "") +
+    '<span class="kq-plate">\u{1F531} Legend ' + first(st) + (c ? "<small>and " + esc(c.nick || c.name || "") + "</small>" : "") + "</span></div>";
+  h += '<div class="kq-shbtns">' + (!lg.u ? '<button class="btn gold big" data-kd2="unveil">\u{1F389} Pull off the cloth!</button>'
+    : dirty ? '<span class="kq-tag">\u{1F9FD} Rub the dirty spots to polish your statue! <b id="kqsmleft">' + SMUDGES.filter((x, i) => !(smKeep(wk)[i] <= 0.12)).length + "</b> left</span>" : '<span class="kq-tag">✨ Polished this week!</span>') + "</div>";
+  h += guide("statue", st, lgSay ? "cheer" : null, lgSay || (!lg.u ? "The Queen made something special for you. Pull off the cloth!" : dirty ? "Oh no, sand and seaweed got on your statue this week! Rub it clean for <b>+" + LG_PAY + " pearls</b>." : "Shining bright! Come back next week to polish it again.")) + "</div>";
+  const mates = ((o && o.C.mates) || []).filter(s => s && s.id !== st.id && s.kd && s.kd.rk === "Legend").slice(0, 12);
+  h += '<div class="kq-log"><b>\u{1F3DB}️ Hall of Legends</b> <span class="small">classmates who reached the Kingdom 18 weeks</span>' +
+    (mates.length ? '<div class="kq-mates">' + mates.map(s => '<div class="kq-mate">' + statueFig(s, " mini") + "<small>\u{1F531} " + first(s) + "</small></div>").join("") + "</div>"
+      : '<p class="small muted" style="margin:6px 0 0;">You’re the first Legend in your class!</p>') + "</div>";
+  lgSay = null; setTimeout(bindSmudges, 30);
+  return h;
+}
+function unveil() {
+  const o = cur(); if (!o || (o.k.lg || {}).u) return;
+  const big = document.querySelector(".kq-lgbig"); if (big) { big.classList.add("unveil"); const b = document.querySelector('[data-kd2="unveil"]'); if (b) b.disabled = true; }
+  confetti(document.querySelector(".kq-lgscene"));
+  setTimeout(() => { const q = cur(); if (!q) return; q.k.lg = Object.assign({}, q.k.lg || {}, { u: 1, pw: A.wk(q.cls) });   // brand new and shiny: the first polish is next week
+    lgSay = "Ta-da! <b>Legend " + first(q.st) + "</b>! The whole Kingdom will see your golden statue!"; A.save(q.k); }, 2200);
+}
+function confetti(sc) {
+  if (!sc) return; const box = document.createElement("div"); box.className = "kq-confetti";
+  box.innerHTML = Array.from({ length: 36 }, (_, i) => '<i style="left:' + (4 + (i * 37) % 92) + "%;animation-delay:" + ((i % 9) * 0.12).toFixed(2) + "s;background:" + ["#FFD23F", "#FF5DA2", "#3EC1F3", "#8E5CF7", "#2ED47A"][i % 5] + '"></i>').join("");
+  sc.appendChild(box); setTimeout(() => box.remove(), 4200);
+}
+let smLeft = 0, smDone = false, smV = { wk: "", v: {} };   // rubbing progress survives page redraws
+const smKeep = wk => { if (smV.wk !== wk) smV = { wk, v: {} }; return smV.v; };
+function bindSmudges() {
+  const wrap = document.querySelector(".kq-lgbig .kq-smudges"); if (!wrap || wrap.dataset.on) return; wrap.dataset.on = "1";
+  smLeft = wrap.querySelectorAll(".kq-smudge").length; smDone = false; if (!smLeft) { polished(); return; }
+  const rub = (el, amt) => { if (!el || el.classList.contains("gone")) return; const v = (Number(el.dataset.v || 1)) - amt; el.dataset.v = v; smV.v[el.dataset.sm] = v; el.style.opacity = Math.max(0, v);
+    if (v <= 0.12) { el.classList.add("gone"); smLeft--; sparkle(el); const n = document.getElementById("kqsmleft"); if (n) n.textContent = Math.max(0, smLeft); if (smLeft <= 0) polished(); } };
+  const big = wrap.closest(".kq-lgbig");
+  const under = e => document.elementsFromPoint(e.clientX, e.clientY).filter(t => t.classList && t.classList.contains("kq-smudge"));   // every spot under the finger gets rubbed
+  big.addEventListener("pointerdown", e => under(e).forEach(t => rub(t, 0.34)));
+  big.addEventListener("pointermove", e => under(e).forEach(t => rub(t, e.pointerType === "mouse" && !e.buttons ? 0.06 : 0.14)));
+}
+function sparkle(el) { const s = document.createElement("b"); s.className = "kq-smsp"; s.textContent = "✨"; s.style.left = el.style.left; s.style.top = el.style.top; el.parentNode.appendChild(s); setTimeout(() => s.remove(), 900); }
+function polished() {
+  if (smDone) return; smDone = true; const o = cur(); if (!o) return; const wk = A.wk(o.cls);
+  const big = document.querySelector(".kq-lgbig"); if (big) big.classList.add("shiny");
+  setTimeout(() => { const q = cur(); if (!q || (q.k.lg || {}).pw === wk) return; q.k.lg = Object.assign({}, q.k.lg || {}, { pw: wk }); q.k.p = (Number(q.k.p) || 0) + LG_PAY;
+    lgSay = "Sparkling! Your statue shines again. <b>+" + LG_PAY + " pearls</b>!"; A.save(q.k); }, 1300);
 }

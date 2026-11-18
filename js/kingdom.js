@@ -12,12 +12,12 @@
    Saved on the student as kd = { w: the week (Monday), c: clam opened this week, t: trip done this week, dv: dives this week,
      p: pearls, g: { "Monday date": 1 } treasures, best: best dive, n: clams opened, v: visits, sb: shop buys }.
    One save per clam, per dive, per trip and per buy (a buy also saves roomOwned or outfits). Games run in their own layer. */
-import { esc, weekKey } from "./game.js?v=20261117o";
-import { azToday, azNow } from "./collect.js?v=20261117o";
-import { vaultMet, vaultGoal, subReq, addDays } from "./doors.js?v=20261117o";
-import { axoDay } from "./axolotl.js?v=20261117o";
-import { pjBreakDay } from "./safari.js?v=20261117o";
-import { guide as guide2, bind as bind2, KEEP2, kd2On, rankChip, rankOf as rankOf2, map2HTML, questsHTML, questsWaiting, aquariumHTML, gardenHTML, dockHTML, stableHTML, shipHTML, shipOpen, hatchHTML, beachHTML, townHTML, rankUpHTML, catchCreature, pickCreature, keepCreature, aqImg, AQSZ, catchCard, subSprite, subImg, trailHTML, resetViews, arenaHTML, cityHTML } from "./kingdom2.js?v=20261117o";
+import { esc, weekKey } from "./game.js?v=20261118a";
+import { azToday, azNow } from "./collect.js?v=20261118a";
+import { vaultMet, vaultGoal, subReq, addDays } from "./doors.js?v=20261118a";
+import { axoDay } from "./axolotl.js?v=20261118a";
+import { pjBreakDay } from "./safari.js?v=20261118a";
+import { guide as guide2, bind as bind2, KEEP2, kd2On, rankChip, rankOf as rankOf2, map2HTML, questsHTML, questsWaiting, aquariumHTML, gardenHTML, dockHTML, stableHTML, shipHTML, shipOpen, hatchHTML, beachHTML, townHTML, rankUpHTML, catchCreature, pickCreature, keepCreature, aqImg, AQSZ, catchCard, subSprite, subImg, trailHTML, resetViews, arenaHTML, cityHTML, statueHTML } from "./kingdom2.js?v=20261118a";
 
 const K = "assets/kingdom/";
 export const ICE_DIVES = 2;   // ❄️ Nov 17: Ice Cave dives a week (Royal rank, week 12)
@@ -528,11 +528,12 @@ export function kingdomTab(st, cls) {
   if (view === "dive") return head + back + diveHTML(st, cls);
   if (view === "ice" && rankOf2(st).n >= 12) return head + back + iceHTML(st, cls);
   if (view === "city" && rankOf2(st).n >= 15) return head + back + cityHTML(st, cls);
+  if (view === "statue" && rankOf2(st).n >= 18) return head + back + statueHTML(st, cls);
   if (view === "grotto") return head + back + grottoHTML(st, cls);
   if (view === "shop") return head + back + shopHTML(st, cls);
   if (on2() && view === "map") {
     const dl = Math.max(0, KD_DIVES - (Number(k.dv) || 0));
-    return head + rankUpHTML(st) + map2HTML(st, cls, k, { throne: (!k.c ? 1 : 0) + questsWaiting(k, wk(cls)), dive: dl, ship: rankOf2(st).n >= 3 ? Math.max(0, shipOpen(st) - Object.keys((k.ship || {}).f || {}).length) : 0, beach: rankOf2(st).n >= 6 && ((k.sc || {}).p || []).length < 10 && (k.sc || {}).fw !== wk(cls) ? 1 : 0, lagoon: rankOf2(st).n >= 4 ? (!k.hx || !k.hx.e ? (((k.hx || {}).fw) !== wk(cls) ? 1 : 0) : 1) : 0, stable: rankOf2(st).n >= 2 && (!k.sh || k.sh.fw !== wk(cls)) ? 1 : 0, arena: rankOf2(st).n >= 10 && !(k.ar && k.ar.w === wk(cls) && k.ar.won) ? 1 : 0, ice: rankOf2(st).n >= 12 ? Math.max(0, ICE_DIVES - (Number(k.idv) || 0)) : 0, city: rankOf2(st).n >= 15 && ((k.ct || {}).p || []).length < 5 && (k.ct || {}).fw !== wk(cls) ? 1 : 0 }) + '<div class="row" style="margin-top:8px;gap:8px;align-items:center;flex-wrap:wrap;"><span class="small">' +
+    return head + rankUpHTML(st) + map2HTML(st, cls, k, { throne: (!k.c ? 1 : 0) + questsWaiting(k, wk(cls)), dive: dl, ship: rankOf2(st).n >= 3 ? Math.max(0, shipOpen(st) - Object.keys((k.ship || {}).f || {}).length) : 0, beach: rankOf2(st).n >= 6 && ((k.sc || {}).p || []).length < 10 && (k.sc || {}).fw !== wk(cls) ? 1 : 0, lagoon: rankOf2(st).n >= 4 ? (!k.hx || !k.hx.e ? (((k.hx || {}).fw) !== wk(cls) ? 1 : 0) : 1) : 0, stable: rankOf2(st).n >= 2 && (!k.sh || k.sh.fw !== wk(cls)) ? 1 : 0, arena: rankOf2(st).n >= 10 && !(k.ar && k.ar.w === wk(cls) && k.ar.won) ? 1 : 0, ice: rankOf2(st).n >= 12 ? Math.max(0, ICE_DIVES - (Number(k.idv) || 0)) : 0, city: rankOf2(st).n >= 15 && ((k.ct || {}).p || []).length < 5 && (k.ct || {}).fw !== wk(cls) ? 1 : 0, statue: rankOf2(st).n >= 18 && (!(k.lg || {}).u || (k.lg || {}).pw !== wk(cls)) ? 1 : 0 }) + '<div class="row" style="margin-top:8px;gap:8px;align-items:center;flex-wrap:wrap;"><span class="small">' +
       (k.c ? "✅ You got this week’s treasure." : "\u{1F451} This week’s treasure is waiting in the Throne Room!") + " · \u{1FAE7} " + dl + " of " + KD_DIVES + ' dives left</span><button class="btn ghost small" data-kd="trip">\u{1F986} Watch the trip again</button></div>';
   }
   return head + mapHTML(st, cls);

@@ -83,6 +83,19 @@
 
   .card{ background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:17px 17px 18px; }
   .card + .card{ margin-top:16px; }
+
+  /* 🏰 Castle Keep cards (Nov 17): placed right after the plain .card rule on purpose, so every card with its own look
+     (the Treasure Vault, event cards…) still wins and only plain cards turn into parchment. */
+  /* 📜 cards: parchment panels in a dark wooden frame, with a red ribbon title */
+  :where(body.ck) .card{ position:relative; border-radius:14px; padding:22px 22px 22px; margin-bottom:20px;
+    background:var(--ck-parch) center/512px, #F4E4BE; border:16px solid transparent; border-image:var(--ck-woodtex) 80 / 16px / 0 stretch; border-radius:0;
+    box-shadow:inset 0 0 30px rgba(140,90,30,.35), 0 14px 26px rgba(0,0,0,.45); }
+  :where(body.ck) .card .card-head{ margin:-4px 0 14px; }
+  :where(body.ck) .card .card-head h2{ position:relative; display:inline-block; font-size:21px; color:#FFF3D6; padding:7px 26px 8px; margin-left:4px;
+    background:linear-gradient(180deg,#C8323A,#8E1A24); text-shadow:0 2px 0 #5A0E14; box-shadow:0 4px 0 #5A0E14;
+    clip-path:polygon(0 0,100% 0,calc(100% - 12px) 50%,100% 100%,0 100%,12px 50%); }
+  :where(body.ck) .card .card-head .fact{ background:#FFF1C9; border:2px solid #8A5A10; color:#5A3A08; font-weight:700; }
+  :where(body.ck) .card .lede{ color:#5A3D1E; }
   .card-head{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:14px; }
 
   .banner{ border-radius:11px; padding:12px 14px; margin-bottom:16px; font-size:13.5px; }
@@ -4329,3 +4342,122 @@ body.kdmode .kdhead h2{ display:none; }
 .kq-pile span{ font-size:min(52px,5.2vw); }
 .kq-pile::after{ content:"\2728"; position:absolute; right:6%; top:2%; font-size:min(22px,2.2vw); animation:kqtw 1.6s ease-in-out infinite; }
 @keyframes kqtw{ 0%,100%{ opacity:.2; transform:scale(.7); } 50%{ opacity:1; transform:scale(1.15); } }
+
+/* ===== 🗿 Kingdom Legend (week 18): golden statue + Golden Coral Throne ===== */
+.kdrank.legend{ background:linear-gradient(135deg,#FFF3B0,#FFD23F 45%,#F5A623); box-shadow:0 0 0 2px #fff, 0 0 14px rgba(255,200,40,.85); color:#6B4300; }
+.kq-statue{ position:relative; display:block; width:100%; }
+.kq-statue .kq-ststand{ display:block; width:100%; position:relative; z-index:1; }
+.kq-stfig{ position:absolute; left:50%; bottom:64%; transform:translateX(-50%); z-index:2; display:flex; justify-content:center; font-size:var(--stsz,13cqw); line-height:1; pointer-events:none; }
+.kq-stfig .petwrap{ font-size:1em; }
+.kq-stfig .tglyph img, .kq-stfig .tglyph{ filter:grayscale(1) sepia(1) saturate(3.2) hue-rotate(-4deg) brightness(1.12) contrast(1.18) drop-shadow(0 0 2px rgba(255,220,120,.9)) drop-shadow(0 6px 6px rgba(80,50,0,.35)); }
+.kq-stfig .tglyph img{ filter:none; }
+.kq-statue.covered .kq-stfig{ filter:brightness(0) opacity(.0); }
+.kq-minicloth{ position:absolute; left:14%; width:72%; bottom:57%; z-index:3; filter:drop-shadow(0 4px 6px rgba(0,0,0,.25)); }
+.kq-statue.mini{ width:120px; --stsz:56px; }
+.kq-gstatue{ position:absolute; left:50%; top:45%; width:12%; transform:translate(-50%,-100%); border:0; background:none; padding:0; cursor:pointer; z-index:3; --stsz:5.4cqw; filter:drop-shadow(0 0 8px rgba(255,220,80,.8)); animation:kqgst 3s ease-in-out infinite; }
+@keyframes kqgst{ 50%{ filter:drop-shadow(0 0 16px rgba(255,230,120,1)); } }
+.kq-rgfig{ width:72px; flex:0 0 72px; --stsz:34px; padding-top:30px; }
+.kq-lgscene{ min-height:min(560px,62vw); }
+.kq-lgglow{ position:absolute; left:50%; top:52%; width:60%; aspect-ratio:1; transform:translate(-50%,-50%); background:radial-gradient(circle,rgba(255,236,150,.75),rgba(255,210,80,.25) 45%,transparent 70%); pointer-events:none; }
+.kq-lgbig{ position:absolute; left:50%; bottom:6%; width:33%; transform:translateX(-50%); --stsz:16.5cqw; touch-action:none; user-select:none; z-index:2; }
+.kq-lgbig .kq-smudges{ position:absolute; left:15%; right:15%; bottom:62%; height:20cqw; z-index:3; }
+.kq-smudge{ position:absolute; aspect-ratio:1.3; transform:translate(-50%,-50%); border-radius:50%; cursor:grab;
+  background:radial-gradient(ellipse at 40% 40%, rgba(60,120,50,.85), rgba(80,110,50,.65) 45%, rgba(80,110,50,0) 72%); transition:opacity .15s; }
+.kq-smudge:nth-child(odd){ background:radial-gradient(ellipse at 55% 50%, rgba(205,175,120,.95), rgba(185,155,100,.75) 40%, rgba(185,155,100,0) 72%); border-radius:40% 60% 55% 45%; }
+.kq-smudge.gone{ pointer-events:none; opacity:0 !important; }
+.kq-smsp{ position:absolute; transform:translate(-50%,-50%); font-size:4cqw; animation:kqsmsp .9s ease-out forwards; pointer-events:none; }
+@keyframes kqsmsp{ from{ opacity:1; transform:translate(-50%,-50%) scale(.6);} to{ opacity:0; transform:translate(-50%,-140%) scale(1.4);} }
+.kq-lgbig.shiny .kq-stfig{ animation:kqshine 2.4s ease-in-out infinite; }
+.kq-lgbig.shiny::before{ content:"✨"; position:absolute; left:12%; top:-4%; font-size:4cqw; z-index:4; animation:kqtw 1.6s ease-in-out infinite; }
+.kq-lgbig.shiny::after{ content:"✨"; position:absolute; right:8%; top:18%; font-size:3cqw; z-index:4; animation:kqtw 1.6s .8s ease-in-out infinite; }
+@keyframes kqshine{ 0%,100%{ filter:brightness(1) drop-shadow(0 0 0 rgba(255,230,120,0)); } 50%{ filter:brightness(1.18) drop-shadow(0 0 1.6cqw rgba(255,235,130,.95)); } }
+@keyframes kqtw{ 50%{ opacity:.2; transform:scale(.6); } }
+.kq-cloth{ position:absolute; left:12%; width:76%; bottom:57%; z-index:5; pointer-events:none; }
+.kq-cloth img{ display:block; width:100%; filter:drop-shadow(0 8px 10px rgba(0,0,0,.28)); }
+.kq-cloth .kq-clothfly{ position:absolute; left:0; top:0; opacity:0; }
+.kq-lgbig.unveil .kq-clothon{ opacity:0; transition:opacity .12s; }
+.kq-lgbig.unveil .kq-clothfly{ animation:kqclothfly 1.7s cubic-bezier(.3,.1,.5,1) forwards; }
+@keyframes kqclothfly{ 0%{ opacity:1; transform:translate(0,0) rotate(0) scale(1); } 25%{ opacity:1; transform:translate(10%,-35%) rotate(-6deg) scale(1.05); } 100%{ opacity:0; transform:translate(130%,-190%) rotate(18deg) scale(.6); } }
+.kq-plate{ position:absolute; left:50%; bottom:-2%; transform:translateX(-50%); z-index:4; white-space:nowrap; background:linear-gradient(#FFE58A,#E8A814); color:#5A3A00; font-weight:900; font-size:max(12px,1.5cqw); padding:.3em .9em; border-radius:10px; box-shadow:0 0 0 2px #fff, 0 4px 10px rgba(0,0,0,.25); text-align:center; line-height:1.15; }
+.kq-plate small{ display:block; font-size:.72em; font-weight:800; }
+.kq-confetti{ position:absolute; inset:0; pointer-events:none; z-index:8; overflow:hidden; }
+.kq-confetti i{ position:absolute; top:-4%; width:1.1cqw; height:1.8cqw; border-radius:2px; animation:kqconf 3s ease-in forwards; }
+@keyframes kqconf{ to{ transform:translateY(62cqw) rotate(720deg); opacity:.3; } }
+.kq-mate .kq-statue.mini{ margin:0 auto; padding-top:66px; }
+.kq-lgbig.veiled .kq-stfig{ opacity:0; transition:opacity .6s .3s; } .kq-lgbig.veiled.unveil .kq-stfig{ opacity:1; }
+
+/* ===== 🏰 Castle Keep look (Nov 17, Ms. Ariana): the student pages (not Planet JP / the Kingdom). Scoped to body.ck (student.js sets it)
+   so the console never changes. Her art: assets/keep/bg-keep-wall, companion-stage, wood-sign; parchment.webp is a made texture. ===== */
+body.ck{ --ck-red1:#C8323A; --ck-red2:#8E1A24; --ck-gold1:#FFE38A; --ck-gold2:#E6A92C; --ck-gold3:#8A5A10; --ck-ink:#3A2410; --ck-wood:#6B3F1D;
+  --ck-parch:url(../assets/keep/parchment.webp); --ck-woodtex:url(../assets/keep/wood-sign.webp);
+  background:#5D6390; color:var(--ck-ink); }
+body.ck:not([class*="mini-"])::before{ content:""; position:fixed; inset:0; pointer-events:none; z-index:0; background:url(../assets/keep/bg-keep-wall.webp) center top / cover no-repeat, #5D6390; }
+body.ck .wrap{ max-width:900px !important; position:relative; z-index:1; }
+body.ck h1, body.ck h2, body.ck h3{ font-family:Lora, Georgia, serif; font-weight:700; }
+
+/* 🚩 the top banner: a royal cloth banner hanging from a wooden pole */
+body.ck .hero{ position:relative; border-radius:0; margin:18px 10px 26px; padding:22px 26px 46px; overflow:visible;
+  background:linear-gradient(180deg,#B3242E 0%,#8E1A24 100%); box-shadow:inset 0 0 0 4px #E6A92C, inset 0 0 0 7px #8E1A24, inset 0 0 0 9px #FFE38A, 0 16px 26px rgba(0,0,0,.5);
+  clip-path:polygon(0 0,100% 0,100% 100%,75% calc(100% - 26px),50% 100%,25% calc(100% - 26px),0 100%); }
+body.ck .hero::before{ content:""; position:absolute; left:-14px; right:-14px; top:-12px; height:16px; border-radius:8px; background:var(--ck-woodtex) center/cover, #6B3F1D; box-shadow:0 3px 0 #3B220E; }
+body.ck .hero h2{ font-family:Lora, Georgia, serif; font-weight:700; color:#FFF3D6; text-shadow:0 3px 0 #5A0E14; }
+body.ck .hero h2 b{ color:#FFD861; }
+body.ck .hero-wrapfix{ }
+
+/* 👋 hi row on a little wooden plaque */
+body.ck #app > .hero + .row{ margin:0 2px 12px; }
+body.ck #app > .hero + .row > :first-child{ background:var(--ck-woodtex) center/100% 100%, var(--ck-wood); color:#FFE8C2; font-weight:800; padding:6px 14px; border-radius:10px; border:3px solid #3B220E; box-shadow:0 3px 0 #2A1608; text-shadow:0 2px 0 #2A1608; }
+body.ck #app > .hero + .row b{ color:#FFD861; }
+body.ck #app > .hero + .row .btn.ghost{ background:var(--ck-woodtex) center/100% 100%, var(--ck-wood); color:#FFE8C2; border:3px solid #3B220E; border-radius:10px; box-shadow:0 3px 0 #2A1608; }
+
+/* 🪧 main tabs: wooden signs with iron studs on a stone ledge */
+body.ck .maintabs{ background:rgba(20,18,30,.55); border:3px solid #1A1822; border-radius:14px; padding:12px; gap:12px; box-shadow:inset 0 2px 0 rgba(255,255,255,.08), 0 10px 20px rgba(0,0,0,.4); }
+body.ck .maintabs .tab{ position:relative; font-family:Lora, Georgia, serif; font-weight:700; font-size:15.5px; color:#FFF1D6; border-radius:0; padding:10px 10px;
+  border:12px solid transparent; border-image:var(--ck-woodtex) 80 fill / 12px / 0 stretch; background:none;
+  box-shadow:0 6px 10px rgba(0,0,0,.45); text-shadow:0 2px 0 #4A2208, 0 0 6px rgba(60,20,0,.6); transition:transform .1s, filter .1s; }
+body.ck .maintabs .tab:hover{ transform:translateY(-2px); filter:brightness(1.08); }
+body.ck .maintabs .tab:active{ transform:translateY(2px); }
+body.ck .maintabs .tab.on{ color:#4A2A00; text-shadow:0 1px 0 rgba(255,255,255,.7); border-image:none; border:3px solid #FFF4C2; border-radius:8px; padding:19px 19px;
+  background:linear-gradient(180deg,#FFE79A 0%,#F2B93A 55%,#D7951C 100%); box-shadow:0 5px 0 #6A4208, 0 0 22px rgba(255,200,70,.85), inset 0 2px 0 rgba(255,255,255,.6); }
+body.ck .maintabs .tab .tbadge{ background:var(--ck-red1); box-shadow:0 2px 0 #5A0E14; border:2px solid #FFE38A; }
+body.ck .subtabs{ margin:2px 0 16px; gap:10px; }
+body.ck .subtab{ font-family:Lora, Georgia, serif; border-radius:0; border:9px solid transparent; border-image:var(--ck-woodtex) 80 fill / 9px / 0 stretch; background:none; color:#FFEBC8; box-shadow:0 4px 0 #2A1608; padding:7px 16px; text-shadow:0 2px 0 #2A1608; }
+body.ck .subtab.on{ border-image:none; border:3px solid #FFF4C2; border-radius:8px; padding:13px 22px; background:linear-gradient(180deg,#FFE79A,#E6A92C); color:#4A2A00; box-shadow:0 4px 0 #6A4208; text-shadow:none; }
+
+/* ✅ Checklist: quest lines with gold shield numbers and red "Go" seals */
+body.ck .checklist .cklist{ gap:12px; }
+body.ck .ckitem{ border-radius:12px; border:3px solid #8A5A10; padding:12px 16px; color:var(--ck-ink); background:linear-gradient(180deg,rgba(255,250,232,.95),rgba(246,228,182,.95));
+  box-shadow:0 4px 0 #6A4208, 0 8px 12px rgba(90,50,0,.2); transition:transform .1s, box-shadow .1s; }
+body.ck .ckitem:hover{ transform:translateY(-2px); filter:none; box-shadow:0 6px 0 #6A4208, 0 10px 14px rgba(90,50,0,.25); }
+body.ck .ckitem .ckn{ width:34px; height:38px; border-radius:0; font-family:Lora, Georgia, serif; font-size:17px; color:#4A2A00; background:linear-gradient(180deg,#FFF0B0 0%,#F2B93A 55%,#C48212 100%);
+  clip-path:path("M17 0 L34 6 L34 18 C34 29 26 35 17 38 C8 35 0 29 0 18 L0 6 Z"); text-shadow:0 1px 0 rgba(255,255,255,.6); }
+body.ck .ckitem .ckic{ font-size:32px; filter:drop-shadow(0 3px 2px rgba(0,0,0,.25)); }
+body.ck .ckitem .cktxt b{ font-family:Lora, Georgia, serif; font-size:17px; }
+body.ck .ckitem .cktxt small{ color:#7A5A30; }
+body.ck .ckitem .ckgo{ color:#FFF3D6; background:radial-gradient(circle at 40% 35%, #E5525A 0%, #B3242E 55%, #7A1018 100%); padding:8px 14px; border-radius:99px; box-shadow:0 3px 0 #4A0A10, inset 0 0 0 2px rgba(255,255,255,.18); text-shadow:0 1px 0 #4A0A10; font-family:Lora, Georgia, serif; }
+body.ck .ckitem.done{ background:linear-gradient(180deg,#F2F8E6,#DCEBC4); border-color:#6C8A3A; box-shadow:0 4px 0 #4E6A24; }
+body.ck .ckgoal, body.ck .ckwork{ border-radius:12px !important; border:3px solid #8A5A10 !important; background:rgba(255,248,226,.8) !important; box-shadow:0 4px 0 #6A4208; color:var(--ck-ink) !important; }
+body.ck .ckgoal .pbar, body.ck .ckwork .pbar{ height:16px; border-radius:99px; background:#5A3416; border:2px solid #2A1608; overflow:hidden; }
+body.ck .ckgoal .pbar > span, body.ck .ckwork .pbar > span{ border-radius:99px; background:linear-gradient(180deg,#FFE79A,#E6A92C); box-shadow:inset 0 3px 0 rgba(255,255,255,.5); }
+
+/* 🐾 My Companion: Ms. Ariana's throne-room picture across the top of the card; the companion stands on the gold pedestal */
+body.ck .card:has(> .mypet){ padding:0; container-type:inline-size; overflow:hidden; }
+body.ck .mypet{ position:relative; padding:2.5cqw 14px 16px; background:linear-gradient(180deg, rgba(244,228,190,0) 60cqw, #F4E4BE 75cqw), url(../assets/keep/companion-stage.webp) top center / 100% auto no-repeat; }
+body.ck .mypet .moodbub{ margin-bottom:0; }
+body.ck .mypet .stage{ position:relative; width:100%; height:calc(56cqw - 2.5cqw - 44px); min-height:0; align-items:flex-end; }
+body.ck .mypet .petwrap{ margin-top:0; font-size:clamp(70px,19cqw,170px); transform:translateY(2.2cqw); filter:drop-shadow(0 6px 6px rgba(60,20,0,.35)); }
+body.ck .mypet .stage + .bigname, body.ck .mypet .bigname{ margin-top:15cqw; }
+body.ck .mypet .bigname{ font-family:Lora, Georgia, serif; font-weight:700; font-size:40px; color:#FFE38A; text-shadow:0 3px 0 #8E1A24, 2px 2px 0 #8E1A24, -2px 2px 0 #8E1A24, 2px -1px 0 #8E1A24, -2px -1px 0 #8E1A24, 0 6px 10px rgba(0,0,0,.3); }
+body.ck .mypet .tspec{ color:#5A3D1E; }
+body.ck .compbar i{ width:30px; height:14px; border-radius:99px; background:#5A3416; border:2px solid #2A1608; }
+body.ck .compbar i.on{ background:linear-gradient(180deg,#FFE79A,#E6A92C); box-shadow:0 0 8px rgba(255,200,60,.8); }
+body.ck .bond{ border-radius:12px; border:3px solid #8A5A10; background:rgba(255,240,246,.92); box-shadow:0 4px 0 #6A4208; }
+body.ck .bondpet{ background:radial-gradient(circle at 40% 35%, #E5525A 0%, #B3242E 55%, #7A1018 100%) !important; color:#FFF3D6 !important; border-radius:99px !important; box-shadow:0 4px 0 #4A0A10; font-family:Lora, Georgia, serif; }
+body.ck .weekdots i{ width:32px; height:36px; border-radius:0; clip-path:path("M16 0 L32 6 L32 17 C32 27 25 33 16 36 C7 33 0 27 0 17 L0 6 Z"); background:#8A7A66; font-weight:900; }
+body.ck .weekdots i.c{ background:linear-gradient(180deg,#7FD46A,#2F8A2A); } body.ck .weekdots i.m{ background:linear-gradient(180deg,#E5525A,#8E1A24); }
+body.ck .weekdots span{ color:#5A3D1E; }
+body.ck .pick{ border-radius:12px; border:3px solid #8A5A10; background:rgba(255,250,232,.9); box-shadow:0 4px 0 #6A4208; }
+body.ck .pick.on{ background:linear-gradient(180deg,#FFF0B0,#F2C14E); box-shadow:0 4px 0 #6A4208, 0 0 16px rgba(255,200,60,.7); }
+body.ck .todayitem{ border-radius:12px; border:3px solid #8A5A10; background:rgba(255,250,232,.95); box-shadow:0 4px 0 #6A4208; }
+body.ck .nudge{ border-radius:12px; border:3px solid #8A5A10; border-left-width:3px; background:var(--ck-parch) center/512px, #F4E4BE; box-shadow:0 4px 0 #6A4208, 0 8px 12px rgba(0,0,0,.3); }
+body.ck .nudge .btn{ background:radial-gradient(circle at 40% 35%, #E5525A 0%, #B3242E 55%, #7A1018 100%); color:#FFF3D6; border:0; border-radius:99px; box-shadow:0 3px 0 #4A0A10; font-family:Lora, Georgia, serif; }
