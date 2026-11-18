@@ -3,24 +3,24 @@
    Each step checks itself off from the student's save; tapping a step opens the tab where it's done.
    The Treasure Vault step is "check your progress", so it counts as done once the student opens it today
    (remembered on this computer only). */
-import { rvStarted, rvStock, rvBeatCount } from "./revenge.js?v=20261118e";
-import { heistTodo } from "./heist.js?v=20261118e";
-import { axoOn } from "./axolotl.js?v=20261118e";
-import { newsKeyOf, shownNews } from "./news.js?v=20261118e";
-import { freeReady } from "./pets.js?v=20261118e";
-import { tbLeft, tbLive } from "./teachbattle.js?v=20261118e";
-import { esc, simulate, companionOf, goalXP } from "./game.js?v=20261118e";
+import { rvStarted, rvStock, rvBeatCount } from "./revenge.js?v=20261118f";
+import { heistTodo } from "./heist.js?v=20261118f";
+import { axoOn } from "./axolotl.js?v=20261118f";
+import { newsKeyOf, shownNews } from "./news.js?v=20261118f";
+import { freeReady } from "./pets.js?v=20261118f";
+import { tbLeft, tbLive } from "./teachbattle.js?v=20261118f";
+import { esc, simulate, companionOf, goalXP, SEASON } from "./game.js?v=20261118f";
 import { azToday, azNow, todayXP, pullsLeft, legendaryLeft, birthdayLeft, pickleLeft, vaultLegLeft, BOSS2_LIST, boss2EggLeft, candyLegLeft, snowLegLeft,
-  gingerLegLeft, feastLegLeft, brewLegLeft, goalLeft, themeLeft, hasStarter, bankXP, LEVEL_XP } from "./collect.js?v=20261118e";
-import { mqReady } from "./morning.js?v=20261118e";
-import { doorsLive, doorName, goldenReady, weekDoorState, vaultState, vaultGoal, subReq, todayPlan, SUBJECT_KEYS } from "./doors.js?v=20261118e";
-import { soloOn, soloReady, soloCfg } from "./solobrew.js?v=20261118e";
-import { passReady } from "./pass.js?v=20261118e";
-import { pettedToday } from "./bond.js?v=20261118e";
-import { mealsReady } from "./meals.js?v=20261118e";
-import { readyTests } from "./quest.js?v=20261118e";
-import { unthanked } from "./kindness.js?v=20261118e";
-import { kdTodo } from "./kingdom.js?v=20261118e";
+  gingerLegLeft, feastLegLeft, brewLegLeft, goalLeft, themeLeft, hasStarter, bankXP, LEVEL_XP } from "./collect.js?v=20261118f";
+import { mqReady } from "./morning.js?v=20261118f";
+import { DOOR_ART, doorsLive, doorName, goldenReady, weekDoorState, vaultState, vaultGoal, subReq, todayPlan, SUBJECT_KEYS } from "./doors.js?v=20261118f";
+import { soloOn, soloReady, soloCfg } from "./solobrew.js?v=20261118f";
+import { passReady } from "./pass.js?v=20261118f";
+import { pettedToday } from "./bond.js?v=20261118f";
+import { mealsReady } from "./meals.js?v=20261118f";
+import { readyTests } from "./quest.js?v=20261118f";
+import { unthanked } from "./kindness.js?v=20261118f";
+import { kdTodo } from "./kingdom.js?v=20261118f";
 
 const seenKey = (id, what) => "ck-seen-" + azToday() + "-" + id + "-" + what;
 // 📣 the class announcement (Nov 9): a new one gets a new key, so it shows up on the list again
@@ -28,6 +28,8 @@ export const newsKey = cls => newsKeyOf(cls);   // changes whenever the list stu
 export const newsRead = (s, cls) => !newsKey(cls) || seen(s && s.id, newsKey(cls));
 export function markSeen(id, what) { try { localStorage.setItem(seenKey(id, what), "1"); } catch (e) {} }
 const seen = (id, what) => { try { return localStorage.getItem(seenKey(id, what)) === "1"; } catch (e) { return false; } };
+// 🖼️ Nov 18 (Ms. Ariana): pictures instead of emoji for some steps
+const PIC = src => '<img class="ckimg" src="' + src + '" alt="">';
 const plural = (n, w) => n + " " + w + (n === 1 ? "" : "s");
 
 export function eggsLeft(s, cls) {
@@ -56,7 +58,8 @@ export function steps(s, cls, students, battles) {
     (sim.alive ? (sim.atRisk ? "⚠️ " + pet + " needs a " + goalXP(cls) + " XP day to heal. " : pet + " is doing great. ") : pet + " needs your help! ")
     + (pettedToday(s) ? "You petted " + pet + " today \u{1F496}" : "Give " + pet + " a pet!"), pettedToday(s));
   // 🫧 Bubble's Baby (Nov 9): check on it every day
-  if (axoOn(cls)) add("axo", "axo", "\u{1FAE7}", "Check on Bubble\u2019s Baby", "Go see how the class baby axolotl is doing today!", seen(s.id, "axo"));
+  if (axoOn(cls)) { const an = s.axo && s.axo.name ? s.axo.name : "";
+    add("axo", "axo", PIC("assets/axolotl.png"), "Check on " + (an || "Bubble\u2019s Baby"), an ? "Go see how " + an + " is doing today!" : "Go see how the class baby axolotl is doing today!", seen(s.id, "axo")); }
   // 2. Campfire Kitchen
   { const n = mealsReady(s, cls); add("kitchen", "pet", "\u{1F373}", "Cook in the Campfire Kitchen", n ? (n === 1 ? "A meal is" : n + " meals are") + " ready to cook for a boost!" : "Nothing to cook right now.", !n); }
   // 3. Morning Quests
@@ -64,14 +67,14 @@ export function steps(s, cls, students, battles) {
     add("morning", "morning", "\u{1F305}", "Do your Morning Quests", n ? plural(n, "quest") + " ready — finish them before 8:15!" : late ? "The board is closed for today." : "All caught up! Earn more XP before 8:15 to open more.", !n); }
   // 5. eggs
   if (hasStarter(s)) { const n = eggsLeft(s, cls), lv = Math.floor(bankXP(s, cls) / LEVEL_XP);
-    add("eggs", "collect", "\u{1F95A}", "Hatch your eggs", n ? "You have " + plural(n, "egg") + " to hatch!" : "No eggs right now." + (lv ? " You can level up a creature " + plural(lv, "time") + "!" : " 120 XP in a day earns one."), !n); }
-  else add("eggs", "collect", "\u{1F95A}", "Pick your starter creature", "Go to the Creature Collector to pick one.", false);
+    add("eggs", "collect", PIC("assets/egg-common.webp"), "Hatch your eggs", n ? "You have " + plural(n, "egg") + " to hatch!" : "No eggs right now." + (lv ? " You can level up a creature " + plural(lv, "time") + "!" : " 120 XP in a day earns one."), !n); }
+  else add("eggs", "collect", PIC("assets/egg-common.webp"), "Pick your starter creature", "Go to the Creature Collector to pick one.", false);
   // 6. doors & presents
   if (doorsLive(cls)) { const n = presentsReady(s, cls), wk = false;   // Nov 3: no Weekly Door (its rewards are in the vault)
-    add("doors", "doors", "\u{1F6AA}", "Check your " + doorName(), n || wk ? (n ? plural(n, "present") + " to open" : "") + (n && wk ? " and " : "") + (wk ? "your Weekly Door is ready!" : "!") : "Finish a door’s task, then tap “I did it!”", !n && !wk); }
+    add("doors", "doors", PIC(DOOR_ART[SEASON.key] || DOOR_ART.jingle), "Check your " + doorName(), n || wk ? (n ? plural(n, "present") + " to open" : "") + (n && wk ? " and " : "") + (wk ? "your Weekly Door is ready!" : "!") : "Finish a door’s task, then tap “I did it!”", !n && !wk); }
   // 7. Treasure Vault
   { const st = vaultState(s, cls), v = vaultGoal(s, cls), unit = v.sub && v.sub !== "all" ? "XP in your goal subject" : "XP";
-    add("vault", doorsLive(cls) ? "doors" : "pet", "\u{1F48E}", "Check your Treasure Vault",
+    add("vault", doorsLive(cls) ? "doors" : "pet", PIC("assets/vault/vault-closed.webp"), "Check your Treasure Vault",
       st === "open" ? "Opened this week ✅" : st === "ready" ? "Your vault is ready to open!" : v.n >= v.xp && v.tot >= v.min ? "Almost! Finish your " + subReq(s, cls).short.map(r => r.name + " (" + r.have + " / " + r.need + ")").join(", ") + " this week" : v.n >= v.xp ? "Goal reached! Now " + v.tot.toLocaleString() + " / " + v.min + " XP total this week to open it" : v.n.toLocaleString() + " / " + v.xp.toLocaleString() + " " + unit + " this week" + (v.reward && v.reward.name ? " for " + v.reward.name : ""),
       st === "open" || (st !== "ready" && seen(s.id, "vault"))); }
   // 8. potion cauldron

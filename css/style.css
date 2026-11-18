@@ -4493,3 +4493,6 @@ body.ck .nudge .btn{ background:radial-gradient(circle at 40% 35%, #E5525A 0%, #
 #tourroot .tourbub p{ margin:0 0 12px; font-size:15.5px; line-height:1.45; }
 #tourroot .tourbtns{ display:flex; justify-content:space-between; gap:10px; align-items:center; }
 body.touring .bparty{ display:none !important; }   /* badge / record parties wait until the tour is over */
+/* 🖼️ Checklist step pictures (Nov 18) */
+.ckitem .ckic .ckimg{ display:block; width:40px; height:40px; object-fit:contain; margin:0 auto; filter:drop-shadow(0 2px 2px rgba(0,0,0,.2)); }
+body.ck .ckitem .ckic .ckimg{ width:42px; height:42px; }
