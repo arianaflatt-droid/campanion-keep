@@ -4941,3 +4941,27 @@ body.ck .solobrew .feasttable.round .ft-dish{ margin-left:0; }
 .ss-gobble .ssboard::after, .ss-gobble .ssfeed::after{ top:-22px; width:44px; height:46px; }
 .mstamps.tpunch{ padding-left:96px; }
 .ss-gobble .ssfeed{ overflow:visible; } .ss-gobble .ssfeed ul{ overflow:hidden; max-height:100%; }
+.ringfix{ display:inline-flex; gap:3px; vertical-align:middle; margin-left:4px; }
+.rfx{ width:26px; height:26px; border-radius:50%; border:2px solid #C9C2B2; background:#F4F1EA; color:#7A7468; font-weight:800; font-size:12px; cursor:pointer; padding:0; }
+.rfx.ok{ background:#2E9E5B; border-color:#1E7A43; color:#fff; } .rfx.fx{ background:linear-gradient(#FFE38A,#E6A92C); border-color:#8A5A10; color:#3A2410; box-shadow:0 0 0 2px rgba(230,169,44,.35); }
+.rfx.full{ background:#E8DDB0; border-color:#B9A66A; color:#6B5A20; cursor:default; }
+/* 🍽️ Nov 19: dishes all over the round table (3 rows), and guests at the back */
+.ssfeast.round, .feasttable.round{ position:relative; }
+.ssfeast.round .ssftable, .feasttable.round .ft-table{ position:relative; z-index:1; }
+.ss-gobble .ssfeast.round .ssdish.r0, .feasttable.round .ft-dish.r0{ bottom:71%; z-index:2; }
+.ss-gobble .ssfeast.round .ssdish.r1, .feasttable.round .ft-dish.r1{ bottom:59%; z-index:3; }
+.ss-gobble .ssfeast.round .ssdish.r2, .feasttable.round .ft-dish.r2{ bottom:46%; z-index:4; }
+.fguest{ position:absolute; z-index:0; width:17%; bottom:66%; transform:translateX(-50%); filter:drop-shadow(0 6px 6px rgba(0,0,0,.35)); animation:fgbob 2.6s ease-in-out infinite; }
+.fguest.g1{ left:13%; } .fguest.g2{ left:87%; width:15%; animation-delay:-1.3s; }
+@keyframes fgbob{ 50%{ transform:translateX(-50%) translateY(-4%) rotate(-2deg); } }
+.fplate{ position:absolute; z-index:2; width:10%; bottom:66%; transform:translateX(-50%); filter:drop-shadow(0 3px 3px rgba(0,0,0,.35)); }
+.fplate.p1{ left:17%; } .fplate.p2{ left:83%; }
+@media (prefers-reduced-motion: reduce){ .fguest{ animation:none; } }
+.ssfeast.round .fguest{ width:15%; bottom:60%; } .ssfeast.round .fguest.g1{ left:5%; } .ssfeast.round .fguest.g2{ left:95%; width:13%; }
+.ssfeast.round .fplate{ width:9%; bottom:63%; } .ssfeast.round .fplate.p1{ left:11%; } .ssfeast.round .fplate.p2{ left:89%; }
+.ssfeast.round .fguest{ width:14%; bottom:68%; } .ssfeast.round .fguest.g1{ left:11%; } .ssfeast.round .fguest.g2{ left:89%; width:12%; }
+.ssfeast.round .fplate{ bottom:70%; } .ssfeast.round .fplate.p1{ left:19%; } .ssfeast.round .fplate.p2{ left:81%; }
+/* guests sit at the left and right of the table, in front, with their plates in front of them */
+.ssfeast.round .fguest, .feasttable.round .fguest{ z-index:5; width:19%; bottom:44%; } .ssfeast.round .fguest.g1, .feasttable.round .fguest.g1{ left:4%; } .ssfeast.round .fguest.g2, .feasttable.round .fguest.g2{ left:96%; width:16%; }
+.ssfeast.round .fplate, .feasttable.round .fplate{ z-index:6; width:11%; bottom:47%; } .ssfeast.round .fplate.p1, .feasttable.round .fplate.p1{ left:12%; } .ssfeast.round .fplate.p2, .feasttable.round .fplate.p2{ left:88%; }
+.ssfeast.round .ssdish.sc, .feasttable.round .ft-dish.sc{ transform:translateX(-50%); } .ssfeast.round .fguest, .feasttable.round .fguest{ z-index:140; } .ssfeast.round .fplate, .feasttable.round .fplate{ z-index:141; }

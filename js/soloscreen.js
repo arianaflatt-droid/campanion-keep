@@ -55,13 +55,17 @@ export function soloScreenClose() { open = false; q = []; busy = false; if (root
 const isPotion = k => k.key === "haunt", isFeast = k => k.key === "gobble";
 function sceneHTML(k) {
   if (isPotion(k)) return '<div class="sscaul"><div class="sscbubbles"><i></i><i></i><i></i><i></i><i></i></div><img class="sscart" src="assets/potion/cauldron.webp" alt=""><div class="sscglow"></div></div>';
-  if (isFeast(k)) return '<div class="ssfeast round"><img class="ssftable" src="assets/feast/table-round.webp" alt=""><div class="ssfdishes" id="ssfdishes"></div></div>';
+  if (isFeast(k)) return '<div class="ssfeast round">' + FGUESTS + '<img class="ssftable" src="assets/feast/table-round.webp" alt=""><div class="ssfdishes" id="ssfdishes"></div></div>';
   return '<div class="ssgeneric"><span>' + k.icon + "</span></div>";
 }
 // the feast: one dish per dish cooked by the class, a fresh table every 10
 // [left %, row (0 = back, 1 = front), width %] — Nov 19: spread out so no dish hides behind another; the turkey (10th) is the big one in front
+// 🦃👻 Nov 19: guests at the feast — the Turducken and the Ghost-olotl sit at the back of the table with their plates
+export const FGUESTS = '<img class="fguest g1" src="assets/gobble/turducken-sidekick.webp" alt=""><img class="fguest g2" src="assets/ghost-pet.png" alt="">' +
+  '<img class="fplate p1" src="assets/feast/plate.webp" alt="" onerror="this.src=\'assets/feast/mashed.webp\';this.onerror=null"><img class="fplate p2" src="assets/feast/plate.webp" alt="" onerror="this.src=\'assets/feast/pie.webp\';this.onerror=null">';
 // Nov 19: Ms. Ariana's big round table — back row along the far edge, front row along the near edge, the turkey big in the middle
-const SPOTS = [[36, 0, 15], [64, 0, 15], [50, 0, 14], [22, 0, 14], [78, 0, 14], [14, 1, 16], [86, 1, 16], [31, 1, 16], [69, 1, 16], [50, 1, 22]];
+// Nov 19 (later): scattered all over the round table: [left %, bottom %, width %]; lower = nearer the front
+const SPOTS = [[30, 75, 12], [63, 77, 12], [46, 64, 12], [20, 59, 13], [79, 62, 13], [26, 47, 13], [76, 47, 13], [13, 69, 11], [87, 73, 10], [52, 47, 20]];
 const SPOTS_OLD = [[30, 0, 15], [70, 0, 15], [50, 0, 15], [12, 0, 14], [88, 0, 14], [21, 1, 16], [79, 1, 16], [36, 1, 15], [64, 1, 15], [50, 1, 22]];
 let shownDishes = -1;
 function dishes(total, animate) {
@@ -70,8 +74,8 @@ function dishes(total, animate) {
   if (n === shownDishes && !animate) return;
   const was = shownDishes < 0 || n < shownDishes ? (animate ? n - 1 : n) : shownDishes;
   shownDishes = n;
-  el.innerHTML = DISHES.slice(0, n).map((d, i) => ({ d, i, s: SPOTS[i] })).sort((a, b) => a.s[1] - b.s[1])
-    .map(({ d, i, s }) => '<img class="ssdish r' + s[1] + (i >= was ? " new" : "") + '" src="assets/feast/' + d.k + '.webp" alt="" style="left:' + s[0] + "%;width:" + s[2] + '%;">').join("");
+  el.innerHTML = DISHES.slice(0, n).map((d, i) => ({ d, i, s: SPOTS[i] })).sort((a, b) => b.s[1] - a.s[1])
+    .map(({ d, i, s }) => '<img class="ssdish sc' + (i >= was ? " new" : "") + '" src="assets/feast/' + d.k + '.webp" alt="" style="left:' + s[0] + "%;bottom:" + s[1] + "%;width:" + s[2] + "%;z-index:" + (100 - s[1]) + ';">').join("");
 }
 function draw(full) {
   if (!root || !last) return;

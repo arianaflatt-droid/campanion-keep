@@ -203,12 +203,14 @@ const gi = (k, g, cls) => k.key === "gobble" && FPIC[g.k] ? '<img class="fpic' +
 const MPIC = { 3: "assets/egg-common.webp", 6: "assets/feast/ing-corn.webp", 10: "assets/badges/feast-master.webp", 15: "assets/egg-gobble.webp" };
 const mi = (k, m) => k.key === "gobble" && MPIC[m.n] ? '<img class="fpic" src="' + MPIC[m.n] + '" alt="">' : m.icon;
 // 🍽️ Nov 19: the Feast Kitchen table is Ms. Ariana's big round table: same dishes, new spots
-const ROUND = [[36, 0, 15], [64, 0, 15], [50, 0, 14], [22, 0, 14], [78, 0, 14], [14, 1, 16], [86, 1, 16], [31, 1, 16], [69, 1, 16], [50, 1, 22]];
-const roundTable = html => html.replace('class="feasttable"', 'class="feasttable round"').replace("assets/feast/table.webp", "assets/feast/table-round.webp")
+const FG = '<img class="fguest g1" src="assets/gobble/turducken-sidekick.webp" alt=""><img class="fguest g2" src="assets/ghost-pet.png" alt="">' +
+  '<img class="fplate p1" src="assets/feast/plate.webp" alt="" onerror="this.src=\'assets/feast/mashed.webp\';this.onerror=null"><img class="fplate p2" src="assets/feast/plate.webp" alt="" onerror="this.src=\'assets/feast/pie.webp\';this.onerror=null">';
+const ROUND = [[30, 75, 12], [63, 77, 12], [46, 64, 12], [20, 59, 13], [79, 62, 13], [26, 47, 13], [76, 47, 13], [13, 69, 11], [87, 73, 10], [52, 47, 20]];   // [left %, bottom %, width %], scattered
+const roundTable = html => html.replace('class="feasttable"', 'class="feasttable round"').replace('<img class="ft-table" src="assets/feast/table.webp"', FG + '<img class="ft-table" src="assets/feast/table-round.webp"')
   .replace(/class="ft-dish( ghost)? r\d" src="assets\/feast\/(\w+)\.webp"([^>]*?)style="left:[\d.]+%;width:[\d.]+%;"/g, (m, gh, key, mid) => { const i = Math.max(0, DISHES.findIndex(x => x.k === key)), p = ROUND[i];
-    return 'class="ft-dish' + (gh || "") + " r" + p[1] + '" src="assets/feast/' + key + '.webp"' + mid + 'style="left:' + p[0] + "%;width:" + p[2] + '%;"'; })
-  .replace(/<span class="ft-cook" style="left:[\d.]+%;bottom:[\d.]+%;">/, () => { const g = /ft-dish ghost r(\d)" src="assets\/feast\/(\w+)/.exec(html); const i = g ? DISHES.findIndex(x => x.k === g[2]) : 0, p = ROUND[Math.max(0, i)];
-    return '<span class="ft-cook" style="left:' + p[0] + "%;bottom:" + (p[1] ? 60 : 72) + '%;">'; });
+    return 'class="ft-dish sc' + (gh || "") + '" src="assets/feast/' + key + '.webp"' + mid + 'style="left:' + p[0] + "%;bottom:" + p[1] + "%;width:" + p[2] + "%;z-index:" + (gh ? 120 : 100 - p[1]) + ';"'; })
+  .replace(/<span class="ft-cook" style="left:[\d.]+%;bottom:[\d.]+%;">/, () => { const g = /ft-dish ghost r\d" src="assets\/feast\/(\w+)/.exec(html); const i = g ? DISHES.findIndex(x => x.k === g[1]) : 0, p = ROUND[Math.max(0, i)];
+    return '<span class="ft-cook" style="left:' + p[0] + "%;bottom:" + (p[1] + 12) + '%;z-index:130;">'; });
 export function soloCard(st, cls, flash) {
   const k = soloCfg(cls), d = soloDay(st, cls), wait = soloWaiting(st, cls), nWait = wait.reduce((a, x) => a + x.n, 0), all = d.ready + nWait, fxk = (soloOf(st, k).fx || {})[d.date], fx = fxk ? effect(fxk) : null, ings = ingsFor(st, k);
   const c = { E: k.E, team: { id: "solo-" + st.id }, have: d.left, brewed: d.made > 0 && !d.ready };

@@ -2,7 +2,7 @@ import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges
 import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261119b";
 import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261119b";
 import { cpEarnedCalc } from "./room.js?v=20261119b";
-import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261119b";
+import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES, subFor } from "./teams.js?v=20261119b";
 import { rewardFor, wkGoalOf, wkShare, ringDay, hasSwap, portalDay, addDays as pdAdd, fullFloor, realDay } from "./doors.js?v=20261119b";
 import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet, subReq, subRuleOn, SUB_DAY, addDays } from "./doors.js?v=20261119b";
 import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing } from "./collector-ui.js?v=20261119b";
@@ -902,7 +902,7 @@ function viewDaily() {
   students.forEach(s => {
     const c = companionOf(s);
     const v = arr5(s.status, "")[day], early = arr5(s.early, false)[day];
-    const xp = arr5(s.xp, null)[day], lx = arr5(s.lunchXp, null)[day], full = !!(((s.xpHist || {})[dateOfDay(day)]) || {}).full;
+    const hd0 = ((s.xpHist || {})[dateOfDay(day)]) || {}, xp = arr5(s.xp, null)[day], lx = arr5(s.lunchXp, null)[day], full = !!hd0.full, fixL = hd0.fix || [], rd = ringDay(s, cls);
     const cls2 = v === "c" ? "c" : v === "e" ? "e" : rec[day] ? "m" : "";
     const sym = v === "c" ? "✓" : v === "e" ? "–" : rec[day] ? "✕" : "·";
     h += '<tr><td class="nm">' + esc(s.name) + "<small>" + (c ? c.glyph + " " + esc(s.petName || c.name) : "no companion yet") + "</small></td>" +
@@ -911,12 +911,21 @@ function viewDaily() {
       '<td style="font-family:var(--mono);">' + (xp == null ? '<span class="muted">—</span>' : xp) + "</td>" +
       '<td class="heavy"><button class="ring ' + cls2 + '" data-ring="' + s.id + '" aria-label="' + esc(s.name) + " " + (v === "c" ? "hit" : v === "e" ? "excused" : "missed") + '">' + sym + "</button></td>" +
       '<td><button class="btn ghost small" data-excuse="' + s.id + '">Excuse day</button>' +
+        // 💍 one ring at a time: green = closed by the XP, gold = closed by you (click to undo), grey = not closed yet (click to close it)
+        ' <span class="ringfix">' + RINGK.map(k => { const src = subFor(cls, s, k), have = Number(((hd0.sub) || {})[src]) || 0, fx = fixL.includes(k), realHave = Number((((hd0.real || {}).sub) || (fx || full ? {} : hd0.sub) || {})[src]) || 0;
+          const st = fx ? "fx" : full ? "full" : have >= rd ? "ok" : "";
+          return '<button class="rfx ' + st + '" data-ringfix="' + s.id + ":" + k + '"' + (full ? " disabled" : "") + ' title="' + RNAME[k] + " ring" + (SUB_NAMES[src] && src !== k ? " (" + SUB_NAMES[src] + ")" : "") + ": " + (fx ? "closed by you (real: " + realHave + "). Click to take it back." : full ? "closed by Full day" : have >= rd ? "closed (" + have + " XP)" : have + " of " + rd + " XP. Click to close just this ring for " + DAYS[day] + ".") + '">' + RNAME[k][0] + "</button>"; }).join("") + "</span>" +
         (full ? ' <button class="btn small fullon" data-fullday="' + s.id + '" title="Counted as a full ' + goal + ' XP day with all 3 rings. Click to take it back.">\u2B50 Full day \u2713</button>'
           : ' <button class="btn ghost small" data-fullday="' + s.id + '" title="The XP or a ring didn\u2019t record? Count this day as a full ' + goal + ' XP day with all 3 rings closed.">\u2B50 Full day</button>') + "</td></tr>";
   });
   return h + "</tbody></table></div></div>";
 }
 
+// 💍 Nov 19: closing a single ring for one day (xpHist[date].fix = ["l", ...], the uploads' real numbers kept in .real)
+const RINGK = ["m", "r", "l"], RNAME = { m: "Math", r: "Reading", l: "Language" };
+function realDay2(day) { if (!day || !(day.full || day.fix)) return day; const r = day.real || {}, o = Object.assign({}, day); delete o.real; delete o.full; delete o.fix; if (day.full) delete o.h;
+  if (r.d != null) o.d = r.d; else if (day.full) delete o.d; if (r.sub) o.sub = Object.assign({}, r.sub); else delete o.sub; return o; }
+function fixFloor(day, s, keys) { const sub = Object.assign({}, day.sub || {}), rd = ringDay(s, cls); keys.forEach(k => { const src = subFor(cls, s, k); sub[src] = Math.max(Number(sub[src]) || 0, rd); }); day.sub = sub; return day; }
 /* ---------- standings ---------- */
 // Hover text for a day dot: what the game has saved for that day (helps check excused / streak questions).
 function dotTip(s, d, v, eh) {
@@ -2000,8 +2009,8 @@ async function applyUpload(up) {
     if (has) { matched++; if (ok) hit++; } else missing.push(s.name);
     const status = arr5(s.status, ""), early = arr5(s.early, false);
     // ⭐ a "full day" keeps the uploads' real numbers in .real: merge into those, then put the floor back on (below)
-    const wasFull = !!(hist0 => hist0 && hist0.full)((s.xpHist || {})[date]);
-    const hist = Object.assign({}, s.xpHist || {}), day = Object.assign({}, realDay(hist[date] || {})), dayWas = hist[date] ? JSON.parse(JSON.stringify(realDay(hist[date]))) : null;
+    const wasFull = !!(hist0 => hist0 && hist0.full)((s.xpHist || {})[date]), wasFix = (((s.xpHist || {})[date]) || {}).fix || null;
+    const hist = Object.assign({}, s.xpHist || {}), day = Object.assign({}, realDay2(hist[date] || {})), dayWas = hist[date] ? JSON.parse(JSON.stringify(realDay2(hist[date]))) : null;
     if (has) day[key] = xp;
     // ⚠️ Nov 16 (Ms. Ariana): live data from Timeback can LOWER subject numbers too (XP taken away), but ONLY when the day's
     // total went down too. The feeder doesn't always split subjects the same way as a pasted file (Writing / Vocabulary can
@@ -2011,7 +2020,9 @@ async function applyUpload(up) {
       nw[k] = totDown && n != null ? Number(n) || 0 : Math.max(Number(old[k]) || 0, Number(n) || 0); }); day.sub = nw; }
     const drop = totDown ? noteDrop(s, date, dayWas, day) : null;
     if (up.kind === "lunch" && !up.auto) delete day.lh;   // a lunch upload replaces any hand-marked Lunch Hero for that day (live data never does)
-    if (wasFull) { const real = {}; if (day.d != null) real.d = day.d; if (day.sub) real.sub = Object.assign({}, day.sub); day.full = true; day.real = real; fullFloor(day, s, cls, goal); delete day.e; }
+    if (wasFull || wasFix) { const real = {}; if (day.d != null) real.d = day.d; if (day.sub) real.sub = Object.assign({}, day.sub); day.real = real;
+      if (wasFull) { day.full = true; fullFloor(day, s, cls, goal); delete day.e; }
+      if (wasFix) { day.fix = wasFix.slice(); fixFloor(day, s, day.fix); } }
     if (Object.keys(day).length) hist[date] = day; else delete hist[date];
     let data;
     if (lastWk) data = { xpHist: hist };   // last week's numbers only go into the history (eggs + doors); this week's boxes stay as they are
@@ -2476,6 +2487,25 @@ document.addEventListener("click", async ev => {
     if (Object.keys(h).length) hist[date] = h; else delete hist[date];
     return patch(s.id, { early, status: st, xpHist: hist });
   }
+  // 💍 Nov 19: close just ONE ring for one day (a ring that didn't record): that day's subject counts as at least 25. Click again to undo.
+  if ((el = ev.target.closest("[data-ringfix]"))) {
+    const [sid, k] = el.dataset.ringfix.split(":"), s = sOf(sid); if (!s || !RINGK.includes(k)) return;
+    const date = dateOfDay(day), hist = Object.assign({}, s.xpHist || {}), cur = hist[date] || {}, was = (cur.fix || []).slice();
+    const on = !was.includes(k), list = on ? was.concat([k]) : was.filter(x => x !== k);
+    const real = cur.full || cur.fix ? Object.assign({}, cur.real || {}) : (() => { const r = {}; if (cur.d != null) r.d = cur.d; if (cur.sub) r.sub = Object.assign({}, cur.sub); return r; })();
+    let hd = realDay2(cur);
+    if (cur.full) { hd.full = true; hd.real = real; fullFloor(hd, s, cls, goalXP(cls)); }
+    if (list.length) { hd.fix = list; hd.real = real; fixFloor(hd, s, list); }
+    if (Object.keys(hd).length) hist[date] = hd; else delete hist[date];
+    const data = { xpHist: hist }, s2 = Object.assign({}, s, data), wk = weekKey(cls);
+    if (on && s.companionId) {
+      if (weekTotal(s2, cls) >= wkGoalOf(s2, cls) && subReq(s2, cls, wk).ok && !(s.weekDoor || {})[wk]) data.weekDoor = Object.assign({}, s.weekDoor || {}, { [wk]: "ready" });
+      if (vaultMet(s2, cls, wk) && !(s.vault || {})[wk]) data.vault = Object.assign({}, s.vault || {}, { [wk]: "ready" });
+    }
+    await patch(s.id, data);
+    flash(on ? "\u{1F48D} " + s.name + "\u2019s " + RNAME[k] + " ring is closed for " + DAYS[day] + (data.vault ? " \u2014 and their Treasure Vault is ready!" : ".") : "Took back " + s.name + "\u2019s " + RNAME[k] + " ring for " + DAYS[day] + ".");
+    return;
+  }
   // ⭐ Nov 19: count a day as a full 120 XP day with all 3 rings (the XP or a ring didn't record). Click again to take it back.
   if ((el = ev.target.closest("[data-fullday]"))) {
     const s = sOf(el.dataset.fullday); if (!s) return;
@@ -2483,12 +2513,12 @@ document.addEventListener("click", async ev => {
     let hd;
     if (!cur.full) {
       if (!confirm("Count " + s.name + "\u2019s " + DAYS[day] + " as a full " + g + " XP day with all 3 rings closed?\n\nUse it when the XP or a ring didn\u2019t record. It gives everything a " + g + " XP day gives: full health, the egg, Comfort Points, the level bar, the rings and the Treasure Vault progress. Later uploads still save the real numbers underneath, and you can click it again to take it back.")) return;
-      const real = {}; if (cur.d != null) real.d = cur.d; if (cur.sub) real.sub = Object.assign({}, cur.sub);
+      const real = cur.fix ? Object.assign({}, cur.real || {}) : {}; if (!cur.fix) { if (cur.d != null) real.d = cur.d; if (cur.sub) real.sub = Object.assign({}, cur.sub); }
       hd = fullFloor(Object.assign({}, cur, { full: true, real }), s, cls, g); delete hd.e;
       xps[day] = Math.max(Number(xps[day]) || 0, g); st[day] = "c";
     } else {
       if (!confirm("Take back " + s.name + "\u2019s full day on " + DAYS[day] + "? The day goes back to the real numbers.")) return;
-      hd = realDay(cur); const r = cur.real || {};
+      hd = realDay2(cur); const r = cur.real || {}; if (cur.fix) { hd.fix = cur.fix.slice(); hd.real = Object.assign({}, r); fixFloor(hd, s, hd.fix); }
       xps[day] = r.d != null ? r.d : null;
       st[day] = st[day] === "e" ? "e" : (Number(r.d) || 0) >= g || arr5(s.early, false)[day] ? "c" : "";
       if (st[day] === "c" && (Number(r.d) || 0) < g) hd.h = true;
