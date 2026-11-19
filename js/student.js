@@ -13,13 +13,13 @@ import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=2
 import { kindCard, gotKindToday } from "./kindness.js?v=20261119b";
 import { partyCards, partyOverlay, partyClick, partyBusy, partyTicker, partySync } from "./party.js?v=20261119b";
 import { kitchenCard, kitchenOverlay, kitchenClick, kitchenBusy, kitchenPointer } from "./meals.js?v=20261119b";
-import { miniCard, miniOverlay, miniClick, miniBusy, miniSync } from "./mini.js?v=20261119b";
+import { miniCard, miniOverlay, miniClick, miniBusy, miniSync } from "./mini.js?v=20261119d";
 import { paintCard, paintClick } from "./paint.js?v=20261119b";
 import { surpriseCards, surpriseOverlay, surpriseClick, surpriseBusy } from "./surprise.js?v=20261119b";
 import { hofTab, hofParty, hofClick } from "./hof.js?v=20261119b";
 import { passTab, passOverlay, passClick, passBusy, passReady } from "./pass.js?v=20261119b";
 import { bondHTML, moodBubble, playTrick, burst, unlockAt } from "./bond.js?v=20261119b";
-import { morningTab, morningOverlay, morningClick, morningBusy, mqReady } from "./morning.js?v=20261119b";
+import { morningTab, morningOverlay, morningClick, morningBusy, mqReady } from "./morning.js?v=20261119d";
 import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261119b";
 import { cardOf, sameData } from "./card.js?v=20261119b";
 import { mapOn, mapTab, mapClick, mapReady } from "./readmap.js?v=20261119b";
@@ -29,7 +29,7 @@ import { axoOn, axoSync } from "./axolotl.js?v=20261119b";
 import { wheelSync } from "./wheel.js?v=20261119b";
 import { showdownSync, sdPill } from "./showdown.js?v=20261119b";
 import { shoutSync } from "./shout.js?v=20261119b";
-import { newsPopSync } from "./modes.js?v=20261119b";
+import { newsPopSync } from "./modes.js?v=20261119d";
 import { lvlSync } from "./lvlup.js?v=20261119b";
 import { kdOn, kdSync, kingdomTab, kdTodo, kdUnlocked, kdOf, kdPass } from "./kingdom.js?v=20261119b";
 import { clubsTab, clubsNew, doneCount, clubPageSet } from "./clubs.js?v=20261119b";
@@ -39,11 +39,11 @@ import { freeOverlay, freeReady, freeDoneCard, showFree } from "./pets.js?v=2026
 import { nebbleSync, nebbleCard } from "./pets.js?v=20261119b";
 import { nebbleCorner } from "./petpark.js?v=20261119b";
 import { playSync } from "./playground.js?v=20261119b";
-import { checklistTab, todoCount, markSeen, newsKey, newsRead } from "./checklist.js?v=20261119b";
+import { checklistTab, todoCount, markSeen, newsKey, newsRead } from "./checklist.js?v=20261119d";
 import { newsPage, shownNews, reactSave, pinnedNews, newsCard, likesFor } from "./news.js?v=20261119b";
 import { PREVIEW, configured, auth, googleStudentSignIn, seatInfo, googleReseat, signOut as gSignOut, SCHOOL_DOMAIN, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc as saveDoc, watchRewardPic, watchNewsPics, claimSeat, mySeat, watchCards, watchMe, saveCard, ck } from "./db.js?v=20261119b";
 import { rewardTab, rewardBadge, rgOf, rgProgress, RG_SUBS, prizeWeek, nameFromLink, prizeLinkOk } from "./weekgoal.js?v=20261119b";
-import { soloOn, soloSwap, soloCard, brewOne, freeIngredient, soloReady, soloCfg, potNaming, potNameData } from "./solobrew.js?v=20261119b";
+import { soloOn, soloSwap, soloCard, brewOne, freeIngredient, soloReady, soloCfg, potNaming, potNameData } from "./solobrew.js?v=20261119d";
 let rpic = null, npic = null, npics = {};
 // The wheel's slices; with Solo Potion Brewing on, Free Attack becomes Free Ingredient (same slice id, so saves still pass)
 const slicesNow0 = () => soloOn(cls) ? SEASON.slices.map(x => x.id === "attack" ? Object.assign({}, x, { label: "Free Ingredient", icon: soloCfg(cls).icon, note: "A free " + (soloCfg(cls).ingFor || soloCfg(cls).one) + " ingredient!" }) : x) : SEASON.slices;
@@ -52,7 +52,7 @@ const slicesNow = () => { const L = slicesNow0(); if (!planetOn(cls)) return L; 
   return L.map(x => x.id === "nothing" && n++ === 1 ? Object.assign({}, x, { id: "dust50", label: WHEEL_DUST + " Stardust", icon: "\u2B50", note: "+" + WHEEL_DUST + " Planet JP Stardust!" }) : x); };
 // ⭐ adds Stardust to the student's Planet JP save (the whole planet object, like every Planet JP save, so nothing is lost)
 function plusDust(s, n, data) { const pl = JSON.parse(JSON.stringify(((pjFresh(s) || {}).planet) || {})); pl.dust = (Number(pl.dust) || 0) + n; pl.sv = (Number(pl.sv) || 0) + 1; data.planet = pl; }
-import { nudgeCard } from "./nudges.js?v=20261119b";
+import { nudgeCard } from "./nudges.js?v=20261119d";
 import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261119b";
 import { teacherPlayer, hasStarter, MOVES, formOf, STARTERS as CR_STARTERS, family as crFamily, creature as crCreature } from "./collect.js?v=20261119b";
 import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261119b";

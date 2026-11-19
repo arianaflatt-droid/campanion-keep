@@ -1065,7 +1065,7 @@ td .emo, .ic .emo{ display:inline-block; vertical-align:middle; font-size:1.3em;
   @keyframes psteam{ 0%{ transform:translateY(20%) scale(.6); opacity:0; } 30%{ opacity:.35; } 100%{ transform:translateY(-60%) scale(1.3); opacity:0; } }
   @keyframes pbub{ 0%{ transform:translateY(0) scale(.6); opacity:0; } 20%{ opacity:.9; } 100%{ transform:translateY(-44px) scale(1.1); opacity:0; } }
   .potion .recipe{ display:grid; gap:8px; margin-top:6px; }
-  .potion .pring{ display:grid; grid-template-columns:34px 1fr auto; grid-template-areas:"ic nm n" "ic bar bar"; align-items:center; column-gap:10px; row-gap:4px; padding:8px 10px; border:1px solid var(--line-2); border-radius:12px; background:var(--panel-2); }
+  .potion .pring{ display:grid; grid-template-columns:42px 1fr auto; grid-template-areas:"ic nm n" "ic bar bar"; align-items:center; column-gap:10px; row-gap:4px; padding:8px 10px; border:1px solid var(--line-2); border-radius:12px; background:var(--panel-2); }
   .potion .ri-ic{ grid-area:ic; font-size:26px; text-align:center; } .potion .ri-nm{ grid-area:nm; font-weight:700; } .potion .ri-n{ grid-area:n; } .potion .pbar{ grid-area:bar; }
   .pbar{ display:block; height:10px; border-radius:6px; background:var(--line-2); overflow:hidden; } .pbar > span{ display:block; height:100%; background:linear-gradient(90deg,#7B3FC4,#C77DFF); border-radius:6px; }
   .pteam{ display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; } .pteam > span{ padding:5px 10px; border-radius:999px; border:1px solid var(--line-2); background:var(--panel-2); font-size:14px; }
@@ -4856,3 +4856,88 @@ body.ck .card.newsboard{ background:url(../assets/keep/notice-board.webp) center
 .sschips span{ white-space:nowrap; border-radius:99px; padding:3px 12px; font-size:clamp(13px,1.1vw,18px); background:rgba(120,70,20,.14); border:1px solid rgba(107,63,29,.35); }
 .sschips b{ color:#8E1A24; }
 @media (prefers-reduced-motion: reduce){ .sstfill{ animation:none; } }
+/* ===== 🏰 Nov 19: mini events in the castle style ===== */
+/* the event card (My Companion): wood frame + parchment, the event picture in a gold frame, red ribbon title */
+body.ck .card.minicard{ border:22px solid transparent !important; border-image:url(../assets/keep/wood-sign.webp) 80 / 22px / 0 stretch !important; border-radius:0 !important;
+  background:url(../assets/keep/parchment.webp) center / cover !important; background-clip:padding-box !important; color:#3A2410 !important; box-shadow:none !important;
+  filter:drop-shadow(0 8px 10px rgba(0,0,0,.4)); padding:12px 16px !important; gap:18px; }
+body.ck .minicard .mcpic{ width:clamp(120px,26%,240px); aspect-ratio:16/10; object-fit:cover; border-radius:10px; flex:none; box-shadow:0 0 0 4px #E6A92C, 0 0 0 6px #8A5A10, 0 6px 10px rgba(0,0,0,.35); }
+body.ck .minicard .mctxt{ flex:1; min-width:0; }
+body.ck .minicard h3{ margin:0 0 8px !important; } body.ck .minicard h3 span{ display:inline-block; border-style:solid; border-color:transparent; border-width:0 34px;
+  border-image:url(../assets/keep/title-ribbon.webp) 0 140 fill / 0 34px / 0 stretch; padding:6px 4px 12px; color:#FFF3D0 !important; font-family:Lora, Georgia, serif; text-shadow:0 2px 2px #5A0810; margin-left:-8px; filter:drop-shadow(0 3px 3px rgba(60,10,0,.3)); }
+body.ck .minicard p, body.ck .minicard p *{ color:#3A2410 !important; } body.ck .minicard p b{ color:#8E1A24 !important; }
+body.ck .minicard .btn.gold{ background:linear-gradient(#FFE38A,#E6A92C) !important; color:#3A2410 !important; border:2px solid #8A5A10 !important; box-shadow:0 4px 0 #8A5A10 !important; font-weight:800; }
+body.ck .minicard .btn.ghost{ border:8px solid transparent !important; border-image:url(../assets/keep/wood-sign.webp) 80 fill / 8px / 0 stretch !important; background:none !important; color:#FFF3D0 !important; text-shadow:0 1px 2px #000; font-weight:700; }
+@media (max-width:560px){ body.ck .card.minicard{ flex-direction:column; align-items:stretch; } body.ck .minicard .mcpic{ width:100%; } }
+/* the event screen: a wooden top bar, the name on the red ribbon, ticket + coin chips, wooden buttons */
+.mover .qbtop{ border:12px solid transparent; border-image:url(../assets/keep/wood-sign.webp) 80 fill / 12px / 0 stretch; background:none; padding:2px 8px; filter:drop-shadow(0 4px 6px rgba(0,0,0,.5)); }
+.mover .qbtop > b{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.mqname{ display:inline-block; border-style:solid; border-color:transparent; border-width:0 30px; border-image:url(../assets/keep/title-ribbon.webp) 0 140 fill / 0 30px / 0 stretch;
+  padding:4px 4px 10px; color:#FFF3D0; font-family:Lora, Georgia, serif; font-size:clamp(15px,1.6vw,22px); text-shadow:0 2px 2px #5A0810; }
+.mqchip{ display:inline-flex; align-items:center; gap:4px; background:url(../assets/keep/parchment.webp) center / cover; color:#3A2410; border-radius:99px; padding:2px 12px; font-size:clamp(14px,1.4vw,19px); box-shadow:0 0 0 2px #B07A1A, 0 2px 3px rgba(0,0,0,.4); }
+.mqchip .lantic, .mpic, .mcoin, .mgot .mcoin{ height:1.4em; width:auto; vertical-align:-.3em; }
+.mgot .mcoin{ height:1.2em; }
+.mover .qbtop .btn.ghost{ border:7px solid transparent !important; border-image:url(../assets/keep/wood-sign.webp) 80 fill / 7px / 0 stretch !important; background:none !important; color:#FFF3D0 !important; text-shadow:0 1px 2px #000; font-weight:700; }
+/* the space under the picture: the event's castle wall (or Ms. Ariana's backdrop once it's uploaded) */
+.mover.mo-xmas, .mover.mo-orn{ background:linear-gradient(rgba(10,20,14,.55), rgba(10,20,14,.75)), url(../assets/xmas/xmas-backdrop.webp) center / cover, url(../assets/keep/wall-xmas.webp) center / cover, #0B2418; }
+.mover.mo-orn{ background:linear-gradient(rgba(10,20,14,.55), rgba(10,20,14,.75)), url(../assets/xmas/xmas-backdrop.webp) center / cover, url(../assets/keep/wall-orn.webp) center / cover, #0B2418; }
+.mover.mo-xmas .mstage, .mover.mo-orn .mstage{ box-shadow:0 0 0 5px #E6A92C, 0 0 0 8px #8A5A10, 0 14px 30px rgba(0,0,0,.6); border-radius:6px; margin-top:12px; }
+.mover .mhint{ background:url(../assets/keep/parchment.webp) center / cover; color:#3A2410; box-shadow:0 0 0 3px #B07A1A, 0 4px 8px rgba(0,0,0,.45); }
+/* 🎟️ golden tickets (CSS ticket until the art is in: assets/xmas/golden-ticket.webp) */
+.mspot.gticket{ display:flex; align-items:center; gap:10px; text-align:left; color:#4A2A05; border:0; border-radius:0; padding:14px 30px 14px 22px; min-width:clamp(220px,28vw,360px); animation:gtglow 2.2s ease-in-out infinite;
+  background:url(../assets/xmas/golden-ticket.webp) center / 100% 100% no-repeat, radial-gradient(circle at 0 50%, transparent 14px, #F7D56A 15px) left / 51% 100% no-repeat, radial-gradient(circle at 100% 50%, transparent 14px, #F7D56A 15px) right / 51% 100% no-repeat;
+  filter:drop-shadow(0 6px 8px rgba(0,0,0,.5)); text-shadow:0 1px 0 rgba(255,250,220,.7); }
+.mspot.gticket small{ color:#7A4A10; opacity:1; }
+.mspot.gticket .gtic{ height:clamp(40px,4.6vw,64px); width:auto; flex:none; filter:drop-shadow(0 2px 2px rgba(0,0,0,.35)); font-size:clamp(30px,3.6vw,48px); }
+@keyframes gtglow{ 50%{ filter:drop-shadow(0 0 14px rgba(255,220,100,.95)) drop-shadow(0 6px 8px rgba(0,0,0,.5)); transform:translateY(-3px); } }
+/* 🚂 the ticket punch: one train ticket, a hole punched (star shape) for every stop reached */
+.mstamps.tpunch{ flex-direction:column; gap:4px; border-radius:6px; padding:8px 18px 6px; color:#4A2A05; background:url(../assets/xmas/punch-ticket.webp) center / 100% 100% no-repeat, linear-gradient(#FFF6D8,#F2DFA8);
+  box-shadow:0 0 0 2px #B07A1A, 0 6px 10px rgba(0,0,0,.45); bottom:12%; }
+.tpt{ font-family:Lora, Georgia, serif; font-size:clamp(13px,1.4vw,18px); color:#8E1A24; }
+.tpholes{ display:flex; gap:clamp(6px,1vw,14px); }
+.mstamps.tpunch span{ width:auto; height:auto; background:none; display:flex; flex-direction:column; align-items:center; gap:2px; }
+.mstamps.tpunch span i{ width:clamp(22px,2.6vw,34px); aspect-ratio:1; border-radius:50%; border:2px dashed #B07A1A; display:block; }
+.mstamps.tpunch span.on i{ border:0; background:#0B2418; clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%); box-shadow:inset 0 2px 3px #000; }
+.mstamps.tpunch span small{ font-size:clamp(8px,.75vw,11px); font-weight:700; max-width:7em; text-align:center; line-height:1.1; color:#6B3F1D; }
+.mstamps.tpunch .tpn{ font-size:12px; font-weight:700; }
+/* 🎄 the Ornament Box (Ms. Ariana's box art, the slots fill in) */
+.ornboxbig{ position:absolute; right:2%; bottom:4%; width:clamp(160px,24%,320px); z-index:2; filter:drop-shadow(0 8px 10px rgba(0,0,0,.5)); }
+.ornboxbig .obox{ width:100%; display:block; }
+.ornboxbig .oslot{ position:absolute; width:12.5%; transform:translate(-50%,-50%); filter:drop-shadow(0 2px 2px rgba(0,0,0,.4)); animation:pop .4s ease-out; }
+.oboxn{ position:absolute; left:50%; top:4%; transform:translateX(-50%); background:url(../assets/keep/parchment.webp) center / cover; color:#8E1A24; font-weight:800; font-size:clamp(11px,1.1vw,15px); padding:1px 10px; border-radius:99px; box-shadow:0 0 0 2px #B07A1A; white-space:nowrap; }
+/* 🍽️ the Feast Kitchen card: Ms. Ariana's pictures, tube bars, gold Cook button, a wooden Feast Table shelf */
+.fpic{ height:1.3em; width:auto; vertical-align:-.3em; filter:drop-shadow(0 1px 1px rgba(0,0,0,.3)); } .fpic.big{ height:42px; }
+body.ck .solobrew .feasttable{ background:radial-gradient(ellipse at 50% 70%, rgba(255,170,70,.3), transparent 60%), url(../assets/feast/hall.webp) center 70% / cover; border-radius:12px; box-shadow:0 0 0 4px #E6A92C, 0 0 0 6px #8A5A10, 0 8px 14px rgba(0,0,0,.35); padding:8% 8% 2%; }
+body.ck .solobrew .pring{ background:rgba(255,255,255,.5); border:2px solid rgba(176,122,26,.45); border-radius:14px; }
+body.ck .solobrew .attackbtn{ background:linear-gradient(#FFE38A,#E6A92C) !important; color:#3A2410 !important; border:3px solid #8A5A10 !important; box-shadow:0 5px 0 #8A5A10, 0 0 16px rgba(255,200,80,.6) !important; text-shadow:none !important; }
+body.ck .solobrew .pshelf{ border:12px solid transparent; border-image:url(../assets/keep/wood-sign.webp) 80 fill / 12px / 0 stretch; background:none; border-radius:0; }
+body.ck .solobrew .pmiles li .fpic{ height:1.6em; }
+body.ck .solobrew .pshelf span{ background:rgba(0,0,0,.25); } body.ck .solobrew .pshelf span.on{ background:rgba(255,220,140,.3); } body.ck .solobrew .pshelf span.goal{ outline-color:#FFE38A; } body.ck .solobrew .pshelf span .fpic{ height:80%; }
+body.ck .solobrew .pshelf{ grid-template-columns:repeat(15,minmax(0,1fr)); } body.ck .solobrew .pshelf span{ min-width:0; overflow:hidden; } body.ck .solobrew .pshelf span img{ max-width:100%; max-height:100%; }
+.ornboxbig .oslot{ transform:translate(-50%,-56%); }
+.ssmedal{ height:1.6em; width:auto; vertical-align:middle; filter:drop-shadow(0 2px 2px rgba(0,0,0,.35)); }
+.sshic{ height:1.5em; width:auto; vertical-align:-.35em; filter:drop-shadow(0 2px 2px rgba(0,0,0,.35)); }
+/* 🍽️ Nov 19: the big round feast table (class screen + Feast Kitchen) */
+.ss-gobble .ssfeast.round{ width:min(92%,980px); margin-bottom:3%; }
+.ss-gobble .ssfeast.round .ssdish.r0{ bottom:62%; z-index:1; } .ss-gobble .ssfeast.round .ssdish.r1{ bottom:46%; z-index:2; }
+.feasttable.round{ aspect-ratio:1200/775; width:min(640px,96%); }
+body.ck .solobrew .feasttable.round{ width:100%; aspect-ratio:auto; padding:4% 10% 2%; }
+.feasttable.round .ft-table{ position:relative; display:block; width:100%; }
+body.ck .solobrew .feasttable.round .ft-dish{ margin-left:0; }
+.feasttable.round .ft-dish.r0{ bottom:62%; } .feasttable.round .ft-dish.r1{ bottom:46%; }
+/* 📜 the class screen's side boards on Ms. Ariana's autumn parchment, with the wax seal */
+.ss-gobble .sstotal, .ss-gobble .ssboard, .ss-gobble .ssfeed{ position:relative; border:34px solid transparent; border-image:url(../assets/feast/board-paper.webp) 170 fill / 34px / 0 stretch;
+  background:none; padding:4px 8px 2px; filter:drop-shadow(0 8px 10px rgba(0,0,0,.45)); }
+.ss-gobble .ssboard::after, .ss-gobble .ssfeed::after{ content:""; position:absolute; top:-30px; left:50%; width:54px; height:56px; transform:translateX(-50%); background:url(../assets/feast/board-seal.webp) center top / contain no-repeat; pointer-events:none; }
+.ss-gobble .ssboard h2, .ss-gobble .ssfeed h2{ margin-right:52px; }
+/* 🎟️ Holiday Express: Ms. Ariana's golden tickets + punch ticket */
+.mspot.gticket{ background:url(../assets/xmas/golden-ticket.webp) center / 100% 100% no-repeat !important; padding:18px 44px 18px 40px; }
+.mstamps.tpunch{ background:url(../assets/xmas/punch-ticket.webp) center / 100% 100% no-repeat; box-shadow:none; filter:drop-shadow(0 6px 8px rgba(0,0,0,.45)); padding:16px 40px 14px 70px; }
+.ss-gobble .sstotal, .ss-gobble .ssboard, .ss-gobble .ssfeed{ border-width:24px; border-image-width:24px; padding:0 6px; }
+.ss-gobble .ssside{ gap:8px; } .ss-gobble .ssbig b{ font-size:clamp(34px,3.4vw,56px); } .ss-gobble .sstube{ margin:6px 46px 8px 2px; height:28px; }
+.ss-gobble .ssboard li{ padding:1px 8px; font-size:clamp(14px,1.25vw,20px); } .ss-gobble .ssboard ol{ gap:3px; }
+.ss-gobble .ssboard h2, .ss-gobble .ssfeed h2{ margin-bottom:2px; }
+.ss-gobble .ssfeed{ min-height:150px; }
+.ss-gobble .ssboard::after, .ss-gobble .ssfeed::after{ top:-22px; width:44px; height:46px; }
+.mstamps.tpunch{ padding-left:96px; }
+.ss-gobble .ssfeed{ overflow:visible; } .ss-gobble .ssfeed ul{ overflow:hidden; max-height:100%; }

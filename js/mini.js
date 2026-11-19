@@ -181,7 +181,8 @@ const ELF_SPOTS = [["Stockings", 24, 33], ["Fireplace", 25, 46], ["Bookshelf", 4
 export function miniCard(st, cls) {
   const E = miniOn(cls); if (!E) return "";
   const t = ticketsLeft(st, cls);
-  return '<div class="card minicard mc-' + E.key + '"><div class="mctxt"><h3>' + E.icon + " " + E.name + '!</h3><p><b>' + t + "</b> " + tixWord(E, t) +
+  // 🏰 Nov 19: the castle look shows the event's picture in a gold frame beside the words (css: body.ck .minicard)
+  return '<div class="card minicard mc-' + E.key + '">' + (E.bg ? '<img class="mcpic" src="' + E.bg + '" alt="">' : "") + '<div class="mctxt"><h3><span>' + icImg(E.icon, E) + " " + E.name + '!</span></h3><p><b>' + t + "</b> " + tixWord(E, t) +
     " · 1 " + tixWord(E, 1) + " for every " + PER_TICKET + (E.reading ? " <b>Reading</b>" : "") + " XP" + (ticketDays(st, cls).some(x => x.date !== azToday()) ? " (some are from earlier days)." : " today.") + (readX2(cls) ? " \u{1F4DA} <b>Reading XP counts double!</b>" : "") + " You have <b>" + candyLeft(st).toLocaleString() + " " + E.coin + "</b>.</p>" +
     '<button class="btn gold" data-mini="open">' + (E.key === "tot" ? "\u{1F6AA} Go trick-or-treating!" : E.key === "fest" ? "\u{1F3A1} Go to the festival!" : E.key === "lib" ? "\u{1F56F}️ Sneak into the library!" : E.key === "leaf" ? "\u{1F342} Jump in the leaves!" : E.key === "orn" ? "\u{1F384} Hunt for ornaments!" : E.key === "aur" ? "\u{1F3D5}\uFE0F Visit the camp!" : E.key === "val" ? "\u{1F48C} Open your mail!" : E.key === "kite" ? "\u{1FA81} Fly some kites!" : "\u{1F682} Go to the station!") + "</button> " +
     (hasShop(E) ? '<button class="btn ghost" data-mini="shop">\u{1F6CD}️ ' + (FURN[E.key] ? "Outfit & room shop" : "Outfit shop") + "</button>" : "") + "</div></div>";
@@ -190,12 +191,18 @@ export function miniCard(st, cls) {
 /* ---------- the event screen (overlay) ---------- */
 let G = null;
 export const miniBusy = () => !!G;
-const top = (E, st, cls, back) => '<div class="qbtop"><b>' + E.icon + " " + E.name + " · " + (E.tixImg ? '<img class="lantic" src="' + E.tixImg + '" alt="' + E.tixs + '"> ' : E.reading ? '<img class="lantic" src="assets/lib/lib-lantern.webp" alt="lanterns"> ' : "\u{1F39F}️ ") + ticketsLeft(st, cls) + " · " + candyLeft(st).toLocaleString() + " " + E.coin + "</b><span>" +
+// 🖼️ Nov 19: event pictures in place of emoji where Ms. Ariana has made them (the emoji stays until the picture is uploaded)
+const EV_PIC = { xmas: { tix: "assets/xmas/ic-ticket.webp" } };
+const picOr = (src, emo, cls) => src ? '<img class="' + (cls || "mpic") + '" src="' + src + '" alt="" onerror="this.replaceWith(document.createTextNode(\'' + emo + '\'))">' : emo;
+const icImg = (emo, E) => emo;
+const COIN_PIC = { presents: "assets/xmas/ic-present.webp" };   // Jingle Jam's presents (other seasons keep their emoji for now)
+const coinOf = E => picOr(COIN_PIC[E.cur], E.coin, "mcoin");
+const top = (E, st, cls, back) => '<div class="qbtop"><b><span class="mqname">' + E.icon + " " + E.name + '</span><span class="mqchip">' + (E.tixImg ? '<img class="lantic" src="' + E.tixImg + '" alt="' + E.tixs + '"> ' : E.reading ? '<img class="lantic" src="assets/lib/lib-lantern.webp" alt="lanterns"> ' : picOr((EV_PIC[E.key] || {}).tix, "\u{1F39F}️", "lantic") + " ") + ticketsLeft(st, cls) + '</span><span class="mqchip">' + candyLeft(st).toLocaleString() + " " + coinOf(E) + "</span></b><span>" +
   (back ? '<button class="btn ghost small" data-mini="' + back + '">⬅️ Back</button> ' : "") + (hasShop(E) ? '<button class="btn ghost small" data-mini="shop">\u{1F6CD}️ Shop</button> ' : "") + '<button class="btn ghost small" data-mini="close">✕</button></span></div>';
 let noTix = "";
 const noTixFor = E => '<p class="mnotix">No ' + tixWord(E, 2) + " left! Read " + PER_TICKET + " more" + (E.reading ? " <b>Reading</b>" : "") + " XP for another one.</p>";
 const visHTML = (v, line) => '<div class="mvisit r-' + v.rarity.replace(" ", "") + '"><img src="' + esc(v.img) + '" alt=""><div class="mbubble"><b>' + esc(v.name) + "</b> <small>" + esc(v.rarity) + "</small><br>" + esc(line) + "</div></div>";
-const gotHTML = (E, n, egg) => '<div class="mgot">+' + n + " " + E.coin + (egg ? " · \u{1F95A} an egg!" : "") + "</div>";
+const gotHTML = (E, n, egg) => '<div class="mgot">+' + n + " " + coinOf(E) + (egg ? " · \u{1F95A} an egg!" : "") + "</div>";
 
 export function miniOverlay(st, cls) {
   const E = miniOn(cls); if (!G || !E || !st) { if (G && !E) G = null; return ""; }
@@ -271,7 +278,8 @@ export function miniOverlay(st, cls) {
       h += ORN_SPOTS.map(([x, y, sz], i) => '<button class="ornball' + (G.jump === i ? " jingle" : "") + (t ? "" : " notix") + '" data-mini="hunt" data-i="' + i + '"' + (t && G.jump == null ? "" : " disabled") + ' aria-label="Tap an ornament" style="left:' + x + "%;top:" + y + "%;--s:" + sz + ";--d:" + (i * 0.29) + 's">' +
           '<img src="assets/orn/orn-ball-' + ((i % 3) + 1) + '.webp" alt="">' +
           (G.jump === i ? '<span class="burst">' + "✨❄️✨⭐✨❄️✨⭐".match(/./gu).filter(x => x.trim() && x !== "\uFE0F").map((l, k) => '<em style="--k:' + k + '">' + l + "</em>").join("") + "</span>" : "") + "</button>").join("") +
-        '<div class="libcard orncard"><img class="ornboxic" src="assets/orn/orn-box.webp" alt=""> Ornament Box: ' + Array.from({ length: 10 }, (_, i) => '<span class="' + (i < got % 10 ? "on" : "") + '">' + (i < got % 10 ? ORN_TYPES[i] : "·") + "</span>").join("") + "</div>" +
+        // 🎄 Nov 19: Ms. Ariana's Ornament Box: 10 velvet slots that fill with ornaments (the 10th is the golden one)
+        '<div class="ornboxbig" title="Ornament Box: ' + (got % 10) + ' of 10"><img class="obox" src="assets/orn/orn-box-empty.webp" alt="Ornament Box">' + OBOX.map(([x, y], i) => i < got % 10 ? '<img class="oslot" src="assets/orn/' + (i === 9 ? "orn-golden" : "orn-ball-" + ((i % 3) + 1)) + '.webp" alt="" style="left:' + x + "%;top:" + y + '%">' : "").join("") + '<span class="oboxn">' + (got % 10) + " / 10</span></div>" +
         '<div class="mhint">' + (G.jump != null ? "Jingle jingle! \u{1F514}" : t ? "Tap an ornament on the tree! What's hiding behind it?" : noTix) + "</div>";
     }
     return h + "</div></div>";
@@ -352,9 +360,10 @@ export function miniOverlay(st, cls) {
   // 🎄 xmas
   if (G.view === "hub") {
     const stamps = Number(m.stamps) || 0, stop = Number(m.stop) || 0;
-    h += top(E, st, cls) + '<div class="mstage" ' + bgs + '><div class="mxhub"><button class="mspot big" data-mini="go" data-v="train">\u{1F682} Board the Holiday Express<small>Next stop: ' + STOPS[stop] + "</small></button>" +
-      '<button class="mspot big" data-mini="go" data-v="elf">\u{1F9DD} Find the Hidden Elf<small>' + (((m.elf || {}).d === azToday() && m.elf.found) ? "✅ Found today!" : "He hid somewhere new today!") + "</small></button></div>" +
-      '<div class="mstamps">' + STOPS.map((s, i) => '<span class="' + (i < stop ? "on" : "") + '" title="' + s + '">' + (i < stop ? "⭐" : i + 1) + "</span>").join("") + "<small>" + stamps + " stamps collected</small></div>" +
+    // 🎟️ Nov 19: the two choices are golden tickets, and the 8 stops are punched out of a train ticket
+    h += top(E, st, cls) + '<div class="mstage" ' + bgs + '><div class="mxhub"><button class="mspot big gticket" data-mini="go" data-v="train">' + picOr("assets/xmas/ic-train.webp", "\u{1F682}", "gtic") + '<span>Board the Holiday Express<small>Next stop: ' + STOPS[stop] + "</small></span></button>" +
+      '<button class="mspot big gticket" data-mini="go" data-v="elf">' + picOr("assets/xmas/xmas-elf.webp", "\u{1F9DD}", "gtic") + '<span>Find the Hidden Elf<small>' + (((m.elf || {}).d === azToday() && m.elf.found) ? "✅ Found today!" : "He hid somewhere new today!") + "</small></span></button></div>" +
+      '<div class="mstamps tpunch"><b class="tpt">\u{1F682} North Pole Line</b><div class="tpholes">' + STOPS.map((s, i) => '<span class="' + (i < stop ? "on" : "") + '" title="' + s + '"><i></i><small>' + s + "</small></span>").join("") + "</div><small class=\"tpn\">" + stamps + " stamps collected</small></div>" +
       '<div class="mhint">' + (t ? "" : noTix) + "</div></div>";
   } else if (G.view === "train") {
     const stop = Number(m.stop) || 0;
@@ -651,6 +660,7 @@ const LEAF_RIDDLES = [
 /* ---------- 🎄 Ornament Hunt: tree spots, lines, finds and winter riddles ---------- */
 // [left %, top %, size] of each ornament on the tree picture (top % is where the hook hangs)
 const ORN_SPOTS = [[42, 19, 0.85], [51, 21, 0.85], [35, 45, 1], [49, 46, 1], [62, 45, 1], [27, 59, 1.05], [41, 58, 1.05], [56, 60, 1.05], [48, 76, 1.1]];
+const OBOX = [[16.9, 48.5], [33.9, 48.5], [49.7, 48.5], [65.8, 48.5], [82.4, 48.5], [16.9, 68.6], [33.9, 68.6], [49.7, 68.6], [65.8, 68.6], [82.4, 68.6]];   // slot centers on orn-box-empty.webp (%)
 const ORN_TYPES = ["\u{1F534}", "\u{1F535}", "\u{1F7E2}", "\u{1F7E1}", "\u{1F7E3}", "\u{1F534}", "\u{1F535}", "\u{1F7E2}", "\u{1F7E1}", "⭐"];
 const ORN_LINES = ["Brrr! I was napping behind that ornament! Riddle time!", "Jingle jingle! You found my cozy branch!", "I love the twinkle lights. They're like tiny stars! Want a riddle?",
   "Achoo! Pine needles tickle my nose. Here's a riddle!", "I'm the tree's secret helper. Solve my riddle!", "Shhh, I'm hiding from the snowball fight. Riddle me this!",

@@ -12,9 +12,9 @@ import { tbLeft, tbLive } from "./teachbattle.js?v=20261119b";
 import { esc, simulate, companionOf, goalXP, SEASON } from "./game.js?v=20261119b";
 import { azToday, azNow, todayXP, pullsLeft, legendaryLeft, birthdayLeft, pickleLeft, vaultLegLeft, BOSS2_LIST, boss2EggLeft, candyLegLeft, snowLegLeft,
   gingerLegLeft, feastLegLeft, brewLegLeft, goalLeft, themeLeft, hasStarter, bankXP, LEVEL_XP } from "./collect.js?v=20261119b";
-import { mqReady } from "./morning.js?v=20261119b";
+import { mqReady } from "./morning.js?v=20261119d";
 import { DOOR_ART, doorsLive, doorName, goldenReady, weekDoorState, vaultState, vaultGoal, subReq, todayPlan, SUBJECT_KEYS } from "./doors.js?v=20261119b";
-import { soloOn, soloReady, soloCfg } from "./solobrew.js?v=20261119b";
+import { soloOn, soloReady, soloCfg } from "./solobrew.js?v=20261119d";
 import { passReady } from "./pass.js?v=20261119b";
 import { pettedToday } from "./bond.js?v=20261119b";
 import { mealsReady } from "./meals.js?v=20261119b";

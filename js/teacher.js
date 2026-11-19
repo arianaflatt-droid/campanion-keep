@@ -12,17 +12,17 @@ import {
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, isFrost, isHeart, heartUnlocked, isLucky, luckyUnlocked, saveProblems, yetiUnlocked, wallMarks, WALL_BLOCK, BOSS_START_HP, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
 } from "./game.js?v=20261119b";
-import { MQ_CUTOFF } from "./morning.js?v=20261119b";
+import { MQ_CUTOFF } from "./morning.js?v=20261119d";
 import { kindAdmin } from "./kindness.js?v=20261119b";
 import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync, p120On, p60On } from "./party.js?v=20261119b";
-import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261119b";
+import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261119d";
 import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261119b";
 import { passAdmin } from "./pass.js?v=20261119b";
 import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf, ULTRA_FAMS, CLUB_ULTRA_FAMS } from "./collect.js?v=20261119b";
 import { watchSecret, secretRef, talkRef, watchTalk } from "./db.js?v=20261119b";
 import { talkCard, talkSync } from "./talk.js?v=20261119b";
 import { shoutCard, shoutSync, setShoutMode } from "./shout.js?v=20261119b";
-import { mmState, mmStartCard, mmBar, mmScreenChip, mmNewsScreen, newsPopSync, battleKind, launchedToday, MM_NAME } from "./modes.js?v=20261119b";
+import { mmState, mmStartCard, mmBar, mmScreenChip, mmNewsScreen, newsPopSync, battleKind, launchedToday, MM_NAME } from "./modes.js?v=20261119d";
 import { kdDiveWatch, kdDiveTest } from "./divewatch.js?v=20261119b";
 import { secretAdmin, secretClick, autoPick, secretBanner } from "./secret.js?v=20261119b";
 import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef, newBattleRef, newsPicRef, watchNewsPics, newsPicFor } from "./db.js?v=20261119b";
@@ -37,7 +37,7 @@ import { showdownSync, openShowdown, sdState, sdLine } from "./showdown.js?v=202
 import { lvlSync, lvlCard } from "./lvlup.js?v=20261119b";
 import { spinPrizeRef, newSpinPrizeRef, watchSpinPrizes, snapsAt } from "./db.js?v=20261119b";
 import { rewardAdmin, rgWaiting, rgOf, shrinkImage, needPicList } from "./weekgoal.js?v=20261119b";
-import { soloAdmin, soloCfg, soloOn, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261119b";
+import { soloAdmin, soloCfg, soloOn, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261119d";
 import { feederLink } from "./feeder.js?v=20261111e";
 import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261119b";
 import { watchTrades, watchBattles,
@@ -53,7 +53,7 @@ import { axoAdmin } from "./axolotl.js?v=20261119b";
 import { kdAdmin } from "./kingdom.js?v=20261119b";
 import { clubsAdmin, clubUpload, clubPicks, pickChange } from "./clubs.js?v=20261119b";
 import { planetAdmin, keepLaunchWatch, pjMinsNow, rocketSync } from "./planet.js?v=20261119b";
-import { soloScreenSync, soloScreenOpenNow, soloScreenOpen, soloScreenClose } from "./soloscreen.js?v=20261119c";
+import { soloScreenSync, soloScreenOpenNow, soloScreenOpen, soloScreenClose } from "./soloscreen.js?v=20261119d";
 import { recessAdmin, recessAction } from "./playground.js?v=20261119b";
 import { rosterAdmin, rosterPreview, okEmail } from "./roster.js?v=20261119b";
 import { rosterList, rosterSave, seatsOnce, removeLinkSeats, myAccess, saveClassDir, createClass, adminList, setAdmin, isBuiltInAdmin, switchClass } from "./db.js?v=20261119b";

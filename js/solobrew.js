@@ -197,23 +197,35 @@ export function freeIngredient(st, cls) {
 
 const dayName = iso => { const [y, m, dd] = iso.split("-").map(Number); return new Date(y, m - 1, dd).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }); };
 const bar = (have, need) => '<span class="pbar"><span style="width:' + Math.min(100, need ? have / need * 100 : 100) + '%"></span></span>';
+// 🖼️ Nov 19: the Feast Kitchen uses Ms. Ariana's pictures for the ingredients, the dish and the Feast Table prizes
+const FPIC = { e: "ing-corn", b: "ing-potato", s: "ing-bread", g: "ing-spice" };
+const gi = (k, g, cls) => k.key === "gobble" && FPIC[g.k] ? '<img class="fpic' + (cls ? " " + cls : "") + '" src="assets/feast/' + FPIC[g.k] + '.webp" alt="">' : g.icon;
+const MPIC = { 3: "assets/egg-common.webp", 6: "assets/feast/ing-corn.webp", 10: "assets/badges/feast-master.webp", 15: "assets/egg-gobble.webp" };
+const mi = (k, m) => k.key === "gobble" && MPIC[m.n] ? '<img class="fpic" src="' + MPIC[m.n] + '" alt="">' : m.icon;
+// 🍽️ Nov 19: the Feast Kitchen table is Ms. Ariana's big round table: same dishes, new spots
+const ROUND = [[36, 0, 15], [64, 0, 15], [50, 0, 14], [22, 0, 14], [78, 0, 14], [14, 1, 16], [86, 1, 16], [31, 1, 16], [69, 1, 16], [50, 1, 22]];
+const roundTable = html => html.replace('class="feasttable"', 'class="feasttable round"').replace("assets/feast/table.webp", "assets/feast/table-round.webp")
+  .replace(/class="ft-dish( ghost)? r\d" src="assets\/feast\/(\w+)\.webp"([^>]*?)style="left:[\d.]+%;width:[\d.]+%;"/g, (m, gh, key, mid) => { const i = Math.max(0, DISHES.findIndex(x => x.k === key)), p = ROUND[i];
+    return 'class="ft-dish' + (gh || "") + " r" + p[1] + '" src="assets/feast/' + key + '.webp"' + mid + 'style="left:' + p[0] + "%;width:" + p[2] + '%;"'; })
+  .replace(/<span class="ft-cook" style="left:[\d.]+%;bottom:[\d.]+%;">/, () => { const g = /ft-dish ghost r(\d)" src="assets\/feast\/(\w+)/.exec(html); const i = g ? DISHES.findIndex(x => x.k === g[2]) : 0, p = ROUND[Math.max(0, i)];
+    return '<span class="ft-cook" style="left:' + p[0] + "%;bottom:" + (p[1] ? 60 : 72) + '%;">'; });
 export function soloCard(st, cls, flash) {
   const k = soloCfg(cls), d = soloDay(st, cls), wait = soloWaiting(st, cls), nWait = wait.reduce((a, x) => a + x.n, 0), all = d.ready + nWait, fxk = (soloOf(st, k).fx || {})[d.date], fx = fxk ? effect(fxk) : null, ings = ingsFor(st, k);
   const c = { E: k.E, team: { id: "solo-" + st.id }, have: d.left, brewed: d.made > 0 && !d.ready };
-  const pic = k.key === "gobble" ? soloTableHTML("solo-" + st.id, d.total, c.brewed) : k.art === "box" ? soloBoxHTML("solo-" + st.id, d.total, c.brewed) : k.art === "trap" ? soloTrapHTML("solo-" + st.id, d.total, c.brewed) : k.art ? soloHouseHTML("solo-" + st.id, d.total, k.art === "snowman" ? "snowman" : "ginger") : cauldronHTML(c);
+  const pic = k.key === "gobble" ? roundTable(soloTableHTML("solo-" + st.id, d.total, c.brewed)) : k.art === "box" ? soloBoxHTML("solo-" + st.id, d.total, c.brewed) : k.art === "trap" ? soloTrapHTML("solo-" + st.id, d.total, c.brewed) : k.art ? soloHouseHTML("solo-" + st.id, d.total, k.art === "snowman" ? "snowman" : "ginger") : cauldronHTML(c);
   const nm = soloOf(st, k).name;
-  let h = '<div class="card potion tev-' + k.cls + ' solobrew"><div class="card-head"><h2>' + k.icon + " " + (nm ? esc(nm) : k.title) + '</h2><span class="fact">' + d.total + " " + (d.total === 1 ? k.one : k.many) + " " + k.done + "</span></div>" +
+  let h = '<div class="card potion tev-' + k.cls + ' solobrew"><div class="card-head"><h2>' + (k.key === "gobble" ? '<img class="fpic" src="assets/feast/ic-dish.webp" alt="">' : k.icon) + " " + (nm ? esc(nm) : k.title) + '</h2><span class="fact">' + d.total + " " + (d.total === 1 ? k.one : k.many) + " " + k.done + "</span></div>" +
     (naming === k.field
       ? '<div class="row potname" style="gap:8px;align-items:center;margin:4px 0 8px;"><input id="potNameIn" type="text" maxlength="' + NAME_MAX + '" placeholder="Name your ' + k.where + '" value="' + esc(nm || "") + '" style="flex:1;min-width:160px">' +
         '<button class="btn small" data-act="potNameSave">Save</button><button class="btn ghost small" data-act="potNameCancel">Cancel</button></div>'
       : '<p class="small" style="margin:0 0 6px;"><button class="btn ghost small" data-act="potName">\u270F\uFE0F ' + (nm ? "Rename your " + k.where : "Name your " + k.where) + "</button></p>") +
     pic +
-    '<p class="lede" style="margin:8px 0;text-align:center;"><b>Today’s recipe</b>: ' + ings.filter(g => d.need[g.k]).map(g => d.need[g.k] + " " + g.icon + " " + g.name).join(" + ") + "</p>";
+    '<p class="lede" style="margin:8px 0;text-align:center;"><b>Today’s recipe</b>: ' + ings.filter(g => d.need[g.k]).map(g => d.need[g.k] + " " + gi(k, g) + " " + g.name).join(" + ") + "</p>";
   h += '<div class="recipe">' + ings.filter(g => d.need[g.k]).map(g => { const sub = srcName(st, cls, g) + "", hv = Math.min(d.left[g.k], d.need[g.k]);
-    return '<div class="pring"><span class="ri-ic">' + g.icon + '</span><span class="ri-nm">' + g.name + " <small>(" + esc(sub) + ")</small></span>" + bar(hv, d.need[g.k]) +
+    return '<div class="pring"><span class="ri-ic">' + gi(k, g, "big") + '</span><span class="ri-nm">' + g.name + " <small>(" + esc(sub) + ")</small></span>" + bar(hv, d.need[g.k]) +
       '<b class="ri-n">' + d.left[g.k] + " / " + d.need[g.k] + (d.left[g.k] >= d.need[g.k] ? " ✅" : "") + "</b></div>"; }).join("") + "</div>";
   if (nWait) h += '<p class="small" style="text-align:center;margin:10px 0 0;">\u{1F4E6} <b>' + nWait + " " + (nWait === 1 ? k.one : k.many) + "</b> waiting from earlier days (your XP from " + wait.map(x => dayName(x.date)).join(", ") + " came in later). " + k.verb + " " + (nWait === 1 ? "it" : "them") + " now!</p>";
-  if (all) h += '<div style="text-align:center;margin:12px 0;"><button class="attackbtn" data-act="soloBrew">' + k.icon + " " + k.verb + " a " + k.one + "!" + (all > 1 ? " (" + all + " ready)" : "") + "</button></div>";
+  if (all) h += '<div style="text-align:center;margin:12px 0;"><button class="attackbtn" data-act="soloBrew">' + (k.key === "gobble" ? '<img class="fpic" src="assets/feast/ic-dish.webp" alt="">' : k.icon) + " " + k.verb + " a " + k.one + "!" + (all > 1 ? " (" + all + " ready)" : "") + "</button></div>";
   else {
     const g = ings.filter(x => d.need[x.k] && d.left[x.k] < d.need[x.k]).map(x => Math.ceil((d.need[x.k] - d.left[x.k]) * (x.goal ? SEED_XP : PER_XP)) + " more " + srcName(st, cls, x) + " XP");
     h += '<p class="small" style="text-align:center;margin:10px 0;">' + (d.made ? "✨ You " + k.done + " " + d.made + " " + (d.made === 1 ? k.one : k.many) + " today! " : "") + "Next " + k.one + ": earn <b>" + g.join("</b> and <b>") + "</b>.</p>";
@@ -221,12 +233,12 @@ export function soloCard(st, cls, flash) {
   if (fx) h += '<div class="banner info" style="margin:8px 0;">✨ Your companion is glowing with a <b>' + fx.icon + " " + esc(fx.name) + "</b> today!</div>";
   // shelf
   const shown = Math.min(d.total, 15), dish = i => k.key === "gobble" ? '<img src="assets/feast/' + DISHES[i % DISHES.length].k + '.webp" alt="" style="width:100%;height:100%;object-fit:contain" onerror="this.replaceWith(document.createTextNode(\'\\u{1F37D}\\uFE0F\'))">' : k.key === "jingle" ? "\u{1F36A}" : k.key === "frost" ? "\u26C4" : k.key === "heart" ? "\u{1F36B}" : k.key === "lucky" ? "\u{1FA99}" : "\u{1F9EA}";
-  h += '<h3 style="margin-top:14px;">' + (k.key === "gobble" ? "\u{1F9C2}" : k.key === "jingle" ? "\u{1F381}" : k.key === "frost" ? "\u2744\uFE0F" : k.key === "heart" ? "\u{1F36C}" : k.key === "lucky" ? "\u{1F340}" : "\u{1F9F4}") + " " + k.shelfTitle + '</h3><div class="pshelf">' + Array.from({ length: 15 }, (_, i) => '<span class="' + (i < shown ? "on" : "") + (k.shelf.some(m => m.n === i + 1) ? " goal" : "") + '">' + (i < shown ? dish(i) : k.shelf.some(m => m.n === i + 1) ? k.shelf.find(m => m.n === i + 1).icon : "") + "</span>").join("") +
+  h += '<h3 class="pshelfh" style="margin-top:14px;">' + (k.key === "gobble" ? '<img class="fpic" src="assets/feast/ic-dish.webp" alt="">' : k.key === "jingle" ? "\u{1F381}" : k.key === "frost" ? "\u2744\uFE0F" : k.key === "heart" ? "\u{1F36C}" : k.key === "lucky" ? "\u{1F340}" : "\u{1F9F4}") + " " + k.shelfTitle + '</h3><div class="pshelf">' + Array.from({ length: 15 }, (_, i) => '<span class="' + (i < shown ? "on" : "") + (k.shelf.some(m => m.n === i + 1) ? " goal" : "") + '">' + (i < shown ? dish(i) : k.shelf.some(m => m.n === i + 1) ? mi(k, k.shelf.find(m => m.n === i + 1)) : "") + "</span>").join("") +
     (d.total > 15 ? '<span class="more">+' + (d.total - 15) + "</span>" : "") + "</div>";
-  h += '<ul class="pmiles">' + k.shelf.map(m => '<li class="' + (d.total >= m.n ? "done" : "") + '"><b>' + m.n + " " + k.many + "</b>: " + m.icon + " " + m.label + (d.total >= m.n ? " ✅" : " (" + (m.n - d.total) + " to go)") + "</li>").join("") + "</ul>";
+  h += '<ul class="pmiles">' + k.shelf.map(m => '<li class="' + (d.total >= m.n ? "done" : "") + '"><b>' + m.n + " " + k.many + "</b>: " + mi(k, m) + " " + m.label + (d.total >= m.n ? " ✅" : " (" + (m.n - d.total) + " to go)") + "</li>").join("") + "</ul>";
   const mySw = k.E.ing.filter(g => subFor(cls, st, g.sub) !== g.sub);
-  if (mySw.length) h += '<p class="small" style="margin-top:8px;">\u{1F501} <b>Just for you:</b> ' + mySw.map(g => g.icon + " " + g.name + " come from <b>" + SUB_NAMES[subFor(cls, st, g.sub)] + "</b>").join(" · ") + ".</p>";
-  h += '<p class="muted small" style="margin-top:8px;">Every ' + PER_XP + " XP = 1 ingredient: " + ings.filter(g => !g.goal).map(g => esc(srcName(st, cls, g)) + " = " + g.icon + " " + g.name).join(", ") + ". Every " + (2 * SEED_XP) + " more XP from ANY subject (after those) = 2 " + k.goal.icon + " " + k.goal.name + ", so each " + k.one + " is 120 XP in all" +
+  if (mySw.length) h += '<p class="small" style="margin-top:8px;">\u{1F501} <b>Just for you:</b> ' + mySw.map(g => gi(k, g) + " " + g.name + " come from <b>" + SUB_NAMES[subFor(cls, st, g.sub)] + "</b>").join(" · ") + ".</p>";
+  h += '<p class="muted small" style="margin-top:8px;">Every ' + PER_XP + " XP = 1 ingredient: " + ings.filter(g => !g.goal).map(g => esc(srcName(st, cls, g)) + " = " + gi(k, g) + " " + g.name).join(", ") + ". Every " + (2 * SEED_XP) + " more XP from ANY subject (after those) = 2 " + gi(k, k.goal) + " " + k.goal.name + ", so each " + k.one + " is 120 XP in all" +
     ". Each " + k.one + " gives +" + POTION_CANDY + " " + k.cur + ". " + k.verb + " as many as you can! A new recipe comes every day, and leftover ingredients don’t carry over.</p>";
   return h + "</div>";
 }

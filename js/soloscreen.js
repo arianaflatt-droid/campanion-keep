@@ -7,7 +7,7 @@
    The other solo events (gingerbread, snowmen, chocolate, traps) use the same screen with their own icons. */
 import { esc } from "./game.js?v=20261119b";
 import { azToday } from "./collect.js?v=20261119b";
-import { soloCfg, soloOn, soloDay, soloTotal, soloOf, soloIngs } from "./solobrew.js?v=20261119b";
+import { soloCfg, soloOn, soloDay, soloTotal, soloOf, soloIngs } from "./solobrew.js?v=20261119d";
 import { DISHES, effect } from "./teams.js?v=20261119b";
 
 const MILE = 25;                      // a class milestone every 25 potions / dishes
@@ -55,12 +55,14 @@ export function soloScreenClose() { open = false; q = []; busy = false; if (root
 const isPotion = k => k.key === "haunt", isFeast = k => k.key === "gobble";
 function sceneHTML(k) {
   if (isPotion(k)) return '<div class="sscaul"><div class="sscbubbles"><i></i><i></i><i></i><i></i><i></i></div><img class="sscart" src="assets/potion/cauldron.webp" alt=""><div class="sscglow"></div></div>';
-  if (isFeast(k)) return '<div class="ssfeast"><img class="ssftable" src="assets/feast/table.webp" alt=""><div class="ssfdishes" id="ssfdishes"></div></div>';
+  if (isFeast(k)) return '<div class="ssfeast round"><img class="ssftable" src="assets/feast/table-round.webp" alt=""><div class="ssfdishes" id="ssfdishes"></div></div>';
   return '<div class="ssgeneric"><span>' + k.icon + "</span></div>";
 }
 // the feast: one dish per dish cooked by the class, a fresh table every 10
 // [left %, row (0 = back, 1 = front), width %] — Nov 19: spread out so no dish hides behind another; the turkey (10th) is the big one in front
-const SPOTS = [[30, 0, 15], [70, 0, 15], [50, 0, 15], [12, 0, 14], [88, 0, 14], [21, 1, 16], [79, 1, 16], [36, 1, 15], [64, 1, 15], [50, 1, 22]];
+// Nov 19: Ms. Ariana's big round table — back row along the far edge, front row along the near edge, the turkey big in the middle
+const SPOTS = [[36, 0, 15], [64, 0, 15], [50, 0, 14], [22, 0, 14], [78, 0, 14], [14, 1, 16], [86, 1, 16], [31, 1, 16], [69, 1, 16], [50, 1, 22]];
+const SPOTS_OLD = [[30, 0, 15], [70, 0, 15], [50, 0, 15], [12, 0, 14], [88, 0, 14], [21, 1, 16], [79, 1, 16], [36, 1, 15], [64, 1, 15], [50, 1, 22]];
 let shownDishes = -1;
 function dishes(total, animate) {
   const el = document.getElementById("ssfdishes"); if (!el) return;
@@ -81,8 +83,8 @@ function draw(full) {
     cfgKey = k.key; shownDishes = -1;
     root.innerHTML = '<div class="sscr ss-' + k.key + '"><div class="ssstars"></div><div class="sstop"><h1>' + title + '</h1><span class="sssub">' + esc(k.tabName || "") + '</span><button class="btn ghost small" data-sscr="close">✕ Close</button></div>' +
       '<div class="ssmain"><div class="ssscene" id="ssscene">' + sceneHTML(k) + '<div class="sstoast" id="sstoast"></div></div>' +
-      '<div class="ssside"><div class="sstotal" id="sstotal"></div><div class="ssboard"><h2>\u{1F3C6} ' + (isPotion(k) ? "Top Brewers" : isFeast(k) ? "Top Chefs" : "Top Builders") + '</h2><ol id="ssboard"></ol></div>' +
-      '<div class="ssfeed"><h2>\u{1F4E3} Just now</h2><ul id="ssfeed"></ul></div></div></div>' +
+      '<div class="ssside"><div class="sstotal" id="sstotal"></div><div class="ssboard"><h2>' + hic(k, "ic-trophy", "\u{1F3C6}") + " " + (isPotion(k) ? "Top Brewers" : isFeast(k) ? "Top Chefs" : "Top Builders") + '</h2><ol id="ssboard"></ol></div>' +
+      '<div class="ssfeed"><h2>' + hic(k, "ic-horn", "\u{1F4E3}") + ' Just now</h2><ul id="ssfeed"></ul></div></div></div>' +
       '<div class="sshow">' + soloIngs(k).map(g => "<span>" + ic(g, k) + " " + esc(g.name) + (g.goal ? "" : " = " + esc(g.subject || "")) + "</span>").join("") + "<span>= 1 " + dishIc(k) + " " + esc(k.one) + "</span></div></div>";
   }
   const set = (id, h) => { const e = document.getElementById(id); if (e && e.innerHTML !== h) e.innerHTML = h; };
@@ -94,7 +96,7 @@ function draw(full) {
       '<div class="sschips"><span>\u{1F3AF} Next goal <b>' + next + "</b></span><span>Today <b>" + todayN + "</b></span><span>Table <b>" + (Math.floor(Math.max(0, total - 1) / 10) + 1) + "</b></span></div>"
     : '<div class="ssbig"><b>' + total + "</b> " + esc(total === 1 ? k.one : k.many) + ' this event</div><div class="ssmeter"><span style="width:' + pct + '%"></span></div>' +
     '<div class="sssmall">\u{1F3AF} Next class milestone: <b>' + next + "</b> · Today: <b>" + todayN + "</b></div>");
-  set("ssboard", rows.slice(0, 8).map((r, i) => '<li class="' + (i < 3 ? "top" + (i + 1) : "") + '"><span class="ssrank">' + (i === 0 ? "\u{1F947}" : i === 1 ? "\u{1F948}" : i === 2 ? "\u{1F949}" : i + 1) + '</span><b>' + esc(r.s.name) + "</b><span>" + r.tot + " " + dishIc(k) + (r.day ? ' <small>+' + r.day + " today</small>" : "") + "</span></li>").join("") || '<li class="muted">Nobody yet. Be the first!</li>');
+  set("ssboard", rows.slice(0, isFeast(k) ? 6 : 8).map((r, i) => '<li class="' + (i < 3 ? "top" + (i + 1) : "") + '"><span class="ssrank">' + (i < 3 ? medal(i, k) : i + 1) + '</span><b>' + esc(r.s.name) + "</b><span>" + r.tot + " " + dishIc(k) + (r.day ? ' <small>+' + r.day + " today</small>" : "") + "</span></li>").join("") || '<li class="muted">Nobody yet. Be the first!</li>');
   set("ssfeed", feed.map(e => "<li>" + line(e, k) + "</li>").join("") || '<li class="muted">Waiting for the next XP check…</li>');
   if (isFeast(k)) dishes(total, false);
   if (isPotion(k)) { const c = root.querySelector(".sscaul"); if (c) c.style.setProperty("--lvl", ((total % MILE) / MILE).toFixed(3)); }
@@ -103,6 +105,11 @@ function draw(full) {
 const FEAST_PIC = { e: "ing-corn", b: "ing-potato", s: "ing-bread", g: "ing-spice" };
 const ic = (g, k, cls) => isFeast(k) && FEAST_PIC[g.k] ? '<img class="ssic' + (cls ? " " + cls : "") + '" src="assets/feast/' + FEAST_PIC[g.k] + '.webp" alt="">' : g.icon;
 const dishIc = (k, cls) => isFeast(k) ? '<img class="ssic' + (cls ? " " + cls : "") + '" src="assets/feast/ic-dish.webp" alt="">' : k.icon;
+// 🏅 Nov 19: gold / silver / bronze medal pictures for the top 3 chefs (assets/feast/medal-1..3.webp; the emoji shows until they're uploaded)
+// 🏆 📯 the board headings' pictures (assets/feast/ic-trophy.webp, ic-horn.webp), emoji until uploaded
+const hic = (k, f, emo) => isFeast(k) ? '<img class="sshic" src="assets/feast/' + f + '.webp" alt="" onerror="this.replaceWith(document.createTextNode(\'' + emo + '\'))">' : emo;
+const MEDAL = ["\u{1F947}", "\u{1F948}", "\u{1F949}"];
+const medal = (i, k) => isFeast(k) ? '<img class="ssmedal" src="assets/feast/medal-' + (i + 1) + '.webp" alt="' + (i + 1) + '" onerror="this.replaceWith(document.createTextNode(\'' + MEDAL[i] + '\'))">' : MEDAL[i];
 function line(e, k) {
   if (e.kind === "ing") return "<b>" + first(e.s) + "</b> added " + e.got.map(x => ic(x.g, k) + " " + esc(x.g.name) + (x.n > 1 ? " ×" + x.n : "")).join(", ");
   if (isPotion(k)) return "✨ <b>" + first(e.s) + "</b> brewed " + (e.fx ? "a " + effect(e.fx).icon + " " + esc(effect(e.fx).name) : "a potion") + "!";
