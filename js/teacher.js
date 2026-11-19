@@ -919,9 +919,10 @@ function viewDaily() {
             (swk ? "uses " + SUB_NAMES[swk] + " XP today (real " + RNAME[k] + ": " + realHave + "). Click to take it back." : fx ? "closed by you (real: " + realHave + "). Click to take it back." : full ? "closed by Full day" : have >= rd ? "closed (" + have + " XP)" : have + " of " + rd + " XP. Click to fix it for " + DAYS[day] + ".") + '">' + (swk ? (SUB_NAMES[swk] || "?")[0] : RNAME[k][0]) + "</button>"; }).join("") + "</span>" +
         // the little menu for one ring: close it, or count another subject's XP for that ring (just this day)
         (ringMenu.startsWith(s.id + ":") ? (() => { const k = ringMenu.split(":")[1], src = subFor(cls, s, k), sub = (marked(hd0) ? ((hd0.real || {}).sub) : hd0.sub) || {};
-          const alts = Object.keys(SUB_NAMES).filter(x => x !== src && !RINGK.filter(r => r !== k).map(r => subFor(cls, s, r)).includes(x)).map(x => [x, Number(sub[x]) || 0]).sort((a, b) => b[1] - a[1]);
+          const ringSubs = RINGK.filter(r => r !== k).map(r => subFor(cls, s, r)), need = Math.max(0, rd - (Number(sub[src]) || 0));
+          const alts = Object.keys(SUB_NAMES).filter(x => x !== src).map(x => { const n = Number(sub[x]) || 0, spare = ringSubs.includes(x) ? n - rd : n; return [x, n, spare]; }).sort((a, b) => b[2] - a[2]);
           return '<div class="ringmenu"><b>' + RNAME[k] + " ring on " + DAYS[day] + ':</b> <button class="btn small" data-ringfix="' + s.id + ":" + k + ':fix">\u2714\uFE0F Close it (count ' + rd + ")</button> <span class=\"muted small\">or count another subject:</span> " +
-            alts.map(([x, n]) => '<button class="btn ghost small" data-ringfix="' + s.id + ":" + k + ":sw:" + x + '"' + (n ? "" : ' title="No ' + SUB_NAMES[x] + ' XP that day"') + ">" + SUB_NAMES[x] + " (" + n + ")</button>").join(" ") +
+            alts.map(([x, n, spare]) => '<button class="btn ghost small' + (spare >= need ? " rmok" : "") + '" data-ringfix="' + s.id + ":" + k + ":sw:" + x + '" title="' + (ringSubs.includes(x) ? SUB_NAMES[x] + " keeps " + rd + " for its own ring, so it has " + Math.max(0, spare) + " to give" : SUB_NAMES[x] + " has " + n + " XP that day") + " (" + RNAME[k] + " needs " + need + " more)" + '">' + SUB_NAMES[x] + " (" + n + (ringSubs.includes(x) ? ", " + Math.max(0, spare) + " spare" : "") + ")</button>").join(" ") +
             ' <button class="btn ghost small" data-ringfix="' + s.id + ":" + k + ':x">Cancel</button></div>'; })() : "") +
         (full ? ' <button class="btn small fullon" data-fullday="' + s.id + '" title="Counted as a full ' + goal + ' XP day with all 3 rings. Click to take it back.">\u2B50 Full day \u2713</button>'
           : ' <button class="btn ghost small" data-fullday="' + s.id + '" title="The XP or a ring didn\u2019t record? Count this day as a full ' + goal + ' XP day with all 3 rings closed.">\u2B50 Full day</button>') + "</td></tr>";
@@ -934,8 +935,15 @@ const RINGK = ["m", "r", "l"], RNAME = { m: "Math", r: "Reading", l: "Language" 
 // 🔁 a ring can also take another subject's XP for just that day (xpHist[date].sw = { l: "w" }: Writing counts as Language)
 let ringMenu = "";   // "sid:k" while the little menu for that ring is open
 const marked = d => !!(d && (d.full || d.fix || d.sw));
-function swFloor(day, s, sw) { const sub = Object.assign({}, day.sub || {}), real = ((day.real || {}).sub) || {};
-  Object.keys(sw || {}).forEach(k => { const src = subFor(cls, s, k); sub[src] = Math.max(Number(sub[src]) || 0, Number(real[sw[k]]) || 0); }); day.sub = sub; return day; }
+// The other subject's XP MOVES to the ring (it isn't copied), so nothing counts twice: Reading standing in for Language
+// keeps 25 for its own Reading ring first, so it needs 50 (all three rings from one subject = 75).
+function swFloor(day, s, sw) {
+  const sub = Object.assign({}, day.sub || {}), rd = ringDay(s, cls), own = {}; RINGK.forEach(r => { own[subFor(cls, s, r)] = r; });
+  RINGK.filter(k => sw && sw[k]).forEach(k => { const x = sw[k], src = subFor(cls, s, k); if (x === src) return;
+    const keep = own[x] && !(sw[own[x]]) ? rd : 0;   // x is another ring's subject (and that ring isn't swapped away): it keeps its own 25
+    const need = Math.max(0, rd - (Number(sub[src]) || 0)), give = Math.min(need, Math.max(0, (Number(sub[x]) || 0) - keep));
+    if (give > 0) { sub[x] = (Number(sub[x]) || 0) - give; sub[src] = (Number(sub[src]) || 0) + give; } });
+  day.sub = sub; return day; }
 function realDay2(day) { if (!marked(day)) return day; const r = day.real || {}, o = Object.assign({}, day); delete o.real; delete o.full; delete o.fix; delete o.sw; if (day.full) delete o.h;
   if (r.d != null) o.d = r.d; else if (day.full) delete o.d; if (r.sub) o.sub = Object.assign({}, r.sub); else delete o.sub; return o; }
 function fixFloor(day, s, keys) { const sub = Object.assign({}, day.sub || {}), rd = ringDay(s, cls); keys.forEach(k => { const src = subFor(cls, s, k); sub[src] = Math.max(Number(sub[src]) || 0, rd); }); day.sub = sub; return day; }
@@ -2525,6 +2533,8 @@ document.addEventListener("click", async ev => {
       if (vaultMet(s2, cls, wk) && !(s.vault || {})[wk]) data.vault = Object.assign({}, s.vault || {}, { [wk]: "ready" });
     }
     await patch(s.id, data);
+    const got = Number(((hd.sub) || {})[subFor(cls, s, k)]) || 0, rdn = ringDay(s, cls);
+    if (on && how === "sw" && got < rdn) { flash("\u26A0\uFE0F " + SUB_NAMES[sub] + " didn\u2019t have enough spare XP: " + s.name + "\u2019s " + RNAME[k] + " ring is at " + got + " of " + rdn + " for " + DAYS[day] + ". (A ring subject keeps " + rdn + " for its own ring first.)"); return; }
     flash(!on ? "Took back " + s.name + "\u2019s " + RNAME[k] + " ring for " + DAYS[day] + "."
       : "\u{1F48D} " + s.name + "\u2019s " + RNAME[k] + " ring " + (how === "sw" ? "uses " + SUB_NAMES[sub] + " XP" : "is closed") + " for " + DAYS[day] + (data.vault ? " \u2014 and their Treasure Vault is ready!" : "."));
     return;

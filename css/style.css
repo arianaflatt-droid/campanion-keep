@@ -5011,3 +5011,4 @@ body.ck .solobrew .feasttable.round .ft-dish{ margin-left:0; }
 @keyframes sstshine{ 60%,100%{ left:110%; } }
 @media (prefers-reduced-motion: reduce){ .sstfill::before, .sstfill::after{ animation:none; } }
 .ringmenu{ margin-top:6px; padding:6px 8px; border-radius:10px; background:#FFF6DA; border:1px solid #E6C27A; display:flex; flex-wrap:wrap; gap:4px; align-items:center; font-size:13px; } .rfx.open{ box-shadow:0 0 0 3px #E6A92C; } .rfx:disabled{ cursor:default; }
+.ringmenu .btn.rmok{ border-color:#2E9E5B; color:#1E7A43; font-weight:700; }
