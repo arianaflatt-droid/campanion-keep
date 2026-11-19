@@ -4828,3 +4828,7 @@ body.ck .card.newsboard{ background:url(../assets/keep/notice-board.webp) center
 .ssdish.r0{ bottom:86%; } .ssdish.r1{ bottom:71%; z-index:2; }
 .ss-gobble .ssfeast{ width:min(88%,940px); margin-bottom:7%; }
 .btn.fullon{ background:linear-gradient(#FFE38A,#E6A92C) !important; color:#3A2410 !important; border-color:#B07A1A !important; font-weight:700; }
+/* Nov 19: Ms. Ariana's great hall behind the Class Feast — the table stands on the red rug in front of the fireplace */
+.ss-gobble .ssscene{ background:radial-gradient(ellipse at 50% 62%, rgba(255,170,70,.28), transparent 55%), url(../assets/feast/hall.webp) center bottom / cover no-repeat, #5D3A20 !important; }
+.ss-gobble .ssscene::after{ display:none; }
+.ss-gobble .ssfeast{ width:min(78%,880px); margin-bottom:9%; }
