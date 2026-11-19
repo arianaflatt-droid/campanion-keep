@@ -8,7 +8,7 @@
    items: [ids], title, at }. Nothing saves while a minigame or story is being played; it saves when it finishes. */
 import { esc, petHTML, companionOf, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261119b";
 import { dayXPs, azToday } from "./collect.js?v=20261119b";
-import { weekTotal, histWeekTotal, mondayOf, addDays, wkGoalOf, wkShare } from "./doors.js?v=20261119p";
+import { weekTotal, histWeekTotal, mondayOf, addDays, wkGoalOf, wkShare } from "./doors.js?v=20261119q";
 
 export const HERO_START = "2026-10-19";
 export const heroOn = cls => !(cls && cls.heroOff);

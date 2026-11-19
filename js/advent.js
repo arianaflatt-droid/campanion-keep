@@ -8,9 +8,9 @@
    Shows on My Companion and as a Checklist step from Dec 1 to Dec 31. A teacher preview can try it early with ?advent=1. */
 import { esc, goalXP } from "./game.js?v=20261119b";
 import { azToday } from "./collect.js?v=20261119b";
-import { ringDay, SUB_REQ } from "./doors.js?v=20261119p";
+import { ringDay, SUB_REQ } from "./doors.js?v=20261119q";
 import { subFor } from "./teams.js?v=20261119b";
-import { kdOf } from "./kingdom.js?v=20261119p";
+import { kdOf } from "./kingdom.js?v=20261119q";
 import { planetNow } from "./safari.js?v=20261119b";
 
 export const ADVENT_DAYS = ["2026-12-01", "2026-12-02", "2026-12-03", "2026-12-04", "2026-12-07", "2026-12-08", "2026-12-09", "2026-12-10", "2026-12-11",

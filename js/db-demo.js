@@ -3,7 +3,7 @@
    it saves lives only in this browser (localStorage "ck-demo-db"). Nothing touches Firebase or the class.
    The console's 🎮 Student demo button saves a copy of the class settings ("ck-demo-class") and opens demo.html;
    this file then makes a demo student who has hit every goal, plus a few pretend classmates. */
-import { BADGES } from "./badges.js?v=20261119p";
+import { BADGES } from "./badges.js?v=20261119q";
 import { ROSTER } from "./game.js?v=20261119b";
 const K = "ck-demo-db";
 let MEM = null;   // works even if the browser blocks storage
