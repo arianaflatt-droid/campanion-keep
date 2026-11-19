@@ -1,0 +1,404 @@
+import { owned as roomOwned, fitOf as roomFit, FIT_SLOTS, setItems as roomSet } from "./room.js?v=20261119b";
+import { presentsOpened } from "./doors.js?v=20261119b";
+import { PASS_THEMES, passDone } from "./pass.js?v=20261119b";
+import { shopBuys, swapBuys, outfitsOwned, cabinOwned, paintsOwned } from "./shop-data.js?v=20261119b";
+import { REGULARS as CF_REG, SPECIALS as CF_SP, keptCount as cfKept, perfectTotal as cfPerfect, monthPairs as cfPairs } from "./cafe-data.js?v=20261119b";
+import { ZONES as PJ_ZONES, pageCount as pjPage, pageSize as pjSize, aliensFound as pjAl, allAliensFound as pjAllAl, ALIEN_LIST as PJ_ALIENS } from "./safari.js?v=20261119b";
+// Badges: worked out from each student's saved data, so nothing extra is stored and no rules change.
+// To add a badge: add an entry with a check(st) that returns how far along the student is,
+// and a goal. Put its picture in assets/badges/ (a transparent WEBP or PNG). Without a picture, the emoji shows.
+const nebOf = st => ((st && st.planet) || {}).pets || {}, nebN = st => Object.keys(nebOf(st).o || {}).length;
+const NEB_SEASON = ["pumpkin", "pie", "candycane", "snowball", "sweetheart", "clover", "egg", "springflower", "sunbeam", "pencil"];
+import { esc, goalXP, candyOf, ghostUnlocked } from "./game.js?v=20261119b";
+import { seenSet, ownedFams, owned, family, formIndex, formOf, STARTERS, CREATURES } from "./collect.js?v=20261119b";
+
+export const hatches = st => (Number(st.pullsUsed) || 0) + (Number(st.legendaryUsed) || 0);
+
+// the limited-event Duckarune is a bonus: it isn't needed for the lorebook badges
+const EVENT_IDS = new Set(CREATURES.filter(c => c.event).map(c => c.id));
+export const discovered = st => [...seenSet(st)].filter(id => !EVENT_IDS.has(id)).length;
+export const families = st => ownedFams(st).length;
+const famsOf = st => ownedFams(st).map(family).filter(Boolean);
+const rarityCount = (st, r) => famsOf(st).filter(f => f.rarity === r).length;
+// a family evolved all the way to its last form
+export const fullLines = st => Object.entries(owned(st)).filter(([fam, e]) => { const f = family(fam); return f && f.forms.length > 1 && formIndex(fam, e.lvl || 1) === f.forms.length - 1; }).length;
+export const starters = st => STARTERS.filter(id => owned(st)[id]).length;
+export const RARITIES = ["Common", "Uncommon", "Rare", "Super Rare", "Legendary"];
+export const raritiesOwned = st => RARITIES.filter(r => rarityCount(st, r) > 0).length;
+export const sparkles = st => Object.values(owned(st)).filter(e => e && e.sparkle).length;
+export const ALL_TYPES = [...new Set(CREATURES.flatMap(c => c.types))];
+// types of the forms a student has right now (a creature with two types counts for both)
+export const typesOwned = st => { const t = new Set(); Object.entries(owned(st)).forEach(([fam, e]) => { const c = formOf(fam, e.lvl || 1); if (c) c.types.forEach(x => t.add(x)); }); return t.size; };
+export const evolved = st => Object.entries(owned(st)).filter(([fam, e]) => formIndex(fam, e.lvl || 1) > 0).length;
+export const topLevel = st => Math.max(0, ...Object.values(owned(st)).map(e => Number(e && e.lvl) || 1));
+export const xpSpent = st => Number(st.xpSpent) || 0;
+// Arena stats come from the class's battles (finished battles stay in the battles list).
+const sideOf = (st, b) => (b.a && b.a.id === st.id ? "A" : b.b && b.b.id === st.id ? "B" : null);
+function finished(st, battles) {
+  // a battle someone gave up on doesn't count for anyone's badges (so wins can't be traded)
+  return (battles || []).filter(b => b && b.status === "done" && b.winner && !b.forfeit && sideOf(st, b))
+    .sort((x, y) => String(x.created).localeCompare(String(y.created)));
+}
+const won = (st, b) => sideOf(st, b) === b.winner;
+const teamLevel = t => (t || []).reduce((n, f) => n + (Number(f && f.lvl) || 1), 0);
+export const battlesDone = (st, bt) => finished(st, bt).length;
+export const wins = (st, bt) => finished(st, bt).filter(b => won(st, b)).length;
+export const bestStreak = (st, bt) => { let best = 0, run = 0; finished(st, bt).forEach(b => { run = won(st, b) ? run + 1 : 0; best = Math.max(best, run); }); return best; };
+// won with a smaller team, or a team whose levels add up to less
+export const underdogWins = (st, bt) => finished(st, bt).filter(b => {
+  if (!won(st, b) || !b.team) return false;
+  const me = sideOf(st, b), mine = b.team[me] || [], theirs = b.team[me === "A" ? "B" : "A"] || [];
+  return mine.length < theirs.length || teamLevel(mine) < teamLevel(theirs);
+}).length;
+export const crits = (st, bt) => (bt || []).filter(b => b && sideOf(st, b)).reduce((n, b) => n + (b.log || []).filter(e => e.k === "hit" && e.crit && e.s === sideOf(st, b)).length, 0);
+// the last hit of a won battle was a weakness (double damage) hit
+export const typeFinishes = (st, bt) => finished(st, bt).filter(b => {
+  if (!won(st, b)) return false;
+  const hits = (b.log || []).filter(e => e.k === "hit"), last = hits[hits.length - 1];
+  return last && last.s === sideOf(st, b) && last.weak;
+}).length;
+/* Companion care: uses the saved XP history ({ date: { l: lunch, d: end of day } }), which is kept every week. */
+function days(st) {
+  const h = st.xpHist || {};
+  return Object.keys(h).sort().map(date => { const x = h[date] || {}, d = x.d != null ? x.d : x.l;
+    return { date, xp: Math.max(0, Number(d) || 0), lunch: x.l != null ? Math.max(0, Number(x.l) || 0) : null, e: !!x.e }; });
+}
+const goal = cls => goalXP(cls);
+export const bestDay = st => Math.max(0, ...days(st).map(d => d.xp));
+export const hitDays = (st, bt, cls) => days(st).filter(d => d.xp >= goal(cls)).length;
+// best run of school days in a row at the goal (days with no upload are skipped)
+// an excused day below the goal is skipped (the streak keeps going); an excused day at the goal still counts
+export const bestRun = (st, bt, cls) => { let best = 0, run = 0; days(st).forEach(d => { if (d.e && d.xp < goal(cls)) return; run = d.xp >= goal(cls) ? run + 1 : 0; best = Math.max(best, run); }); return best; };
+export const lunchHits = (st, bt, cls) => days(st).filter(d => d.lunch != null && d.lunch >= goal(cls)).length;
+// Monday of a date's week, so days can be grouped Mon-Fri
+function weekOf(date) { const t = new Date(date + "T12:00:00"); t.setDate(t.getDate() - ((t.getDay() + 6) % 7)); return t.toISOString().slice(0, 10); }
+// a full-health week: all 5 school days (Mon-Fri) that week at the goal
+const isWeekday = date => { const g = new Date(date + "T12:00:00").getDay(); return g >= 1 && g <= 5; };
+function fullWeeks(st, cls) {
+  const w = {}; days(st).filter(d => isWeekday(d.date)).forEach(d => { const k = weekOf(d.date); (w[k] = w[k] || []).push(d); });
+  return Object.keys(w).sort().map(k => w[k].length >= 5 && w[k].every(d => d.xp >= goal(cls)));
+}
+export const fullWeekCount = (st, bt, cls) => fullWeeks(st, cls).filter(Boolean).length;
+export const bestFullWeekRun = (st, bt, cls) => { let best = 0, run = 0; fullWeeks(st, cls).forEach(ok => { run = ok ? run + 1 : 0; best = Math.max(best, run); }); return best; };
+// longest stretch of school days with no companion loss (losses are saved when you finalize a day)
+export const bestSafeRun = st => { const lost = new Set((st.deaths || []).map(x => x.date)); let best = 0, run = 0; days(st).forEach(d => { run = lost.has(d.date) ? 0 : run + 1; best = Math.max(best, run); }); return best; };
+export const capes = st => Math.max(Number(st.capesTotal) || 0, (st.items || []).filter(i => i.id === "cape").length);
+/* Haunt-O-Ween */
+// Gobble-Palooza uses the same save fields, so Haunt-O-Ween badges only count live candy while Haunt-O-Ween is on
+// (or before Gobble-Palooza has ever run). Turning Gobble-Palooza on saves the candy totals as candyBest etc. first.
+const hauntLive = cls => !!(cls && cls.haunt && !cls.gobble && !cls.jingle && !cls.frost && !cls.heart && !cls.lucky) || !(cls && (cls.gobbleSince || cls.jingleSince || cls.frostSince || cls.heartSince || cls.luckySince));
+const hauntSpin = e => !e.s || e.s === "haunt";
+export const attacks = st => Math.max(0, (Number(st.attackTotal) || 0) - (Number(st.turkeyAtk) || 0) - (Number(st.grinchAtk) || 0) - (Number(st.yetiAtk) || 0) - (Number(st.heartAtk) || 0) - (Number(st.luckyAtk) || 0));   // Ghost-olotl attacks
+export const helpedDefeat = (st, bt, cls) => (ghostUnlocked(cls) && attacks(st) > 0 ? 1 : 0);
+export const candyEarned = (st, bt, cls) => Math.max(Number(st.candyBest) || 0, hauntLive(cls) ? candyOf(st) : 0);
+export const candySpentBest = (st, bt, cls) => Math.max(Number(st.spentBest) || 0, hauntLive(cls) ? Number(st.candySpent) || 0 : 0);
+export const prizeSpins = st => (st.spinLog || []).filter(e => e.id === "prize" && hauntSpin(e)).length;
+export const steals = (st, bt, cls) => Math.max(Number(st.stolenBest) || 0, hauntLive(cls) ? Number(st.stolen) || 0 : 0, (st.spinLog || []).filter(e => e.id === "steal" && e.amt > 0 && hauntSpin(e)).length);
+// event Legendaries caught (Duckarune, Hexaduck, and any future event creatures)
+const EVENT_FAMS = [...new Set(CREATURES.filter(c => c.event && !c.planet && !c.kd).map(c => c.fam))];   // (Nov 17: nor the Kingdom Ultra)   // 👽 Planet JP aliens aren't event Legendaries
+/* Battles against Ms. Ariana (the teacher is player id "teacher") */
+const vsTeacher = (st, bt) => finished(st, bt).filter(b => (b.a && b.a.id === "teacher") || (b.b && b.b.id === "teacher"));
+const myTeam = (st, b) => (b.team && b.team[sideOf(st, b)]) || [];
+const theirTeam = (st, b) => (b.team && b.team[sideOf(st, b) === "A" ? "B" : "A"]) || [];
+const isLeg = f => String(f && f.fam).startsWith("L-");
+export const teacherBattles = (st, bt) => vsTeacher(st, bt).length;
+export const teacherWins = (st, bt) => vsTeacher(st, bt).filter(b => won(st, b)).length;
+export const teacherStreak = (st, bt) => { let best = 0, run = 0; vsTeacher(st, bt).forEach(b => { run = won(st, b) ? run + 1 : 0; best = Math.max(best, run); }); return best; };
+export const teacherCommonWins = (st, bt) => vsTeacher(st, bt).filter(b => won(st, b) && myTeam(st, b).length && myTeam(st, b).every(f => String(f.fam).startsWith("C-"))).length;
+export const teacherLegendWins = (st, bt) => vsTeacher(st, bt).filter(b => won(st, b) && theirTeam(st, b).some(isLeg) && !myTeam(st, b).some(isLeg)).length;
+export const teacherPerfect = (st, bt) => vsTeacher(st, bt).filter(b => won(st, b) && !(b.log || []).some(e => e.k === "faint" && e.s === sideOf(st, b))).length;
+/* Gobble-Palooza */
+export const turkeyHelped = (st, bt, cls) => (cls && cls.turkeyDefeated && (Number(st.turkeyAtk) || 0) > 0 ? 1 : 0);
+/* Jingle Jam */
+/* Frostbite Festival */
+export const yetiHelped = (st, bt, cls) => (cls && cls.yetiDefeated && (Number(st.yetiAtk) || 0) > 0 ? 1 : 0);
+/* Sweetheart Showdown */
+export const heartHelped = (st, bt, cls) => (cls && cls.heartDefeated && (Number(st.heartAtk) || 0) > 0 ? 1 : 0);
+export const luckyHelped = (st, bt, cls) => (cls && cls.luckyDefeated && (Number(st.luckyAtk) || 0) > 0 ? 1 : 0);
+export const grinchHelped = (st, bt, cls) => (cls && cls.grinchDefeated && (Number(st.grinchAtk) || 0) > 0 ? 1 : 0);
+export const eventsCaught = st => EVENT_FAMS.filter(f => owned(st)[f]).length;
+const LORE = CREATURES.filter(c => !c.event).length, lore = pct => Math.ceil(LORE * pct / 100);
+
+const zooOf = st => ((st && st.planet) || {}).zoo || {};
+const mbB = st => Object.keys((((st && st.planet) || {}).mb || {}).own || {}).filter(k => k !== "hut" && k !== "palace").length;
+const stnG = st => Number((((st && st.planet) || {}).stn || {}).g) || 0;
+const axoColors = st => new Set(((((st && st.kd) || {}).hx || {}).l || []).map(x => x[0])).size;
+const kdG = st => Object.keys(((st && st.kd) || {}).g || {}).length;
+export const BADGE_GROUPS = [
+  { key: "hatch", title: "\u{1F95A} Hatching" },
+  { key: "morning", title: "\u{1F305} Morning Quests" },
+  { key: "collect", title: "\u{1F43E} Collector" },
+  { key: "lore", title: "\u{1F4D6} Lorebook Scholar" },
+  { key: "rare", title: "\u{1F48E} Rarity" },
+  { key: "level", title: "\u{1F4C8} Leveling" },
+  { key: "arena", title: "\u2694\uFE0F Arena" },
+  { key: "care", title: "\u{1F43E} Companion Care" },
+  { key: "haunt", title: "\u{1F383} Haunt-O-Ween" },
+  { key: "teacher", title: "\u{1F34E} Battle Ms. Ariana" },
+  { key: "gobble", title: "\u{1F983} Gobble-Palooza" },
+  { key: "jingle", title: "\u{1F384} Jingle Jam" },
+  { key: "frost", title: "\u2744\uFE0F Frostbite Festival" },
+  { key: "heart", title: "\u{1F498} Sweetheart Showdown" },
+  { key: "lucky", title: "\u{1F340} Lucky Leprechaun Hunt" },
+  { key: "doors", title: "\u{1F6AA} Daily Doors" },
+  { key: "room", title: "\u{1F3E0} Home Sweet Keep" },
+  { key: "pass", title: "\u{1F39F}\uFE0F Season Pass" },
+  { key: "planet", title: "\u{1FA90} Planet JP Explorer" },
+  { key: "cafe", title: "\u2615 Space Caf\u00e9 + \u{1F6D2} Shops" },
+  { key: "zoo", title: "\u{1F992} Space Zoo" },
+  { key: "neb", title: "\u{1F43E} Nebbles" },
+  { key: "moon", title: "\u{1F319} Moon Base" },
+  { key: "station", title: "\u{1F6F0}\uFE0F Space Station" },
+  { key: "kingdom", title: "\u{1F30A} Axolotl Kingdom" },
+];
+
+export const BADGES = [
+  { id: "hatch-1",   group: "hatch", name: "First Hatch",   desc: "Hatch your first egg",  goal: 1,   img: "assets/badges/hatch-1.webp",   emoji: "\u{1F423}", check: hatches },
+  { id: "hatch-10",  group: "hatch", name: "10 Hatched",    desc: "Hatch 10 eggs",         goal: 10,  img: "assets/badges/hatch-10.webp",  emoji: "\u{1F95A}", check: hatches },
+  { id: "hatch-50",  group: "hatch", name: "50 Hatched",    desc: "Hatch 50 eggs",         goal: 50,  img: "assets/badges/hatch-50.webp",  emoji: "\u{1FAB9}", check: hatches },
+  { id: "hatch-100", group: "hatch", name: "100 Hatched",   desc: "Hatch 100 eggs",        goal: 100, img: "assets/badges/hatch-100.webp", emoji: "\u{1F3C6}", check: hatches },
+  { id: "collect-10", group: "collect", name: "Collector 10", desc: "Own 10 different creature families", goal: 10, img: "assets/badges/collect-10.webp", emoji: "\u{1F331}", check: families },
+  { id: "collect-25", group: "collect", name: "Collector 25", desc: "Own 25 different creature families", goal: 25, img: "assets/badges/collect-25.webp", emoji: "\u{1F4A7}", check: families },
+  { id: "collect-50", group: "collect", name: "Collector 50", desc: "Own 50 different creature families", goal: 50, img: "assets/badges/collect-50.webp", emoji: "\u{1F525}", check: families },
+  { id: "full-line",   group: "collect", name: "Full Line",   desc: "Evolve a creature to its final form, collecting its whole line", goal: 1, img: "assets/badges/full-line.webp", emoji: "\u{1F332}", check: fullLines },
+  { id: "starter-set", group: "collect", name: "Starter Set", desc: "Collect all 3 starter creatures", goal: 3, img: "assets/badges/starter-set.webp", emoji: "\u{1F46A}", check: starters },
+  { id: "lore-25",  group: "lore", name: "Lorebook 25%",  desc: "Discover 25% of the lorebook",  goal: lore(25),  img: "assets/badges/lore-25.webp",  emoji: "\u{1F4D6}", check: discovered },
+  { id: "lore-50",  group: "lore", name: "Lorebook 50%",  desc: "Discover 50% of the lorebook",  goal: lore(50),  img: "assets/badges/lore-50.webp",  emoji: "\u{1F4D6}", check: discovered },
+  { id: "lore-75",  group: "lore", name: "Lorebook 75%",  desc: "Discover 75% of the lorebook",  goal: lore(75),  img: "assets/badges/lore-75.webp",  emoji: "\u{1F4D6}", check: discovered },
+  { id: "lore-100", group: "lore", name: "Lorebook 100%", desc: "Discover every creature in the lorebook", goal: LORE, img: "assets/badges/lore-100.webp", emoji: "\u{1F4DA}", check: discovered },
+  { id: "first-rare",       group: "rare", name: "First Rare",       desc: "Own your first Rare creature",       goal: 1, img: "assets/badges/first-rare.webp",       emoji: "\u{1F499}", check: st => rarityCount(st, "Rare") },
+  { id: "first-super-rare", group: "rare", name: "First Super Rare", desc: "Own your first Super Rare creature", goal: 1, img: "assets/badges/first-super-rare.webp", emoji: "\u{1F49C}", check: st => rarityCount(st, "Super Rare") },
+  { id: "legend-keeper",    group: "rare", name: "Legend Keeper",    desc: "Own a Legendary or get a legendary egg from your teacher", goal: 1, img: "assets/badges/legend-keeper.webp", emoji: "\u{1F451}", check: st => Math.max(rarityCount(st, "Legendary"), Number(st.legendaryPulls) || 0) },
+  { id: "rarity-hunter",    group: "rare", name: "Rarity Hunter",    desc: "Own one creature of every rarity", goal: 5, img: "assets/badges/rarity-hunter.webp", emoji: "\u{1F308}", check: raritiesOwned },
+  { id: "event-1", group: "rare", name: "Event Collector", desc: "Collect one limited event Legendary", goal: 1, img: "assets/badges/event-1.webp", emoji: "\u{1F986}", check: eventsCaught },
+  { id: "event-7", group: "rare", name: "Legendary Event Collector", desc: "Collect 7 limited event Legendaries", goal: 7, img: "assets/badges/event-7.webp", emoji: "\u{1F451}", check: eventsCaught },
+  { id: "sparkle-1",      group: "rare", name: "Sparkle Hunter", desc: "Hatch your first \u2728 Sparkle", goal: 1, img: "assets/badges/sparkle-1.webp", emoji: "\u2728", check: sparkles },
+  { id: "sparkle-5",      group: "rare", name: "Sparkle Hunter 5", desc: "Collect 5 \u2728 Sparkles", goal: 5, img: "assets/badges/sparkle-5.webp", emoji: "\u{1F31F}", check: sparkles },
+  { id: "type-collector", group: "collect", name: "Type Collector", desc: "Own a creature of every type (all " + ALL_TYPES.length + ")", goal: ALL_TYPES.length, img: "assets/badges/type-collector.webp", emoji: "\u{1F52E}", check: typesOwned },
+  { id: "evolve-1",     group: "level", name: "First Evolution", desc: "Evolve a creature for the first time", goal: 1, img: "assets/badges/evolve-1.webp", emoji: "\u{1F331}", check: evolved },
+  { id: "evolve-final", group: "level", name: "Final Evolution", desc: "Evolve a creature to its final form", goal: 1, img: "assets/badges/evolve-final.webp", emoji: "\u{1F333}", check: fullLines },
+  { id: "level-25",  group: "level", name: "Power Up: Level 25",  desc: "Get a creature to level 25",  goal: 25,  img: "assets/badges/level-25.webp",  emoji: "\u2B06\uFE0F", check: topLevel },
+  { id: "level-50",  group: "level", name: "Power Up: Level 50",  desc: "Get a creature to level 50",  goal: 50,  img: "assets/badges/level-50.webp",  emoji: "\u23EB", check: topLevel },
+  { id: "level-100", group: "level", name: "Max Power: Level 100", desc: "Get a creature to level 100", goal: 100, img: "assets/badges/level-100.webp", emoji: "\u{1F4AF}", check: topLevel },
+  { id: "xp-1000",  group: "level", name: "XP Spender 1,000",  desc: "Spend 1,000 banked XP on levels",  goal: 1000,  img: "assets/badges/xp-1000.webp",  emoji: "\u{1F4D8}", check: xpSpent },
+  { id: "xp-5000",  group: "level", name: "XP Spender 5,000",  desc: "Spend 5,000 banked XP on levels",  goal: 5000,  img: "assets/badges/xp-5000.webp",  emoji: "\u{1F4D5}", check: xpSpent },
+  { id: "xp-10000", group: "level", name: "XP Spender 10,000", desc: "Spend 10,000 banked XP on levels", goal: 10000, img: "assets/badges/xp-10000.webp", emoji: "\u{1F4D2}", check: xpSpent },
+  { id: "battle-1",  group: "arena", name: "First Battle", desc: "Finish your first arena battle", goal: 1, img: "assets/badges/battle-1.webp", emoji: "\u2694\uFE0F", check: battlesDone },
+  { id: "win-1",     group: "arena", name: "First Win",    desc: "Win your first arena battle",    goal: 1, img: "assets/badges/win-1.webp",    emoji: "\u{1F3C6}", check: wins },
+  { id: "streak-3",  group: "arena", name: "Win Streak 3",  desc: "Win 3 battles in a row",  goal: 3,  img: "assets/badges/streak-3.webp",  emoji: "\u{1F525}", check: bestStreak },
+  { id: "streak-5",  group: "arena", name: "Win Streak 5",  desc: "Win 5 battles in a row",  goal: 5,  img: "assets/badges/streak-5.webp",  emoji: "\u{1F525}", check: bestStreak },
+  { id: "streak-10", group: "arena", name: "Win Streak 10", desc: "Win 10 battles in a row", goal: 10, img: "assets/badges/streak-10.webp", emoji: "\u{1F525}", check: bestStreak },
+  { id: "champ-10", group: "arena", name: "Champion 10", desc: "Win 10 arena battles", goal: 10, img: "assets/badges/champ-10.webp", emoji: "\u{1F3C6}", check: wins },
+  { id: "champ-25", group: "arena", name: "Champion 25", desc: "Win 25 arena battles", goal: 25, img: "assets/badges/champ-25.webp", emoji: "\u{1F3C6}", check: wins },
+  { id: "champ-50", group: "arena", name: "Champion 50", desc: "Win 50 arena battles", goal: 50, img: "assets/badges/champ-50.webp", emoji: "\u{1F3C6}", check: wins },
+  { id: "underdog", group: "arena", name: "Underdog", desc: "Win with a lower-level or smaller team", goal: 1, img: "assets/badges/underdog.webp", emoji: "\u{1F436}", check: underdogWins },
+  { id: "crit-1", group: "arena", name: "Critical Hit", desc: "Land your first critical hit", goal: 1, img: "assets/badges/crit-1.webp", emoji: "\u{1F4A5}", check: crits },
+  { id: "crit-5", group: "arena", name: "Crit Master", desc: "Land 5 critical hits", goal: 5, img: "assets/badges/crit-5.webp", emoji: "\u{1F3AF}", check: crits },
+  { id: "type-expert", group: "arena", name: "Type Expert", desc: "Win with a weakness (double damage) finishing hit", goal: 1, img: "assets/badges/type-expert.webp", emoji: "\u{1F9E0}", check: typeFinishes },
+  { id: "feast",   group: "care", name: "First Feast", desc: "Hit 120 XP for the first time", goal: 1, img: "assets/badges/feast.webp", emoji: "\u{1F356}", check: hitDays },
+  { id: "roll-5",  group: "care", name: "On a Roll 5",  desc: "Hit 120 XP 5 school days in a row",  goal: 5,  img: "assets/badges/roll-5.webp",  emoji: "\u{1F4C5}", check: bestRun },
+  { id: "roll-10", group: "care", name: "On a Roll 10", desc: "Hit 120 XP 10 school days in a row", goal: 10, img: "assets/badges/roll-10.webp", emoji: "\u{1F4C5}", check: bestRun },
+  { id: "roll-20", group: "care", name: "On a Roll 20", desc: "Hit 120 XP 20 school days in a row", goal: 20, img: "assets/badges/roll-20.webp", emoji: "\u{1F4C5}", check: bestRun },
+  { id: "crowned", group: "care", name: "Crowned", desc: "Reach a 5-day streak and unlock the Crown", goal: 5, img: "assets/badges/crowned.webp", emoji: "\u{1F451}", check: bestRun },
+  { id: "egg-240", group: "care", name: "Double Egg Day 240", desc: "Earn 240 XP in one day", goal: 240, img: "assets/badges/egg-240.webp", emoji: "\u{1F95A}", check: bestDay },
+  { id: "egg-480", group: "care", name: "Double Egg Day 480", desc: "Earn 480 XP in one day", goal: 480, img: "assets/badges/egg-480.webp", emoji: "\u{1F95A}", check: bestDay },
+  { id: "lunch-1",  group: "care", name: "Lunch Hero",    desc: "Hit 120 XP before lunch",          goal: 1,  img: "assets/badges/lunch-1.webp",  emoji: "\u2600\uFE0F", check: lunchHits },
+  { id: "lunch-10", group: "care", name: "Lunch Hero 10", desc: "Hit 120 XP before lunch 10 times", goal: 10, img: "assets/badges/lunch-10.webp", emoji: "\u2600\uFE0F", check: lunchHits },
+  { id: "health-week",  group: "care", name: "Full-Health Week",  desc: "Hit the goal all 5 school days in one week (Mon\u2013Fri)", goal: 1, img: "assets/badges/health-week.webp",  emoji: "\u2764\uFE0F", check: fullWeekCount },
+  { id: "health-month", group: "care", name: "Full-Health Month", desc: "Keep full health for 4 school weeks in a row", goal: 4, img: "assets/badges/health-month.webp", emoji: "\u{1F496}", check: bestFullWeekRun },
+  { id: "never-lost", group: "care", name: "Never Lost", desc: "30 school days in a row without your companion disappearing", goal: 30, img: "assets/badges/never-lost.webp", emoji: "\u{1F6E1}\uFE0F", check: bestSafeRun },
+  { id: "early-1",  group: "morning", name: "Early Bird", desc: "Finish the whole Morning Quest Board", goal: 1, img: "assets/badges/early-1.webp", emoji: "\u{1F305}", check: st => Number(st.mqFull) || 0 },
+  { id: "early-5",  group: "morning", name: "Early Bird 5", desc: "Finish the whole Morning Quest Board 5 times", goal: 5, img: "assets/badges/early-5.webp", emoji: "\u{1F426}", check: st => Number(st.mqFull) || 0 },
+  { id: "early-20", group: "morning", name: "Early Bird 20", desc: "Finish the whole Morning Quest Board 20 times", goal: 20, img: "assets/badges/early-20.webp", emoji: "\u{1F31E}", check: st => Number(st.mqFull) || 0 },
+  { id: "mcatch-10", group: "morning", name: "Morning Catcher", desc: "Catch 10 creatures on the Morning Quest Board", goal: 10, img: "assets/badges/mcatch-10.webp", emoji: "\u{1F3AF}", check: st => Number(st.mqCatch) || 0 },
+  { id: "mcatch-50", group: "morning", name: "Morning Catcher 50", desc: "Catch 50 creatures on the Morning Quest Board", goal: 50, img: "assets/badges/mcatch-50.webp", emoji: "\u{1F3A3}", check: st => Number(st.mqCatch) || 0 },
+  { id: "ghost-1",  group: "haunt", name: "Ghost Buster",    desc: "Help defeat the Ghost-olotl", goal: 1, img: "assets/badges/ghost-1.webp", emoji: "\u{1F47B}", check: helpedDefeat },
+  // Ghost Buster II: helped beat the 2nd Ghost-olotl (Ms. Ariana gave them its rewards). Art: assets/badges/ghost-2.webp
+  { id: "ghost-2",  group: "haunt", name: "Ghost Buster II", desc: "Help defeat the Ghost-olotl a 2nd time", goal: 1, img: "assets/badges/ghost-2.webp", emoji: "\u{1F47B}", check: st => (st.ghost2 ? 1 : 0) },
+  { id: "ghost-10", group: "haunt", name: "Ghost Buster 10", desc: "Attack the Ghost-olotl 10 times", goal: 10, img: "assets/badges/ghost-10.webp", emoji: "\u{1F47B}", check: attacks },
+  { id: "master-brewer", group: "haunt", name: "Master Brewer", desc: "Brew 3 potions with your Potion Team, or 10 on your own", goal: 3, img: "assets/badges/master-brewer.webp", emoji: "\u{1F9EA}", check: st => { const n = Object.values((st.soloBrew || {}).days || {}).reduce((a, b) => a + (Number(b) || 0), 0); return Math.max(Object.keys(st.potionDays || {}).length, n >= 10 ? 3 : n >= 6 ? 2 : n >= 3 ? 1 : 0); } },
+  { id: "feast-master", group: "gobble", name: "Feast Master", desc: "Cook 3 Feast Table menus with your team, or 10 dishes on your own", goal: 3, img: "assets/badges/feast-master.webp", emoji: "\u{1F983}", check: st => { const n = Object.values((st.soloFeast || {}).days || {}).reduce((a, b) => a + (Number(b) || 0), 0); return Math.max(Object.keys(st.feastDays || {}).length, n >= 10 ? 3 : n >= 6 ? 2 : n >= 3 ? 1 : 0); } },
+  { id: "advent-star", group: "jingle", name: "Advent Star", desc: "Open the big 13th door of the December Advent Calendar", goal: 1, img: "assets/badges/advent-star.webp", emoji: "\u{1F31F}", check: st => ((st.advent || {})["2026-12-17"] ? 1 : 0) },
+  { id: "master-baker", group: "jingle", name: "Master Baker", desc: "Finish all 10 steps of your team\u2019s Gingerbread House, or bake 10 on your own", goal: 10, img: "assets/badges/master-baker.webp", emoji: "\u{1F36A}", check: st => Math.max(Object.keys(st.gingerDays || {}).length, Math.min(10, Object.values((st.soloGinger || {}).days || {}).reduce((a, b) => a + (Number(b) || 0), 0))) },
+  { id: "sweet-tooth", group: "haunt", name: "Sweet Tooth", desc: "Earn 1,000 candy", goal: 1000, img: "assets/badges/sweet-tooth.webp", emoji: "\u{1F36C}", check: candyEarned },
+  { id: "big-spender", group: "haunt", name: "Big Spender", desc: "Spend 500 candy at the shop", goal: 500, img: "assets/badges/big-spender.webp", emoji: "\u{1F6CD}\uFE0F", check: candySpentBest },
+  { id: "witchy",      group: "haunt", name: "Witchy",      desc: "Buy the Witch\u2019s Hat", goal: 1, img: "assets/badges/witchy.webp", emoji: "\u{1F9D9}", check: st => (st.witchHat ? 1 : 0) },
+  { id: "lucky-spin",  group: "haunt", name: "Lucky Spin",  desc: "Land a Prize! on the wheel", goal: 1, img: "assets/badges/lucky-spin.webp", emoji: "\u{1F381}", check: prizeSpins },
+  { id: "t-challenge",     group: "teacher", name: "Challenge Accepted", desc: "Battle Ms. Ariana for the first time", goal: 1, img: "assets/badges/t-challenge.webp", emoji: "\u2694\uFE0F", check: teacherBattles },
+  { id: "t-tamer",         group: "teacher", name: "Teacher Tamer", desc: "Beat Ms. Ariana once", goal: 1, img: "assets/badges/t-tamer.webp", emoji: "\u{1F34E}", check: teacherWins },
+  { id: "t-top",           group: "teacher", name: "Top of the Class", desc: "Beat Ms. Ariana 5 times", goal: 5, img: "assets/badges/t-top.webp", emoji: "\u{1F4DA}", check: teacherWins },
+  { id: "t-valedictorian", group: "teacher", name: "Valedictorian", desc: "Beat Ms. Ariana 3 times in a row", goal: 3, img: "assets/badges/t-valedictorian.webp", emoji: "\u{1F393}", check: teacherStreak },
+  { id: "t-popquiz",       group: "teacher", name: "Pop Quiz", desc: "Beat Ms. Ariana using only Common creatures", goal: 1, img: "assets/badges/t-popquiz.webp", emoji: "\u270F\uFE0F", check: teacherCommonWins },
+  { id: "t-legendary",     group: "teacher", name: "Legendary Lesson", desc: "Beat Ms. Ariana when her team has a Legendary and yours doesn\u2019t", goal: 1, img: "assets/badges/t-legendary.webp", emoji: "\u{1F451}", check: teacherLegendWins },
+  { id: "t-perfect",       group: "teacher", name: "Perfect Score", desc: "Beat Ms. Ariana without any of your creatures fainting", goal: 1, img: "assets/badges/t-perfect.webp", emoji: "\u{1F4AF}", check: teacherPerfect },
+  { id: "secret-agent", group: "care", name: "Secret Agent", desc: "Win as a Secret Student 3 times", goal: 3, img: "assets/badges/secret-agent.webp", emoji: "\u{1F575}\uFE0F", check: st => Math.min(3, Number(st.secretWins) || 0) },
+  { id: "turkey-chaser", group: "gobble", name: "Turkey Chaser", desc: "Beat Kitchen Chaos in Turducken\u2019s Revenge", goal: 1, img: "assets/revenge/tk-angry.webp", emoji: "\u{1F983}", check: st => (st.revenge && st.revenge.beat && st.revenge.beat[1] ? 1 : 0) },
+  { id: "turkey-tamer", group: "gobble", name: "Turkey Tamer", desc: "Beat MEGA TURDUCKEN in Turducken\u2019s Revenge", goal: 1, img: "assets/revenge/tk-mega.webp", emoji: "\u{1F451}", check: st => (st.revenge && st.revenge.beat && st.revenge.beat[5] ? 1 : 0) },
+  { id: "tower-climber", group: "gobble", name: "Tower Climber", desc: "Clear wave 10 of the Turducken Tower", goal: 10, img: "assets/revenge/trophy-golden.webp", emoji: "\u{1F5FC}", check: st => Math.min(10, Number(st.revenge && st.revenge.best) || 0) },
+  { id: "present-chaser", group: "jingle", name: "Present Chaser", desc: "Beat the Toy Workshop in the Great Present Heist", goal: 1, img: "assets/badges/present-chaser.webp", emoji: "\u{1F381}", check: st => (st.heist && st.heist.beat && st.heist.beat[1] ? 1 : 0) },
+  { id: "grinch-tamer", group: "jingle", name: "Grinch Tamer", desc: "Beat MEGA GRINCH-A-DUCK in the Great Present Heist", goal: 1, img: "assets/badges/grinch-tamer.webp", emoji: "\u{1F3C6}", check: st => (st.heist && st.heist.beat && st.heist.beat[10] ? 1 : 0) },
+  { id: "present-mountain", group: "jingle", name: "Present Mountain Climber", desc: "Clear wave 10 of Present Mountain", goal: 10, img: "assets/badges/present-mountain.webp", emoji: "⛰️", check: st => Math.min(10, Number(st.heist && st.heist.best) || 0) },
+  { id: "turkey-takedown", group: "gobble", name: "Turkey Takedown", desc: "Help defeat the Turducken", goal: 1, img: "assets/badges/turkey-takedown.webp", emoji: "\u{1F983}", check: turkeyHelped },
+  { id: "turkey-2", group: "gobble", name: "Turkey Takedown II", desc: "Help defeat the Turducken a 2nd time", goal: 1, img: "assets/badges/turkey-2.webp", emoji: "\u{1F983}", check: st => (st.turkey2 ? 1 : 0) },
+  { id: "ev-thanks",       group: "gobble", name: "Thanksolotl", desc: "Catch the limited Thanksolotl during Gobble-Palooza", goal: 1, img: "assets/badges/ev-thanks.webp", emoji: "\u{1F342}", check: st => (owned(st)["L-29"] ? 1 : 0) },
+  { id: "present-rescuer", group: "jingle", name: "Present Rescuer", desc: "Help defeat the Grinch-a-Duck", goal: 1, img: "assets/badges/present-rescuer.webp", emoji: "\u{1F381}", check: grinchHelped },
+  { id: "grinch-2", group: "jingle", name: "Grinch Grabber II", desc: "Help defeat the Grinch-a-Duck a 2nd time", goal: 1, img: "assets/badges/grinch-2.webp", emoji: "\u{1F381}", check: st => (st.grinch2 ? 1 : 0) },
+  { id: "ev-jingle",       group: "jingle", name: "Jinglotl", desc: "Catch the limited Jinglotl during Jingle Jam", goal: 1, img: "assets/badges/ev-jingle.webp", emoji: "\u2744\uFE0F", check: st => (owned(st)["L-30"] ? 1 : 0) },
+  { id: "yeti-tamer",    group: "frost", name: "Yeti Tamer", desc: "Help defeat the Abominable Snowlotl", goal: 1, img: "assets/badges/yeti-tamer.webp", emoji: "\u26C4", check: yetiHelped },
+  { id: "yeti-2", group: "frost", name: "Snowlotl Smasher II", desc: "Help defeat the Snowlotl a 2nd time", goal: 1, img: "assets/badges/yeti-2.webp", emoji: "\u2744\uFE0F", check: st => (st.yeti2 ? 1 : 0) },
+  { id: "ev-frost",      group: "frost", name: "Midniduck", desc: "Catch the limited Midniduck during Frostbite Festival", goal: 1, img: "assets/badges/ev-frost.webp", emoji: "\u{1F386}", check: st => (owned(st)["L-37"] ? 1 : 0) },
+  { id: "snow-sculptor", group: "frost", name: "Snow Sculptor", desc: "Finish all 10 steps of your team\u2019s snowman, or build 10 on your own", goal: 10, img: "assets/badges/snow-sculptor.webp", emoji: "\u2603\uFE0F", check: st => Math.max(Object.keys(st.snowmanDays || {}).length, Math.min(10, Object.values((st.soloSnow || {}).days || {}).reduce((a, b) => a + (Number(b) || 0), 0))) },
+  { id: "heart-mender",  group: "heart", name: "Heart Mender", desc: "Help defeat the Heartbreaker-otl", goal: 1, img: "assets/badges/heart-mender.webp", emoji: "\u{1F498}", check: heartHelped },
+  { id: "heart-2", group: "heart", name: "Heart Mender II", desc: "Help defeat the Heartbreaker-otl a 2nd time", goal: 1, img: "assets/badges/heart-2.webp", emoji: "\u{1F498}", check: st => (st.heart2 ? 1 : 0) },
+  { id: "ev-heart",      group: "heart", name: "Amorduck", desc: "Catch the limited Amorduck during Sweetheart Showdown", goal: 1, img: "assets/badges/ev-heart.webp", emoji: "\u{1F986}", check: st => (owned(st)["L-39"] ? 1 : 0) },
+  { id: "master-chocolatier", group: "heart", name: "Master Chocolatier", desc: "Fill all 10 slots of your team\u2019s candy box, or make 10 chocolates on your own", goal: 10, img: "assets/badges/master-chocolatier.webp", emoji: "\u{1F36B}", check: st => Math.max(Object.keys(st.candyboxDays || {}).length, Math.min(10, Object.values((st.soloBox || {}).days || {}).reduce((a, b) => a + (Number(b) || 0), 0))) },
+  { id: "lucky-catcher", group: "lucky", name: "Leprechaun Catcher", desc: "Help defeat Lepre-quack", goal: 1, img: "assets/badges/lucky-catcher.webp", emoji: "\u{1F340}", check: luckyHelped },
+  { id: "lucky-2", group: "lucky", name: "Leprechaun Catcher II", desc: "Help defeat Lepre-quack a 2nd time", goal: 1, img: "assets/badges/lucky-2.webp", emoji: "\u{1FA99}", check: st => (st.lucky2 ? 1 : 0) },
+  { id: "ev-lucky", group: "lucky", name: "Cloverduck", desc: "Catch the limited Cloverduck during the Lucky Leprechaun Hunt", goal: 1, img: "assets/badges/ev-lucky.webp", emoji: "\u{1F986}", check: st => (owned(st)["L-64"] ? 1 : 0) },
+  { id: "master-trapper", group: "lucky", name: "Master Trapper", desc: "Build all 10 pieces of your leprechaun trap", goal: 10, img: "assets/badges/master-trapper.webp", emoji: "\u{1FAA4}", check: st => Math.max(Object.keys(st.trapDays || {}).length, Math.min(10, Object.values((st.soloTrap || {}).days || {}).reduce((a, b) => a + (Number(b) || 0), 0))) },
+  // Daily Doors (Haunted Doors / Harvest Doors / Advent Calendar).
+  { id: "door-1",    group: "doors", name: "Knock Knock",    desc: "Open your first Daily Doors present", goal: 1,   img: "assets/badges/door-1.webp", emoji: "\u{1F6AA}", check: st => presentsOpened(st).doors },
+  { id: "door-25",   group: "doors", name: "Door Dasher",    desc: "Open 25 Daily Doors presents",        goal: 25,  img: "assets/badges/door-25.webp", emoji: "\u{1F381}", check: st => presentsOpened(st).doors },
+  { id: "door-100",  group: "doors", name: "Door Master",    desc: "Open 100 Daily Doors presents",       goal: 100, img: "assets/badges/door-100.webp", emoji: "\u{1F511}", check: st => presentsOpened(st).doors },
+  { id: "golden-1",  group: "doors", name: "Golden Glow",    desc: "Open a Golden Present (finish every door in one day)", goal: 1, img: "assets/badges/golden-1.webp", emoji: "\u2728", check: st => presentsOpened(st).golden },
+  { id: "golden-5",  group: "doors", name: "Golden Streak",  desc: "Open 5 Golden Presents",              goal: 5,   img: "assets/badges/golden-5.webp", emoji: "\u{1F31F}", check: st => presentsOpened(st).golden },
+  // Home Sweet Keep (the companion room). Art goes in assets/badges/<id>.webp; until then the emoji shows.
+  { id: "room-first",    group: "room", name: "First Decoration", desc: "Buy your first room item", goal: 1, img: "assets/badges/room-first.webp", emoji: "\u{1F6CB}\uFE0F", check: st => ((st.roomBuys || []).length ? 1 : 0) },
+  { id: "room-full",     group: "room", name: "Full Room", desc: "Fill every spot in your room at once", goal: 1, img: "assets/badges/room-full.webp", emoji: "\u{1F3E0}", check: st => (FIT_SLOTS.every(sl => roomFit(st)[sl]) ? 1 : 0) },
+  { id: "candy-thief", group: "haunt", name: "Candy Thief", desc: "Steal candy from Ms. Ariana", goal: 1, img: "assets/badges/candy-thief.webp", emoji: "\u{1F9B9}", check: steals },
+  { id: "pass-haunt", group: "pass", name: "Haunt-O-Ween Pass", desc: "Finish the Haunt-O-Ween Pass (all 20 tiers)", goal: 1, img: "assets/badges/pass-haunt.webp", emoji: "\u{1F383}", check: st => passDone(st, "haunt") },
+  { id: "pass-gobble", group: "pass", name: "Gobble-Palooza Pass", desc: "Finish the Gobble-Palooza Pass (all 20 tiers)", goal: 1, img: "assets/badges/pass-gobble.webp", emoji: "\u{1F983}", check: st => passDone(st, "gobble") },
+  { id: "pass-jingle", group: "pass", name: "Jingle Jam Pass", desc: "Finish the Jingle Jam Pass (all 20 tiers)", goal: 1, img: "assets/badges/pass-jingle.webp", emoji: "\u{1F384}", check: st => passDone(st, "jingle") },
+  { id: "pass-frost", group: "pass", name: "Frostbite Festival Pass", desc: "Finish the Frostbite Festival Pass (all 20 tiers)", goal: 1, img: "assets/badges/pass-frost.webp", emoji: "\u2744\uFE0F", check: st => passDone(st, "frost") },
+  { id: "pass-heart", group: "pass", name: "Sweetheart Pass", desc: "Finish the Sweetheart Pass (all 20 tiers)", goal: 1, img: "assets/badges/pass-heart.webp", emoji: "\u{1F498}", check: st => passDone(st, "heart") },
+  { id: "pass-lucky", group: "pass", name: "Lucky Pass", desc: "Finish the Lucky Pass (all 20 tiers)", goal: 1, img: "assets/badges/pass-lucky.webp", emoji: "\u2618\uFE0F", check: st => passDone(st, "lucky") },
+  { id: "pass-spring", group: "pass", name: "Spring Pass", desc: "Finish the Spring Pass (all 20 tiers)", goal: 1, img: "assets/badges/pass-spring.webp", emoji: "\u{1F337}", check: st => passDone(st, "spring") },
+  { id: "pass-summer", group: "pass", name: "Summer Pass", desc: "Finish the Summer Pass (all 20 tiers)", goal: 1, img: "assets/badges/pass-summer.webp", emoji: "\u2600\uFE0F", check: st => passDone(st, "summer") },
+  { id: "pass-school", group: "pass", name: "Back-to-School Pass", desc: "Finish the Back-to-School Pass (all 20 tiers)", goal: 1, img: "assets/badges/pass-school.webp", emoji: "\u{1F4DA}", check: st => passDone(st, "school") },
+  // 🪐 Planet JP (Nov 7): a full album page = the zone's badge; all 3 of a zone's aliens = its alien badge; all 21 = Alien Hunter (no pictures yet: emoji)
+  ...PJ_ZONES.map(z => ({ id: "pj-" + z.key, group: "planet", name: z.name + " Explorer", desc: "Fill the " + z.name + " page of your Planet JP photo album (all " + pjSize(z.key) + " photos)", goal: pjSize(z.key), img: "assets/badges/pj-" + z.key + ".webp", emoji: z.icon, check: st => pjPage(st, z.key) })),
+  ...PJ_ZONES.map(z => ({ id: "pja-" + z.key, group: "planet", name: z.name + " Alien Spotter", desc: "Photograph all 3 Planet JP aliens in " + z.name, goal: 3, img: "assets/badges/pja-" + z.key + ".webp", emoji: "\u{1F47D}", check: st => pjAl(st, z.key) })),
+  { id: "pja-all", group: "planet", name: "Alien Hunter", desc: "Photograph all " + PJ_ALIENS.length + " Planet JP aliens", goal: PJ_ALIENS.length, img: "assets/badges/pja-all.webp", emoji: "\u{1F6F8}", check: pjAllAl },
+  // 🚀 visiting Planet JP (Nov 7)
+  { id: "pj-visit-1", group: "planet", name: "First Landing", desc: "Land on Planet JP for the first time", goal: 1, img: "assets/badges/pj-visit-1.webp", emoji: "\u{1F680}", check: st => Math.min(1, Number(((st && st.planet) || {}).n) || 0) },
+  { id: "pj-visit-week", group: "planet", name: "Space Week", desc: "Land on Planet JP on all 5 days of one week", goal: 1, img: "assets/badges/pj-visit-week.webp", emoji: "\u{1F6F0}\uFE0F", check: st => (((st && st.planet) || {}).w5 ? 1 : 0) },
+  { id: "pj-visit-4wk", group: "planet", name: "Star Commander", desc: "Land on Planet JP every school day for 4 weeks in a row", goal: 4, img: "assets/badges/pj-visit-4wk.webp", emoji: "\u{1F396}\uFE0F", check: st => Math.min(4, Math.max(Number(((st && st.planet) || {}).wb) || 0, Number(((st && st.planet) || {}).wr) || 0)) },
+  // ☕ Space Café (Nov 7): a snack is kept after 3 perfect (3-star) cooks
+  // 🛒 Space Shop (Nov 8)
+  { id: "shop-first", group: "cafe", name: "First Purchase", desc: "Buy something in the Planet JP Space Shop or Swap Shop", goal: 1, img: "assets/badges/shop-first.webp", emoji: "\u{1F6CD}\uFE0F", check: st => Math.min(1, shopBuys(st)) },
+  { id: "shop-suited", group: "cafe", name: "Fully Suited", desc: "Own all 4 Starship Cadet outfits", goal: 4, img: "assets/badges/shop-suited.webp", emoji: "\u{1F469}\u200D\u{1F680}", check: outfitsOwned },
+  { id: "shop-cabin", group: "cafe", name: "Starship Captain", desc: "Own all 9 Starship Cabin room pieces", goal: 9, img: "assets/badges/shop-cabin.webp", emoji: "\u{1F6CF}\uFE0F", check: cabinOwned },
+  { id: "hangar-paint", group: "cafe", name: "Master Painter", desc: "Own 10 S.S. Duck paint jobs from the Duck Hangar", goal: 10, img: "assets/badges/hangar-paint.webp", emoji: "\u{1F3A8}", check: st => Math.min(10, paintsOwned(st)) },
+  { id: "shop-swap", group: "cafe", name: "Deal Hunter", desc: "Buy 5 Swap Shop deals", goal: 5, img: "assets/badges/shop-swap.webp", emoji: "\u{1F527}", check: st => Math.min(5, swapBuys(st)) },
+  { id: "snack-first", group: "cafe", name: "First Perfect Snack", desc: "Cook your first 3-star snack in the Cosmic Kitchen", goal: 1, img: "assets/badges/snack-first.webp", emoji: "\u{1F469}\u200D\u{1F373}", check: st => Math.min(1, cfPerfect(st)) },
+  { id: "snack-regulars", group: "cafe", name: "Caf\u00e9 Regular", desc: "Keep all 6 everyday snacks (3 perfect cooks each)", goal: CF_REG.length, img: "assets/badges/snack-regulars.webp", emoji: "\u2615", check: st => cfKept(st, CF_REG) },
+  { id: "snack-month", group: "cafe", name: "Snack of the Month", desc: "Keep both special snacks of the same month", goal: 1, img: "assets/badges/snack-month.webp", emoji: "\u{1F5D3}\uFE0F", check: st => Math.min(1, cfPairs(st)) },
+  { id: "snack-season-12", group: "cafe", name: "Seasonal Taster", desc: "Keep 12 special snacks", goal: 12, img: "assets/badges/snack-season-12.webp", emoji: "\u{1F342}", check: st => cfKept(st, CF_SP) },
+  { id: "snack-season-24", group: "cafe", name: "Snack Legend", desc: "Keep all 24 special snacks", goal: CF_SP.length, img: "assets/badges/snack-season-24.webp", emoji: "\u{1F3C6}", check: st => cfKept(st, CF_SP) },
+  { id: "zoo-first", group: "zoo", name: "First Visit", desc: "Finish a tour of the Space Zoo", goal: 1, img: "assets/badges/zoo-first.webp", emoji: "\u{1F992}", check: st => Math.min(1, Number(zooOf(st).v) || 0) },
+  { id: "zoo-all5", group: "zoo", name: "Meet the Animals", desc: "Say hi to all 5 animals in one zoo tour", goal: 1, img: "assets/badges/zoo-all5.webp", emoji: "\u{1F43E}", check: st => zooOf(st).all5 ? 1 : 0 },
+  { id: "zoo-regular", group: "zoo", name: "Zoo Regular", desc: "Fill 3 Zoo Stamp Cards", goal: 3, img: "assets/badges/zoo-regular.webp", emoji: "\u{1F3AB}", check: st => Math.min(3, Number(zooOf(st).cards) || 0) },
+  // 🐾 Nebbles (Nov 9)
+  { id: "neb-first", group: "neb", name: "First Nebble", desc: "Adopt your first Nebble", goal: 1, img: "assets/badges/neb-first.webp", emoji: "\u{1F43E}", check: st => Math.min(1, nebN(st)) },
+  { id: "neb-5", group: "neb", name: "Nebble Pals", desc: "Own 5 Nebbles", goal: 5, img: "assets/badges/neb-5.webp", emoji: "\u{1F43E}", check: st => Math.min(5, nebN(st)) },
+  { id: "neb-25", group: "neb", name: "Nebble Collector", desc: "Own 25 Nebbles", goal: 25, img: "assets/badges/neb-25.webp", emoji: "\u{1F3C6}", check: st => Math.min(25, nebN(st)) },
+  { id: "neb-50", group: "neb", name: "Nebble Master", desc: "Own all 50 Nebbles", goal: 50, img: "assets/badges/neb-50.webp", emoji: "\u{1F451}", check: st => Math.min(50, nebN(st)) },
+  { id: "neb-care", group: "neb", name: "Pet Pro", desc: "Care for your Nebble 5 school days in a row", goal: 1, img: "assets/badges/neb-care.webp", emoji: "\u{1F6C1}", check: st => Math.min(1, Number((nebOf(st).care || {}).cards) || 0) },
+  { id: "neb-season", group: "neb", name: "Seasonal Friend", desc: "Adopt a seasonal Nebble", goal: 1, img: "assets/badges/neb-season.webp", emoji: "\u{1F383}", check: st => Object.keys(nebOf(st).o || {}).some(k => NEB_SEASON.includes(k)) ? 1 : 0 },
+  // 🌙 Moon Base (Nov 12): planet.mb.own (hut is free; "all 10" = the hut + the 9 other buildings, the palace is its own badge)
+  { id: "mb-first", group: "moon", name: "First Building", desc: "Build your first building on your Moon Base", goal: 1, img: "assets/badges/mb-first.webp", emoji: "\u{1F3E0}", check: st => Math.min(1, mbB(st)) },
+  { id: "mb-half", group: "moon", name: "Moon Town", desc: "Build 5 buildings on your Moon Base", goal: 5, img: "assets/badges/mb-half.webp", emoji: "\u{1F3D8}\uFE0F", check: st => Math.min(5, mbB(st)) },
+  { id: "mb-mayor", group: "moon", name: "Moon Mayor", desc: "Build all 10 Moon Base buildings", goal: 9, img: "assets/badges/mb-mayor.webp", emoji: "\u{1F396}\uFE0F", check: st => Math.min(9, mbB(st)) },
+  { id: "mb-palace", group: "moon", name: "Moon Royalty", desc: "Build the Moon Palace", goal: 1, img: "assets/badges/mb-palace.webp", emoji: "\u{1F451}", check: st => (((st && st.planet) || {}).mb || {}).own && st.planet.mb.own.palace ? 1 : 0 },
+  // 🛰️ Space Station (Nov 11): this semester's planet.stn; Station Complete = got all 5 stage rewards (ever: stnDone stays true)
+  { id: "stn-crew", group: "station", name: "Station Crew", desc: "Give 250 Stardust to the class Space Station in one semester", goal: 250, img: "assets/badges/stn-crew.webp", emoji: "\u{1F9D1}\u200D\u{1F680}", check: st => Math.min(250, stnG(st)) },
+  { id: "stn-engineer", group: "station", name: "Station Engineer", desc: "Give 500 Stardust to the class Space Station in one semester", goal: 500, img: "assets/badges/stn-engineer.webp", emoji: "\u{1F527}", check: st => Math.min(500, stnG(st)) },
+  { id: "stn-captain", group: "station", name: "Station Captain", desc: "Give 1,000 Stardust to the class Space Station in one semester", goal: 1000, img: "assets/badges/stn-captain.webp", emoji: "\u{1F468}\u200D\u2708\uFE0F", check: st => Math.min(1000, stnG(st)) },
+  { id: "stn-complete", group: "station", name: "Station Complete", desc: "Help finish the class Space Station and claim Astro", goal: 1, img: "assets/badges/stn-complete.webp", emoji: "\u{1F6F0}\uFE0F", check: st => (((st && st.planet) || {}).pets || {}).o && st.planet.pets.o.astro ? 1 : 0 },
+  // 🌊 Axolotl Kingdom (Nov 11): kd.g = { week: 1 } treasures, kd.sb = Pearl Shop buys
+  { id: "kd-first", group: "kingdom", name: "Welcome to the Kingdom", desc: "Get your first Treasure of the Week from Queen Bubbles", goal: 1, img: "assets/badges/badge-kingdom-first.webp", emoji: "\u{1F3F0}", check: st => Math.min(1, kdG(st)) },
+  { id: "kd-13", group: "kingdom", name: "Treasure Season", desc: "Collect 13 Treasures of the Week", goal: 13, img: "assets/badges/badge-kingdom-13.webp", emoji: "\u{1F9F0}", check: st => Math.min(13, kdG(st)) },
+  { id: "kd-26", group: "kingdom", name: "Half a Year of Treasure", desc: "Collect 26 Treasures of the Week", goal: 26, img: "assets/badges/badge-kingdom-26.webp", emoji: "\u{1F41A}", check: st => Math.min(26, kdG(st)) },
+  { id: "kd-52", group: "kingdom", name: "Royal Collector", desc: "Collect 52 Treasures of the Week", goal: 52, img: "assets/badges/badge-kingdom-52.webp", emoji: "\u{1F451}", check: st => Math.min(52, kdG(st)) },
+  // 🌙 Royal Hatchery (Knight rank, Nov 16): colors of baby axolotls hatched, and releasing one to the wild
+  { id: "kd-axo5", group: "kingdom", name: "Hatchery Helper", desc: "Hatch 5 axolotl colors in the Royal Hatchery", goal: 5, img: "assets/badges/badge-hatch-helper.webp", emoji: "\u{1F95A}", check: st => Math.min(5, axoColors(st)) },
+  { id: "kd-axo10", group: "kingdom", name: "Axolotl Keeper", desc: "Hatch 10 axolotl colors in the Royal Hatchery", goal: 10, img: "assets/badges/badge-hatch-keeper.webp", emoji: "\u{1F98E}", check: st => Math.min(10, axoColors(st)) },
+  { id: "kd-axo20", group: "kingdom", name: "Axolotl Royalty", desc: "Hatch all 20 axolotl colors", goal: 20, img: "assets/badges/badge-hatch-royalty.webp", emoji: "\u{1F451}", check: st => Math.min(20, axoColors(st)) },
+  { id: "kd-wild", group: "kingdom", name: "Wild Axolotl Hero", desc: "Release an axolotl to the wild", goal: 1, img: "assets/badges/badge-hatch-wild.webp", emoji: "\u{1F33F}", check: st => Math.min(1, Number((((st && st.kd) || {}).hx || {}).rel) || 0) },
+  // 🌋 Undersea Arena (Duke, Nov 17): one badge per sea boss beaten (kd.arb)
+  { id: "kd-boss-kraken", group: "kingdom", name: "Kraken Tamer", desc: "Beat the Kraken in the Undersea Arena", goal: 1, img: "assets/badges/badge-boss-kraken.webp", emoji: "\u{1F419}", check: st => ((((st && st.kd) || {}).arb || {})["kraken"] ? 1 : 0) },
+  { id: "kd-boss-shark-king", group: "kingdom", name: "Shark King Champion", desc: "Beat the Shark King in the Undersea Arena", goal: 1, img: "assets/badges/badge-boss-shark-king.webp", emoji: "\u{1F988}", check: st => ((((st && st.kd) || {}).arb || {})["shark-king"] ? 1 : 0) },
+  { id: "kd-boss-ghost-crab", group: "kingdom", name: "Ghost Crab Buster", desc: "Beat the Ghost Pirate Crab in the Undersea Arena", goal: 1, img: "assets/badges/badge-boss-ghost-crab.webp", emoji: "\u{1F980}", check: st => ((((st && st.kd) || {}).arb || {})["ghost-crab"] ? 1 : 0) },
+  { id: "kd-boss-anglerfish", group: "kingdom", name: "Anglerfish Hero", desc: "Beat the Giant Anglerfish in the Undersea Arena", goal: 1, img: "assets/badges/badge-boss-anglerfish.webp", emoji: "\u{1F3EE}", check: st => ((((st && st.kd) || {}).arb || {})["anglerfish"] ? 1 : 0) },
+  { id: "kd-shop", group: "kingdom", name: "Pearl Shopper", desc: "Buy something in the Pearl Shop", goal: 1, img: "assets/badges/badge-pearl-shop.webp", emoji: "\u26AA", check: st => Math.min(1, Number(((st && st.kd) || {}).sb) || 0) },
+  { id: "zoo-rare", group: "zoo", name: "Rare Find", desc: "Meet a Super Rare animal in your zoo", goal: 1, img: "assets/badges/zoo-rare.webp", emoji: "\u{1F31F}", check: st => zooOf(st).fr ? 1 : 0 },
+  { id: "zoo-alien", group: "zoo", name: "Alien Exhibit", desc: "Meet a Planet JP alien in your zoo", goal: 1, img: "assets/badges/zoo-alien.webp", emoji: "\u{1F47D}", check: st => zooOf(st).fa ? 1 : 0 },
+  { id: "zoo-sparkle", group: "zoo", name: "Sparkle Spotter", desc: "Meet a \u2728 Sparkle animal in your zoo", goal: 1, img: "assets/badges/zoo-sparkle.webp", emoji: "\u2728", check: st => zooOf(st).fs ? 1 : 0 },
+  { id: "snack-master", group: "cafe", name: "Master Chef", desc: "Cook 25 snacks at 3 stars", goal: 25, img: "assets/badges/snack-master.webp", emoji: "\u{1F451}", check: st => Math.min(25, cfPerfect(st)) },
+];
+
+/* Earned badges are locked in forever: once earned, the id is saved in st.badges = { id: ISO date }
+   and never removed, even if the numbers behind it go back down.
+   st.badgesSeen = { id: true } marks the ones the student has already celebrated. */
+const byIdB = {}; BADGES.forEach(b => { byIdB[b.id] = b; });
+export const badgeById = id => byIdB[id] || null;
+export const locked = st => st.badges || {};
+export function badgeState(st, battles, cls) {
+  const lk = locked(st);
+  return BADGES.map(b => {
+    const n = Math.max(0, Number(b.check(st, battles, cls)) || 0), have = !!lk[b.id] || n >= b.goal;
+    return Object.assign({}, b, { n: have ? b.goal : Math.min(n, b.goal), have, at: lk[b.id] || null });
+  });
+}
+export const badgeCount = (st, battles, cls) => badgeState(st, battles, cls).filter(b => b.have).length;
+// badges the numbers say are earned but that aren't saved yet
+export function newlyEarned(st, battles, cls) {
+  const lk = locked(st);
+  return BADGES.filter(b => !lk[b.id] && (Number(b.check(st, battles, cls)) || 0) >= b.goal).map(b => b.id);
+}
+// saved badges the student hasn't seen the celebration for
+export function unseenBadges(st) { const seen = st.badgesSeen || {}; return Object.keys(locked(st)).filter(id => !seen[id] && byIdB[id]); }
+export function badgeArt(b, cls) { return b.img ? '<img class="' + (cls || "") + '" src="' + b.img + '" alt="" onerror="this.outerHTML=\'<span class=bdg-emoji>' + b.emoji + '</span>\'">' : '<span class="bdg-emoji">' + b.emoji + "</span>"; }
+
+export function badgesTab(st, battles, cls) {
+  const list = badgeState(st, battles, cls), got = list.filter(b => b.have).length, pin = st.pinnedBadge, soon = Date.now() - 3 * 864e5;
+  const fresh = new Set(Object.keys(locked(st)).filter(id => Date.parse(locked(st)[id]) > soon));   // NEW ribbon for 3 days
+  let h = '<div class="card"><div class="bdg-head"><h2>\u{1F3C5} My Badges</h2><div class="bdg-count"><b>' + got + "</b> of " + list.length + " earned</div></div>" +
+    '<p class="lede small">\u{1F4CC} Pin one earned badge and it shows in the corner of your companion on The Keep.</p>';
+  BADGE_GROUPS.forEach(g => {
+    const items = list.filter(b => b.group === g.key); if (!items.length) return;
+    h += '<h3 class="bdg-group">' + g.title + '</h3><div class="bdg-grid">';
+    items.forEach(b => {
+      if (b.have) {
+        const on = pin === b.id && !!locked(st)[b.id], canPin = !!locked(st)[b.id];
+        h += '<div class="bdg got' + (on ? " pinned" : "") + '" title="' + esc(b.desc) + '">' + (fresh.has(b.id) ? '<span class="bdg-new">NEW</span>' : "") +
+          '<div class="bdg-art">' + badgeArt(b) + "</div>" +
+          '<div class="bdg-name">' + esc(b.name) + '</div><div class="bdg-desc">' + esc(b.desc) + "</div>" +
+          (canPin ? '<button class="btn small bdg-pin' + (on ? " on" : "") + '" data-pinbadge="' + (on ? "" : b.id) + '">' + (on ? "\u{1F4CC} Pinned \u2014 unpin" : "\u{1F4CC} Pin to companion") + "</button>" : '<div class="bdg-done">Earned!</div>') +
+          "</div>";
+      } else {
+        // not earned yet: an empty space with a hint, so the badge stays a surprise
+        h += '<div class="bdg empty"><div class="bdg-art"><span class="bdg-slot">?</span></div>' +
+          '<div class="bdg-name">???</div><div class="bdg-hint"><b>Hint:</b> ' + esc(b.desc) + "</div>" +
+          '<div class="bdg-bar"><i style="width:' + Math.round(100 * b.n / b.goal) + '%"></i></div><div class="bdg-prog">' + b.n.toLocaleString() + " / " + b.goal.toLocaleString() + "</div></div>";
+      }
+    });
+    h += "</div>";
+  });
+  return h + "</div>";
+}
+
+// Celebration pop-up for badges earned since the student last looked (shows the next time they open their page).
+export function badgeParty(st) {
+  const ids = unseenBadges(st); if (!ids.length) return "";
+  const list = ids.map(badgeById);
+  const one = list.length === 1;
+  return '<div class="bparty" role="dialog" aria-label="New badge"><div class="bparty-box">' +
+    '<div class="bparty-rays" aria-hidden="true"></div>' +
+    "<h2>" + (one ? "\u{1F389} NEW BADGE! \u{1F389}" : "\u{1F389} " + list.length + " NEW BADGES! \u{1F389}") + "</h2>" +
+    (one ? '<div class="bparty-one">' + badgeArt(list[0]) + '<div class="bdg-name">' + esc(list[0].name) + '</div><div class="bdg-desc">' + esc(list[0].desc) + "</div></div>"
+      : '<div class="bparty-grid">' + list.map(b => '<div>' + badgeArt(b) + '<div class="bdg-name">' + esc(b.name) + "</div></div>").join("") + "</div>") +
+    '<div class="row" style="justify-content:center;gap:10px;margin-top:14px;">' +
+    (one ? '<button class="btn" data-bparty="pin:' + list[0].id + '">\u{1F4CC} Pin it</button>' : "") +
+    '<button class="btn primary" data-bparty="ok">' + (one ? "Awesome!" : "See my badges") + "</button></div></div></div>";
+}
