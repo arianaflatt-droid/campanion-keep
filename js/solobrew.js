@@ -205,7 +205,7 @@ const mi = (k, m) => k.key === "gobble" && MPIC[m.n] ? '<img class="fpic" src="'
 // 🍽️ Nov 19: the Feast Kitchen table is Ms. Ariana's big round table: same dishes, new spots
 const FG = '<img class="fguest g1" src="assets/gobble/turducken-sidekick.webp" alt=""><img class="fguest g2" src="assets/ghost-pet.png" alt="">' +
   '<img class="fplate p1" src="assets/feast/plate.webp" alt="" onerror="this.src=\'assets/feast/mashed.webp\';this.onerror=null"><img class="fplate p2" src="assets/feast/plate.webp" alt="" onerror="this.src=\'assets/feast/pie.webp\';this.onerror=null">';
-const ROUND = [[30, 75, 12], [63, 77, 12], [46, 64, 12], [20, 59, 13], [79, 62, 13], [26, 47, 13], [76, 47, 13], [13, 69, 11], [87, 73, 10], [52, 47, 20]];   // [left %, bottom %, width %], scattered
+const ROUND = [[32, 77, 11], [64, 79, 11], [47, 70, 11], [22, 64, 12], [76, 67, 12], [33, 57, 12], [68, 57, 12], [16, 72, 10], [84, 73, 9], [51, 56, 18]];   // [left %, bottom %, width %], scattered
 const roundTable = html => html.replace('class="feasttable"', 'class="feasttable round"').replace('<img class="ft-table" src="assets/feast/table.webp"', FG + '<img class="ft-table" src="assets/feast/table-round.webp"')
   .replace(/class="ft-dish( ghost)? r\d" src="assets\/feast\/(\w+)\.webp"([^>]*?)style="left:[\d.]+%;width:[\d.]+%;"/g, (m, gh, key, mid) => { const i = Math.max(0, DISHES.findIndex(x => x.k === key)), p = ROUND[i];
     return 'class="ft-dish sc' + (gh || "") + '" src="assets/feast/' + key + '.webp"' + mid + 'style="left:' + p[0] + "%;bottom:" + p[1] + "%;width:" + p[2] + "%;z-index:" + (gh ? 120 : 100 - p[1]) + ';"'; })

@@ -7,7 +7,7 @@
    The other solo events (gingerbread, snowmen, chocolate, traps) use the same screen with their own icons. */
 import { esc } from "./game.js?v=20261119b";
 import { azToday } from "./collect.js?v=20261119b";
-import { soloCfg, soloOn, soloDay, soloTotal, soloOf, soloIngs } from "./solobrew.js?v=20261119d";
+import { soloCfg, soloOn, soloDay, soloTotal, soloOf, soloIngs } from "./solobrew.js?v=20261119e";
 import { DISHES, effect } from "./teams.js?v=20261119b";
 
 const MILE = 25;                      // a class milestone every 25 potions / dishes
@@ -65,7 +65,7 @@ export const FGUESTS = '<img class="fguest g1" src="assets/gobble/turducken-side
   '<img class="fplate p1" src="assets/feast/plate.webp" alt="" onerror="this.src=\'assets/feast/mashed.webp\';this.onerror=null"><img class="fplate p2" src="assets/feast/plate.webp" alt="" onerror="this.src=\'assets/feast/pie.webp\';this.onerror=null">';
 // Nov 19: Ms. Ariana's big round table — back row along the far edge, front row along the near edge, the turkey big in the middle
 // Nov 19 (later): scattered all over the round table: [left %, bottom %, width %]; lower = nearer the front
-const SPOTS = [[30, 75, 12], [63, 77, 12], [46, 64, 12], [20, 59, 13], [79, 62, 13], [26, 47, 13], [76, 47, 13], [13, 69, 11], [87, 73, 10], [52, 47, 20]];
+const SPOTS = [[32, 77, 11], [64, 79, 11], [47, 70, 11], [22, 64, 12], [76, 67, 12], [33, 57, 12], [68, 57, 12], [16, 72, 10], [84, 73, 9], [51, 56, 18]];
 const SPOTS_OLD = [[30, 0, 15], [70, 0, 15], [50, 0, 15], [12, 0, 14], [88, 0, 14], [21, 1, 16], [79, 1, 16], [36, 1, 15], [64, 1, 15], [50, 1, 22]];
 let shownDishes = -1;
 function dishes(total, animate) {

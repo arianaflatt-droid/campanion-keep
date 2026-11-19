@@ -12,15 +12,16 @@ import { tbLeft, tbLive } from "./teachbattle.js?v=20261119b";
 import { esc, simulate, companionOf, goalXP, SEASON } from "./game.js?v=20261119b";
 import { azToday, azNow, todayXP, pullsLeft, legendaryLeft, birthdayLeft, pickleLeft, vaultLegLeft, BOSS2_LIST, boss2EggLeft, candyLegLeft, snowLegLeft,
   gingerLegLeft, feastLegLeft, brewLegLeft, goalLeft, themeLeft, hasStarter, bankXP, LEVEL_XP } from "./collect.js?v=20261119b";
-import { mqReady } from "./morning.js?v=20261119d";
+import { mqReady } from "./morning.js?v=20261119e";
 import { DOOR_ART, doorsLive, doorName, goldenReady, weekDoorState, vaultState, vaultGoal, subReq, todayPlan, SUBJECT_KEYS } from "./doors.js?v=20261119b";
-import { soloOn, soloReady, soloCfg } from "./solobrew.js?v=20261119d";
+import { soloOn, soloReady, soloCfg } from "./solobrew.js?v=20261119e";
 import { passReady } from "./pass.js?v=20261119b";
 import { pettedToday } from "./bond.js?v=20261119b";
 import { mealsReady } from "./meals.js?v=20261119b";
 import { readyTests } from "./quest.js?v=20261119b";
 import { unthanked } from "./kindness.js?v=20261119b";
 import { kdTodo } from "./kingdom.js?v=20261119b";
+import { adventOn, adventReady, adventState, ADVENT_DAYS } from "./advent.js?v=20261119e";
 
 const seenKey = (id, what) => "ck-seen-" + azToday() + "-" + id + "-" + what;
 // 📣 the class announcement (Nov 9): a new one gets a new key, so it shows up on the list again
@@ -76,6 +77,10 @@ export function steps(s, cls, students, battles) {
   if (hasStarter(s)) { const n = eggsLeft(s, cls), lv = Math.floor(bankXP(s, cls) / LEVEL_XP);
     add("eggs", "collect", PIC("assets/egg-common.webp"), "Hatch your eggs", n ? "You have " + plural(n, "egg") + " to hatch!" : "No eggs right now." + (lv ? " You can level up a creature " + plural(lv, "time") + "!" : " 120 XP in a day earns one."), !n); }
   else add("eggs", "collect", PIC("assets/egg-common.webp"), "Pick your starter creature", "Go to the Creature Collector to pick one.", false);
+  // 🎄 the December Advent Calendar (Nov 19)
+  if (adventOn()) { const n = adventReady(s, cls), ti = ADVENT_DAYS.indexOf(azToday()), tst = ti >= 0 ? adventState(s, cls, ti) : "";
+    if (n || tst === "today") add("advent", "pet", PIC("assets/advent/door-closed.webp"), n ? "Open your Advent door" + (n > 1 ? "s" : "") + "!" : "Earn today\u2019s Advent door",
+      n ? plural(n, "door") + " ready to open on My Companion!" : "Hit " + goalXP(cls) + " XP and close all 3 rings today to open it.", false); }
   // 6. doors & presents
   if (doorsLive(cls)) { const n = presentsReady(s, cls), wk = false;   // Nov 3: no Weekly Door (its rewards are in the vault)
     add("doors", "doors", PIC(DOOR_ART[SEASON.key] || DOOR_ART.jingle), "Check your " + doorName(), n || wk ? (n ? plural(n, "present") + " to open" : "") + (n && wk ? " and " : "") + (wk ? "your Weekly Door is ready!" : "!") : "Finish a door’s task, then tap “I did it!”", !n && !wk); }
