@@ -5012,3 +5012,58 @@ body.ck .solobrew .feasttable.round .ft-dish{ margin-left:0; }
 @media (prefers-reduced-motion: reduce){ .sstfill::before, .sstfill::after{ animation:none; } }
 .ringmenu{ margin-top:6px; padding:6px 8px; border-radius:10px; background:#FFF6DA; border:1px solid #E6C27A; display:flex; flex-wrap:wrap; gap:4px; align-items:center; font-size:13px; } .rfx.open{ box-shadow:0 0 0 3px #E6A92C; } .rfx:disabled{ cursor:default; }
 .ringmenu .btn.rmok{ border-color:#2E9E5B; color:#1E7A43; font-weight:700; }
+/* 🎁 Nov 19: the Daily Door present pop-up — parchment in a wooden frame; the season's door swings open, light pours out,
+   the season's present (harvest basket / wrapped gift) shakes, then turns into a picture of the prize on a gold ribbon */
+.prizebox.ckpres{ border:22px solid transparent !important; border-image:url(../assets/keep/wood-sign.webp) 80 / 22px / 0 stretch !important; border-radius:0 !important;
+  background:url(../assets/keep/parchment.webp) center / cover !important; background-clip:padding-box !important; color:#3A2410 !important; box-shadow:none !important;
+  filter:drop-shadow(0 16px 30px rgba(0,0,0,.6)); width:min(480px,100%); padding:8px 16px 16px !important; overflow:visible; }
+.prizebox.ckpres.golden{ filter:drop-shadow(0 0 26px rgba(255,214,90,.85)) drop-shadow(0 16px 30px rgba(0,0,0,.6)); }
+.ckptitle{ margin:-4px 0 6px !important; } .ckptitle span{ display:inline-block; border-style:solid; border-color:transparent; border-width:0 40px;
+  border-image:url(../assets/keep/title-ribbon.webp) 0 140 fill / 0 40px / 0 stretch; padding:6px 6px 14px; color:#FFF3D0; font-family:Lora, Georgia, serif; font-size:clamp(18px,4vw,24px); text-shadow:0 2px 2px #5A0810; }
+.ckpdoor{ position:relative; width:min(230px,58vw); aspect-ratio:1; margin:4px auto 8px; perspective:700px; }
+.ckpdoor .ckpleaf{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; z-index:3; transform-origin:12% 50%; filter:drop-shadow(0 6px 8px rgba(0,0,0,.4));
+  animation:ckpopen 1.4s .35s cubic-bezier(.6,0,.3,1) forwards; }
+.ckpdoor.isopen .ckpleaf{ animation:none; transform:rotateY(-104deg); opacity:.0; }
+@keyframes ckpopen{ 0%{ transform:rotateY(0); } 15%{ transform:rotateY(6deg); } 70%{ opacity:1; } 100%{ transform:rotateY(-104deg); opacity:0; } }
+.ckpglow{ position:absolute; left:22%; right:22%; top:16%; bottom:12%; border-radius:46% 46% 6% 6%; z-index:1;
+  background:radial-gradient(ellipse at 50% 60%, #FFFBE0 0%, #FFE38A 35%, #E6A92C 70%, #8A5A10 100%); box-shadow:0 0 30px 10px rgba(255,214,90,.7);
+  animation:ckpglow 1.6s ease-in-out infinite alternate; }
+@keyframes ckpglow{ to{ box-shadow:0 0 50px 20px rgba(255,214,90,.9); } }
+.ckpgift, .ckpprize{ position:absolute; left:50%; top:56%; width:52%; transform:translate(-50%,-50%); z-index:2; filter:drop-shadow(0 6px 8px rgba(0,0,0,.4)); }
+.ckpgift{ animation:ckpshake .45s 1.2s ease-in-out infinite; } .ckpgift.emo, .ckpprize.emo{ width:auto; font-size:clamp(64px,16vw,96px); line-height:1; }
+@keyframes ckpshake{ 0%,100%{ transform:translate(-50%,-50%) rotate(0); } 25%{ transform:translate(-50%,-52%) rotate(-9deg); } 75%{ transform:translate(-50%,-52%) rotate(9deg); } }
+.ckpprize{ width:60%; animation:ckppop .7s cubic-bezier(.2,1.6,.4,1) both; z-index:4; }
+@keyframes ckppop{ 0%{ transform:translate(-50%,-30%) scale(.2) rotate(-20deg); opacity:0; } 100%{ transform:translate(-50%,-50%) scale(1); opacity:1; } }
+.ckpres .prizewon{ margin-top:0; } .ckpres .arena-foot{ color:#6B3F1D !important; } .ckpres .arena-win{ color:#8E1A24 !important; }
+.ckpribbon{ display:inline-block; border-style:solid; border-color:transparent; border-width:0 36px; border-image:url(../assets/keep/title-ribbon.webp) 0 140 fill / 0 36px / 0 stretch;
+  padding:6px 6px 13px; font-family:Lora, Georgia, serif !important; font-size:clamp(17px,4vw,22px) !important; color:#FFF3D0 !important; text-shadow:0 2px 2px #5A0810; filter:drop-shadow(0 3px 3px rgba(60,10,0,.35)); animation:ckppop .6s .15s both; }
+.ckpribbon span{ color:#FFF3D0; }
+.ckpdust img{ height:1.6em; vertical-align:-.45em; }
+.ckpres .attackbtn{ background:linear-gradient(#FFE38A,#E6A92C) !important; color:#3A2410 !important; border:3px solid #8A5A10 !important; box-shadow:0 5px 0 #8A5A10 !important; text-shadow:none !important; }
+@media (prefers-reduced-motion: reduce){ .ckpdoor .ckpleaf, .ckpgift, .ckpglow{ animation:none; } }
+/* the prize line on a GOLD ribbon (notched ends) — used by the door presents and the mini events */
+.ckpribbon, .mgot{ display:inline-block; position:relative; border:0 !important; border-image:none !important; padding:8px 34px 9px !important; color:#4A2A05 !important; text-shadow:0 1px 0 rgba(255,250,220,.8) !important;
+  background:linear-gradient(#FFF0A8, #F6C944 45%, #D99A1E 100%); clip-path:polygon(0 0, 100% 0, calc(100% - 16px) 50%, 100% 100%, 0 100%, 16px 50%);
+  font-family:Lora, Georgia, serif !important; font-weight:800; filter:drop-shadow(0 3px 3px rgba(80,40,0,.4)); }
+.ckpribbon span{ color:#4A2A05; }
+/* 📜 Nov 19: every mini event pop-up is the castle scroll — parchment in a wooden frame, centered and smaller so the event
+   picture still shows around it; the creature big beside its speech bubble; big gold answer buttons; prize on a gold ribbon */
+.mover .mpop{ inset:auto !important; left:50% !important; top:50% !important; transform:translate(-50%,-50%); width:min(680px,88%); max-height:90%; overflow:auto;
+  border:20px solid transparent !important; border-image:url(../assets/keep/wood-sign.webp) 80 / 20px / 0 stretch !important; border-radius:0 !important;
+  background:url(../assets/keep/parchment.webp) center / cover !important; background-clip:padding-box !important; color:#3A2410 !important;
+  filter:drop-shadow(0 14px 24px rgba(0,0,0,.55)); padding:12px 18px !important; gap:8px !important; animation:mpopin .45s cubic-bezier(.2,1.4,.4,1) both; }
+@keyframes mpopin{ from{ transform:translate(-50%,-50%) scale(.6); opacity:0; } }
+.mover .mpop h2{ color:#8E1A24 !important; font-family:Lora, Georgia, serif; }
+.mover .mpop .mvisit{ gap:16px; } .mover .mpop .mvisit img{ width:min(30vh,220px); }
+.mover .mpop .mbubble{ font-size:clamp(15px,1.7vw,19px); max-width:380px; border:3px solid #B07A1A; box-shadow:0 4px 8px rgba(0,0,0,.2); }
+.mover .mpop .mbubble small{ color:#8E1A24; }
+.mover .mpop p, .mover .mpop .mfound{ color:#3A2410 !important; font-size:clamp(16px,1.9vw,21px) !important; font-weight:800; }
+.mover .mpop .btn{ font-size:clamp(15px,1.7vw,19px) !important; padding:10px 18px !important; border-radius:14px !important;
+  background:linear-gradient(#FFE38A,#E6A92C) !important; color:#3A2410 !important; border:3px solid #8A5A10 !important; box-shadow:0 4px 0 #8A5A10 !important; text-shadow:none !important; font-weight:800; }
+.mover .mpop .btn:hover:not(:disabled){ filter:brightness(1.06); transform:translateY(-1px); }
+.mover .mpop .mgot{ font-size:clamp(20px,2.6vw,28px) !important; }
+.mover .mpop .mgot .mcoin{ height:1.3em; vertical-align:-.3em; }
+.mfoundimg{ width:min(26vh,170px); filter:drop-shadow(0 6px 8px rgba(0,0,0,.35)); animation:ckppop .6s cubic-bezier(.2,1.6,.4,1) both; }
+.mover .mpop .mgift{ background:#FFF8E6; border:3px solid #B07A1A; color:#3A2410; }
+.mover .mpop .mreact{ color:#8E1A24 !important; text-shadow:none !important; font-family:Lora, Georgia, serif; }
+#pjkeep .pjk{ z-index:9800; }   /* Nov 19: the launch rocket flies over the class event screens (the Class Feast is 9600) */

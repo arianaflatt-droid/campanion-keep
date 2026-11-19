@@ -338,6 +338,28 @@ function popFollow() {
   if (P.page === "check") { tab = "check"; setTimeout(() => scrollTo({ top: 0, behavior: "smooth" }), 80); }
   else if (P.page === "vault") { tab = doorsLive(cls) ? "doors" : "pet"; setTimeout(() => { const v = document.querySelector(".vaultcard"); if (v) v.scrollIntoView({ behavior: "smooth", block: "center" }); }, 250); }
 }
+let celebHtml = "", presHtml = "";
+function presSync(html) {
+  let L = document.getElementById("presroot");
+  if (!L) { L = document.createElement("div"); L.id = "presroot"; document.body.appendChild(L); }
+  if (html === presHtml) return; presHtml = html; L.innerHTML = html;
+}
+// 🖼️ Nov 19: a picture of what the present holds (emoji if there's no picture for it)
+const coinPic = S => S.key === "gobble" ? "assets/feast/ing-corn.webp" : S.key === "jingle" ? "assets/xmas/ic-present.webp" : "";
+function prizePic(r, S) {
+  const id = r && r.id, ev = "assets/egg-" + S.key + ".webp";
+  const src = /^xp/.test(id || "") ? "assets/planet/star-coin.webp" : id === "dust25" ? "assets/planet/stardust.webp" : id === "cur20" || id === "g1" ? coinPic(S)
+    : id === "egg" || id === "g3" ? "assets/egg-common.webp" : id === "tegg" ? ev : id === "g4" ? (r.leg ? "assets/egg-legendary.webp" : "assets/egg-rare.webp")
+    : (id === "ing" || id === "g2i" || id === "g3i") && S.key === "gobble" && r.ing ? ({ Corn: "assets/feast/ing-corn.webp", Potatoes: "assets/feast/ing-potato.webp", Bread: "assets/feast/ing-bread.webp", "Pie Spice": "assets/feast/ing-spice.webp" })[r.ing.name] || "" : "";
+  return src;
+}
+// the season's present: a harvest basket in Gobble-Palooza, a wrapped present in Jingle Jam
+const giftPic = S => S.key === "gobble" ? "assets/gobble/cornucopia.webp" : S.key === "jingle" ? "assets/xmas/ic-present.webp" : "";
+function celebSync(html) {
+  let L = document.getElementById("celebroot");
+  if (!L) { L = document.createElement("div"); L.id = "celebroot"; document.body.appendChild(L); }
+  if (html === celebHtml) return; celebHtml = html; L.innerHTML = html;
+}
 function render(force) {
   kdPopHtml = "";
   try { popFollow(); } catch (e) {}
@@ -403,7 +425,11 @@ function render(force) {
   const fields = liveNow ? saveFields(app) : {};
   miniSync(cls); fallSync(); emberSync(); kdArt();
   h = teacherize(h);   // Step C: this class's teacher name instead of "Ms. Ariana"
-  app.innerHTML = h + kdPopHtml + (cur && cur.companionId && cls ? miniOverlay(cur, cls) : "") + partyOverlay(cur && cur.companionId ? cur : null, cls) + (cur && cur.companionId && cls ? kitchenOverlay(cur) : "") + (cur && cur.companionId && cls && !PREVIEW && !bday && !cape && !party && !hof ? surpriseOverlay(cur, cls) : "") + passOverlay() + presentOverlay() + bulkOverlay() + (cur && cur.companionId && !PREVIEW ? secretOverlay(cur) : "") + (cur && cur.companionId && cls && !PREVIEW && !bday && !cape && !party && !hof && !(cur.secretWin && cur.secretSeen !== cur.secretWin.date) ? freeOverlay(cur, cls) : "") + vaultOverlay() + prizeOverlay() + (cur && cur.companionId && cls ? collectorOverlays(collectorCtx(cur)) + questOverlay(cur) + morningOverlay(cur, cls) : "") + party + cape + bday + hof;
+  app.innerHTML = h + kdPopHtml + (cur && cur.companionId && cls ? miniOverlay(cur, cls) : "") + partyOverlay(cur && cur.companionId ? cur : null, cls) + (cur && cur.companionId && cls ? kitchenOverlay(cur) : "") + (cur && cur.companionId && cls && !PREVIEW && !bday && !cape && !party && !hof ? surpriseOverlay(cur, cls) : "") + passOverlay() + bulkOverlay() + (cur && cur.companionId && !PREVIEW ? secretOverlay(cur) : "") + (cur && cur.companionId && cls && !PREVIEW && !bday && !cape && !party && !hof && !(cur.secretWin && cur.secretSeen !== cur.secretWin.date) ? freeOverlay(cur, cls) : "") + vaultOverlay() + prizeOverlay() + (cur && cur.companionId && cls ? collectorOverlays(collectorCtx(cur)) + questOverlay(cur) + morningOverlay(cur, cls) : "");
+  // 🎉 Nov 19: the badge / cape / birthday / Hall of Fame pop-ups live on their own layer and only change when what they show
+  // changes. (Before, every page redraw rebuilt them, so they flickered and popped in a second time.)
+  celebSync(party + cape + bday + hof);
+  presSync(presentOverlay());   // 🎁 the present pop-up has its own layer too, so its door animation isn't restarted by redraws
   restoreFields(fields);
   if (!document.body.dataset.tubet) { document.body.dataset.tubet = "1"; setTimeout(() => document.body.classList.add("tubeready"), 2500); }   // 🧪 bars fill once
   try { if (cur && cls) adventSync({ st: cur, cls, preview: PREVIEW, patch: d => patch(d, true), render: () => render(true) }); } catch (e) {}
@@ -975,14 +1001,19 @@ function doorsCard(s) {
 }
 function presentOverlay() {
   if (!present) return "";
-  const t = rewardText(present.r, SEASON);
-  return '<div class="prizeover" role="dialog" aria-label="Present"><div class="prizebox presentbox' + (present.golden ? " golden" : present.goal ? " golden goalp" : "") + '">' +
-    "<h2>" + (present.week ? "\u{1F6AA} WEEKLY DOOR \u2728" : present.golden ? "\u2728 GOLDEN PRESENT \u2728" : present.goal ? "\u{1F3AF} GOAL PRESENT! \u{1F3AF}" : "\u{1F381} A PRESENT! \u{1F381}") + "</h2>" +
-    (present.phase === "shake"
-      ? '<div class="giftbox shake">\u{1F381}</div><p class="arena-foot" style="font-size:14px;">Unwrapping\u2026</p>'
-      : '<div class="prizewon"><span style="font-size:72px;line-height:1;">' + t.icon + "</span><b>" + esc(t.big) + '</b><span class="arena-foot">' + esc(t.sub) + "</span>" +
+  const S = SEASON, t = rewardText(present.r, S), pic = prizePic(present.r, S), door = DOOR_ART[S.key] || DOOR_ART.jingle, gp = giftPic(S), open = present.phase !== "shake";
+  const title = present.week ? "\u{1F6AA} WEEKLY DOOR \u2728" : present.golden ? "\u2728 GOLDEN PRESENT \u2728" : present.goal ? "\u{1F3AF} GOAL PRESENT! \u{1F3AF}" : "\u{1F381} A PRESENT! \u{1F381}";
+  return '<div class="prizeover" role="dialog" aria-label="Present"><div class="prizebox presentbox ckpres' + (present.golden ? " golden" : present.goal ? " golden goalp" : "") + '">' +
+    '<h2 class="ckptitle"><span>' + title + "</span></h2>" +
+    // 🚪 the season's door swings open, light pours out, and the present inside unwraps into what they won
+    '<div class="ckpdoor' + (open ? " isopen" : "") + '"><div class="ckpglow"></div>' +
+      (open ? (pic ? '<img class="ckpprize" src="' + pic + '" alt="">' : '<span class="ckpprize emo">' + t.icon + "</span>")
+        : (gp ? '<img class="ckpgift" src="' + gp + '" alt="">' : '<span class="ckpgift emo">\u{1F381}</span>')) +
+      '<img class="ckpleaf" src="' + door + '" alt=""></div>' +
+    (!open ? '<p class="arena-foot" style="font-size:14px;">Opening the door\u2026</p>'
+      : '<div class="prizewon"><b class="ckpribbon"><span>' + esc(t.big) + '</span></b><span class="arena-foot">' + esc(t.sub) + "</span>" +
         (present.week ? '<p class="arena-win" style="margin:8px 0 0;">\u2728 Golden Present \u2728 + \u{1F31F} a <b>Legendary egg</b> in your Creature Collector!</p>' : "") +
-        (present.dust ? '<p class="arena-win" style="margin:6px 0 0;">\u2B50 + <b>' + present.dust + " Stardust</b> for Planet JP!</p>" : "") +
+        (present.dust ? '<p class="arena-win ckpdust" style="margin:6px 0 0;"><img src="assets/planet/stardust.webp" alt=""> + <b>' + present.dust + " Stardust</b> for Planet JP!</p>" : "") +
         (present.week && tbLeft(students.find(x => x.id === me) || {}, cls, battles).length ? '<p class="arena-win tbwon" style="margin:8px 0 0;">\u{1F34E} You also earned a <b>battle with Ms. Ariana</b>! ' +
           ((students.find(x => x.id === me) || {}).tbAsk ? "You already asked for it ✅" : '<button class="btn small" data-act="tbAsk">Ask for a battle!</button>') + "</p>" : "") +
         (present.prize != null ? '<button class="attackbtn" data-act="presentSpin">\u{1F3C6} Spin the Prize Wheel!</button>' : '<button class="attackbtn" data-act="closePresent">Yay! \u{1F389}</button>') + "</div>") +

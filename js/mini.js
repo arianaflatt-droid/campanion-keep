@@ -195,13 +195,15 @@ export const miniBusy = () => !!G;
 const EV_PIC = { xmas: { tix: "assets/xmas/ic-ticket.webp" } };
 const picOr = (src, emo, cls) => src ? '<img class="' + (cls || "mpic") + '" src="' + src + '" alt="" onerror="this.replaceWith(document.createTextNode(\'' + emo + '\'))">' : emo;
 const icImg = (emo, E) => emo;
-const COIN_PIC = { presents: "assets/xmas/ic-present.webp" };   // Jingle Jam's presents (other seasons keep their emoji for now)
+const COIN_PIC = { presents: "assets/xmas/ic-present.webp", corn: "assets/feast/ing-corn.webp" };   // Jingle Jam's presents (other seasons keep their emoji for now)
 const coinOf = E => picOr(COIN_PIC[E.cur], E.coin, "mcoin");
 const top = (E, st, cls, back) => '<div class="qbtop"><b><span class="mqname">' + E.icon + " " + E.name + '</span><span class="mqchip">' + (E.tixImg ? '<img class="lantic" src="' + E.tixImg + '" alt="' + E.tixs + '"> ' : E.reading ? '<img class="lantic" src="assets/lib/lib-lantern.webp" alt="lanterns"> ' : picOr((EV_PIC[E.key] || {}).tix, "\u{1F39F}️", "lantic") + " ") + ticketsLeft(st, cls) + '</span><span class="mqchip">' + candyLeft(st).toLocaleString() + " " + coinOf(E) + "</span></b><span>" +
   (back ? '<button class="btn ghost small" data-mini="' + back + '">⬅️ Back</button> ' : "") + (hasShop(E) ? '<button class="btn ghost small" data-mini="shop">\u{1F6CD}️ Shop</button> ' : "") + '<button class="btn ghost small" data-mini="close">✕</button></span></div>';
 let noTix = "";
 const noTixFor = E => '<p class="mnotix">No ' + tixWord(E, 2) + " left! Read " + PER_TICKET + " more" + (E.reading ? " <b>Reading</b>" : "") + " XP for another one.</p>";
 const visHTML = (v, line) => '<div class="mvisit r-' + v.rarity.replace(" ", "") + '"><img src="' + esc(v.img) + '" alt=""><div class="mbubble"><b>' + esc(v.name) + "</b> <small>" + esc(v.rarity) + "</small><br>" + esc(line) + "</div></div>";
+// 🖼️ Nov 19: a picture of what was found (assets/mini/found-<event>.webp; nothing shows until it's uploaded)
+const foundPic = E => '<img class="mfoundimg" src="assets/mini/found-' + E.key + '.webp" alt="" onerror="this.remove()">';
 const gotHTML = (E, n, egg) => '<div class="mgot">+' + n + " " + coinOf(E) + (egg ? " · \u{1F95A} an egg!" : "") + "</div>";
 
 export function miniOverlay(st, cls) {
@@ -233,16 +235,16 @@ export function miniOverlay(st, cls) {
     } else if (G.view === "maze") {
       const step = Number(m.maze) || 0;
       h += top(E, st, cls, "hub") + '<div class="mstage" ' + bgs + '>' + (G.res ? '<div class="mpop">' + (G.res.center ? '<h2>\u{1F31F} You reached the center of the maze!</h2>' : "") +
-          (G.res.v ? visHTML(G.res.v, G.res.line) : '<p class="mfound">' + esc(G.res.line) + "</p>") + gotHTML(E, G.res.n, G.res.egg) + '<button class="btn big" data-mini="ok">Keep going!</button></div>'
+          (G.res.v ? visHTML(G.res.v, G.res.line) : foundPic(E) + '<p class="mfound">' + esc(G.res.line) + "</p>") + gotHTML(E, G.res.n, G.res.egg) + '<button class="btn big" data-mini="ok">Keep going!</button></div>'
         : '<div class="mmaze"><div class="mstep">Turn ' + (step + 1) + " of 10</div><div class=\"mbar\"><span style=\"width:" + step * 10 + '%"></span></div>' +
           (t ? '<button class="btn big" data-mini="turn">⬅️ Left</button><button class="btn big" data-mini="turn">Right ➡️</button>' : noTix) + "</div>") + "</div>";
     } else if (G.view === "patch") {
       h += top(E, st, cls, "hub") + '<div class="mstage" ' + bgs + '>' + (G.res ? '<div class="mpop">' + (G.res.gold ? '<img class="mbigimg" src="assets/fest/fest-pumpkin-gold.webp" alt=""><h2>A giant golden pumpkin!</h2>' : "") +
-          (G.res.v ? visHTML(G.res.v, G.res.line) : !G.res.gold ? '<p class="mfound">' + esc(G.res.line) + "</p>" : "") + gotHTML(E, G.res.n) + '<button class="btn big" data-mini="ok">Pick another!</button></div>'
+          (G.res.v ? visHTML(G.res.v, G.res.line) : !G.res.gold ? foundPic(E) + '<p class="mfound">' + esc(G.res.line) + "</p>" : "") + gotHTML(E, G.res.n) + '<button class="btn big" data-mini="ok">Pick another!</button></div>'
         : '<div class="mpatch">' + Array.from({ length: 9 }, (_, i) => '<button class="mpump" data-mini="pick"' + (t ? "" : " disabled") + ' style="--d:' + (i * 0.13) + 's"><img src="assets/fest/fest-pumpkin.webp" alt="Pumpkin"></button>').join("") + "</div>" + (t ? '<div class="mhint">Tap a pumpkin!</div>' : '<div class="mhint">' + noTix + "</div>")) + "</div>";
     } else {
       h += top(E, st, cls, "hub") + '<div class="mstage" ' + bgs + '>' + (G.res ? '<div class="mpop sky">' + (G.res.kind === "balloon" ? '<img class="mbigimg float" src="assets/fest/fest-balloon.webp" alt="">' : G.res.kind === "leaves" ? '<div class="mleaves">\u{1F341}\u{1F342}\u{1F343}\u{1F341}\u{1F342}</div>' : "") +
-          (G.res.v ? visHTML(G.res.v, G.res.line) : '<p class="mfound">' + esc(G.res.line) + "</p>") + gotHTML(E, G.res.n) + '<button class="btn big" data-mini="ok">Ride again!</button></div>'
+          (G.res.v ? visHTML(G.res.v, G.res.line) : foundPic(E) + '<p class="mfound">' + esc(G.res.line) + "</p>") + gotHTML(E, G.res.n) + '<button class="btn big" data-mini="ok">Ride again!</button></div>'
         : '<div class="mhint">' + (t ? '<button class="btn big gold" data-mini="ride">\u{1F3A1} Ride to the top!</button>' : noTix) + "</div>") + "</div>";
     }
     return h + "</div>";
@@ -252,7 +254,7 @@ export function miniOverlay(st, cls) {
     h += top(E, st, cls) + '<div class="mstage leafstage" ' + bgs + '>';
     if (G.res) {
       const r = G.res;
-      h += '<div class="mpop leafpop">' + (r.gold ? '<img class="mbigimg pop leafgold" src="assets/leaf/leaf-golden.webp" alt=""><h2>A golden leaf!</h2>' : "") + (r.v ? visHTML(r.v, r.line) : '<p class="mfound">' + esc(r.line) + "</p>") +
+      h += '<div class="mpop leafpop">' + (r.gold ? '<img class="mbigimg pop leafgold" src="assets/leaf/leaf-golden.webp" alt=""><h2>A golden leaf!</h2>' : "") + (r.v ? visHTML(r.v, r.line) : foundPic(E) + '<p class="mfound">' + esc(r.line) + "</p>") +
         (r.q && r.ans == null ? '<p class="libq">\u{1F914} ' + esc(r.q.q) + '</p><div class="libans">' + r.q.opts.map((o, i) => '<button class="btn" data-mini="answer" data-i="' + i + '">' + esc(o) + "</button>").join("") + "</div>"
           : (r.q ? '<p class="libq ' + (r.right ? "ok" : "no") + '">' + (r.right ? "\u{1F389} You got it! Double " + E.cur + "!" : "\u{1F605} Nice try! The answer was <b>" + esc(r.q.opts[r.q.a]) + "</b>.") + "</p>" : "") +
             gotHTML(E, r.n, r.egg) + (r.stampEgg ? "<p>\u{1F342} Your leaf collection is full: a bonus egg! A new one starts.</p>" : "") + '<button class="btn big" data-mini="ok">Jump in another pile</button>') + "</div>";
@@ -270,7 +272,7 @@ export function miniOverlay(st, cls) {
     h += top(E, st, cls) + '<div class="mstage ornstage" ' + bgs + '>';
     if (G.res) {
       const r = G.res;
-      h += '<div class="mpop ornpop">' + (r.gold ? '<img class="mbigimg pop orngold" src="assets/orn/orn-golden.webp" alt=""><h2>A golden ornament!</h2>' : "") + (r.v ? visHTML(r.v, r.line) : '<p class="mfound">' + esc(r.line) + "</p>") +
+      h += '<div class="mpop ornpop">' + (r.gold ? '<img class="mbigimg pop orngold" src="assets/orn/orn-golden.webp" alt=""><h2>A golden ornament!</h2>' : "") + (r.v ? visHTML(r.v, r.line) : foundPic(E) + '<p class="mfound">' + esc(r.line) + "</p>") +
         (r.q && r.ans == null ? '<p class="libq">\u{1F914} ' + esc(r.q.q) + '</p><div class="libans">' + r.q.opts.map((o, i) => '<button class="btn" data-mini="answer" data-i="' + i + '">' + esc(o) + "</button>").join("") + "</div>"
           : (r.q ? '<p class="libq ' + (r.right ? "ok" : "no") + '">' + (r.right ? "\u{1F389} You got it! Double " + E.cur + "!" : "\u{1F605} Nice try! The answer was <b>" + esc(r.q.opts[r.q.a]) + "</b>.") + "</p>" : "") +
             gotHTML(E, r.n, r.egg) + (r.stampEgg ? "<p>\u{1F384} Your Ornament Box is full: a bonus egg! A new box starts.</p>" : "") + '<button class="btn big" data-mini="ok">Hunt for another</button>') + "</div>";
@@ -289,7 +291,7 @@ export function miniOverlay(st, cls) {
     h += top(E, st, cls) + '<div class="mstage aurstage" ' + bgs + '>';
     if (G.res) {
       const r = G.res;
-      h += '<div class="mpop aurpop">' + (r.gold ? '<img class="mbigimg pop aurgold" src="assets/aur/aur-golden.webp" alt=""><h2>The golden lantern!</h2>' : "") + (r.v ? visHTML(r.v, r.line) : '<p class="mfound">' + esc(r.line) + "</p>") +
+      h += '<div class="mpop aurpop">' + (r.gold ? '<img class="mbigimg pop aurgold" src="assets/aur/aur-golden.webp" alt=""><h2>The golden lantern!</h2>' : "") + (r.v ? visHTML(r.v, r.line) : foundPic(E) + '<p class="mfound">' + esc(r.line) + "</p>") +
         (r.q && r.ans == null ? '<p class="libq">\u{1F914} ' + esc(r.q.q) + '</p><div class="libans">' + r.q.opts.map((o, i) => '<button class="btn" data-mini="answer" data-i="' + i + '">' + esc(o) + "</button>").join("") + "</div>"
           : (r.q ? '<p class="libq ' + (r.right ? "ok" : "no") + '">' + (r.right ? "\u{1F389} You got it! Double " + E.cur + "!" : "\u{1F605} Nice try! The answer was <b>" + esc(r.q.opts[r.q.a]) + "</b>.") + "</p>" : "") +
             gotHTML(E, r.n, r.egg) + (r.stampEgg ? "<p>\u2B50 Your Star Jar is full: a bonus egg! A new jar starts.</p>" : "") + '<button class="btn big" data-mini="ok">Peek in another</button>') + "</div>";
@@ -307,7 +309,7 @@ export function miniOverlay(st, cls) {
     h += top(E, st, cls) + '<div class="mstage kitestage" ' + bgs + '>';
     if (G.res) {
       const r = G.res;
-      h += '<div class="mpop kitepop">' + (r.gold ? '<img class="mbigimg pop kitegold" src="assets/kite/kite-golden.webp" alt=""><h2>The golden kite!</h2>' : "") + (r.v ? visHTML(r.v, r.line) : '<p class="mfound">' + esc(r.line) + "</p>") +
+      h += '<div class="mpop kitepop">' + (r.gold ? '<img class="mbigimg pop kitegold" src="assets/kite/kite-golden.webp" alt=""><h2>The golden kite!</h2>' : "") + (r.v ? visHTML(r.v, r.line) : foundPic(E) + '<p class="mfound">' + esc(r.line) + "</p>") +
         (r.q && r.ans == null ? '<p class="libq">\u{1F914} ' + esc(r.q.q) + '</p><div class="libans">' + r.q.opts.map((o, i) => '<button class="btn" data-mini="answer" data-i="' + i + '">' + esc(o) + "</button>").join("") + "</div>"
           : (r.q ? '<p class="libq ' + (r.right ? "ok" : "no") + '">' + (r.right ? "\u{1F389} You got it! Double " + E.cur + "!" : "\u{1F605} Nice try! The answer was <b>" + esc(r.q.opts[r.q.a]) + "</b>.") + "</p>" : "") +
             gotHTML(E, r.n, r.egg) + (r.tailEgg ? "<p>\u{1F380} Your Kite Tail is full of bows: a bonus egg! A new tail starts.</p>" : "") + '<button class="btn big" data-mini="ok">Fly another kite</button>') + "</div>";
@@ -326,7 +328,7 @@ export function miniOverlay(st, cls) {
     h += top(E, st, cls) + '<div class="mstage valstage" ' + bgs + '>';
     if (G.res) {
       const r = G.res;
-      h += '<div class="mpop valpop">' + (r.gold ? '<img class="mbigimg pop valgold" src="assets/val/val-golden.webp" alt=""><h2>The golden envelope!</h2>' : "") + (r.v ? visHTML(r.v, r.line) : '<p class="mfound">' + esc(r.line) + "</p>") +
+      h += '<div class="mpop valpop">' + (r.gold ? '<img class="mbigimg pop valgold" src="assets/val/val-golden.webp" alt=""><h2>The golden envelope!</h2>' : "") + (r.v ? visHTML(r.v, r.line) : foundPic(E) + '<p class="mfound">' + esc(r.line) + "</p>") +
         (r.q && r.ans == null ? '<p class="libq">\u{1F914} ' + esc(r.q.q) + '</p><div class="libans">' + r.q.opts.map((o, i) => '<button class="btn" data-mini="answer" data-i="' + i + '">' + esc(o) + "</button>").join("") + "</div>"
           : (r.q ? '<p class="libq ' + (r.right ? "ok" : "no") + '">' + (r.right ? "\u{1F389} You got it! Double " + E.cur + "!" : "\u{1F605} Nice try! The answer was <b>" + esc(r.q.opts[r.q.a]) + "</b>.") + "</p>" : "") +
             gotHTML(E, r.n, r.egg) + (r.stampEgg ? "<p>\u{1F48C} Your Stamp Book is full: a bonus egg! A new page starts.</p>" : "") + '<button class="btn big" data-mini="ok">Open another letter</button>') + "</div>";
@@ -344,7 +346,7 @@ export function miniOverlay(st, cls) {
     h += top(E, st, cls) + '<div class="mstage libstage" ' + bgs + '>';
     if (G.res) {
       const r = G.res;
-      h += '<div class="mpop libpop">' + (r.gold ? '<img class="mbigimg pop" src="assets/lib/lib-book-gold.webp" alt=""><h2>A golden book!</h2>' : "") + (r.v ? visHTML(r.v, r.line) : '<p class="mfound">' + esc(r.line) + "</p>") +
+      h += '<div class="mpop libpop">' + (r.gold ? '<img class="mbigimg pop" src="assets/lib/lib-book-gold.webp" alt=""><h2>A golden book!</h2>' : "") + (r.v ? visHTML(r.v, r.line) : foundPic(E) + '<p class="mfound">' + esc(r.line) + "</p>") +
         (r.q && r.ans == null ? '<p class="libq">\u{1F914} ' + esc(r.q.q) + '</p><div class="libans">' + r.q.opts.map((o, i) => '<button class="btn" data-mini="answer" data-i="' + i + '">' + esc(o) + "</button>").join("") + "</div>"
           : (r.q ? '<p class="libq ' + (r.right ? "ok" : "no") + '">' + (r.right ? "\u{1F389} You got it! Double " + E.cur + "!" : "\u{1F605} Nice try! The answer was <b>" + esc(r.q.opts[r.q.a]) + "</b>.") + "</p>" : "") +
             gotHTML(E, r.n, r.egg) + (r.stampEgg ? "<p>\u{1F4DA} Your library card is full: a bonus egg! A new card starts.</p>" : "") + '<button class="btn big" data-mini="ok">Open another book</button>') + "</div>";
@@ -381,7 +383,7 @@ export function miniOverlay(st, cls) {
   } else {
     const d = azToday(), e = (m.elf && m.elf.d === d) ? m.elf : { d, peek: [] };
     h += top(E, st, cls, "hub") + '<div class="mstage" ' + bgs + '>' + (G.res ? '<div class="mpop">' + (G.res.elf ? '<img class="mbigimg pop" src="assets/xmas/xmas-elf.webp" alt="The elf"><h2>You found the elf!</h2>' : "") +
-        (G.res.v ? visHTML(G.res.v, G.res.line) : !G.res.elf ? '<p class="mfound">' + esc(G.res.line) + "</p>" : "") + gotHTML(E, G.res.n, G.res.egg) + '<button class="btn big" data-mini="ok">Keep looking</button></div>'
+        (G.res.v ? visHTML(G.res.v, G.res.line) : !G.res.elf ? foundPic(E) + '<p class="mfound">' + esc(G.res.line) + "</p>" : "") + gotHTML(E, G.res.n, G.res.egg) + '<button class="btn big" data-mini="ok">Keep looking</button></div>'
       : ELF_SPOTS.map(([n, x, y], i) => '<button class="mpeek' + ((e.peek || []).includes(i) ? " done" : "") + '" style="left:' + x + "%;top:" + y + '%" data-mini="peek" data-i="' + i + '"' + (t && !(e.peek || []).includes(i) ? "" : " disabled") + ' aria-label="Peek behind the ' + n + '">✨</button>').join("") +
         '<div class="mhint">' + (e.found ? "✅ You found the elf today! Peek around for more " + E.cur + "." : t ? "Tap a ✨ to peek behind it. Where's the elf hiding?" : noTix) + "</div>") + "</div>";
   }
