@@ -5087,3 +5087,10 @@ body.ck .mypet.vip{ background:linear-gradient(180deg, rgba(244,228,190,0) 46cqw
 body.ck .mypet .bigname{ position:relative; display:inline-block; padding:0 .3em; }
 body.ck .mypet .tspec{ display:inline-block; margin-top:2px; padding:2px 14px; border-radius:99px; background:rgba(142,26,36,.1); border:1px solid rgba(142,26,36,.25); color:#8E1A24 !important; font-weight:700; }
 .hpemo{ position:relative; z-index:3; width:54px; margin-right:-22px; font-size:40px; line-height:54px; text-align:center; filter:drop-shadow(0 3px 3px rgba(0,0,0,.4)); animation:hpbeat 1.4s ease-in-out infinite; }
+/* 👑 Nov 19: the companion's name on Ms. Ariana's gold plaque, and her heart gem on the health bar */
+body.ck .mypet .bigname{ display:flex !important; align-items:center; justify-content:center; width:min(500px,88%); aspect-ratio:1000/303; margin-left:auto; margin-right:auto;
+  padding:7% 12% 2% !important; box-sizing:border-box; background:url(../assets/keep/name-plaque.webp) center / contain no-repeat; filter:drop-shadow(0 6px 8px rgba(70,30,0,.35)); }
+body.ck .mypet .bigname span{ font-family:Lora, Georgia, serif; font-weight:700; font-size:var(--nfs,38px) !important; line-height:1.05; color:#8E1A24 !important; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;
+  text-shadow:0 1px 0 #FFF3B0, 0 2px 2px rgba(120,60,0,.35) !important; }
+body.ck .mypet .bigname{ color:transparent; text-shadow:none !important; }
+.hpheart{ width:58px; height:58px; }

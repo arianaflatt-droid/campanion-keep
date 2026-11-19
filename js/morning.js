@@ -6,7 +6,7 @@
    Every finished quest also pays a bonus (MQ_BONUS). Saved on the student: mq = { date, done: { tier: {...} }, hunt: { tier: [dug squares] } },
    mqCatch (creatures caught here), mqFull (whole boards finished). */
 import { esc, eventMode, seasonOf } from "./game.js?v=20261119b";
-import { soloOn, soloCfg, freeIngredient } from "./solobrew.js?v=20261119f";
+import { soloOn, soloCfg, freeIngredient } from "./solobrew.js?v=20261119g";
 import { CREATURES, FAMILIES } from "./creatures.js?v=20261119b";
 import { azToday, azNow, owned, ownedFams, formOf, fighterFrom, resolveRound, hitDamage, MOVES, doPull, MAX_LEVEL, sparkleImg, RARITY_COLOR } from "./collect.js?v=20261119b";
 
