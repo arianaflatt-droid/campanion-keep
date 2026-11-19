@@ -12,7 +12,7 @@ const changeBattle = (id, fn) => changeBattleRaw(id, bt => { const n = fn(bt); i
 
 import { tradeCard } from "./trade-ui.js?v=20261119b";
 import { ultraLeft, isUltra, trapLegLeft, PRISM_FAM, teacherLegFam } from "./collect.js?v=20261119b";
-import { ultraSection, ultraInfoHTML } from "./ultra.js?v=20261119b";
+import { ultraSection, ultraInfoHTML } from "./ultra.js?v=20261119i";
 
 const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const PER_PAGE = 20;

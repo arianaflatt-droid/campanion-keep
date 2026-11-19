@@ -1,59 +1,59 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261119h";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261119i";
 import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261119b";
 import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261119b";
 import { cpEarnedCalc } from "./room.js?v=20261119b";
 import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES, subFor } from "./teams.js?v=20261119b";
-import { rewardFor, wkGoalOf, wkShare, ringDay, hasSwap, portalDay, addDays as pdAdd, fullFloor, realDay } from "./doors.js?v=20261119b";
-import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet, subReq, subRuleOn, SUB_DAY, addDays } from "./doors.js?v=20261119b";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing } from "./collector-ui.js?v=20261119h";
+import { rewardFor, wkGoalOf, wkShare, ringDay, hasSwap, portalDay, addDays as pdAdd, fullFloor, realDay } from "./doors.js?v=20261119i";
+import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet, subReq, subRuleOn, SUB_DAY, addDays } from "./doors.js?v=20261119i";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing } from "./collector-ui.js?v=20261119i";
 import {
   newsHTML, boostOn, boostHTML, countdownHTML, applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   boss2Of, boss2Prize, simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, weekCandyBefore, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, isFrost, isHeart, heartUnlocked, isLucky, luckyUnlocked, saveProblems, yetiUnlocked, wallMarks, WALL_BLOCK, BOSS_START_HP, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
 } from "./game.js?v=20261119b";
-import { MQ_CUTOFF } from "./morning.js?v=20261119h";
+import { MQ_CUTOFF } from "./morning.js?v=20261119i";
 import { kindAdmin } from "./kindness.js?v=20261119b";
 import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync, p120On, p60On } from "./party.js?v=20261119b";
-import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261119h";
-import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261119h";
+import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261119i";
+import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261119i";
 import { passAdmin } from "./pass.js?v=20261119b";
 import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf, ULTRA_FAMS, CLUB_ULTRA_FAMS } from "./collect.js?v=20261119b";
 import { watchSecret, secretRef, talkRef, watchTalk } from "./db.js?v=20261119b";
 import { talkCard, talkSync } from "./talk.js?v=20261119b";
-import { shoutCard, shoutSync, setShoutMode } from "./shout.js?v=20261119b";
-import { mmState, mmStartCard, mmBar, mmScreenChip, mmNewsScreen, newsPopSync, battleKind, launchedToday, MM_NAME } from "./modes.js?v=20261119h";
+import { shoutCard, shoutSync, setShoutMode } from "./shout.js?v=20261119i";
+import { mmState, mmStartCard, mmBar, mmScreenChip, mmNewsScreen, newsPopSync, battleKind, launchedToday, MM_NAME } from "./modes.js?v=20261119i";
 import { kdDiveWatch, kdDiveTest } from "./divewatch.js?v=20261119b";
-import { secretAdmin, secretClick, autoPick, secretBanner } from "./secret.js?v=20261119b";
+import { secretAdmin, secretClick, autoPick, secretBanner } from "./secret.js?v=20261119i";
 import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef, newBattleRef, newsPicRef, watchNewsPics, newsPicFor } from "./db.js?v=20261119b";
 import { allNews, newsAdminHTML } from "./news.js?v=20261119b";
 import { nebbleAdmin } from "./pets.js?v=20261119b";
-import { mapAdmin } from "./readmap.js?v=20261119b";
-import { wheelTab, wheelClick } from "./subwheel.js?v=20261119b";
-import { tbRequestsCard, tbInvite, tbToSettle } from "./teachbattle.js?v=20261119b";
-import { noteDrop, takeBackPlan, dropCard, vaultTakePlan } from "./clawback.js?v=20261119h";
-import { wheelSync, dailyPool, weeklyPool, makeSpin, WS_WEEKLY, testSpin, winnerOf, wsPicked, owedList } from "./wheel.js?v=20261119b";
+import { mapAdmin } from "./readmap.js?v=20261119i";
+import { wheelTab, wheelClick } from "./subwheel.js?v=20261119i";
+import { tbRequestsCard, tbInvite, tbToSettle } from "./teachbattle.js?v=20261119i";
+import { noteDrop, takeBackPlan, dropCard, vaultTakePlan } from "./clawback.js?v=20261119i";
+import { wheelSync, dailyPool, weeklyPool, makeSpin, WS_WEEKLY, testSpin, winnerOf, wsPicked, owedList } from "./wheel.js?v=20261119i";
 import { showdownSync, openShowdown, sdState, sdLine } from "./showdown.js?v=20261119b";
 import { lvlSync, lvlCard } from "./lvlup.js?v=20261119b";
 import { spinPrizeRef, newSpinPrizeRef, watchSpinPrizes, snapsAt } from "./db.js?v=20261119b";
-import { rewardAdmin, rgWaiting, rgOf, shrinkImage, needPicList } from "./weekgoal.js?v=20261119b";
-import { soloAdmin, soloCfg, soloOn, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261119h";
+import { rewardAdmin, rgWaiting, rgOf, shrinkImage, needPicList } from "./weekgoal.js?v=20261119i";
+import { soloAdmin, soloCfg, soloOn, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261119i";
 import { feederLink } from "./feeder.js?v=20261111e";
 import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261119b";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef, watchSeats, watchCards, deleteField
 } from "./db.js?v=20261119b";
-import { G, guardCard, guardClick, guardInput, autoSnap, personalLink, syncCards } from "./guard.js?v=20261119h";
+import { G, guardCard, guardClick, guardInput, autoSnap, personalLink, syncCards } from "./guard.js?v=20261119i";
 import { lockCard, lockClick } from "./lock.js?v=20261119b";
 import { revengeAdmin, revengeAction } from "./revenge.js?v=20261119b";
 import { heistAdmin, heistAction } from "./heist.js?v=20261119b";
-import { calendarCard, calendarEdit, autoExcuse } from "./calendar.js?v=20261119b";
-import { axoAdmin } from "./axolotl.js?v=20261119b";
-import { kdAdmin } from "./kingdom.js?v=20261119b";
+import { calendarCard, calendarEdit, autoExcuse } from "./calendar.js?v=20261119i";
+import { axoAdmin } from "./axolotl.js?v=20261119i";
+import { kdAdmin } from "./kingdom.js?v=20261119i";
 import { clubsAdmin, clubUpload, clubPicks, pickChange } from "./clubs.js?v=20261119b";
-import { planetAdmin, keepLaunchWatch, pjMinsNow, rocketSync } from "./planet.js?v=20261119b";
-import { soloScreenSync, soloScreenOpenNow, soloScreenOpen, soloScreenClose } from "./soloscreen.js?v=20261119h";
+import { planetAdmin, keepLaunchWatch, pjMinsNow, rocketSync } from "./planet.js?v=20261119i";
+import { soloScreenSync, soloScreenOpenNow, soloScreenOpen, soloScreenClose } from "./soloscreen.js?v=20261119i";
 import { recessAdmin, recessAction } from "./playground.js?v=20261119b";
 import { rosterAdmin, rosterPreview, okEmail } from "./roster.js?v=20261119b";
 import { rosterList, rosterSave, seatsOnce, removeLinkSeats, myAccess, saveClassDir, createClass, adminList, setAdmin, isBuiltInAdmin, switchClass } from "./db.js?v=20261119b";
@@ -1359,7 +1359,8 @@ function vaultWeekCard() {
   if (!cls) return "";
   const back = busy.vwBack == null ? 1 : Number(busy.vwBack), wk = addDays(weekKey(cls), -7 * back), kids = students.filter(x => x.companionId && !x.isTeacher);
   const nm = x => esc(x.fullName || x.name);
-  const open = kids.filter(x => (x.vault || {})[wk] === "open"), earned = kids.filter(x => (x.vault || {})[wk] !== "open" && ((x.vault || {})[wk] === "ready" || vaultMet(x, cls, wk))), rest = kids.filter(x => !open.includes(x) && !earned.includes(x));
+  const open = kids.filter(x => (x.vault || {})[wk] === "open"), taken = kids.filter(x => (x.vault || {})[wk] === "taken"),
+    earned = kids.filter(x => !["open", "taken"].includes((x.vault || {})[wk]) && ((x.vault || {})[wk] === "ready" || vaultMet(x, cls, wk) || ((cls.vaultGift || {})[wk] || {})[x.id])), rest = kids.filter(x => !open.includes(x) && !earned.includes(x) && !taken.includes(x));
   const label = new Date(wk + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" }) + " \u2013 " + new Date(addDays(wk, 6) + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" });
   const list = (L, ic) => L.length ? '<div class="inv">' + L.map(x => "<span>" + ic + " " + nm(x) + "</span>").join("") + "</div>" : '<p class="muted small" style="margin:2px 0;">Nobody.</p>';
   return '<div class="card" id="vaultWeekCard"><div class="card-head"><h2>\u{1F48E} Vaults opened</h2><span class="fact">' + open.length + " of " + kids.length + "</span></div>" +
@@ -1368,7 +1369,10 @@ function vaultWeekCard() {
     (open.length ? '<button class="btn small" data-act="vwCopy" style="margin-left:auto;">\u{1F4CB} Copy names</button>' : "") + "</div>" +
     "<p style=\"margin:6px 0 2px;\"><b>\u2705 Opened their vault (" + open.length + ")</b>" + (open.length ? ' <span class="muted small">\u21A9\uFE0F Take back = close it again</span>' : "") + "</p>" +
     (open.length ? '<div class="inv">' + open.map(x => "<span>\u2705 " + nm(x) + ' <button class="btn small vtake" data-act="vaultTake" data-sid="' + esc(x.id) + '" data-wk="' + wk + '" title="Take back this vault (you\u2019ll see what comes off first)">\u21A9\uFE0F Take back</button></span>').join("") + "</div>" : '<p class="muted small" style="margin:2px 0;">Nobody.</p>') +
-    (earned.length ? "<p style=\"margin:10px 0 2px;\"><b>\u{1F31F} Earned it but haven\u2019t opened it yet (" + earned.length + ")</b>" + (back === 1 ? ' <span class="muted small">they can still open it this week</span>' : back === 0 ? ' <span class="muted small">it\u2019s ready on their Doors tab</span>' : "") + "</p>" + list(earned, "\u{1F31F}") : "") +
+    (earned.length ? "<p style=\"margin:10px 0 2px;\"><b>\u{1F31F} Earned it but haven\u2019t opened it yet (" + earned.length + ")</b>" + (back === 1 ? ' <span class="muted small">they can still open it this week</span>' : back === 0 ? ' <span class="muted small">it\u2019s ready on their Doors tab</span>' : "") + "</p>" +
+      '<div class="inv">' + earned.map(x => "<span>\u{1F31F} " + nm(x) + ' <button class="btn small vtake" data-act="vaultStop" data-sid="' + esc(x.id) + '" data-wk="' + wk + '" title="Stop this vault from opening">\u21A9\uFE0F Undo</button></span>').join("") + "</div>" : "") +
+    (taken.length ? "<p style=\"margin:10px 0 2px;\"><b>\u21A9\uFE0F Taken back (" + taken.length + ")</b> <span class=\"muted small\">their vault stays shut for this week</span></p>" +
+      '<div class="inv">' + taken.map(x => "<span>\u21A9\uFE0F " + nm(x) + ' <button class="btn ghost small" data-act="vaultUnstop" data-sid="' + esc(x.id) + '" data-wk="' + wk + '" title="Let the vault open again if they earned it">Give it back</button></span>').join("") + "</div>" : "") +
     '<details style="margin-top:8px;"' + (back <= 1 ? " open" : "") + '><summary class="muted small">' + (back === 0 ? "Haven\u2019t reached it yet" : "Didn\u2019t reach it") + " (" + rest.length + ")</summary>" +
     (back <= 1 && rest.length ? '<div class="inv">' + rest.map(x => "<span>\u2022 " + nm(x) + ' <button class="btn small" data-act="vaultGift" data-on="1" data-sid="' + esc(x.id) + '" data-wk="' + wk + '" title="Let them open ' + (back === 0 ? "this" : "last") + ' week\u2019s vault">\u{1F513} Open it</button></span>').join("") + "</div>" : list(rest, "\u2022")) + "</details>" +
     (back <= 1 ? vaultGiftHTML(kids, wk, back === 0) : "") + "</div>";
@@ -2871,6 +2875,17 @@ document.addEventListener("click", async ev => {
     } catch (e) { flash("Couldn\u2019t save that \u2014 " + (e.code || e.message)); }
     return render(); }
   // 💎 Nov 19: take back an opened vault (it shouldn't have opened): shows exactly what comes off, then one save
+  // ↩️ Nov 19: stop a vault that's earned (or given by hand) but not opened yet / give that back
+  if (act === "vaultStop" || act === "vaultUnstop") {
+    const st = sOf(el.dataset.sid), wk = el.dataset.wk; if (!st || !wk) return;
+    const stop = act === "vaultStop";
+    if (stop && !confirm("Undo " + st.name + "\u2019s Treasure Vault for the week of " + wk + "? It won\u2019t open for them (nothing was opened yet, so nothing else changes).")) return;
+    const v = Object.assign({}, st.vault || {}); if (stop) v[wk] = "taken"; else delete v[wk];
+    try { await updateDoc(studentRef(st.id), { vault: v }); st.vault = v;
+      if (stop && ((cls.vaultGift || {})[wk] || {})[st.id]) { await updateDoc(classRef, { ["vaultGift." + wk + "." + st.id]: deleteField() }); delete cls.vaultGift[wk][st.id]; }
+      flash(stop ? "\u21A9\uFE0F Undone \u2014 " + st.name + "\u2019s vault won\u2019t open." : "Okay \u2014 " + st.name + "\u2019s vault can open again if they earned it.");
+    } catch (e) { flash("Couldn\u2019t save that \u2014 " + (e.code || e.message)); }
+    return render(); }
   if (act === "vaultTake") {
     const st = sOf(el.dataset.sid), wk = el.dataset.wk; if (!st || !wk) return;
     const plan = vaultTakePlan(st, cls, wk); if (!plan.say.length) { flash("That vault isn\u2019t open."); return; }

@@ -11,7 +11,7 @@
 import { esc, isHaunt, isGobble, isJingle, isFrost, isHeart, isLucky, boostMult } from "./game.js?v=20261119b";
 import { azToday } from "./collect.js?v=20261119b";
 import { TEAM_EVENTS, ingOf, subFor, SUB_NAMES, PER_XP, EFFECTS, effect, cauldronHTML, soloTableHTML, soloHouseHTML, soloBoxHTML, soloTrapHTML, DISHES } from "./teams.js?v=20261119b";
-import { SUBJECT_KEYS, addDays } from "./doors.js?v=20261119b";
+import { SUBJECT_KEYS, addDays } from "./doors.js?v=20261119i";
 
 export const BREW = TEAM_EVENTS.potion;
 const FEAST_ING = { key: "solofeast", ing: [
