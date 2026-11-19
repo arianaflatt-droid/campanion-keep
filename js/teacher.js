@@ -1,62 +1,62 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261118y";
-import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261118y";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261118y";
-import { cpEarnedCalc } from "./room.js?v=20261118y";
-import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261118y";
-import { rewardFor, wkGoalOf, wkShare, ringDay, hasSwap, portalDay, addDays as pdAdd } from "./doors.js?v=20261118y";
-import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet, subReq, subRuleOn, SUB_DAY, addDays } from "./doors.js?v=20261118y";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing } from "./collector-ui.js?v=20261118y";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261119a";
+import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261119a";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261119a";
+import { cpEarnedCalc } from "./room.js?v=20261119a";
+import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES } from "./teams.js?v=20261119a";
+import { rewardFor, wkGoalOf, wkShare, ringDay, hasSwap, portalDay, addDays as pdAdd, fullFloor, realDay } from "./doors.js?v=20261119a";
+import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet, subReq, subRuleOn, SUB_DAY, addDays } from "./doors.js?v=20261119a";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing } from "./collector-ui.js?v=20261119a";
 import {
   newsHTML, boostOn, boostHTML, countdownHTML, applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   boss2Of, boss2Prize, simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, weekCandyBefore, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
   bucketState, bucketHTML, finalizePreview, dateOfDay, BUCKET_PER_MISS, WHEEL, PRIZES,
   checkVersion, APP_V, hitOn, carryRun, weekCut, gearInSeason, eventMode, isGobble, setSeason, SEASON, seasonOf, SEASONS, GOBBLE_FROM, GOBBLE_TO, turkeyUnlocked, isJingle, isFrost, isHeart, heartUnlocked, isLucky, luckyUnlocked, saveProblems, yetiUnlocked, wallMarks, WALL_BLOCK, BOSS_START_HP, JINGLE_FROM, JINGLE_TO, grinchUnlocked, SIDEKICKS
-} from "./game.js?v=20261118y";
-import { MQ_CUTOFF } from "./morning.js?v=20261118y";
-import { kindAdmin } from "./kindness.js?v=20261118y";
-import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync, p120On, p60On } from "./party.js?v=20261118y";
-import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261118y";
-import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261118y";
-import { passAdmin } from "./pass.js?v=20261118y";
-import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf, ULTRA_FAMS, CLUB_ULTRA_FAMS } from "./collect.js?v=20261118y";
-import { watchSecret, secretRef, talkRef, watchTalk } from "./db.js?v=20261118y";
-import { talkCard, talkSync } from "./talk.js?v=20261118y";
-import { shoutCard, shoutSync, setShoutMode } from "./shout.js?v=20261118y";
-import { mmState, mmStartCard, mmBar, mmScreenChip, mmNewsScreen, newsPopSync, battleKind, launchedToday, MM_NAME } from "./modes.js?v=20261118y";
-import { kdDiveWatch, kdDiveTest } from "./divewatch.js?v=20261118y";
-import { secretAdmin, secretClick, autoPick, secretBanner } from "./secret.js?v=20261118y";
-import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef, newBattleRef, newsPicRef, watchNewsPics, newsPicFor } from "./db.js?v=20261118y";
-import { allNews, newsAdminHTML } from "./news.js?v=20261118y";
-import { nebbleAdmin } from "./pets.js?v=20261118y";
-import { mapAdmin } from "./readmap.js?v=20261118y";
-import { wheelTab, wheelClick } from "./subwheel.js?v=20261118y";
-import { tbRequestsCard, tbInvite, tbToSettle } from "./teachbattle.js?v=20261118y";
-import { noteDrop, takeBackPlan, dropCard } from "./clawback.js?v=20261118y";
-import { wheelSync, dailyPool, weeklyPool, makeSpin, WS_WEEKLY, testSpin, winnerOf, wsPicked, owedList } from "./wheel.js?v=20261118y";
-import { showdownSync, openShowdown, sdState, sdLine } from "./showdown.js?v=20261118y";
-import { lvlSync, lvlCard } from "./lvlup.js?v=20261118y";
-import { spinPrizeRef, newSpinPrizeRef, watchSpinPrizes, snapsAt } from "./db.js?v=20261118y";
-import { rewardAdmin, rgWaiting, rgOf, shrinkImage, needPicList } from "./weekgoal.js?v=20261118y";
-import { soloAdmin, soloCfg, soloOn, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261118y";
+} from "./game.js?v=20261119a";
+import { MQ_CUTOFF } from "./morning.js?v=20261119a";
+import { kindAdmin } from "./kindness.js?v=20261119a";
+import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync, p120On, p60On } from "./party.js?v=20261119a";
+import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261119a";
+import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261119a";
+import { passAdmin } from "./pass.js?v=20261119a";
+import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf, ULTRA_FAMS, CLUB_ULTRA_FAMS } from "./collect.js?v=20261119a";
+import { watchSecret, secretRef, talkRef, watchTalk } from "./db.js?v=20261119a";
+import { talkCard, talkSync } from "./talk.js?v=20261119a";
+import { shoutCard, shoutSync, setShoutMode } from "./shout.js?v=20261119a";
+import { mmState, mmStartCard, mmBar, mmScreenChip, mmNewsScreen, newsPopSync, battleKind, launchedToday, MM_NAME } from "./modes.js?v=20261119a";
+import { kdDiveWatch, kdDiveTest } from "./divewatch.js?v=20261119a";
+import { secretAdmin, secretClick, autoPick, secretBanner } from "./secret.js?v=20261119a";
+import { watchLive, feederKeyRef, watchRewardPics, rewardPicRef, newBattleRef, newsPicRef, watchNewsPics, newsPicFor } from "./db.js?v=20261119a";
+import { allNews, newsAdminHTML } from "./news.js?v=20261119a";
+import { nebbleAdmin } from "./pets.js?v=20261119a";
+import { mapAdmin } from "./readmap.js?v=20261119a";
+import { wheelTab, wheelClick } from "./subwheel.js?v=20261119a";
+import { tbRequestsCard, tbInvite, tbToSettle } from "./teachbattle.js?v=20261119a";
+import { noteDrop, takeBackPlan, dropCard } from "./clawback.js?v=20261119a";
+import { wheelSync, dailyPool, weeklyPool, makeSpin, WS_WEEKLY, testSpin, winnerOf, wsPicked, owedList } from "./wheel.js?v=20261119a";
+import { showdownSync, openShowdown, sdState, sdLine } from "./showdown.js?v=20261119a";
+import { lvlSync, lvlCard } from "./lvlup.js?v=20261119a";
+import { spinPrizeRef, newSpinPrizeRef, watchSpinPrizes, snapsAt } from "./db.js?v=20261119a";
+import { rewardAdmin, rgWaiting, rgOf, shrinkImage, needPicList } from "./weekgoal.js?v=20261119a";
+import { soloAdmin, soloCfg, soloOn, BREW as SOLO_BREW, GOAL_ING as SOLO_GOAL } from "./solobrew.js?v=20261119a";
 import { feederLink } from "./feeder.js?v=20261111e";
-import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261118y";
+import { firebaseConfig, CLASS_ID } from "./firebase-config.js?v=20261119a";
 import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef, watchSeats, watchCards, deleteField
-} from "./db.js?v=20261118y";
-import { G, guardCard, guardClick, guardInput, autoSnap, personalLink, syncCards } from "./guard.js?v=20261118y";
-import { lockCard, lockClick } from "./lock.js?v=20261118y";
-import { revengeAdmin, revengeAction } from "./revenge.js?v=20261118y";
-import { heistAdmin, heistAction } from "./heist.js?v=20261118y";
-import { calendarCard, calendarEdit, autoExcuse } from "./calendar.js?v=20261118y";
-import { axoAdmin } from "./axolotl.js?v=20261118y";
-import { kdAdmin } from "./kingdom.js?v=20261118y";
-import { clubsAdmin, clubUpload, clubPicks, pickChange } from "./clubs.js?v=20261118y";
-import { planetAdmin, keepLaunchWatch, pjMinsNow, rocketSync } from "./planet.js?v=20261118y";
-import { soloScreenSync, soloScreenOpenNow, soloScreenOpen, soloScreenClose } from "./soloscreen.js?v=20261118y";
-import { recessAdmin, recessAction } from "./playground.js?v=20261118y";
-import { rosterAdmin, rosterPreview, okEmail } from "./roster.js?v=20261118y";
-import { rosterList, rosterSave, seatsOnce, removeLinkSeats, myAccess, saveClassDir, createClass, adminList, setAdmin, isBuiltInAdmin, switchClass } from "./db.js?v=20261118y";
+} from "./db.js?v=20261119a";
+import { G, guardCard, guardClick, guardInput, autoSnap, personalLink, syncCards } from "./guard.js?v=20261119a";
+import { lockCard, lockClick } from "./lock.js?v=20261119a";
+import { revengeAdmin, revengeAction } from "./revenge.js?v=20261119a";
+import { heistAdmin, heistAction } from "./heist.js?v=20261119a";
+import { calendarCard, calendarEdit, autoExcuse } from "./calendar.js?v=20261119a";
+import { axoAdmin } from "./axolotl.js?v=20261119a";
+import { kdAdmin } from "./kingdom.js?v=20261119a";
+import { clubsAdmin, clubUpload, clubPicks, pickChange } from "./clubs.js?v=20261119a";
+import { planetAdmin, keepLaunchWatch, pjMinsNow, rocketSync } from "./planet.js?v=20261119a";
+import { soloScreenSync, soloScreenOpenNow, soloScreenOpen, soloScreenClose } from "./soloscreen.js?v=20261119a";
+import { recessAdmin, recessAction } from "./playground.js?v=20261119a";
+import { rosterAdmin, rosterPreview, okEmail } from "./roster.js?v=20261119a";
+import { rosterList, rosterSave, seatsOnce, removeLinkSeats, myAccess, saveClassDir, createClass, adminList, setAdmin, isBuiltInAdmin, switchClass } from "./db.js?v=20261119a";
 
 /* ================= state ================= */
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
@@ -902,7 +902,7 @@ function viewDaily() {
   students.forEach(s => {
     const c = companionOf(s);
     const v = arr5(s.status, "")[day], early = arr5(s.early, false)[day];
-    const xp = arr5(s.xp, null)[day], lx = arr5(s.lunchXp, null)[day];
+    const xp = arr5(s.xp, null)[day], lx = arr5(s.lunchXp, null)[day], full = !!(((s.xpHist || {})[dateOfDay(day)]) || {}).full;
     const cls2 = v === "c" ? "c" : v === "e" ? "e" : rec[day] ? "m" : "";
     const sym = v === "c" ? "✓" : v === "e" ? "–" : rec[day] ? "✕" : "·";
     h += '<tr><td class="nm">' + esc(s.name) + "<small>" + (c ? c.glyph + " " + esc(s.petName || c.name) : "no companion yet") + "</small></td>" +
@@ -910,7 +910,9 @@ function viewDaily() {
         (lx != null ? '<small class="muted" style="display:block;">' + lx + "</small>" : "") + "</td>" +
       '<td style="font-family:var(--mono);">' + (xp == null ? '<span class="muted">—</span>' : xp) + "</td>" +
       '<td class="heavy"><button class="ring ' + cls2 + '" data-ring="' + s.id + '" aria-label="' + esc(s.name) + " " + (v === "c" ? "hit" : v === "e" ? "excused" : "missed") + '">' + sym + "</button></td>" +
-      '<td><button class="btn ghost small" data-excuse="' + s.id + '">Excuse day</button></td></tr>';
+      '<td><button class="btn ghost small" data-excuse="' + s.id + '">Excuse day</button>' +
+        (full ? ' <button class="btn small fullon" data-fullday="' + s.id + '" title="Counted as a full ' + goal + ' XP day with all 3 rings. Click to take it back.">\u2B50 Full day \u2713</button>'
+          : ' <button class="btn ghost small" data-fullday="' + s.id + '" title="The XP or a ring didn\u2019t record? Count this day as a full ' + goal + ' XP day with all 3 rings closed.">\u2B50 Full day</button>') + "</td></tr>";
   });
   return h + "</tbody></table></div></div>";
 }
@@ -1997,7 +1999,9 @@ async function applyUpload(up) {
     const before = up.auto ? Object.fromEntries(FIELDS.map(k => [k, JSON.stringify(s[k] == null ? null : s[k])])) : null;
     if (has) { matched++; if (ok) hit++; } else missing.push(s.name);
     const status = arr5(s.status, ""), early = arr5(s.early, false);
-    const hist = Object.assign({}, s.xpHist || {}), day = Object.assign({}, hist[date] || {}), dayWas = hist[date] ? JSON.parse(JSON.stringify(hist[date])) : null;
+    // ⭐ a "full day" keeps the uploads' real numbers in .real: merge into those, then put the floor back on (below)
+    const wasFull = !!(hist0 => hist0 && hist0.full)((s.xpHist || {})[date]);
+    const hist = Object.assign({}, s.xpHist || {}), day = Object.assign({}, realDay(hist[date] || {})), dayWas = hist[date] ? JSON.parse(JSON.stringify(realDay(hist[date]))) : null;
     if (has) day[key] = xp;
     // ⚠️ Nov 16 (Ms. Ariana): live data from Timeback can LOWER subject numbers too (XP taken away), but ONLY when the day's
     // total went down too. The feeder doesn't always split subjects the same way as a pasted file (Writing / Vocabulary can
@@ -2007,16 +2011,19 @@ async function applyUpload(up) {
       nw[k] = totDown && n != null ? Number(n) || 0 : Math.max(Number(old[k]) || 0, Number(n) || 0); }); day.sub = nw; }
     const drop = totDown ? noteDrop(s, date, dayWas, day) : null;
     if (up.kind === "lunch" && !up.auto) delete day.lh;   // a lunch upload replaces any hand-marked Lunch Hero for that day (live data never does)
+    if (wasFull) { const real = {}; if (day.d != null) real.d = day.d; if (day.sub) real.sub = Object.assign({}, day.sub); day.full = true; day.real = real; fullFloor(day, s, cls, goal); delete day.e; }
     if (Object.keys(day).length) hist[date] = day; else delete hist[date];
     let data;
     if (lastWk) data = { xpHist: hist };   // last week's numbers only go into the history (eggs + doors); this week's boxes stay as they are
     else if (up.kind === "lunch") {
       const lunchXp = arr5(s.lunchXp, null); lunchXp[d] = xp; early[d] = ok;
       if (status[d] !== "e" && arr5(s.xp, null)[d] == null) status[d] = ok ? "c" : "";
+      if (wasFull) status[d] = "c";
       data = { lunchXp, early, status, xpHist: hist };
     } else {
       const xps = arr5(s.xp, null); xps[d] = xp;
       if (status[d] !== "e") status[d] = has ? (ok ? "c" : "") : (early[d] ? "c" : "");
+      if (wasFull) { xps[d] = Math.max(Number(xps[d]) || 0, goal); status[d] = "c"; }
       data = { xp: xps, status, xpHist: hist };
     }
     // Daily Doors: approve every door the subject numbers show as done
@@ -2468,6 +2475,34 @@ document.addEventListener("click", async ev => {
     if (early[day]) h.lh = true; else delete h.lh;
     if (Object.keys(h).length) hist[date] = h; else delete hist[date];
     return patch(s.id, { early, status: st, xpHist: hist });
+  }
+  // ⭐ Nov 19: count a day as a full 120 XP day with all 3 rings (the XP or a ring didn't record). Click again to take it back.
+  if ((el = ev.target.closest("[data-fullday]"))) {
+    const s = sOf(el.dataset.fullday); if (!s) return;
+    const date = dateOfDay(day), g = goalXP(cls), hist = Object.assign({}, s.xpHist || {}), cur = hist[date] || {}, st = arr5(s.status, ""), xps = arr5(s.xp, null);
+    let hd;
+    if (!cur.full) {
+      if (!confirm("Count " + s.name + "\u2019s " + DAYS[day] + " as a full " + g + " XP day with all 3 rings closed?\n\nUse it when the XP or a ring didn\u2019t record. It gives everything a " + g + " XP day gives: full health, the egg, Comfort Points, the level bar, the rings and the Treasure Vault progress. Later uploads still save the real numbers underneath, and you can click it again to take it back.")) return;
+      const real = {}; if (cur.d != null) real.d = cur.d; if (cur.sub) real.sub = Object.assign({}, cur.sub);
+      hd = fullFloor(Object.assign({}, cur, { full: true, real }), s, cls, g); delete hd.e;
+      xps[day] = Math.max(Number(xps[day]) || 0, g); st[day] = "c";
+    } else {
+      if (!confirm("Take back " + s.name + "\u2019s full day on " + DAYS[day] + "? The day goes back to the real numbers.")) return;
+      hd = realDay(cur); const r = cur.real || {};
+      xps[day] = r.d != null ? r.d : null;
+      st[day] = st[day] === "e" ? "e" : (Number(r.d) || 0) >= g || arr5(s.early, false)[day] ? "c" : "";
+      if (st[day] === "c" && (Number(r.d) || 0) < g) hd.h = true;
+    }
+    if (Object.keys(hd).length) hist[date] = hd; else delete hist[date];
+    const data = { status: st, xp: xps, xpHist: hist }, s2 = Object.assign({}, s, data), wk = weekKey(cls);
+    // the Weekly Door + Treasure Vault open the same way an upload opens them
+    if (cur.full !== true && s.companionId) {
+      if (weekTotal(s2, cls) >= wkGoalOf(s2, cls) && subReq(s2, cls, wk).ok && !(s.weekDoor || {})[wk]) data.weekDoor = Object.assign({}, s.weekDoor || {}, { [wk]: "ready" });
+      if (vaultMet(s2, cls, wk) && !(s.vault || {})[wk]) data.vault = Object.assign({}, s.vault || {}, { [wk]: "ready" });
+    }
+    await patch(s.id, data);
+    flash(cur.full ? "Took back " + s.name + "\u2019s full day." : "\u2B50 " + s.name + "\u2019s " + DAYS[day] + " counts as a full " + g + " XP day" + (data.vault ? " \u2014 and their Treasure Vault is ready!" : "."));
+    return;
   }
   if ((el = ev.target.closest("[data-excuse]"))) {
     const s = sOf(el.dataset.excuse), st = arr5(s.status, "");

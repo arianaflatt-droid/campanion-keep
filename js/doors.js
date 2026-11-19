@@ -8,9 +8,9 @@
    Saved on the student: doors = { "YYYY-MM-DD": { "0": { st: "wait"|"ok"|"no"|"open", at, r }, g: { st: "open", r } } }
    plus lastDoor = "YYYY-MM-DD/<door>" (which door the last save touched; the save rules check it).
    Class: doorsOn (on/off), doorList (default list), doorDays = { "YYYY-MM-DD": [..] } (one-day lists). */
-import { azToday } from "./collect.js?v=20261118y";
-import { SEASON, eventMode, esc, dayXP, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261118y";
-import { subFor, SUB_NAMES } from "./teams.js?v=20261118y";
+import { azToday } from "./collect.js?v=20261119a";
+import { SEASON, eventMode, esc, dayXP, WEEK_DOOR_XP, weekKey, weekGoal } from "./game.js?v=20261119a";
+import { subFor, SUB_NAMES } from "./teams.js?v=20261119a";
 
 // A door that starts with "!" is always open (not locked behind the first doors). The "!" isn't shown.
 export const DOOR_DEFAULT = [
@@ -294,6 +294,19 @@ export function portalDay(st, cls, date) {
   const rings = q.rows.map(r => ({ name: r.name, have: Math.round(Number((h.sub || {})[r.src]) || 0), need: r.ks.length * rd }));
   return { total, goal, rings, ok: total >= goal && rings.every(r => r.have >= r.need) };
 }
+/* ⭐ Nov 19 (Ms. Ariana): "Full day" — when a ring or the XP didn't record (a tech problem), she marks the student's day as a
+   full 120 XP day from the console. The day then counts everywhere as at least the goal XP AND at least 25 in each core
+   subject (the student's own swaps), so health, eggs, Comfort Points, the level bar, the rings and the Vault all treat it as done.
+   Saved in the XP history: xpHist[date].full = true, with the real numbers kept in .real { d, sub } so later uploads keep
+   updating them and the mark can be taken back exactly. */
+export function fullFloor(day, st, cls, goal) {
+  const sub = Object.assign({}, day.sub || {}), rd = ringDay(st, cls);
+  SUB_REQ.forEach(k => { const src = subFor(cls, st, k); sub[src] = Math.max(Number(sub[src]) || 0, rd); });
+  day.sub = sub; day.d = Math.max(Number(day.d) || 0, goal); day.h = true; return day;
+}
+// the real numbers of a "full day" (what the uploads said), or the day itself
+export function realDay(day) { if (!day || !day.full) return day; const r = day.real || {}, o = Object.assign({}, day); delete o.real; delete o.full; delete o.h;
+  if (r.d != null) o.d = r.d; else delete o.d; if (r.sub) o.sub = Object.assign({}, r.sub); else delete o.sub; return o; }
 export function subReqHTML(st, cls, wk) {
   const q = subReq(st, cls, wk); if (!q.on || !q.days) return "";
   if (ringPass(st, cls, wk)) return '<div class="subreq"><span class="srq ok">\u2705 Ms. Ariana changed your rings this week, so you can skip them. Just reach your XP goal!</span></div>';

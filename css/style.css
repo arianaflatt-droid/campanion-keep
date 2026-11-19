@@ -4809,3 +4809,22 @@ body.ck .nbbars .secretbar.shout::after{ top:-36px; width:157px; height:56px; }
 body.ck .nbbars .secretbar.shout, body.ck .nbbars .secretbar.shout *{ color:#3A2410 !important; text-shadow:0 0 6px #FFF6D6, 0 0 3px #FFF6D6 !important; }
 body.ck .nbbars .secretbar.shout{ background-clip:padding-box !important; background-size:cover !important; background-position:center !important; background-repeat:no-repeat !important; }
 body.ck .card.newsboard{ background:url(../assets/keep/notice-board.webp) center top / 100% auto repeat-y, #A4561E !important; }
+/* 🍽️ Nov 19: the Class Feast in the castle — dishes sit ON the table top, the table stands in the decorated great hall, the side boards are wood + parchment */
+.ssdish.r0{ bottom:83%; } .ssdish.r1{ bottom:73%; }
+.ss-gobble .ssscene{ align-items:flex-end; border-radius:22px; box-shadow:inset 0 0 0 4px #E6A92C, inset 0 0 40px rgba(0,0,0,.55), 0 12px 26px rgba(0,0,0,.45);
+  background:radial-gradient(ellipse at 50% 70%, rgba(255,190,90,.35), transparent 60%), linear-gradient(180deg, rgba(30,12,0,.1), rgba(30,12,0,.45)), url(../assets/keep/wall-fest.webp) center top / cover, #5D6390; }
+.ss-gobble .ssscene::after{ content:""; position:absolute; left:0; right:0; bottom:0; height:22%; z-index:0;
+  background:repeating-linear-gradient(90deg, rgba(0,0,0,.25) 0 3px, transparent 3px 120px), linear-gradient(180deg, #6E5A4A, #3E3028); box-shadow:inset 0 10px 18px rgba(0,0,0,.45); }
+.ss-gobble .ssfeast{ z-index:1; width:min(94%,980px); margin-bottom:5%; }
+.ss-gobble .ssfeast::before{ content:""; position:absolute; left:4%; right:4%; bottom:-4%; height:14%; border-radius:50%; background:rgba(0,0,0,.45); filter:blur(10px); }
+.ss-gobble .sstotal, .ss-gobble .ssboard, .ss-gobble .ssfeed{ border:16px solid transparent; border-image:url(../assets/keep/wood-sign.webp) 80 / 16px / 0 stretch; border-radius:0;
+  background:url(../assets/keep/parchment.webp) center / cover; background-clip:padding-box; color:#3A2410; padding:8px 12px; filter:drop-shadow(0 8px 10px rgba(0,0,0,.45)); }
+.ss-gobble .ssboard h2, .ss-gobble .ssfeed h2{ color:#8E1A24; font-family:Lora, Georgia, serif; }
+.ss-gobble .ssbig b{ color:#B0471A; text-shadow:0 2px 0 rgba(255,230,170,.8); } .ss-gobble .ssbig{ font-family:Lora, Georgia, serif; }
+.ss-gobble .ssmeter{ background:rgba(90,50,15,.25); box-shadow:inset 0 2px 3px rgba(0,0,0,.25); }
+.ss-gobble .ssboard li{ background:rgba(120,70,20,.12); } .ss-gobble .ssboard li.top1{ background:rgba(230,169,44,.45); }
+.ss-gobble .ssfeed li{ border-bottom-color:rgba(90,50,15,.2); }
+.ss-gobble .sshow span{ background:rgba(0,0,0,.35); }
+.ssdish.r0{ bottom:86%; } .ssdish.r1{ bottom:71%; z-index:2; }
+.ss-gobble .ssfeast{ width:min(88%,940px); margin-bottom:7%; }
+.btn.fullon{ background:linear-gradient(#FFE38A,#E6A92C) !important; color:#3A2410 !important; border-color:#B07A1A !important; font-weight:700; }

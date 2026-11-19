@@ -5,10 +5,10 @@
      · a potion brewed / a dish cooked → a big moment on screen: "✨ Ben brewed a Glow Potion!" / "🥧 Mia cooked Pumpkin Pie!"
      · a leaderboard (most potions / dishes this event), today's count, a class total with milestones, and the latest news.
    The other solo events (gingerbread, snowmen, chocolate, traps) use the same screen with their own icons. */
-import { esc } from "./game.js?v=20261118y";
-import { azToday } from "./collect.js?v=20261118y";
-import { soloCfg, soloOn, soloDay, soloTotal, soloOf, soloIngs } from "./solobrew.js?v=20261118y";
-import { DISHES, effect } from "./teams.js?v=20261118y";
+import { esc } from "./game.js?v=20261119a";
+import { azToday } from "./collect.js?v=20261119a";
+import { soloCfg, soloOn, soloDay, soloTotal, soloOf, soloIngs } from "./solobrew.js?v=20261119a";
+import { DISHES, effect } from "./teams.js?v=20261119a";
 
 const MILE = 25;                      // a class milestone every 25 potions / dishes
 let root = null, last = null, primed = "", snap = {}, feed = [], q = [], busy = false, open = false, cfgKey = "";
@@ -59,7 +59,8 @@ function sceneHTML(k) {
   return '<div class="ssgeneric"><span>' + k.icon + "</span></div>";
 }
 // the feast: one dish per dish cooked by the class, a fresh table every 10
-const SPOTS = [[34, 0, 15], [66, 0, 16], [31, 1, 18], [69, 1, 18], [50, 0, 14], [18, 0, 15], [82, 0, 14], [13, 1, 18], [87, 1, 18], [50, 1, 25]];
+// [left %, row (0 = back, 1 = front), width %] — Nov 19: spread out so no dish hides behind another; the turkey (10th) is the big one in front
+const SPOTS = [[30, 0, 15], [70, 0, 15], [50, 0, 15], [12, 0, 14], [88, 0, 14], [21, 1, 16], [79, 1, 16], [36, 1, 15], [64, 1, 15], [50, 1, 22]];
 let shownDishes = -1;
 function dishes(total, animate) {
   const el = document.getElementById("ssfdishes"); if (!el) return;
