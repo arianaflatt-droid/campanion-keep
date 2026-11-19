@@ -29,7 +29,7 @@
 import { esc, HEAD_FNS, OUTFITS, candyLeft, companionOf } from "./game.js?v=20261119b";
 import { azToday, creature, FAMILIES } from "./collect.js?v=20261119b";
 import { CREATURES } from "./creatures.js?v=20261119b";
-import { xpOn } from "./surprise.js?v=20261119e";
+import { xpOn } from "./surprise.js?v=20261119f";
 import { SEASON, boostExtra } from "./game.js?v=20261119b";
 import { readingOn, readingOnBoosted } from "./readmap.js?v=20261119b";
 
