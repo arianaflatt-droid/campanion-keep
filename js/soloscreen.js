@@ -7,7 +7,7 @@
    The other solo events (gingerbread, snowmen, chocolate, traps) use the same screen with their own icons. */
 import { esc } from "./game.js?v=20261119b";
 import { azToday } from "./collect.js?v=20261119b";
-import { soloCfg, soloOn, soloDay, soloTotal, soloOf, soloIngs } from "./solobrew.js?v=20261119n";
+import { soloCfg, soloOn, soloDay, soloTotal, soloOf, soloIngs } from "./solobrew.js?v=20261119p";
 import { DISHES, effect } from "./teams.js?v=20261119b";
 
 const MILE = 25;                      // a class milestone every 25 potions / dishes

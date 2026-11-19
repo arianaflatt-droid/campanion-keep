@@ -17,9 +17,9 @@ export function paintCard(st, cls) {
   const prev = id => petHTML(c).replace('class="petwrap"', 'class="petwrap pt-' + id + '" style="font-size:46px;margin:10px 0 2px;"');
   let h = '<div class="card paintcard"><div class="card-head"><h2>\u{1F3A8} Paint Studio</h2><span class="fact">' + have.toLocaleString() + " " + S.coin + " to spend</span></div>" +
     '<p class="lede">Give ' + esc(name) + " a new look! Paint is just for fun and doesn’t change battles.</p>" +
-    '<div class="paintrow"><div class="paintsp' + (sparkle ? " on" : "") + '"><span class="pswatch sparkle">✨</span><b>Sparkle Paint</b><small>Sparkly glow for the rest of today</small>' +
+    '<div class="paintrow"><div class="paintsp' + (sparkle ? " on" : "") + '"><span class="pswatch sparkle"><img class="psic" src="assets/ui/ck/paint-sparkle.webp" alt="" onerror="this.outerHTML=\'<span>✨</span>\'"></span><b>Sparkle Paint</b><small>Sparkly glow for the rest of today</small>' +
     (sparkle ? '<span class="pown">✨ On today!</span>' : '<button class="btn small gold" data-paint="sparkle"' + (have < SPARKLE_COST ? " disabled" : "") + ">" + SPARKLE_COST + " " + S.coin + "</button>") + "</div></div>" +
-    '<h3 class="small" style="margin:12px 0 6px;">\u{1F308} Magic Color Paint <span class="muted">· ' + COLOR_COST + " " + S.coin + " each, then switch for free</span></h3>" +
+    '<h3 class="small pmagic" style="margin:12px 0 6px;"><img class="psic" src="assets/ui/ck/paint-magic.webp" alt="" onerror="this.outerHTML=\'<span>\u{1F308}</span>\'"> Magic Color Paint <span class="muted">· ' + COLOR_COST + " " + S.coin + " each, then switch for free</span></h3>" +
     '<div class="paintgrid">' + PAINTS.map(([id, nm, col]) => {
       const mine = own[id], on = st.paint === id && mine;
       return '<div class="pcolor' + (on ? " on" : "") + '">' + (c ? prev(id) : '<span class="pswatch" style="' + sw(col) + '"></span>') + "<b>" + esc(nm) + "</b>" +

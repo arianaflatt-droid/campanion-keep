@@ -8,11 +8,11 @@
    📰 "Pop it open on every screen": cls.newsShow = { id, open } puts the announcements over every student's page until
    she closes it (students can tap "Got it" to close it on their own screen). */
 import { esc, battleOn } from "./game.js?v=20261119b";
-import { soloOn } from "./solobrew.js?v=20261119n";
+import { soloOn } from "./solobrew.js?v=20261119p";
 import { azToday } from "./collect.js?v=20261119b";
 import { newsPage, shownNews } from "./news.js?v=20261119b";
-import { secretBanner } from "./secret.js?v=20261119n";
-import { p120On, p60On } from "./party.js?v=20261119n";
+import { secretBanner } from "./secret.js?v=20261119p";
+import { p120On, p60On } from "./party.js?v=20261119p";
 
 export const MM_STEPS = {
   am: [

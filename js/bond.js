@@ -33,11 +33,11 @@ export const moodBubble = (s, goal) => { const m = bondMood(s, goal); return '<d
 
 // The friendship part of the My Companion card: hearts, Pet button, tricks
 // 🏰 Nov 19: its own little framed scroll — ruby hearts, the gold paw button, tricks on wooden plaques with Ms. Ariana's pictures
-const TRICK_PIC = { wave: "trick-wave", spin: "trick-spin", dance: "trick-dance", flip: "trick-backflip", backflip: "trick-backflip" };
+const TRICK_PIC = { wave: "trick-wave", spin: "trick-spin", dance: "trick-dance", flip: "trick-backflip", backflip: "trick-backflip", sparkle: "trick-sparkle" };
 export function bondHTML(s, name) {
   const lv = bondLevel(s), hearts = bondHearts(s), maxed = lv >= BOND_MAX, done = pettedToday(s);
   const next = BOND_UNLOCKS.find(u => u.lv > lv), tricks = tricksFor(s);
-  const tp = u => TRICK_PIC[u.id] ? '<img src="assets/ui/ck/' + TRICK_PIC[u.id] + '.webp" alt="">' : "<span>" + u.icon + "</span>";
+  const tp = u => TRICK_PIC[u.id] ? '<img src="assets/ui/ck/' + TRICK_PIC[u.id] + '.webp" alt="" onerror="this.outerHTML=\'<span>' + u.icon + '</span>\'">' : "<span>" + u.icon + "</span>";
   return '<div class="bond ckbond">' +
     '<div class="bondtitle">Friendship level <b>' + lv + "</b>" + (maxed ? " · Best friends!" : "") + "</div>" +
     '<div class="bondhearts" title="Pet your companion once a day to fill a heart">' + Array.from({ length: BOND_HEARTS }, (_, i) => '<i class="' + (maxed || i < hearts ? "on" : "") + '"><img src="assets/ui/ck/hp-heart.webp" alt=""></i>').join("") + "</div>" +

@@ -5,7 +5,7 @@
    Saved on the student: hofSeen = [record keys they've already celebrated]. Just for glory: no rewards. */
 import { esc, goalXP } from "./game.js?v=20261119b";
 import { azToday, owned, family, formOf } from "./collect.js?v=20261119b";
-import { mondayOf } from "./doors.js?v=20261119n";
+import { mondayOf } from "./doors.js?v=20261119p";
 
 const inMonth = (date, key) => String(date || "").slice(0, 7) === key;
 const isWeekend = date => { const d = new Date(date + "T12:00:00").getDay(); return d === 0 || d === 6; };
