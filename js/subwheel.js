@@ -12,7 +12,7 @@
    Student doc: wheelWin = { at, prize, sub } (teacher writes it), wheelSeen = at (the student closes the 🎉 pop-up). */
 import { esc, SEASON, weekKey, displayNames } from "./game.js?v=20261119b";
 import { subFor, SUB_NAMES } from "./teams.js?v=20261119b";
-import { addDays } from "./doors.js?v=20261119s";
+import { addDays } from "./doors.js?v=20261119t";
 import { azToday } from "./collect.js?v=20261119b";
 import { classRef, studentRef, updateDoc } from "./db.js?v=20261119b";
 

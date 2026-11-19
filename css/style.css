@@ -5374,3 +5374,4 @@ body.pjmode .pjhubcard .pjhubhint{ color:#AFC8FF !important; }
 @media (max-width:640px){ .kdgatebox.kdgate2{ top:auto; bottom:4%; transform:translateX(-50%); padding:12px 12px 14px 4px; } .kdgcap{ width:70px; margin:-30px 0 -10px; } .kdgate2 h2 span{ font-size:21px; } .kdgate2 p{ font-size:13px; } .kdgchip b{ font-size:13px; } .kdgchip img, .kdgclock{ width:30px; height:30px; } .kdtoptitle{ font-size:16px !important; } .kdti{ width:36px; } }
 @media (max-width:640px){ .kdscene.kdgate.open:has(.kdgate2){ aspect-ratio:auto; padding:34vw 10px 12px; background-position:center top !important; }
   .kdgatebox.kdgate2{ position:relative !important; left:auto !important; top:auto !important; bottom:auto !important; transform:none !important; width:auto; margin:0; } }
+.pjbi{ width:34px !important; height:34px !important; margin:-4px 0; }

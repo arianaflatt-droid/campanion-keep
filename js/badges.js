@@ -1,5 +1,5 @@
 import { owned as roomOwned, fitOf as roomFit, FIT_SLOTS, setItems as roomSet } from "./room.js?v=20261119b";
-import { presentsOpened } from "./doors.js?v=20261119s";
+import { presentsOpened } from "./doors.js?v=20261119t";
 import { PASS_THEMES, passDone } from "./pass.js?v=20261119b";
 import { shopBuys, swapBuys, outfitsOwned, cabinOwned, paintsOwned } from "./shop-data.js?v=20261119b";
 import { REGULARS as CF_REG, SPECIALS as CF_SP, keptCount as cfKept, perfectTotal as cfPerfect, monthPairs as cfPairs } from "./cafe-data.js?v=20261119b";

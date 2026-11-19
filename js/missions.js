@@ -8,8 +8,8 @@ import { azToday } from "./collect.js?v=20261119b";
 import { freshSt, planetSave, planetNow, planetCtx, filmLeft } from "./safari.js?v=20261119b";
 import { zooPicks } from "./zoo.js?v=20261119b";
 import { swapDeal } from "./spaceshop.js?v=20261119b";
-import { careDone, hasNebble } from "./petpark.js?v=20261119s";
-import { boardWaiting, boardLeft } from "./board.js?v=20261119s";
+import { careDone, hasNebble } from "./petpark.js?v=20261119t";
+import { boardWaiting, boardLeft } from "./board.js?v=20261119t";
 
 export const MISSION_BONUS = 5;
 const plOf = st => (st && st.planet) || {};
