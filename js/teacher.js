@@ -1176,16 +1176,16 @@ function viewDoors() {
 }
 /* 🔓 Nov 16 (Ms. Ariana): open LAST week's vault by hand for a student it didn't open for. Saved on the class
    (cls.vaultGift[lastWeek][studentId] = true); the student then sees "Open last week's Treasure Vault!" and opens it as usual. */
-function vaultGiftHTML(kids) {
-  const lw = addDays(weekKey(cls), -7), g = (cls.vaultGift || {})[lw] || {};
+function vaultGiftHTML(kids, wkIn, now) {
+  const lw = wkIn || addDays(weekKey(cls), -7), g = (cls.vaultGift || {})[lw] || {}, wn = now ? "this" : "last", Wn = now ? "This" : "Last";
   const given = kids.filter(x => g[x.id] && ((x.vault || {})[lw]) !== "open"), done = kids.filter(x => g[x.id] && ((x.vault || {})[lw]) === "open");
   const left = kids.filter(x => !g[x.id] && ((x.vault || {})[lw]) !== "open");
-  return '<div style="margin-top:10px;border-top:1px solid var(--line-2);padding-top:10px;"><b>\u{1F513} Open last week’s vault by hand</b> <span class="muted small">(week of ' + new Date(lw + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" }) + ")</span>" +
-    '<p class="small muted" style="margin:2px 0 6px;">For a student who earned it but whose vault didn’t open. They’ll see “Open last week’s Treasure Vault!” and get everything inside, like normal.</p>' +
-    (given.length || done.length ? '<div class="inv">' + given.map(x => "<span>\u{1F513} " + esc(x.name) + ' (waiting) <button class="wsx" data-act="vaultGift" data-sid="' + esc(x.id) + '" data-on="0" title="Take it back">×</button></span>').join("") +
+  return '<div style="margin-top:10px;border-top:1px solid var(--line-2);padding-top:10px;"><b>\u{1F513} Open ' + wn + ' week’s vault by hand</b> <span class="muted small">(week of ' + new Date(lw + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" }) + ")</span>" +
+    '<p class="small muted" style="margin:2px 0 6px;">For a student who earned it but whose vault didn’t open. They’ll see ' + (now ? "their Treasure Vault ready to open" : "“Open last week’s Treasure Vault!”") + ' and get everything inside, like normal.</p>' +
+    (given.length || done.length ? '<div class="inv">' + given.map(x => "<span>\u{1F513} " + esc(x.name) + ' (waiting) <button class="wsx" data-act="vaultGift" data-sid="' + esc(x.id) + '" data-wk="' + lw + '" data-on="0" title="Take it back">×</button></span>').join("") +
       done.map(x => "<span>✅ " + esc(x.name) + " opened it</span>").join("") + "</div>" : "") +
-    (left.length ? '<div class="row" style="gap:6px;align-items:center;margin-top:6px;"><select id="vaultGiftPick"><option value="">Pick a student…</option>' + left.map(x => '<option value="' + esc(x.id) + '">' + esc(x.name) + " (" + histWeekTotal(x, lw).toLocaleString() + " XP)</option>").join("") +
-      '</select><button class="btn small" data-act="vaultGift" data-on="1">\u{1F513} Let them open it</button></div>' : "") + "</div>";
+    (left.length ? '<div class="row" style="gap:6px;align-items:center;margin-top:6px;"><select id="vaultGiftPick"><option value="">Pick a student…</option>' + left.map(x => '<option value="' + esc(x.id) + '">' + esc(x.name) + " (" + (now ? weekTotal(x, cls) : histWeekTotal(x, lw)).toLocaleString() + " XP)</option>").join("") +
+      '</select><button class="btn small" data-act="vaultGift" data-on="1" data-wk="' + lw + '">\u{1F513} Let them open it</button></div>' : "") + "</div>";
 }
 /* ---------- Weekly Door ---------- */
 function viewWeekDoor() {
@@ -1357,20 +1357,20 @@ function talkHTML() {
 }
 function vaultWeekCard() {
   if (!cls) return "";
-  const back = Number(busy.vwBack) || 1, wk = addDays(weekKey(cls), -7 * back), kids = students.filter(x => x.companionId && !x.isTeacher);
+  const back = busy.vwBack == null ? 1 : Number(busy.vwBack), wk = addDays(weekKey(cls), -7 * back), kids = students.filter(x => x.companionId && !x.isTeacher);
   const nm = x => esc(x.fullName || x.name);
   const open = kids.filter(x => (x.vault || {})[wk] === "open"), earned = kids.filter(x => (x.vault || {})[wk] !== "open" && ((x.vault || {})[wk] === "ready" || vaultMet(x, cls, wk))), rest = kids.filter(x => !open.includes(x) && !earned.includes(x));
   const label = new Date(wk + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" }) + " \u2013 " + new Date(addDays(wk, 6) + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" });
   const list = (L, ic) => L.length ? '<div class="inv">' + L.map(x => "<span>" + ic + " " + nm(x) + "</span>").join("") + "</div>" : '<p class="muted small" style="margin:2px 0;">Nobody.</p>';
   return '<div class="card" id="vaultWeekCard"><div class="card-head"><h2>\u{1F48E} Vaults opened</h2><span class="fact">' + open.length + " of " + kids.length + "</span></div>" +
-    '<div class="row" style="gap:8px;align-items:center;margin-bottom:8px;"><button class="btn ghost small" data-act="vwWeek" data-d="1">\u25C0</button><b>' + (back === 1 ? "Last week" : back + " weeks ago") + " \u00b7 " + label + '</b>' +
-    (back > 1 ? '<button class="btn ghost small" data-act="vwWeek" data-d="-1">\u25B6</button>' : "") +
+    '<div class="row" style="gap:8px;align-items:center;margin-bottom:8px;"><button class="btn ghost small" data-act="vwWeek" data-d="1">\u25C0</button><b>' + (back === 0 ? "This week" : back === 1 ? "Last week" : back + " weeks ago") + " \u00b7 " + label + '</b>' +
+    (back > 0 ? '<button class="btn ghost small" data-act="vwWeek" data-d="-1" title="' + (back === 1 ? "This week" : "A newer week") + '">\u25B6</button>' : "") +
     (open.length ? '<button class="btn small" data-act="vwCopy" style="margin-left:auto;">\u{1F4CB} Copy names</button>' : "") + "</div>" +
     "<p style=\"margin:6px 0 2px;\"><b>\u2705 Opened their vault (" + open.length + ")</b></p>" + list(open, "\u2705") +
-    (earned.length ? "<p style=\"margin:10px 0 2px;\"><b>\u{1F31F} Earned it but haven\u2019t opened it yet (" + earned.length + ")</b>" + (back === 1 ? ' <span class="muted small">they can still open it this week</span>' : "") + "</p>" + list(earned, "\u{1F31F}") : "") +
-    '<details style="margin-top:8px;"' + (back === 1 ? " open" : "") + '><summary class="muted small">Didn\u2019t reach it (' + rest.length + ")</summary>" +
-    (back === 1 && rest.length ? '<div class="inv">' + rest.map(x => "<span>\u2022 " + nm(x) + ' <button class="btn small" data-act="vaultGift" data-on="1" data-sid="' + esc(x.id) + '" title="Let them open last week\u2019s vault">\u{1F513} Open it</button></span>').join("") + "</div>" : list(rest, "\u2022")) + "</details>" +
-    (back === 1 ? vaultGiftHTML(kids) : "") + "</div>";
+    (earned.length ? "<p style=\"margin:10px 0 2px;\"><b>\u{1F31F} Earned it but haven\u2019t opened it yet (" + earned.length + ")</b>" + (back === 1 ? ' <span class="muted small">they can still open it this week</span>' : back === 0 ? ' <span class="muted small">it\u2019s ready on their Doors tab</span>' : "") + "</p>" + list(earned, "\u{1F31F}") : "") +
+    '<details style="margin-top:8px;"' + (back <= 1 ? " open" : "") + '><summary class="muted small">' + (back === 0 ? "Haven\u2019t reached it yet" : "Didn\u2019t reach it") + " (" + rest.length + ")</summary>" +
+    (back <= 1 && rest.length ? '<div class="inv">' + rest.map(x => "<span>\u2022 " + nm(x) + ' <button class="btn small" data-act="vaultGift" data-on="1" data-sid="' + esc(x.id) + '" data-wk="' + wk + '" title="Let them open ' + (back === 0 ? "this" : "last") + ' week\u2019s vault">\u{1F513} Open it</button></span>').join("") + "</div>" : list(rest, "\u2022")) + "</details>" +
+    (back <= 1 ? vaultGiftHTML(kids, wk, back === 0) : "") + "</div>";
 }
 function portalCard() {
   if (!cls || !students.some(x => !x.isTeacher && hasSwap(x, cls))) return "";
@@ -2870,12 +2870,12 @@ document.addEventListener("click", async ev => {
     } catch (e) { flash("Couldn\u2019t save that \u2014 " + (e.code || e.message)); }
     return render(); }
   if (act === "vaultGift") {
-    const lw = addDays(weekKey(cls), -7), on = el.dataset.on === "1", sid = el.dataset.sid || (document.getElementById("vaultGiftPick") || {}).value;
+    const lw = el.dataset.wk || addDays(weekKey(cls), -7), now = lw === weekKey(cls), on = el.dataset.on === "1", sid = el.dataset.sid || (document.getElementById("vaultGiftPick") || {}).value;
     if (!sid) { flash("Pick a student first."); return; }
     const who = (sOf(sid) || {}).name || "that student";
     try { await updateDoc(classRef, { ["vaultGift." + lw + "." + sid]: on ? true : deleteField() });
       cls.vaultGift = Object.assign({}, cls.vaultGift || {}); cls.vaultGift[lw] = Object.assign({}, cls.vaultGift[lw] || {}); if (on) cls.vaultGift[lw][sid] = true; else delete cls.vaultGift[lw][sid];
-      flash(on ? "\u{1F513} Saved — " + who + " can open last week’s Treasure Vault now (it’s on their Doors tab)." : "Saved — taken back for " + who + ".");
+      flash(on ? "\u{1F513} Saved — " + who + " can open " + (now ? "this" : "last") + " week’s Treasure Vault now (it’s on their Doors tab)." : "Saved — taken back for " + who + ".");
     } catch (e) { flash("Couldn’t save that — " + (e.code || e.message)); }
     return render(); }
   if (act === "ringPass") {   // 🔁 Nov 13: rings changed mid-week → vault + Kingdom need only the XP goal this week
@@ -3222,7 +3222,7 @@ document.addEventListener("click", async ev => {
     try { await updateDoc(classRef, { planetOn: on }); cls.planetOn = on; flash(on ? "Saved \u2014 \u{1F680} Planet JP is on! The launch bar shows on school days." : "Saved \u2014 Planet JP is off.", true); } catch (e) { flash("Couldn\u2019t save \u2014 " + (e.code || e.message)); }
     render(); return;
   }
-  if (act === "vwWeek") { busy.vwBack = Math.max(1, Math.min(12, (Number(busy.vwBack) || 1) + Number(el.dataset.d))); return render(); }
+  if (act === "vwWeek") { busy.vwBack = Math.max(0, Math.min(12, (busy.vwBack == null ? 1 : Number(busy.vwBack)) + Number(el.dataset.d))); return render(); }   // Nov 19: 0 = this week
   if (act === "vwCopy") { const wk = addDays(weekKey(cls), -7 * (Number(busy.vwBack) || 1));
     const txt = students.filter(x => x.companionId && !x.isTeacher && (x.vault || {})[wk] === "open").map(x => x.fullName || x.name).join("\n");
     try { await navigator.clipboard.writeText(txt); el.textContent = "Copied!"; setTimeout(render, 1400); } catch (e) { prompt("Copy these names:", txt); } return; }
