@@ -14,8 +14,8 @@
    One save per clam, per dive, per trip and per buy (a buy also saves roomOwned or outfits). Games run in their own layer. */
 import { esc, weekKey } from "./game.js?v=20261119b";
 import { azToday, azNow } from "./collect.js?v=20261119b";
-import { vaultMet, vaultGoal, subReq, addDays } from "./doors.js?v=20261119q";
-import { axoDay } from "./axolotl.js?v=20261119q";
+import { vaultMet, vaultGoal, subReq, addDays } from "./doors.js?v=20261119s";
+import { axoDay } from "./axolotl.js?v=20261119s";
 import { pjBreakDay } from "./safari.js?v=20261119b";
 import { guide as guide2, bind as bind2, KEEP2, kd2On, rankChip, rankOf as rankOf2, map2HTML, questsHTML, questsWaiting, aquariumHTML, gardenHTML, dockHTML, stableHTML, shipHTML, shipOpen, hatchHTML, beachHTML, townHTML, rankUpHTML, catchCreature, pickCreature, keepCreature, aqImg, AQSZ, catchCard, subSprite, subImg, trailHTML, resetViews, arenaHTML, cityHTML, statueHTML } from "./kingdom2.js?v=20261119b";
 
@@ -507,8 +507,14 @@ export function kingdomTab(st, cls) {
   if (!kdUnlocked(st, cls) && !(C && C.preview)) return gateHTML(st, cls);   // a Preview (View as student) can always go in, so Ms. Ariana can try it
   const k = kdOf(st, cls);
   if (!k.t) return '<div class="kdscene kdgate open" style="background-image:url(' + K + 'kingdom-gate.webp)"><div class="kdbubbles">' + Array.from({ length: 14 }, (_, i) => '<i style="left:' + (8 + i * 6.5) + "%;animation-delay:" + (i % 5) * 0.3 + 's"></i>').join("") + "</div>" +
-    '<div class="kdgatebox"><h2>\u{1F389} The gate is open!</h2><p>You reached your weekly XP and closed all your rings. Captain Duck’s submarine is ready to take you down to the <b>Axolotl Kingdom</b>!</p><p class="small">This week’s game: <b>' + GAMES[tripGame(cls)].icon + " " + GAMES[tripGame(cls)].name + "</b> (up to " + TRIP_MAX + " pearls). The Kingdom is open until Sunday at 10 pm.</p>" +
-    '<button class="btn gold big" data-kd="board">\u{1F986} Board the submarine!</button></div></div>';
+    // 🐚 Nov 19: the gate sign is an undersea plaque with Captain Duck, the week's game picture and real pearls
+    (() => { const G = GAMES[tripGame(cls)], GP = { bubble: "mg-bubble", jelly: "dive-jelly", claw: "mg-claw", cave: "mg-glowfish" }[G.k];
+      return '<div class="kdgatebox kdgate2"><img class="kdgcap" src="' + K + 'captain-wave.webp" alt=""><div class="kdgtxt"><h2><span>The gate is open!</span></h2>' +
+        '<p>You reached your weekly XP and closed all your rings. Captain Duck’s submarine is ready to take you down to the <b>Axolotl Kingdom</b>!</p>' +
+        '<div class="kdgchips"><span class="kdgchip">' + (GP ? '<img src="' + K + GP + '.webp" alt="">' : G.icon) + '<span><small>This week’s game</small><b>' + esc(G.name) + '</b></span></span>' +
+        '<span class="kdgchip"><img src="' + K + 'pearl.webp" alt=""><span><small>Win up to</small><b>' + TRIP_MAX + ' pearls</b></span></span>' +
+        '<span class="kdgchip"><span class="kdgclock">\u{1F552}</span><span><small>Open until</small><b>Sunday 10 pm</b></span></span></div>' +
+        '<button class="btn gold big kdgboard" data-kd="board"><img src="' + K + 'duck-sub.webp" alt="">Board the submarine!</button></div></div></div>'; })();
   const back = view !== "map" ? '<div class="row" style="margin:0 0 10px;"><button class="btn ghost small" data-kd="go:map">← Kingdom map</button></div>' : "";
   const head = '<div class="kdhead"><h2>\u{1F30A} The Axolotl Kingdom</h2>' + (on2() ? rankChip(st) : "") + '<span class="fact">⚪ ' + (Number(k.p) || 0) + " pearls · \u{1F9F0} " + treasureCount(st) + " treasures</span></div>";
   if (on2()) {   // 🌊 part 2 (Nov 15)

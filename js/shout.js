@@ -9,10 +9,10 @@
    which every screen already watches: no new reads. Names shown are display names only (first name + last initial). */
 import { esc, simulate, weekKey } from "./game.js?v=20261119b";
 import { azToday } from "./collect.js?v=20261119b";
-import { addDays, mondayOf } from "./doors.js?v=20261119q";
-import { dailyPool } from "./wheel.js?v=20261119q";
-import { phase } from "./planet.js?v=20261119q";
-import { kdOn, kdUnlocked } from "./kingdom.js?v=20261119q";
+import { addDays, mondayOf } from "./doors.js?v=20261119s";
+import { dailyPool } from "./wheel.js?v=20261119s";
+import { phase } from "./planet.js?v=20261119s";
+import { kdOn, kdUnlocked } from "./kingdom.js?v=20261119s";
 
 const DUCK = "assets/lvlup/duck.webp";
 let ctx = {}, root = null, shownId = "", mode = null, off = {}, mDraft = { n: "", w: "" };

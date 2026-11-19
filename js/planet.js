@@ -9,19 +9,19 @@
    Pictures live in assets/planet/ — until one is uploaded (ART below) the stand-in drawing is used. */
 import { esc, weekKey } from "./game.js?v=20261119b";
 import { azToday, azNow } from "./collect.js?v=20261119b";
-import { axoDay, schoolDayFor } from "./axolotl.js?v=20261119q";
-import { addDays, todayPlan, weekTotal, histWeekTotal } from "./doors.js?v=20261119q";
+import { axoDay, schoolDayFor } from "./axolotl.js?v=20261119s";
+import { addDays, todayPlan, weekTotal, histWeekTotal } from "./doors.js?v=20261119s";
 import { GAMES, gameOfDay, gameByKey, play, preload } from "./spacegames.js?v=20261119b";
 import { setHitCheck, afterOn, PJ_AFTER, PJ_AFTER_END, pjCloseAt, pjAfterAt, pjClock } from "./safari.js?v=20261119b";
 import { ZONES, safariSync, freshSt, albumHTML, filmLeft, pageCount, pageSize, aliensFound, zoneAliens, FREE_FILM, ROLL_COST, shopHTML, netsOf, NETS, netImg, pjWindow, classOpenAll, PJ_LATE, pjBreakDay, pjBreakXP } from "./safari.js?v=20261119b";
 import { cafeHTML } from "./cafe.js?v=20261119b";
 import { shopPageHTML } from "./spaceshop.js?v=20261119b";
 import { hangarHTML } from "./hangar.js?v=20261119b";
-import { stationHTML, stationAdminLine, doubleWaiting } from "./station.js?v=20261119q";
+import { stationHTML, stationAdminLine, doubleWaiting } from "./station.js?v=20261119s";
 import { zooHTML } from "./zoo.js?v=20261119b";
 import { adoptHTML, PP as NEB_PP } from "./pets.js?v=20261119b";
-import { parkHTML } from "./petpark.js?v=20261119q";
-import { missionsHTML, placeBang } from "./missions.js?v=20261119q";
+import { parkHTML } from "./petpark.js?v=20261119s";
+import { missionsHTML, placeBang } from "./missions.js?v=20261119s";
 import { duckImgOf, flameFxOf, trailOf } from "./shop-data.js?v=20261119b";
 
 export const PJ_OPEN = 11 * 60, PJ_CLOSE = 12 * 60 + 55;   // minutes after midnight, Arizona time
@@ -411,7 +411,7 @@ function hubHTML(st, n) {
   return h + "</div></div>";
 }
 import { arianaHTML, arianaToday } from "./ariana.js?v=20261119b";
-import { boardHTML } from "./board.js?v=20261119q";
+import { boardHTML } from "./board.js?v=20261119s";
 import { moonHTML } from "./moon.js?v=20261119b";
 // 👽 Nov 12: every Planet JP page gets the hidden Alien Ms. Ariana check at the end
 // ◀ ▶ between the zones (locked zones show how many launches they need)
@@ -460,8 +460,12 @@ function planetTab0(st, cls, students, petOf, preview) {
   }
   const next = ZONES.find(x => n < x.at);
   // 🗺️ The Planet JP hub (Nov 8): one big picture of the landing area. Tap a place to go there.
-  h += '<div class="card pjhubcard"><div class="card-head"><h2>\u{1F5FA}\uFE0F Planet JP</h2><span class="fact">' + ZONES.filter(x => n >= x.at).length + " of " + ZONES.length + " zones open</span></div>" +
-    (next ? '<p class="lede" style="font-size:14px;margin:0 0 8px;">Tap a place to go there! Next zone: <b>' + next.icon + " " + esc(next.name) + "</b> in " + (next.at - n) + " more launch" + (next.at - n === 1 ? "" : "es") + ".</p>" : '<p class="lede" style="margin:0 0 8px;">Tap a place to go there! \u{1F3C6} You unlocked every zone!</p>') +
+  // 🌌 Nov 19: a space-glass header: title, the 7 zones as glowing badges (locked ones dim), and the next-zone chip
+  const nOpen = ZONES.filter(x => n >= x.at).length;
+  h += '<div class="card pjhubcard"><div class="pjhh"><div class="pjhht"><span class="pjhhic">\u{1F52D}</span><div><h2>Explore the planet</h2><small>Tap a place on the map to go there!</small></div></div>' +
+    '<div class="pjhzones" aria-label="' + nOpen + " of " + ZONES.length + ' zones open">' + ZONES.map(x => '<span class="pjhz' + (n >= x.at ? " on" : "") + (next && x.key === next.key ? " next" : "") + '" title="' + esc(x.name) + (n >= x.at ? " · open" : " · opens at " + x.at + " launches") + '">' + (n >= x.at ? x.icon : "\u{1F512}") + "</span>").join("") +
+    '<b class="pjhcount">' + nOpen + "/" + ZONES.length + "</b></div></div>" +
+    (next ? '<p class="pjhnext">\u{1F680} Next zone: <b>' + next.icon + " " + esc(next.name) + "</b> in <b>" + (next.at - n) + "</b> more launch" + (next.at - n === 1 ? "" : "es") + "</p>" : '<p class="pjhnext">\u{1F3C6} You unlocked every zone!</p>') +
     hubHTML(st, n) + '<p class="small muted pjhubhint">\u2194\uFE0F Swipe the picture to see all of Planet JP.</p></div>';
   // the Class Colony: who landed today
   const kids = (students || []).filter(s => s.companionId && !s.isTeacher), landed = kids.filter(s => s.planet && s.planet.last === today);

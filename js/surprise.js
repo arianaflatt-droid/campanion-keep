@@ -10,7 +10,7 @@
    Confetti: a burst the first time a student opens their page after crossing halfway and the goal. Student: confSeen = { date: [..] }.
    Shout-outs: a ticker on The Keep built from today's pastes. */
 import { esc, goalXP } from "./game.js?v=20261119b";
-import { musicBtn, stopMusic } from "./party.js?v=20261119q";
+import { musicBtn, stopMusic } from "./party.js?v=20261119s";
 import { azToday, azNow, doPull, formOf, sparkleImg, FAMILIES, RARITY_COLOR } from "./collect.js?v=20261119b";
 
 export const SNACK_XP = 25, TARGET_MIN = 30, TARGET_MAX = 80, VISIT_SPARKLE = 0.05;

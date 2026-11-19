@@ -20,7 +20,7 @@
 import { esc, goalXP, companionOf, petHTML, wornItem, simulate, eventMode, seasonOf, hatHTML, randomHat, onPet, vipToday, partyHat, partyCrown, headFree } from "./game.js?v=20261119b";
 import { azToday } from "./collect.js?v=20261119b";
 import { heldWeapon } from "./quest.js?v=20261119b";
-import { tricksFor } from "./bond.js?v=20261119q";
+import { tricksFor } from "./bond.js?v=20261119s";
 
 export const PARTY_MIN = 10, PARTY_XP = 60;
 const DROP_MS = 20000, SOLO_MS = 15000, A = "assets/party/";
