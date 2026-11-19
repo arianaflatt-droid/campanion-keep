@@ -12,7 +12,7 @@ import { esc, weekKey, weekGoal } from "./game.js?v=20261119b";
 import { CLUB_ULTRA_FAMS, PJ_ULTRA_FAMS, KD_ULTRA_FAMS } from "./collect.js?v=20261119b";
 import { ULTRA_FAMS, ULTRA_DUPE, ultraLeft, owned, formOf, family, creature, statsOf, bankXP, LEVEL_XP, MAX_LEVEL } from "./collect.js?v=20261119b";
 import { doneCount, GRADES } from "./quest.js?v=20261119b";
-import { addDays, mondayOf, histWeekTotal, wkShare } from "./doors.js?v=20261119j";
+import { addDays, mondayOf, histWeekTotal, wkShare } from "./doors.js?v=20261119n";
 
 export const STREAK_DAYS = 30, WEEKS_IN_ROW = 4, WEEK_XP = 600, VAULT_ULTRA = 0.25;
 export const ULTRA_GRADES = [4, 5];

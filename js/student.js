@@ -7,44 +7,44 @@ import { EVENT_LIST, TEAM_EVENTS, eventOn, teamCard, teamOf as tevTeamOf } from 
 import { lockOf, lockScreen } from "./lock.js?v=20261119b";
 import { revengeCard, revengeSync } from "./revenge.js?v=20261119b";
 import { heistCard, heistSync } from "./heist.js?v=20261119b";
-import { ultraSync, vaultUltra } from "./ultra.js?v=20261119j";
-import { secretBanner, secretOverlay, secretOpen } from "./secret.js?v=20261119j";
+import { ultraSync, vaultUltra } from "./ultra.js?v=20261119n";
+import { secretBanner, secretOverlay, secretOpen } from "./secret.js?v=20261119n";
 import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=20261119b";
 import { kindCard, gotKindToday } from "./kindness.js?v=20261119b";
-import { partyCards, partyOverlay, partyClick, partyBusy, partyTicker, partySync } from "./party.js?v=20261119b";
+import { partyCards, partyOverlay, partyClick, partyBusy, partyTicker, partySync, albumPage, albumCount } from "./party.js?v=20261119n";
 import { kitchenCard, kitchenOverlay, kitchenClick, kitchenBusy, kitchenPointer } from "./meals.js?v=20261119b";
-import { miniCard, miniOverlay, miniClick, miniBusy, miniSync } from "./mini.js?v=20261119j";
-import { adventCard, adventSync } from "./advent.js?v=20261119j";
+import { miniCard, miniOverlay, miniClick, miniBusy, miniSync } from "./mini.js?v=20261119n";
+import { adventCard, adventSync } from "./advent.js?v=20261119n";
 import { paintCard, paintClick } from "./paint.js?v=20261119b";
-import { surpriseCards, surpriseOverlay, surpriseClick, surpriseBusy, visitorCard } from "./surprise.js?v=20261119j";
-import { hofTab, hofParty, hofClick } from "./hof.js?v=20261119j";
+import { surpriseCards, surpriseOverlay, surpriseClick, surpriseBusy, visitorCard } from "./surprise.js?v=20261119n";
+import { hofTab, hofParty, hofClick } from "./hof.js?v=20261119n";
 import { passTab, passOverlay, passClick, passBusy, passReady } from "./pass.js?v=20261119b";
-import { bondHTML, moodBubble, playTrick, burst, unlockAt } from "./bond.js?v=20261119b";
-import { morningTab, morningOverlay, morningClick, morningBusy, mqReady } from "./morning.js?v=20261119j";
+import { bondHTML, moodBubble, playTrick, burst, unlockAt } from "./bond.js?v=20261119n";
+import { morningTab, morningOverlay, morningClick, morningBusy, mqReady } from "./morning.js?v=20261119n";
 import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261119b";
 import { cardOf, sameData } from "./card.js?v=20261119b";
-import { mapOn, mapTab, mapClick, mapReady } from "./readmap.js?v=20261119j";
-import { tbCard, tbLeft } from "./teachbattle.js?v=20261119j";
-import { wheelBanner, wheelWinOverlay, wheelSeen } from "./subwheel.js?v=20261119j";
-import { axoOn, axoSync } from "./axolotl.js?v=20261119j";
-import { wheelSync } from "./wheel.js?v=20261119j";
+import { mapOn, mapTab, mapClick, mapReady } from "./readmap.js?v=20261119n";
+import { tbCard, tbLeft } from "./teachbattle.js?v=20261119n";
+import { wheelBanner, wheelWinOverlay, wheelSeen } from "./subwheel.js?v=20261119n";
+import { axoOn, axoSync } from "./axolotl.js?v=20261119n";
+import { wheelSync } from "./wheel.js?v=20261119n";
 import { showdownSync, sdPill } from "./showdown.js?v=20261119b";
-import { shoutSync } from "./shout.js?v=20261119j";
-import { newsPopSync } from "./modes.js?v=20261119j";
+import { shoutSync } from "./shout.js?v=20261119n";
+import { newsPopSync } from "./modes.js?v=20261119n";
 import { lvlSync } from "./lvlup.js?v=20261119b";
-import { kdOn, kdSync, kingdomTab, kdTodo, kdUnlocked, kdOf, kdPass } from "./kingdom.js?v=20261119j";
+import { kdOn, kdSync, kingdomTab, kdTodo, kdUnlocked, kdOf, kdPass } from "./kingdom.js?v=20261119n";
 import { clubsTab, clubsNew, doneCount, clubPageSet } from "./clubs.js?v=20261119b";
-import { planetBar, planetSync, planetBusy, planetTab, planetZone, planetZoneNow, pjOpen, planetOn, nebbleOut, rocketSync } from "./planet.js?v=20261119j";
-import { missionsHTML, missionList } from "./missions.js?v=20261119j";
+import { planetBar, planetSync, planetBusy, planetTab, planetZone, planetZoneNow, pjOpen, planetOn, nebbleOut, rocketSync } from "./planet.js?v=20261119n";
+import { missionsHTML, missionList } from "./missions.js?v=20261119n";
 import { freeOverlay, freeReady, freeDoneCard, showFree } from "./pets.js?v=20261119b";
 import { nebbleSync, nebbleCard } from "./pets.js?v=20261119b";
-import { nebbleCorner } from "./petpark.js?v=20261119j";
+import { nebbleCorner } from "./petpark.js?v=20261119n";
 import { playSync } from "./playground.js?v=20261119b";
-import { checklistTab, todoCount, markSeen, newsKey, newsRead } from "./checklist.js?v=20261119j";
+import { checklistTab, todoCount, markSeen, newsKey, newsRead } from "./checklist.js?v=20261119n";
 import { newsPage, shownNews, reactSave, pinnedNews, newsCard, likesFor } from "./news.js?v=20261119b";
 import { PREVIEW, configured, auth, googleStudentSignIn, seatInfo, googleReseat, signOut as gSignOut, SCHOOL_DOMAIN, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc as saveDoc, watchRewardPic, watchNewsPics, claimSeat, mySeat, watchCards, watchMe, saveCard, ck } from "./db.js?v=20261119b";
-import { rewardTab, rewardBadge, rgOf, rgProgress, RG_SUBS, prizeWeek, nameFromLink, prizeLinkOk } from "./weekgoal.js?v=20261119j";
-import { soloOn, soloSwap, soloCard, brewOne, freeIngredient, soloReady, soloCfg, potNaming, potNameData } from "./solobrew.js?v=20261119j";
+import { rewardTab, rewardBadge, rgOf, rgProgress, RG_SUBS, prizeWeek, nameFromLink, prizeLinkOk } from "./weekgoal.js?v=20261119n";
+import { soloOn, soloSwap, soloCard, brewOne, freeIngredient, soloReady, soloCfg, potNaming, potNameData } from "./solobrew.js?v=20261119n";
 let rpic = null, npic = null, npics = {};
 // The wheel's slices; with Solo Potion Brewing on, Free Attack becomes Free Ingredient (same slice id, so saves still pass)
 const slicesNow0 = () => soloOn(cls) ? SEASON.slices.map(x => x.id === "attack" ? Object.assign({}, x, { label: "Free Ingredient", icon: soloCfg(cls).icon, note: "A free " + (soloCfg(cls).ingFor || soloCfg(cls).one) + " ingredient!" }) : x) : SEASON.slices;
@@ -53,18 +53,18 @@ const slicesNow = () => { const L = slicesNow0(); if (!planetOn(cls)) return L; 
   return L.map(x => x.id === "nothing" && n++ === 1 ? Object.assign({}, x, { id: "dust50", label: WHEEL_DUST + " Stardust", icon: "\u2B50", note: "+" + WHEEL_DUST + " Planet JP Stardust!" }) : x); };
 // ⭐ adds Stardust to the student's Planet JP save (the whole planet object, like every Planet JP save, so nothing is lost)
 function plusDust(s, n, data) { const pl = JSON.parse(JSON.stringify(((pjFresh(s) || {}).planet) || {})); pl.dust = (Number(pl.dust) || 0) + n; pl.sv = (Number(pl.sv) || 0) + 1; data.planet = pl; }
-import { nudgeCard } from "./nudges.js?v=20261119j";
-import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261119j";
+import { nudgeCard } from "./nudges.js?v=20261119n";
+import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261119n";
 import { teacherPlayer, hasStarter, MOVES, formOf, STARTERS as CR_STARTERS, family as crFamily, creature as crCreature } from "./collect.js?v=20261119b";
 import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261119b";
-import { addDays, wkGoalOf, wkShare, ringDay, vaultMet, goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked, weekGoal, weekKey, weekTotal, weekDoorState, vaultState, vaultGoal, rewardFor, oldReady, vaultLessonsLeft, VAULT_XP, VAULT_BONUS_XP, VAULT_EGGS, VAULT_MIN, vaultMinOk, vaultNeedsMin, subReq, subReqHTML, DOOR_DUST, WEEK_DOOR_DUST, WHEEL_DUST, DOOR_OPEN_DUST, SECRET_DUST, CHECK_DUST } from "./doors.js?v=20261119j";
+import { addDays, wkGoalOf, wkShare, ringDay, vaultMet, goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked, weekGoal, weekKey, weekTotal, weekDoorState, vaultState, vaultGoal, rewardFor, oldReady, vaultLessonsLeft, VAULT_XP, VAULT_BONUS_XP, VAULT_EGGS, VAULT_MIN, vaultMinOk, vaultNeedsMin, subReq, subReqHTML, DOOR_DUST, WEEK_DOOR_DUST, WHEEL_DUST, DOOR_OPEN_DUST, SECRET_DUST, CHECK_DUST } from "./doors.js?v=20261119n";
 import { freshSt as pjFresh } from "./safari.js?v=20261119b";
 import { azToday } from "./collect.js?v=20261119b";
 import { tourSync } from "./tour.js?v=20261119b";
 import { roomHTML, FIT_SLOTS, slotKind, KIND_NAMES, KIND_ICON, EVERYDAY_PRICE, THEMED_PRICE, TROPHY_PRICE, TYPE_THEMES, SEASON_THEMES, THEME_NAMES, TROPHIES,
   itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId,
   ROOMS, EXTRA_ROOMS, ROOM_PRICE, hasRoom, roomStarters, fitIn, slotTakes, roomExtras, PET_SPOT_KEYS, petSpotLabel, petSpotOf, ACTIVITY_IDS, ACTIVITY_PRICE } from "./room.js?v=20261119b";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing, endMyBattle } from "./collector-ui.js?v=20261119j";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing, endMyBattle } from "./collector-ui.js?v=20261119n";
 
 let fxFor = null;   // the student whose companion is being drawn (for the potion glow)
 const petHTML = (c, worn, held) => { const h = petBase(c, worn, held), fx = fxFor ? potionFx(fxFor) : ""; return fx ? h.replace('class="petwrap', 'class="petwrap' + fx) : h; };
@@ -338,6 +338,20 @@ function popFollow() {
   if (P.page === "check") { tab = "check"; setTimeout(() => scrollTo({ top: 0, behavior: "smooth" }), 80); }
   else if (P.page === "vault") { tab = doorsLive(cls) ? "doors" : "pet"; setTimeout(() => { const v = document.querySelector(".vaultcard"); if (v) v.scrollIntoView({ behavior: "smooth", block: "center" }); }, 250); }
 }
+// 📁 Nov 19: cards that stay folded until the student opens them (remembered on this computer)
+const FOLD_DEF = { paint: 1, comps: 1, side: 1, rename: 1 };
+const foldOpen = k => { try { return localStorage.getItem("ck-fold-" + k) === "1"; } catch (e) { return false; } };
+function foldWrap(key, html) {
+  if (!html || html.indexOf('<div class="card') !== 0) return html;
+  const a = html.indexOf('<div class="card-head">'); if (a < 0) return html;
+  const b = html.indexOf("</div>", a); if (b < 0) return html;
+  const open = foldOpen(key), btn = '<button class="ckfoldbtn" data-ckfold="' + key + '" aria-expanded="' + open + '">' + (open ? "\u25B2 Close" : "\u25BC Open") + "</button>";
+  const head = html.slice(0, b) + btn + "</div>";
+  const card = head.replace('<div class="card', '<div data-ckfold="' + key + '" class="card ckfold' + (open ? " isopen" : ""));
+  return open ? card + html.slice(b + 6) : card + "</div>";
+}
+// 🎩 Nov 19: Ms. Ariana's pictures for the gear tiles (the companions still wear the hand-placed versions)
+const GEAR_PIC = { cap: "assets/gear/cap.webp", shades: "assets/gear/shades.webp", hat: "assets/gear/cozy-hat.webp" };
 let celebHtml = "", presHtml = "";
 function presSync(html) {
   let L = document.getElementById("presroot");
@@ -518,9 +532,10 @@ function viewMine(s) {
   const B = n => n ? ' <span class="tbadge">' + n + "</span>" : "";
   const nMq = mqReady(s, cls), nQ = readyTests(s).length, nPass = cls && cls.passOff ? 0 : passReady(s, cls), nChk = todoCount(s, cls, students, battles);
   // 🐾 Nov 19: Nebbles have their own tab at the top of My Companion (when the student has one)
-  const nebCard = nebbleCard(s, cls, nebbleOut(s, cls)) || "", hasNeb = !!(nebCard || freeDoneCard(s));
+  const nebCard = nebbleCard(s, cls, nebbleOut(s, cls)) || "", hasNeb = !!(nebCard || freeDoneCard(s)), hasAlb = albumCount(s) > 0;
+  if (tab === "album" && !hasAlb) tab = "pet";
   if (tab === "nebble" && !hasNeb) tab = "pet";
-  const GROUPS = { check: "check", news: "check", morning: "adv", quest: "adv", pass: "tro", badges: "tro", hof: "tro", room: "room", axo: "room", nebble: "pet" };
+  const GROUPS = { check: "check", news: "check", morning: "adv", quest: "adv", pass: "tro", badges: "tro", hof: "tro", room: "room", axo: "room", nebble: "pet", album: "pet" };
   const grp = GROUPS[tab] || tab; if (GROUPS[tab] && tab !== "axo") lastSub[grp] = tab;
   const firstOf = g => lastSub[g] || ({ check: "check", adv: "morning", tro: cls && cls.passOff ? "badges" : "pass", room: "room" })[g] || g;
   const TABS = [["check", "\u2705 Checklist" + B(nChk)], ["pet", "\u{1F43E} My Companion"]]
@@ -533,7 +548,7 @@ function viewMine(s) {
     TABS.map(([k, t]) => { const on = grp === k; return '<button role="tab" class="tab' + (on ? " on" : "") + '" data-tab="' + (on && tab === "axo" ? "room" : firstOf(k)) + '" aria-selected="' + on + '">' + t + "</button>"; }).join("") + "</div>";
   const SUBS = { check: [["check", "\u2705 Checklist" + B(nChk)], ["news", "\u{1F4E3} Announcements" + (newsRead(s, cls) ? "" : B(1))]],
     adv: [["morning", "\u{1F305} Morning Quests" + B(nMq)], ["quest", "\u{1F5FA}\uFE0F Quest" + B(nQ)]],
-    pet: hasNeb ? [["pet", "\u{1F43E} My Companion"], ["nebble", "\u{1F47E} Nebbles"]] : null,
+    pet: hasNeb || hasAlb ? [["pet", "\u{1F43E} My Companion"]].concat(hasNeb ? [["nebble", "\u{1F47E} Nebbles"]] : []).concat(hasAlb ? [["album", "\u{1F4D6} Party Album"]] : []) : null,
     room: axoOn(cls) ? [["room", "\u{1F6CF}\uFE0F My Room"], ["axo", "\u{1FAE7} Bubble\u2019s Baby" + (seenAxo(s) ? "" : B(1))]] : null,
     tro: (cls && cls.passOff ? [] : [["pass", "\u{1F39F}\uFE0F Season Pass" + B(nPass)]]).concat([["badges", "\u{1F3C5} Badges"], ["hof", "\u{1F3DB}\uFE0F Hall of Fame"]]) };
   if (SUBS[grp]) h += '<div class="subtabs">' + SUBS[grp].map(([k, t]) => '<button class="subtab' + (tab === k ? " on" : "") + '" data-tab="' + k + '">' + t + "</button>").join("") + "</div>";
@@ -545,6 +560,7 @@ function viewMine(s) {
     return h + kingdomTab(s, cls); }
   if (tab === "check") return h + miniCard(s, cls) + checklistTab(s, cls, students, battles) + nudgeCard(s, cls, battles, students);   // 💡 Nov 19: the nudges sit under the Checklist (only the ones its steps don\u2019t already show)   // 🎪 Nov 19: mini event card on the Checklist
   if (tab === "nebble") return h + freeDoneCard(s) + nebCard;
+  if (tab === "album") return h + albumPage(s, students);
   if (tab === "collect") return h + tbCard(s, cls, battles, cls && cls.teacher && cls.teacher.name) + collectorTab(collectorCtx(s));
   if (tab === "badges") return h + badgesTab(s, battles, cls);
   if (tab === "haunt") return h + (soloOn(cls) ? soloCard(s, cls) : battleOn(cls) ? battleCard(s, c) : "") + wheelCard(s) + shopCard(s);
@@ -588,29 +604,35 @@ function viewMine(s) {
         '<span class="hpglass"><span class="hpfill" style="width:' + pct + '%"></span><b class="hplab">' + (sim.alive ? sim.health + " / " + sim.max + " health" : "disappeared") + "</b></span></div>"; })() +
     (() => { const lv = compLevel(s), k = compKey(s), maxed = k !== "starter" && lv >= 100, f = maxed ? COMP_DAYS : compFill(s);
       return '<div style="margin-top:10px;font-weight:700;">\u2B50 Companion level ' + lv + "</div>" +
-        '<div class="compbar" title="Each day you hit ' + goal + ' XP fills one spot">' + Array.from({ length: COMP_DAYS }, (_, i) => '<i class="' + (i < f ? "on" : "") + '"></i>').join("") + "</div>" +
-        '<div class="muted small">' + (maxed ? "Max level!" : f + " / " + COMP_DAYS + " days \u00b7 hit " + goal + " XP to fill the bar and level up") + "</div>"; })() +
+        // ⭐ Nov 19: a gold bar that fills (one notch per 120 XP day), with a star at the start
+        '<div class="hptube lvtube" title="Each day you hit ' + goal + ' XP fills one notch"><span class="lvstar">\u2B50</span><span class="hpglass"><span class="hpfill lvfill" style="width:' + (f / COMP_DAYS * 100) + '%"></span>' +
+          Array.from({ length: COMP_DAYS - 1 }, (_, i) => '<i class="lvnotch" style="left:' + ((i + 1) / COMP_DAYS * 100) + '%"></i>').join("") + '<b class="hplab">' + f + " / " + COMP_DAYS + " days</b></span></div>" +
+        '<div class="muted small">' + (maxed ? "Max level!" : "Each " + goal + " XP day fills a notch. Fill the bar to level up!") + "</div>"; })() +
     bondHTML(s, s.petName || c.name) +
     '<p class="lede" style="margin-top:10px;">' + msg + "</p>" +
     (side ? '<p style="margin-top:6px;color:var(--warn);font-weight:700;">☀️ You hit ' + goal + " by lunch — your " + SIDEKICKS[side].toLowerCase() + " came to hang out!</p>" : "") +
-    '<div class="weekdots">' + DAYS.map((d, i) => {
-      const v = status[i], eh = v === "e" && hitOn(s, i, cls), k = v === "c" || eh ? "c" + (eh ? " eh" : "") : v === "e" ? "e" : rec[i] ? "m" : "";
-      return "<span><i class=\"" + k + '">' + (v === "c" || eh ? "✓" : v === "e" ? "–" : rec[i] ? "✕" : "") + "</i>" + SHORT[i] + (early[i] ? " ☀️" : "") + "</span>";
+    // 🪟 Nov 19: the school week as castle windows (lit star = 120 XP day, cracked = missed, curtain = excused, stone = still to come)
+    '<div class="ckweek"><div class="ckweekt">This week</div><div class="weekdots ckwin">' + DAYS.map((d, i) => {
+      const v = status[i], eh = v === "e" && hitOn(s, i, cls), k = v === "c" || eh ? "hit" : v === "e" ? "excused" : rec[i] ? "miss" : "future";
+      return '<span class="w-' + k + '"><img src="assets/ui/ck/day-' + k + '.webp" alt="' + k + '">' + SHORT[i] + (early[i] ? " \u2600\uFE0F" : "") + "</span>";
     }).join("") + "</div>" +
-    (haunt ? '<p style="margin-top:8px;color:#E8740C;font-weight:700;">' + S.icon + " " + candy.toLocaleString() + (S.key === "jingle" ? " present" + (candy === 1 ? "" : "s") : S.key === "frost" ? " snowflake" + (candy === 1 ? "" : "s") : S.key === "heart" ? " candy heart" + (candy === 1 ? "" : "s") : S.key === "lucky" ? " gold coin" + (candy === 1 ? "" : "s") : " piece" + (candy === 1 ? "" : "s") + " of " + S.cur) + " to spend" +
-      (candy >= CANDY_FULL ? " \u2014 your " + S.basket + " is FULL!" : " \u00b7 " + (CANDY_FULL - candy).toLocaleString() + " more to fill your " + S.basket) + "</p>" : "") +
-    '<p class="muted" style="margin-top:8px;">Streak: ' + sim.hitRun + " day" + (sim.hitRun === 1 ? "" : "s") + " · best: " + sim.bestRun + "</p></div></div>";
+    // 👛 Nov 19: the event currency in a coin purse, and a tube that fills toward the event's basket
+    (haunt ? (() => { const cp = S.key === "gobble" ? "assets/feast/ing-corn.webp" : S.key === "jingle" ? "assets/xmas/ic-present.webp" : "", bp = S.key === "gobble" ? "assets/gobble/cornucopia.webp" : "";
+      return '<div class="ckpurse"><img class="ckpursei" src="assets/ui/ck/purse.webp" alt=""><div class="ckpurset"><b>' + candy.toLocaleString() + " " + (cp ? '<img class="ckcoin" src="' + cp + '" alt="">' : S.coin) + "</b> <span>" + esc(S.cur) + ' to spend</span>' +
+        '<small class="ckbaskl">Fill your ' + esc(S.basket) + "</small><span class=\"nudge-bar ckbask\">" + '<span style="width:' + Math.min(100, candy / CANDY_FULL * 100) + '%"></span><b>' + (candy >= CANDY_FULL ? "Your " + esc(S.basket) + " is FULL!" : Math.min(candy, CANDY_FULL).toLocaleString() + " / " + CANDY_FULL.toLocaleString()) + "</b></span></div>" +
+        (bp ? '<img class="ckbaski" src="' + bp + '" alt="">' : '<span class="ckbaski emo">' + S.icon + "</span>") + "</div>"; })() : "") +
+    '<p class="ckstreak">\u{1F525} Streak: <b>' + sim.hitRun + " day" + (sim.hitRun === 1 ? "" : "s") + "</b> · best: " + sim.bestRun + "</p></div>" + "</div></div>";
 
-  h += paintCard(s, cls);
+  h += foldWrap("paint", paintCard(s, cls));
   h += '<div class="card"><div class="card-head"><h2>Gear</h2><span class="fact">one at a time</span></div><div class="gearpick">';
   // Only the gear this student has unlocked is shown (the full list got crowded)
   const myGear = GEAR.filter(g => gearInSeason(g) && sim.unlocked.includes(g.id));
-  if (vipToday(s)) h += '<div><button class="eq' + (s.vipDay.off ? "" : " on") + '" data-viphat="1" aria-label="VIP party hat"><span class="gimg" style="font-size:40px;line-height:1;display:flex;align-items:center;justify-content:center;">\u{1F389}</span></button><span class="lbl">VIP party hat</span></div>';
+  if (vipToday(s)) h += '<div><button class="eq' + (s.vipDay.off ? "" : " on") + '" data-viphat="1" aria-label="VIP party hat"><img class="gimg" src="assets/gear/vip-hat.webp" alt=""></button><span class="lbl">VIP party hat</span></div>';
   if (!myGear.length) h += '<p class="lede" style="text-align:center;grid-column:1/-1;">No gear yet! Hit ' + goal + " XP days in a row to unlock your first piece.</p>";
   myGear.forEach(g => {
     const ok = true;
     h += "<div><button class=\"eq" + (worn && worn.id === g.id ? " on" : "") + '" data-equip="' + g.id + '"' + (ok ? "" : " disabled") + ' aria-label="' + esc(g.name) + (ok ? "" : " locked") + '">' +
-      itemArt(g, "gimg") + '</button><span class="lbl">' + (ok ? esc(g.name) : g.ghost && !ghostUnlocked(cls) ? "Defeat the Ghost-olotl" : g.turkey && !turkeyUnlocked(cls) ? "Defeat the Turducken" : g.jingle && !grinchUnlocked(cls) ? "Defeat the Grinch-a-Duck" : g.frost && !yetiUnlocked(cls) ? "Defeat the Snowlotl" : g.heart && !heartUnlocked(cls) ? "Defeat the Heartbreaker-otl" : g.lucky && !luckyUnlocked(cls) ? "Defeat Lepre-quack" : g.streak + "-day streak") + "</span></div>";
+      (GEAR_PIC[g.id] ? '<img class="gimg" src="' + GEAR_PIC[g.id] + '" alt="">' : itemArt(g, "gimg")) + '</button><span class="lbl">' + (ok ? esc(g.name) : g.ghost && !ghostUnlocked(cls) ? "Defeat the Ghost-olotl" : g.turkey && !turkeyUnlocked(cls) ? "Defeat the Turducken" : g.jingle && !grinchUnlocked(cls) ? "Defeat the Grinch-a-Duck" : g.frost && !yetiUnlocked(cls) ? "Defeat the Snowlotl" : g.heart && !heartUnlocked(cls) ? "Defeat the Heartbreaker-otl" : g.lucky && !luckyUnlocked(cls) ? "Defeat Lepre-quack" : g.streak + "-day streak") + "</span></div>";
   });
   h += '</div><p class="lede" style="margin-top:12px;font-size:13.5px;text-align:center;">Hit ' + goal + " XP days in a row (and beat event bosses) to unlock more. Tap what you’re wearing to take it off.</p>";
   const myOut = OUTFITS.filter(o => (s.outfits || {})[o.id]);
@@ -635,6 +657,7 @@ function viewMine(s) {
   h += vaultMoveCard(s);
   // Companions are creatures: the starter creature, or any Legendary / level 5+ creature (no more basic companions)
   const legends = petCreatures(s), sf = starterFam(s), cur = companionOf(s);
+  const f0 = h.length;
   if (!sf) h += '<div class="card"><div class="card-head"><h2>\u{1F95A} Pick your starter creature!</h2></div><p class="lede">Your companion is becoming a creature! Go to the <b>Creature Collector</b> and pick your starter — it becomes your new companion. Your gear, name and health stay the same.</p>' +
     '<button class="btn" data-tab="collect">\u{1F95A} Go pick my starter</button></div>';
   else {
@@ -647,6 +670,8 @@ function viewMine(s) {
       "</div></div>";
   }
 
+  if (sf) h = h.slice(0, f0) + foldWrap("comps", h.slice(f0));
+  const f1 = h.length;
   h += '<div class="card"><div class="card-head"><h2>Lunch sidekick</h2></div>' +
     '<p class="lede" style="margin-bottom:12px;">Hit ' + goal + " XP before lunch and your sidekick joins you for the day. Who do you want?</p>" +
     '<div class="pickgrid" style="grid-template-columns:repeat(auto-fit,minmax(0,140px));justify-content:center;">' +
@@ -658,8 +683,11 @@ function viewMine(s) {
         '</span><span class="n">' + SIDEKICKS[k] + "</span>" + (locked ? '<span class="lbl" style="display:block;font-family:var(--mono);font-size:10px;color:var(--ink-3);">\u{1F512} Defeat the ' + (BOSS2_LIST.some(B => B.side === k) ? BOSS2_LIST.find(B => B.side === k).boss + " twice" : k === "turkey" ? "Turducken" : k === "grinch" ? "Grinch-a-Duck" : k === "yeti" ? "Snowlotl" : k === "heartotl" ? "Heartbreaker-otl" : k === "lepre" ? "Lepre-quack" : "Ghost-olotl") + "</span>" : "") + "</button>";
     }).join("") + "</div></div>";
 
+  h = h.slice(0, f1) + foldWrap("side", h.slice(f1));
+  const f2 = h.length;
   h += '<div class="card"><div class="card-head"><h2>Rename</h2></div><div class="row"><div class="field" style="flex:1;min-width:200px;"><label for="rename">Companion name</label>' +
     '<input id="rename" type="text" maxlength="22" value="' + esc(s.petName || "") + '"></div><button class="btn ghost" data-act="rename">Save name</button></div></div>';
+  h = h.slice(0, f2) + foldWrap("rename", h.slice(f2));
   return h;
 }
 
@@ -1254,6 +1282,8 @@ document.addEventListener("click", async ev => {
     if (el.dataset.bdayok === "hatch") { const b = document.querySelector('[data-cc="hatchBday"]'); if (b) b.click(); }
     return;
   }
+  { const fb = ev.target.closest("[data-ckfold]");
+    if (fb && (fb.classList.contains("ckfoldbtn") || !foldOpen(fb.dataset.ckfold))) { const k = fb.dataset.ckfold; try { localStorage.setItem("ck-fold-" + k, foldOpen(k) ? "0" : "1"); } catch (e) {} render(true); return; } }
   if ((el = ev.target.closest("[data-bparty]"))) {
     const s = students.find(x => x.id === me); if (!s) return;
     const v = el.dataset.bparty, data = {};

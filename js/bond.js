@@ -32,15 +32,18 @@ export function bondMood(s, goal, date) {
 export const moodBubble = (s, goal) => { const m = bondMood(s, goal); return '<div class="moodbub mood-' + m.key + '"><span>' + m.face + "</span> " + esc(m.text) + "</div>"; };
 
 // The friendship part of the My Companion card: hearts, Pet button, tricks
+// 🏰 Nov 19: its own little framed scroll — ruby hearts, the gold paw button, tricks on wooden plaques with Ms. Ariana's pictures
+const TRICK_PIC = { wave: "trick-wave", spin: "trick-spin", dance: "trick-dance", flip: "trick-backflip", backflip: "trick-backflip" };
 export function bondHTML(s, name) {
   const lv = bondLevel(s), hearts = bondHearts(s), maxed = lv >= BOND_MAX, done = pettedToday(s);
   const next = BOND_UNLOCKS.find(u => u.lv > lv), tricks = tricksFor(s);
-  return '<div class="bond">' +
-    '<div style="font-weight:700;">\u{1F49E} Friendship level ' + lv + (maxed ? " · Best friends!" : "") + "</div>" +
-    '<div class="bondhearts" title="Pet your companion once a day to fill a heart">' + Array.from({ length: BOND_HEARTS }, (_, i) => '<i class="' + (maxed || i < hearts ? "on" : "") + '">' + (maxed || i < hearts ? "❤️" : "\u{1F90D}") + "</i>").join("") + "</div>" +
-    '<div class="muted small">' + (maxed ? "Every trick is unlocked! Keep petting " + esc(name) + " every day." : next ? (BOND_HEARTS - hearts) + " more pet" + (BOND_HEARTS - hearts === 1 ? "" : "s") + " to level " + next.lv + ": " + next.icon + " " + esc(next.name) + " (trick)" : "") + "</div>" +
-    '<button class="btn bondpet" data-bondpet="1"' + (done ? " disabled" : "") + ">" + (done ? "✅ You pet " + esc(name) + " today" : "\u{1F43E} Pet " + esc(name)) + "</button>" +
-    (tricks.length ? '<div class="bondtricks"><span class="small muted">Tricks:</span>' + tricks.map(u => '<button class="btn ghost small" data-trick="' + u.id + '">' + u.icon + " " + esc(u.name) + "</button>").join("") + "</div>" : "") +
+  const tp = u => TRICK_PIC[u.id] ? '<img src="assets/ui/ck/' + TRICK_PIC[u.id] + '.webp" alt="">' : "<span>" + u.icon + "</span>";
+  return '<div class="bond ckbond">' +
+    '<div class="bondtitle">Friendship level <b>' + lv + "</b>" + (maxed ? " · Best friends!" : "") + "</div>" +
+    '<div class="bondhearts" title="Pet your companion once a day to fill a heart">' + Array.from({ length: BOND_HEARTS }, (_, i) => '<i class="' + (maxed || i < hearts ? "on" : "") + '"><img src="assets/ui/ck/hp-heart.webp" alt=""></i>').join("") + "</div>" +
+    '<div class="bondnext">' + (maxed ? "Every trick is unlocked! Keep petting " + esc(name) + " every day." : next ? (BOND_HEARTS - hearts) + " more pet" + (BOND_HEARTS - hearts === 1 ? "" : "s") + " to level " + next.lv + ": <b>" + esc(next.name) + "</b> (trick)" : "") + "</div>" +
+    '<button class="bondpet ckpaw' + (done ? " done" : "") + '" data-bondpet="1"' + (done ? " disabled" : "") + '><img src="assets/ui/ck/btn-paw.webp" alt=""><span>' + (done ? "\u2714 Petted today!" : "Pet " + esc(name)) + "</span></button>" +
+    (tricks.length ? '<div class="bondtricks"><span class="bondtl">Tricks</span>' + tricks.map(u => '<button class="cktrick" data-trick="' + u.id + '">' + tp(u) + "<small>" + esc(u.name) + "</small></button>").join("") + "</div>" : "") +
     "</div>";
 }
 

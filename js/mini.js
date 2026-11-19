@@ -29,9 +29,9 @@
 import { esc, HEAD_FNS, OUTFITS, candyLeft, companionOf } from "./game.js?v=20261119b";
 import { azToday, creature, FAMILIES } from "./collect.js?v=20261119b";
 import { CREATURES } from "./creatures.js?v=20261119b";
-import { xpOn } from "./surprise.js?v=20261119j";
+import { xpOn } from "./surprise.js?v=20261119n";
 import { SEASON, boostExtra } from "./game.js?v=20261119b";
-import { readingOn, readingOnBoosted } from "./readmap.js?v=20261119j";
+import { readingOn, readingOnBoosted } from "./readmap.js?v=20261119n";
 
 export const PER_TICKET = 10, OUTFIT_COST = 60;
 const typesOf = fam => { const f = FAMILIES.find(x => x.id === fam); const c = f && CREATURES.find(x => x.id === f.forms[0]); return (c && c.types) || []; };
@@ -184,7 +184,10 @@ export function miniCard(st, cls) {
   // 🏰 Nov 19: the castle look shows the event's picture in a gold frame beside the words (css: body.ck .minicard)
   return '<div class="card minicard mc-' + E.key + '">' + (E.bg ? '<img class="mcpic" src="' + E.bg + '" alt="">' : "") + '<div class="mctxt"><h3><span>' + icImg(E.icon, E) + " " + E.name + '!</span></h3><p><b>' + t + "</b> " + tixWord(E, t) +
     " · 1 " + tixWord(E, 1) + " for every " + PER_TICKET + (E.reading ? " <b>Reading</b>" : "") + " XP" + (ticketDays(st, cls).some(x => x.date !== azToday()) ? " (some are from earlier days)." : " today.") + (readX2(cls) ? " \u{1F4DA} <b>Reading XP counts double!</b>" : "") + " You have <b>" + candyLeft(st).toLocaleString() + " " + E.coin + "</b>.</p>" +
-    '<button class="btn gold" data-mini="open">' + (E.key === "tot" ? "\u{1F6AA} Go trick-or-treating!" : E.key === "fest" ? "\u{1F3A1} Go to the festival!" : E.key === "lib" ? "\u{1F56F}️ Sneak into the library!" : E.key === "leaf" ? "\u{1F342} Jump in the leaves!" : E.key === "orn" ? "\u{1F384} Hunt for ornaments!" : E.key === "aur" ? "\u{1F3D5}\uFE0F Visit the camp!" : E.key === "val" ? "\u{1F48C} Open your mail!" : E.key === "kite" ? "\u{1FA81} Fly some kites!" : "\u{1F682} Go to the station!") + "</button> " +
+    // 🏰 Nov 19: a royal gold button with the event's picture instead of an emoji
+    '<button class="btn gold mcgo" data-mini="open"><img class="mcgoic" src="' + (E.key === "orn" ? "assets/orn/orn-icon.webp" : "assets/mini/found-" + E.key + ".webp") + '" alt="" onerror="this.remove()"><span>' +
+      (E.key === "tot" ? "Go trick-or-treating!" : E.key === "fest" ? "Go to the festival!" : E.key === "lib" ? "Sneak into the library!" : E.key === "leaf" ? "Jump in the leaves!" : E.key === "orn" ? "Hunt for ornaments!" : E.key === "aur" ? "Visit the camp!" : E.key === "val" ? "Open your mail!" : E.key === "kite" ? "Fly some kites!" : "Go to the station!") +
+      '</span><b class="mcgoarr">\u27A4</b></button> ' +
     (hasShop(E) ? '<button class="btn ghost" data-mini="shop">\u{1F6CD}️ ' + (FURN[E.key] ? "Outfit & room shop" : "Outfit shop") + "</button>" : "") + "</div></div>";
 }
 

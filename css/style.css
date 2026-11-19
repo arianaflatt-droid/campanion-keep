@@ -5095,3 +5095,189 @@ body.ck .mypet .bigname span{ font-family:Lora, Georgia, serif; font-weight:700;
 body.ck .mypet .bigname{ color:transparent; text-shadow:none !important; }
 .hpheart{ width:58px; height:58px; }
 .btn.vtake{ padding:2px 8px !important; font-size:12px !important; margin-left:4px; background:#fff !important; color:#B3261E !important; border:1px solid #E5A3A0 !important; box-shadow:none !important; }
+/* 🏰 Nov 19: the mini event's "Go" button — a big royal gold button with the event picture, a red velvet edge and a shine */
+body.ck .minicard .btn.mcgo{ position:relative; overflow:hidden; display:inline-flex !important; align-items:center; gap:10px; padding:8px 18px 8px 10px !important; border-radius:16px !important;
+  background:linear-gradient(#FFF1A8, #F6C944 45%, #D99A1E) !important; color:#5A1A08 !important; font-family:Lora, Georgia, serif; font-size:clamp(16px,1.8vw,20px) !important; font-weight:800;
+  border:3px solid #8E1A24 !important; box-shadow:inset 0 0 0 2px #FFE38A, 0 5px 0 #6B1018, 0 8px 14px rgba(80,20,0,.35) !important; text-shadow:0 1px 0 rgba(255,250,220,.8); transition:transform .12s; }
+body.ck .minicard .btn.mcgo:hover{ transform:translateY(-2px) scale(1.03); }
+body.ck .minicard .btn.mcgo:active{ transform:translateY(3px); box-shadow:inset 0 0 0 2px #FFE38A, 0 2px 0 #6B1018 !important; }
+body.ck .minicard .btn.mcgo::after{ content:""; position:absolute; top:0; bottom:0; width:40%; left:-50%; background:linear-gradient(100deg, transparent, rgba(255,255,255,.7), transparent); animation:mcshine 3s ease-in-out infinite; }
+@keyframes mcshine{ 55%,100%{ left:120%; } }
+.mcgoic{ height:44px; width:auto; margin:-6px 0; filter:drop-shadow(0 2px 2px rgba(0,0,0,.35)); animation:mcbob 1.8s ease-in-out infinite; }
+@keyframes mcbob{ 50%{ transform:translateY(-3px) rotate(-4deg); } }
+.mcgoarr{ display:grid; place-items:center; width:30px; height:30px; border-radius:50%; background:#8E1A24; color:#FFE38A; font-size:15px; box-shadow:inset 0 -2px 0 rgba(0,0,0,.3); }
+@media (prefers-reduced-motion: reduce){ body.ck .minicard .btn.mcgo::after, .mcgoic{ animation:none; } }
+/* 📜 Nov 19: Ms. Ariana's medieval parchment sheet (torn edges, red & gold border, fleur corners) inside the wooden boards.
+   It's a 9-slice, so the corners keep their shape on every size of card. */
+body.ck .card.checklist, body.ck .card.minicard, body.ck .card.potion, body.ck .card:has(> .mypet), body.ck .card.olddays, body.ck .card.unwrapall,
+body.ck .card.newscard.notice, body.ck .card.spcard, body.ck .card.passcard{ isolation:isolate; }
+body.ck .card.checklist::before, body.ck .card.minicard::before, body.ck .card.potion::before, body.ck .card:has(> .mypet)::before, body.ck .card.olddays::before, body.ck .card.unwrapall::before,
+body.ck .card.newscard.notice::before, body.ck .card.spcard::before{ content:""; position:absolute; inset:-4px; z-index:-1; pointer-events:none;
+  border-style:solid; border-color:transparent; border-width:44px; border-image:url(../assets/keep/parchment-sheet.webp) 110 fill / 44px / 0 stretch; }
+body.ck .card.checklist, body.ck .card.minicard, body.ck .card.potion, body.ck .card.olddays, body.ck .card.unwrapall, body.ck .card.spcard{ background:#EAD3A2 !important; padding:28px 30px !important; }
+body.ck .card:has(> .mypet){ background:#EAD3A2 !important; }
+body.ck .card:has(> .mypet) .mypet{ background-color:transparent; }
+/* the notices on the Announcements board: the same parchment, without the wooden frame */
+body.ck .card.newscard.notice{ background:none !important; box-shadow:none !important; filter:drop-shadow(0 6px 8px rgba(50,25,5,.45)); padding:34px 34px 22px !important; }
+body.ck .card.newscard.notice::before{ inset:0; }
+/* ⭐ Nov 19: companion level bar — a gold glass tube that fills, with notches for each day */
+.lvtube{ margin-top:6px; }
+.lvstar{ position:relative; z-index:3; width:50px; margin-right:-20px; font-size:38px; line-height:50px; text-align:center; filter:drop-shadow(0 3px 3px rgba(0,0,0,.4)); }
+.lvfill{ background:url(../assets/ui/ck/fill-gold.webp) 0 50% / auto 100% repeat-x, linear-gradient(90deg,#FFE38A,#E6A92C) !important; box-shadow:inset 0 -3px 4px rgba(120,70,0,.35), 0 0 10px rgba(255,214,90,.6) !important; }
+.lvnotch{ position:absolute; top:5px; bottom:5px; width:2px; margin-left:-1px; background:rgba(255,240,200,.45); z-index:2; border-radius:2px; }
+/* 🏟️ the companion card: the castle stage picture fades softly into the parchment (no cream block) */
+body.ck .mypet, body.ck .mypet.vip{ background:none !important; isolation:isolate; }
+body.ck .mypet::before{ content:""; position:absolute; left:0; right:0; top:0; height:80cqw; z-index:-1; pointer-events:none;
+  background:url(../assets/keep/companion-stage.webp) top center / 100% auto no-repeat; -webkit-mask-image:linear-gradient(#000 60cqw, transparent 76cqw); mask-image:linear-gradient(#000 60cqw, transparent 76cqw); }
+/* 👑 VIP day: the whole castle stage still shows; the party picture is a glowing round window just behind the companion */
+body.ck .mypet.vip .stage::before{ content:""; position:absolute; left:50%; bottom:2cqw; width:62%; aspect-ratio:1.25; transform:translateX(-50%); z-index:0; border-radius:50% 50% 46% 46%;
+  background:var(--vipbg) center 35% / cover no-repeat; box-shadow:0 0 0 1cqw #F6C944, 0 0 0 1.6cqw #8A5A10, 0 0 4cqw 1cqw rgba(255,214,90,.75);
+  -webkit-mask-image:radial-gradient(ellipse at 50% 45%, #000 64%, transparent 72%); mask-image:none; animation:vipglow 3s ease-in-out infinite alternate; }
+@keyframes vipglow{ to{ box-shadow:0 0 0 1cqw #F6C944, 0 0 0 1.6cqw #8A5A10, 0 0 6cqw 2cqw rgba(255,230,120,.95); } }
+body.ck .mypet.vip .stage + .bigname, body.ck .mypet.vip .bigname{ margin-top:15cqw; }
+body.ck .mypet.vip .stage::before{ -webkit-mask-image:none; }
+/* 💡 Nov 19: the reminders under the Checklist — parchment scrolls with a picture, a gold progress tube and the wooden Go sign */
+body.ck .nudges.ckn{ gap:12px; margin-top:4px; }
+body.ck .ckn .nudge{ position:relative; isolation:isolate; border:0 !important; background:none !important; box-shadow:none !important; padding:22px 26px !important; gap:16px; filter:drop-shadow(0 6px 8px rgba(50,25,5,.4)); }
+body.ck .ckn .nudge::before{ content:""; position:absolute; inset:0; z-index:-1; border-style:solid; border-color:transparent; border-width:34px; border-image:url(../assets/keep/parchment-sheet.webp) 110 fill / 34px / 0 stretch; }
+body.ck .ckn .nudge-t{ color:#3A2410; font-size:16px; } body.ck .ckn .nudge-t b{ color:#8E1A24; } body.ck .ckn .nudge-t .muted{ color:#6B4A2A; display:block; font-size:13px; margin-top:2px; }
+.nudge-pic{ position:relative; flex:none; width:64px; height:64px; display:grid; place-items:center; border-radius:50%; background:radial-gradient(circle at 40% 35%, #FFF6D8, #F2D88A 70%, #D9A94A);
+  box-shadow:0 0 0 3px #E6A92C, 0 0 0 5px #8A5A10, 0 4px 6px rgba(0,0,0,.3); }
+.nudge-pic img{ width:78%; height:78%; object-fit:contain; filter:drop-shadow(0 2px 2px rgba(0,0,0,.3)); }
+.nudge-pic.sil img{ filter:brightness(0) opacity(.55); }
+.nudge-pic.sil b{ position:absolute; font:800 28px/1 Lora, Georgia, serif; color:#FFE38A; text-shadow:0 2px 2px #5A0810, 0 0 6px #5A0810; }
+.nudge-bar{ position:relative; display:block; height:22px; margin-top:8px; border-radius:99px; overflow:hidden; background:linear-gradient(#2E1A0A,#4E3018);
+  box-shadow:inset 0 2px 4px rgba(0,0,0,.6), 0 0 0 2px #E6A92C, 0 0 0 4px #8A5A10; max-width:380px; }
+.nudge-bar span{ position:absolute; left:0; top:0; bottom:0; border-radius:99px; background:url(../assets/ui/ck/fill-gold.webp) 0 50% / auto 100% repeat-x, linear-gradient(90deg,#FFE38A,#E6A92C); animation:sstflow 5s linear infinite; }
+.nudge-bar b{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#fff !important; font-size:12.5px; text-shadow:0 1px 2px #000, 0 0 3px #000; }
+.nudge-go{ flex:none; display:grid; place-items:center; width:92px; height:34px; padding:0 14px 0 0; border:0; cursor:pointer;
+  background:url(../assets/ui/ck/go-sign.webp) center / contain no-repeat; color:#FFF1D6; font-family:Lora, Georgia, serif; font-weight:700; font-size:17px;
+  text-shadow:0 2px 0 #5A2A08, 0 0 4px rgba(60,20,0,.7); filter:drop-shadow(0 3px 2px rgba(60,30,0,.35)); transition:transform .15s; }
+.nudge-go:hover{ transform:translateX(4px) rotate(-2deg); }
+/* 🦄 the Mystery Visitor on Announcements: parchment scroll, the creature in a gold medallion (a silhouette until caught) */
+body.ck .card.spcard.sp-visit{ border:0 !important; border-image:none !important; box-shadow:none !important; padding:30px 34px !important; gap:20px; filter:drop-shadow(0 8px 10px rgba(50,25,5,.45)); }
+body.ck .sp-visit .spimg{ width:110px; height:110px; object-fit:contain; flex:none; border-radius:50%; padding:8px; background:radial-gradient(circle at 40% 35%, #FFF6D8, #E8D0FF 70%, #B48AE6);
+  box-shadow:0 0 0 4px #E6A92C, 0 0 0 7px #8A5A10, 0 0 22px rgba(190,140,255,.7); animation:vipglow2 2.4s ease-in-out infinite alternate; }
+body.ck .sp-visit .spimg.shadow{ filter:brightness(0) opacity(.6); }
+@keyframes vipglow2{ to{ box-shadow:0 0 0 4px #E6A92C, 0 0 0 7px #8A5A10, 0 0 34px rgba(190,140,255,.95); } }
+body.ck .sp-visit h3{ font-family:Lora, Georgia, serif; color:#8E1A24 !important; font-size:22px; } body.ck .sp-visit p{ color:#3A2410 !important; font-size:16px; }
+body.ck .sp-visit .sprar{ display:inline-block; padding:1px 10px; border-radius:99px; background:#3A1A5E; color:#F0D8FF !important; font-size:12px; letter-spacing:.06em; vertical-align:middle; }
+body.ck .nbbars + .sp-visit, body.ck .sp-visit{ margin-bottom:14px; }
+/* 🖼️ the Duck Showdown / Secret Students frames: thicker so their art isn't squished */
+body.ck .nbbars .sdpill{ border-width:60px 37px 31px !important; border-image-width:60px 37px 31px !important; padding:4px 18px 6px !important; min-height:48px; }
+body.ck .nbbars .sdpill::after{ top:-60px; width:158px; height:67px; }
+body.ck .nbbars .secretbar{ border-width:55px 33px 28px !important; border-image-width:55px 33px 28px !important; padding:10px 22px 6px !important; }
+body.ck .nbbars .secretbar::after{ top:-55px; width:218px; height:78px; }
+body.ck .nbbars .secretbar.shout{ border-width:51px 30px 30px !important; border-image-width:51px 30px 30px !important; padding:12px 22px 6px !important; }
+body.ck .nbbars .secretbar.shout::after{ top:-51px; width:224px; height:80px; }
+@media (max-width:560px){ body.ck .nbbars .sdpill, body.ck .nbbars .secretbar, body.ck .nbbars .secretbar.shout{ border-width:40px 24px 20px !important; border-image-width:40px 24px 20px !important; }
+  body.ck .nbbars .sdpill::after, body.ck .nbbars .secretbar::after, body.ck .nbbars .secretbar.shout::after{ top:-40px; width:120px; height:46px; } }
+body.ck .sp-visit .spimg{ width:100%; height:100%; padding:0; background:none; box-shadow:none; border-radius:0; animation:none; }
+body.ck .sp-visit .spmed{ position:relative; flex:none; width:110px; height:110px; display:grid; place-items:center; border-radius:50%; padding:10px; box-sizing:border-box;
+  background:radial-gradient(circle at 40% 35%, #FFF6D8, #E8D0FF 70%, #B48AE6); box-shadow:0 0 0 4px #E6A92C, 0 0 0 7px #8A5A10, 0 0 22px rgba(190,140,255,.7); animation:vipglow2 2.4s ease-in-out infinite alternate; }
+body.ck .sp-visit .spmed b{ position:absolute; font:800 40px/1 Lora, Georgia, serif; color:#FFE38A; text-shadow:0 2px 3px #3A1A5E, 0 0 8px #3A1A5E; }
+body.ck .sp-visit .spimg.shadow{ filter:brightness(0) opacity(.5); }
+body.ck .newsboard .nbnone{ position:relative; isolation:isolate; background:none !important; box-shadow:none !important; padding:30px 34px !important; filter:drop-shadow(0 6px 8px rgba(50,25,5,.4)); }
+body.ck .newsboard .nbnone::before{ content:""; position:absolute; inset:0; z-index:-1; border-style:solid; border-color:transparent; border-width:34px; border-image:url(../assets/keep/parchment-sheet.webp) 110 fill / 34px / 0 stretch; }
+body.ck .mypet.vip .stage::after{ display:none; }
+/* 🎩 Nov 19: Gear tiles — each piece sits on a red velvet cushion in a gold frame; the one being worn glows */
+body.ck .gearpick{ gap:14px; }
+body.ck .gearpick > div{ display:flex; flex-direction:column; align-items:center; }
+body.ck .gearpick .eq, body.ck .qweapons .qw{ position:relative; width:78px !important; height:78px !important; border-radius:16px !important; border:0 !important; cursor:pointer;
+  background:radial-gradient(ellipse at 50% 72%, rgba(0,0,0,.25) 0 30%, transparent 32%), radial-gradient(circle at 50% 40%, #E2525A, #A11E2A 60%, #6B1018) !important;
+  box-shadow:inset 0 0 0 3px #F6C944, inset 0 0 0 5px #8A5A10, inset 0 6px 12px rgba(255,255,255,.18), 0 4px 0 #6A4208, 0 6px 10px rgba(0,0,0,.3) !important; transition:transform .15s; }
+body.ck .gearpick .eq:hover, body.ck .qweapons .qw:hover{ transform:translateY(-3px); }
+body.ck .gearpick .eq .gimg{ filter:drop-shadow(0 3px 3px rgba(0,0,0,.45)); }
+body.ck .gearpick .eq.on, body.ck .qweapons .qw.on{ box-shadow:inset 0 0 0 3px #FFF1A8, inset 0 0 0 6px #E6A92C, 0 0 0 3px #FFE38A, 0 0 18px 6px rgba(255,214,90,.85), 0 4px 0 #6A4208 !important; animation:gearglow 1.6s ease-in-out infinite alternate; }
+@keyframes gearglow{ to{ box-shadow:inset 0 0 0 3px #FFF1A8, inset 0 0 0 6px #E6A92C, 0 0 0 3px #FFE38A, 0 0 26px 10px rgba(255,230,120,.95), 0 4px 0 #6A4208; } }
+body.ck .gearpick .eq.on::after, body.ck .qweapons .qw.on::after{ content:"\2714"; position:absolute; top:-8px; right:-8px; width:24px; height:24px; border-radius:50%; display:grid; place-items:center;
+  background:#2E9E5B; color:#fff; font-size:13px; font-weight:800; box-shadow:0 0 0 2px #fff, 0 2px 3px rgba(0,0,0,.3); }
+body.ck .gearpick .lbl{ max-width:88px !important; margin-top:6px !important; padding:2px 8px; border-radius:99px; background:rgba(142,26,36,.1); color:#5A1A08 !important; font-family:Lora, Georgia, serif !important; font-weight:700; font-size:11.5px !important; }
+body.ck .qweapons{ grid-template-columns:repeat(auto-fill,minmax(96px,1fr)); gap:14px; justify-items:center; }
+body.ck .qweapons .qw{ width:92px !important; height:auto !important; min-height:92px; padding:8px 4px 6px !important; display:flex; flex-direction:column; align-items:center; gap:2px;
+  background:radial-gradient(ellipse at 50% 60%, rgba(0,0,0,.2) 0 30%, transparent 32%), radial-gradient(circle at 50% 35%, #3E7FD0, #1E4A8E 60%, #102A55) !important; }
+body.ck .qweapons .qw img{ height:56px; filter:drop-shadow(0 3px 3px rgba(0,0,0,.45)); }
+body.ck .qweapons .qw small{ color:#FFF3D0 !important; font-weight:700; font-size:11px; text-shadow:0 1px 2px #000; }
+/* 📁 Nov 19: folded cards (Paint Studio, Creature companions, Lunch sidekick, Rename): just the title bar until opened */
+.ckfold:not(.isopen){ cursor:pointer; padding-bottom:14px !important; } .ckfold:not(.isopen) .card-head{ margin-bottom:0 !important; }
+.ckfold:not(.isopen):hover{ filter:brightness(1.04); }
+.ckfoldbtn{ margin-left:auto; border:2px solid #8A5A10; border-radius:99px; padding:4px 14px; cursor:pointer; font:700 13px Lora, Georgia, serif;
+  background:linear-gradient(#FFE38A,#E6A92C); color:#3A2410; box-shadow:0 3px 0 #8A5A10; }
+.ckfold .card-head{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+/* 🐾 companion / sidekick picks: gold-framed velvet tiles like the Gear */
+body.ck .pickgrid .pick{ border:0 !important; border-radius:16px !important; background:radial-gradient(ellipse at 50% 70%, rgba(0,0,0,.2) 0 30%, transparent 32%), radial-gradient(circle at 50% 35%, #FFF6D8, #F2D88A 75%, #D9A94A) !important;
+  box-shadow:inset 0 0 0 3px #E6A92C, inset 0 0 0 5px #8A5A10, 0 4px 0 #6A4208, 0 6px 10px rgba(0,0,0,.25) !important; transition:transform .15s; }
+body.ck .pickgrid .pick:hover:not(:disabled){ transform:translateY(-3px); }
+body.ck .pickgrid .pick .n{ color:#5A1A08 !important; font-family:Lora, Georgia, serif; font-weight:700; }
+body.ck .pickgrid .pick.on{ background:radial-gradient(circle at 50% 35%, #E2525A, #A11E2A 65%, #6B1018) !important; box-shadow:inset 0 0 0 3px #FFF1A8, inset 0 0 0 6px #E6A92C, 0 0 0 3px #FFE38A, 0 0 18px 6px rgba(255,214,90,.85), 0 4px 0 #6A4208 !important; }
+body.ck .pickgrid .pick.on .n{ color:#FFF3D0 !important; text-shadow:0 1px 2px #000; }
+body.ck .pickgrid .pick:disabled{ background:radial-gradient(circle at 50% 35%, #E8E2D2, #C9BFA6) !important; }
+/* the Rename row */
+body.ck .ckfold #rename{ background:#FFF8E6; border:2px solid #B07A1A; border-radius:10px; font-family:Lora, Georgia, serif; font-size:17px; }
+body.ck .ckfold [data-act=rename]{ background:linear-gradient(#FFE38A,#E6A92C) !important; color:#3A2410 !important; border:2px solid #8A5A10 !important; box-shadow:0 3px 0 #8A5A10 !important; font-weight:800; }
+/* 🎨 Nov 19: Paint Studio — each color on a little gold-framed canvas, the price on a gold tag, Sparkle Paint shimmering */
+body.ck .paintcard .pcolor, body.ck .paintcard .paintsp{ position:relative; border:0 !important; border-radius:12px !important;
+  background:linear-gradient(#FFFBEF,#F4E6C4) !important; box-shadow:inset 0 0 0 3px #E6A92C, inset 0 0 0 5px #8A5A10, inset 0 0 0 9px #FFF6DA, 0 4px 0 #6A4208, 0 6px 10px rgba(0,0,0,.25) !important; padding:12px 8px 10px !important; }
+body.ck .paintcard .paintsp{ background:linear-gradient(110deg,#FFF3C4 20%,#FFFDF2 40%,#FFE7F6 55%,#E7F5FF 70%,#FFF3C4 90%) !important; background-size:300% 100% !important; animation:pshim 4s linear infinite; }
+@keyframes pshim{ to{ background-position:-300% 0; } }
+body.ck .paintcard .pcolor b, body.ck .paintcard .paintsp b{ font-family:Lora, Georgia, serif; color:#5A1A08; }
+body.ck .paintcard .btn.small{ background:linear-gradient(#FFE38A,#E6A92C) !important; color:#3A2410 !important; border:2px solid #8A5A10 !important; box-shadow:0 3px 0 #8A5A10 !important; font-weight:800; border-radius:8px !important;
+  clip-path:polygon(10px 0,100% 0,100% 100%,10px 100%,0 50%); padding-left:16px !important; }
+body.ck .paintcard .pown{ color:#1E7A43 !important; font-weight:800; }
+body.ck .gearpick .eq{ background:radial-gradient(circle at 50% 30%, #E2525A, #A11E2A 60%, #6B1018) !important; }
+body.ck .gearpick .eq .gimg{ width:58px !important; height:58px !important; object-fit:contain; font-size:44px !important; }
+/* 💞 Nov 19: Friendship — its own framed scroll, ruby hearts, the gold paw button, tricks on wooden plaques */
+body.ck .ckbond{ position:relative; isolation:isolate; max-width:460px; margin:14px auto 6px; padding:28px 30px 22px; background:none !important; border:0 !important; box-shadow:none !important;
+  text-align:center; filter:drop-shadow(0 6px 8px rgba(50,25,5,.4)); }
+body.ck .ckbond::before{ content:""; position:absolute; inset:0; z-index:-1; border-style:solid; border-color:transparent; border-width:34px; border-image:url(../assets/keep/parchment-sheet.webp) 110 fill / 34px / 0 stretch; }
+.bondtitle{ font:700 18px Lora, Georgia, serif; color:#5A1A08; } .bondtitle b{ color:#8E1A24; font-size:22px; }
+body.ck .ckbond .bondhearts{ display:flex; justify-content:center; gap:6px; margin:8px 0 4px; }
+body.ck .ckbond .bondhearts i{ width:40px; height:40px; } body.ck .ckbond .bondhearts img{ width:100%; height:100%; object-fit:contain; filter:grayscale(1) brightness(1.5) opacity(.45); transition:filter .3s; }
+body.ck .ckbond .bondhearts i.on img{ filter:drop-shadow(0 2px 3px rgba(120,0,0,.4)); animation:ckppop .5s both; }
+.bondnext{ font-size:13.5px; color:#6B4A2A; margin-bottom:10px; } .bondnext b{ color:#8E1A24; }
+.ckpaw{ display:inline-flex; align-items:center; gap:10px; padding:6px 22px 6px 6px; border-radius:99px; cursor:pointer; border:3px solid #8E1A24;
+  background:linear-gradient(#FFF1A8,#F6C944 45%,#D99A1E); color:#5A1A08; font:800 18px Lora, Georgia, serif; box-shadow:inset 0 0 0 2px #FFE38A, 0 5px 0 #6B1018, 0 8px 12px rgba(80,20,0,.3); transition:transform .12s; }
+.ckpaw img{ width:48px; height:48px; animation:mcbob 1.8s ease-in-out infinite; } .ckpaw:hover:not(:disabled){ transform:translateY(-2px) scale(1.03); }
+.ckpaw.done{ cursor:default; border-color:#2E9E5B; background:linear-gradient(#EAF7EE,#C9EBD3); color:#1E6A3B; box-shadow:0 3px 0 #1E7A43; } .ckpaw.done img{ animation:none; filter:saturate(.6); }
+body.ck .ckbond .bondtricks{ display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:8px; margin-top:14px; }
+.bondtl{ width:100%; font:700 13px Lora, Georgia, serif; color:#8E1A24; letter-spacing:.06em; text-transform:uppercase; }
+.cktrick{ display:flex; flex-direction:column; align-items:center; gap:2px; width:78px; padding:8px 4px 6px; cursor:pointer; border:8px solid transparent;
+  border-image:url(../assets/keep/wood-sign.webp) 80 fill / 8px / 0 stretch; background:none; transition:transform .12s; }
+.cktrick:hover{ transform:translateY(-3px) rotate(-2deg); } .cktrick img{ height:40px; filter:drop-shadow(0 2px 2px rgba(0,0,0,.4)); } .cktrick span{ font-size:30px; }
+.cktrick small{ color:#FFF3D0; font:700 12px Lora, Georgia, serif; text-shadow:0 1px 2px #000; }
+/* 🪟 the week as castle windows, in its own box */
+.ckweek{ position:relative; isolation:isolate; max-width:460px; margin:14px auto 4px; padding:22px 26px 16px; text-align:center; filter:drop-shadow(0 6px 8px rgba(50,25,5,.4)); }
+.ckweek::before{ content:""; position:absolute; inset:0; z-index:-1; border-style:solid; border-color:transparent; border-width:34px; border-image:url(../assets/keep/parchment-sheet.webp) 110 fill / 34px / 0 stretch; }
+.ckweekt{ font:700 13px Lora, Georgia, serif; color:#8E1A24; letter-spacing:.06em; text-transform:uppercase; margin-bottom:4px; }
+body.ck .weekdots.ckwin{ display:flex; justify-content:center; gap:10px; }
+body.ck .ckwin span{ display:flex; flex-direction:column; align-items:center; font:700 12px Lora, Georgia, serif; color:#5A1A08; }
+body.ck .ckwin img{ width:50px; height:58px; object-fit:contain; filter:drop-shadow(0 3px 3px rgba(0,0,0,.3)); }
+body.ck .ckwin .w-hit img{ filter:drop-shadow(0 0 8px rgba(255,214,90,.9)) drop-shadow(0 3px 3px rgba(0,0,0,.3)); }
+/* 👛 currency purse */
+.ckpurse{ display:flex; align-items:center; gap:10px; margin:12px auto 2px; max-width:440px; text-align:left; }
+.ckpursei{ width:56px; height:56px; object-fit:contain; flex:none; filter:drop-shadow(0 3px 3px rgba(0,0,0,.35)); }
+.ckpurset{ flex:1; min-width:0; } .ckpurset > b{ font:800 22px Lora, Georgia, serif; color:#8E1A24; } .ckpurset > span{ color:#5A3D1E; font-weight:700; }
+.ckcoin{ height:1.1em; vertical-align:-.2em; } .ckbask{ margin-top:4px; }
+.ckbaski{ width:58px; height:58px; object-fit:contain; flex:none; filter:drop-shadow(0 3px 3px rgba(0,0,0,.35)); } .ckbaski.emo{ font-size:40px; text-align:center; line-height:58px; }
+.ckstreak{ margin-top:10px; color:#5A3D1E; font:600 14px Lora, Georgia, serif; } .ckstreak b{ color:#B0471A; }
+/* 🎨 paint colors on Ms. Ariana's easel */
+body.ck .paintcard .pcolor{ background:url(../assets/ui/ck/easel-card.webp) center top / 100% 100% no-repeat !important; box-shadow:none !important; padding:16% 10% 30% !important; filter:drop-shadow(0 4px 4px rgba(0,0,0,.3)); }
+/* 🐾 the Nebble buddy card on the parchment */
+body.ck .card.nbbuddy{ background:#EAD3A2 !important; padding:28px 30px !important; isolation:isolate; }
+body.ck .card.nbbuddy::before{ content:""; position:absolute; inset:-4px; z-index:-1; pointer-events:none; border-style:solid; border-color:transparent; border-width:44px; border-image:url(../assets/keep/parchment-sheet.webp) 110 fill / 44px / 0 stretch; }
+body.ck .card.nbbuddy .btn.ghost{ background:linear-gradient(#FFE38A,#E6A92C) !important; color:#3A2410 !important; border:2px solid #8A5A10 !important; box-shadow:0 3px 0 #8A5A10 !important; font-weight:800; }
+/* 📖 Party Album tab */
+body.ck .card.palbpage{ background:#EAD3A2 !important; padding:28px 30px !important; isolation:isolate; }
+body.ck .card.palbpage::before{ content:""; position:absolute; inset:-4px; z-index:-1; pointer-events:none; border-style:solid; border-color:transparent; border-width:44px; border-image:url(../assets/keep/parchment-sheet.webp) 110 fill / 44px / 0 stretch; }
+body.ck .palbwall{ grid-template-columns:repeat(auto-fill,minmax(260px,1fr)) !important; gap:20px !important; max-height:none !important; overflow:visible !important; }
+body.ck .palbwall .pphoto{ transform:rotate(-1.5deg); filter:drop-shadow(0 8px 10px rgba(50,25,5,.45)); transition:transform .2s; } body.ck .palbwall .pphoto:nth-child(even){ transform:rotate(1.5deg); }
+body.ck .palbwall .pphoto:hover{ transform:scale(1.04) rotate(0); z-index:2; }
+.hubplace{ animation:none !important; }   /* Nov 19 (Ms. Ariana): Planet JP places stay still */
+body.ck .ckbond .bondhearts{ flex-wrap:nowrap; } body.ck .ckbond .bondhearts i{ display:block; flex:none; opacity:1 !important; font-size:0; }
+body.ck .ckbond .bondtitle{ margin-bottom:2px; }
+body.ck .ckbond .ckpaw{ background:linear-gradient(#FFF1A8,#F6C944 45%,#D99A1E) !important; color:#5A1A08 !important; border:3px solid #8E1A24 !important; border-radius:99px !important;
+  box-shadow:inset 0 0 0 2px #FFE38A, 0 5px 0 #6B1018, 0 8px 12px rgba(80,20,0,.3) !important; text-shadow:0 1px 0 rgba(255,250,220,.8) !important; padding:6px 22px 6px 6px !important; }
+body.ck .ckbond .ckpaw.done{ background:linear-gradient(#EAF7EE,#C9EBD3) !important; color:#1E6A3B !important; border-color:#2E9E5B !important; box-shadow:0 3px 0 #1E7A43 !important; }
+.ckbaskl{ display:block; font-size:12px; color:#6B4A2A; margin-top:2px; }
+@keyframes bheart{ 0%{ transform:scale(.3); opacity:0; } 70%{ transform:scale(1.15); } 100%{ transform:scale(1); opacity:1; } }
+body.ck .ckbond .bondhearts i.on img{ animation:bheart .5s both !important; }

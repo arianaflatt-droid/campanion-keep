@@ -12,8 +12,8 @@
    The 🐾 My Room pet corner (Phase 3) also lives here: the buddy sits on its bed in My Room (display only). */
 import { esc } from "./game.js?v=20261119b";
 import { azToday } from "./collect.js?v=20261119b";
-import { schoolDayFor } from "./axolotl.js?v=20261119j";
-import { addDays } from "./doors.js?v=20261119j";
+import { schoolDayFor } from "./axolotl.js?v=20261119n";
+import { addDays } from "./doors.js?v=20261119n";
 import { freshSt, planetSave, planetNow, planetCtx } from "./safari.js?v=20261119b";
 import { playOpen, playgroundHTML } from "./playground.js?v=20261119b";
 import { bedOf, bedWithPet, careUse } from "./nebshop.js?v=20261119b";

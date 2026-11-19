@@ -10,7 +10,7 @@
    Confetti: a burst the first time a student opens their page after crossing halfway and the goal. Student: confSeen = { date: [..] }.
    Shout-outs: a ticker on The Keep built from today's pastes. */
 import { esc, goalXP } from "./game.js?v=20261119b";
-import { musicBtn, stopMusic } from "./party.js?v=20261119b";
+import { musicBtn, stopMusic } from "./party.js?v=20261119n";
 import { azToday, azNow, doPull, formOf, sparkleImg, FAMILIES, RARITY_COLOR } from "./collect.js?v=20261119b";
 
 export const SNACK_XP = 25, TARGET_MIN = 30, TARGET_MAX = 80, VISIT_SPARKLE = 0.05;
@@ -70,8 +70,8 @@ export function surpriseCards(st, cls, petName, which) {
   let h = "";
   if (V && which !== "skip") {
     const got = visitorCaught(st, today), can = canCatch(st, cls, today);
-    h += '<div class="card spcard sp-visit"><img class="spimg' + (got || can ? "" : " shadow") + '" src="' + esc(V.img) + '" alt="">' +
-      '<div class="sptxt"><h3>\u{1F984} Mystery Visitor: ' + (got || can ? esc(V.name) : "???") + ' <span class="sprar" style="color:' + RARITY_COLOR[V.rarity] + '">' + V.rarity + "</span></h3>" +
+    h += '<div class="card spcard sp-visit"><span class="spmed"><img class="spimg' + (got || can ? "" : " shadow") + '" src="' + esc(V.img) + '" alt="">' + (got || can ? "" : "<b>?</b>") + "</span>" +
+      '<div class="sptxt"><h3>Mystery Visitor: ' + (got || can ? esc(V.name) : "???") + ' <span class="sprar" style="color:' + RARITY_COLOR[V.rarity] + '">' + V.rarity + "</span></h3>" +
       (got ? '<p>✅ You caught ' + esc(V.name) + "! A new visitor comes tomorrow.</p>"
         : can ? '<p>You hit ' + goal + ' before lunch, so you can catch it!</p><button class="btn gold" data-sp="visit">\u{1F3AF} Catch ' + esc(V.name) + "!</button>"
         : lunch ? "<p>A rare creature is visiting! Hit <b>" + goal + " XP before lunch</b> to catch it.</p>"

@@ -20,7 +20,7 @@
 import { esc, goalXP, companionOf, petHTML, wornItem, simulate, eventMode, seasonOf, hatHTML, randomHat, onPet, vipToday, partyHat, partyCrown, headFree } from "./game.js?v=20261119b";
 import { azToday } from "./collect.js?v=20261119b";
 import { heldWeapon } from "./quest.js?v=20261119b";
-import { tricksFor } from "./bond.js?v=20261119b";
+import { tricksFor } from "./bond.js?v=20261119n";
 
 export const PARTY_MIN = 10, PARTY_XP = 60;
 const DROP_MS = 20000, SOLO_MS = 15000, A = "assets/party/";
@@ -100,7 +100,7 @@ export function partyCards(st, cls) {
       "</div></div>";
   });
   const al = (st.partyAlbum || []).length;
-  if (al) h += '<div class="palbumrow"><button class="btn ghost small" data-party="album">\u{1F4D6} My Party Album (' + al + " photo" + (al === 1 ? "" : "s") + ")</button></div>";
+  // 📖 Nov 19: the album has its own tab on My Companion now (albumPage)
   return h;
 }
 
@@ -132,6 +132,13 @@ export function partyOverlay(st, cls) {
         (G.saved ? '<button class="btn big" data-party="ok">\u{1F451} Yay!</button>' : '<p class="muted">Saving…</p>');
   }
   return h + "</div></div>";
+}
+// 📖 the Party Album as a page (its own tab): photos on a parchment gallery wall
+export const albumCount = st => ((st && st.partyAlbum) || []).length;
+export function albumPage(st, students) {
+  const list = (st && st.partyAlbum || []).slice().reverse();
+  return '<div class="card palbpage"><div class="card-head"><h2>\u{1F4D6} My Party Album</h2><span class="fact">' + list.length + " photo" + (list.length === 1 ? "" : "s") + "</span></div>" +
+    (list.length ? '<div class="palbgrid palbwall">' + list.map(ph => photoHTML(ph, students || (LAST ? LAST.students : []), true)).join("") + "</div>" : '<p class="lede">No photos yet! Take a group photo at a VIP Party.</p>') + "</div>";
 }
 function albumHTML(st) {
   const list = (st && st.partyAlbum || []).slice().reverse(), all = LAST ? LAST.students : [];

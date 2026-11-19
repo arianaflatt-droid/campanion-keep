@@ -2,13 +2,13 @@
 // Each rule returns a nudge or null; the most useful few are shown (lower pri = shown first).
 import { seasonOf, dayXP, simulate, GEAR, goalXP, arr5, esc, isHaunt, battleOn, nextAttack, companionOf, bossState } from "./game.js?v=20261119b";
 import { azToday, brewLegLeft, feastLegLeft, gingerLegLeft, snowLegLeft, candyLegLeft, ghostEggLeft, BOSS2_LIST, boss2EggLeft, vaultLegLeft, pickleLeft, birthdayLeft, EVENTS, eventOpen, eventUnlocked, hasEvent, eventStreak, creature, family, azNow, pullsLeft, legendaryLeft, bankXP, LEVEL_XP, PULL_XP, hasStarter, owned, MAX_LEVEL } from "./collect.js?v=20261119b";
-import { badgeState } from "./badges.js?v=20261119j";
-import { mqReady } from "./morning.js?v=20261119j";
+import { badgeState } from "./badges.js?v=20261119n";
+import { mqReady } from "./morning.js?v=20261119n";
 import { unthanked } from "./kindness.js?v=20261119b";
-import { pettedToday } from "./bond.js?v=20261119b";
+import { pettedToday } from "./bond.js?v=20261119n";
 import { mealsReady } from "./meals.js?v=20261119b";
 import { passReady } from "./pass.js?v=20261119b";
-import { doorsLive, goldenReady, doorName } from "./doors.js?v=20261119j";
+import { doorsLive, goldenReady, doorName } from "./doors.js?v=20261119n";
 
 const MAX_SHOWN = 3;
 const WEEKDAY = { Mon: 0, Tue: 1, Wed: 2, Thu: 3, Fri: 4 };
@@ -21,7 +21,7 @@ export function nudges(st, cls, battles, students) {
   const hasToday = d != null && (arr5(st.xp, null)[d] != null || arr5(st.lunchXp, null)[d] != null);
   const today = hasToday ? dayXP(st, d) : null;
   const out = [];
-  const add = (pri, icon, html, tab, dup) => out.push({ pri, icon, html, tab, dup });   // dup = the Checklist already has a step for it
+  const add = (pri, icon, html, tab, dup, art) => out.push({ pri, icon, html, tab, dup, art });   // art = { img, sil, n, of } for the picture cards (Nov 19)   // dup = the Checklist already has a step for it
 
   if (kindN) out.push({ pri: 0, icon: "\u{1F48C}", html: "<b>" + (kindN === 1 ? "A classmate sent you a shout-out!" : kindN + " classmates sent you shout-outs!") + "</b> Read " + (kindN === 1 ? "it" : "them") + " on the Kindness Board.", tab: "pet" });
   { const n = mealsReady(st, cls); if (n) add(0, "\u{1F525}", "<b>" + (n === 1 ? "A meal is" : "Breakfast and lunch are") + " ready to cook!</b> Cook for " + pet + " in the Campfire Kitchen for a surprise boost.", "pet", 1); }
@@ -41,10 +41,10 @@ export function nudges(st, cls, battles, students) {
   if (today != null && today < goal) {
     const left = goal - today, lunchOpen = !(cls && cls.lunchBonus === false) && azNow().h < 12;
     add(sim.atRisk ? 0 : 1, sim.atRisk ? "⚠️" : "\u{1F3AF}",
-      "You’re <b>" + left.toLocaleString() + " XP" + "</b> from " + goal + " today" + (sim.atRisk ? " — hit it to heal " + pet + " back to full health!" : lunchOpen ? ". Hit it <b>before lunch</b> for a bonus egg! \u2600\uFE0F" : ". You’ve got this!"));
+      "You’re <b>" + left.toLocaleString() + " XP" + "</b> from " + goal + " today" + (sim.atRisk ? " — hit it to heal " + pet + " back to full health!" : lunchOpen ? ". Hit it <b>before lunch</b> for a bonus egg! \u2600\uFE0F" : ". You’ve got this!"), null, 1);
   } else if (today != null && today >= goal) {
     const nextEgg = PULL_XP - (today % PULL_XP);
-    add(3, "\u{1F389}", "You hit " + goal + " today! Just <b>" + nextEgg.toLocaleString() + " more XP" + "</b> earns " + (today >= PULL_XP ? "another" : "an") + " egg.");
+    add(3, "\u{1F389}", "You hit " + goal + " today! Just <b>" + nextEgg.toLocaleString() + " more XP" + "</b> earns " + (today >= PULL_XP ? "another" : "an") + " egg.", "collect", 0, { img: "assets/egg-common.webp", n: PULL_XP - nextEgg, of: PULL_XP });
   } else if (sim.atRisk) {
     add(0, "⚠️", pet + " is at half health. Hit <b>" + goal + " XP</b> today to heal it!");
   } else if (!sim.alive && sim.capeReady) {
@@ -57,7 +57,7 @@ export function nudges(st, cls, battles, students) {
   const nextGear = GEAR.filter(g => !g.ghost && !g.turkey && !g.jingle && !g.frost && !g.heart && !g.lucky && !g.months && !sim.unlocked.includes(g.id)).sort((a, b) => a.streak - b.streak)[0];
   if (nextGear && sim.alive) {
     const need = Math.max(1, nextGear.streak - sim.hitRun);
-    if (need <= 2) add(2, "\u{1F525}", "<b>" + plural(need, "more " + goal + " XP day") + "</b> in a row unlocks the <b>" + esc(nextGear.name) + "</b>!");
+    if (need <= 2) add(2, "\u{1F525}", "<b>" + plural(need, "more " + goal + " XP day") + "</b> in a row unlocks the <b>" + esc(nextGear.name) + "</b>!", "pet", 0, { img: nextGear.img || "assets/emoji/gear-" + nextGear.id + ".webp", n: nextGear.streak - need, of: nextGear.streak, streak: 1 });
   }
 
   // ---- Creature Collector ----
@@ -83,16 +83,17 @@ export function nudges(st, cls, battles, students) {
   if (hasStarter(st)) EVENTS.forEach(ev => {
     if (!eventOpen(ev, cls) || hasEvent(ev, st)) return;
     const nm = esc(creature(family(ev.fam).forms[0]).name);
-    if (eventUnlocked(ev, st, cls)) add(1, ev.icon, "<b>" + nm + " is unlocked!</b> Your next egg has a 95% chance to be it.", "collect");
-    else if (ev.boss) add(2, ev.icon, "\u{1F512} Defeat the <b>" + esc(ev.bossName) + "</b> with your class to unlock the limited <b>" + nm + "</b>!", "haunt");
-    else { const need = Math.max(1, ev.streak - eventStreak(ev, st, cls).current); add(1, ev.icon, "<b>" + plural(need, "more " + goal + " XP day") + "</b> in a row unlocks the limited <b>" + nm + "</b>!", "collect"); }
+    const evImg = creature(family(ev.fam).forms[0]).img;
+    if (eventUnlocked(ev, st, cls)) add(1, ev.icon, "<b>" + nm + " is unlocked!</b> Your next egg has a 95% chance to be it.", "collect", 0, { img: evImg });
+    else if (ev.boss) add(2, ev.icon, "\u{1F512} Defeat the <b>" + esc(ev.bossName) + "</b> with your class to unlock the limited <b>" + nm + "</b>!", "haunt", 0, { img: evImg, sil: 1 });
+    else { const need = Math.max(1, ev.streak - eventStreak(ev, st, cls).current); add(1, ev.icon, "<b>" + plural(need, "more " + goal + " XP day") + "</b> in a row unlocks the limited <b>" + nm + "</b>!", "collect", 0, { img: evImg, sil: 1, n: eventStreak(ev, st, cls).current, of: ev.streak, streak: 1 }); }
   });
 
   // ---- closest badge (kept a mystery: just the hint) ----
   const close = badgeState(st, battles, cls).filter(b => !b.have && b.n > 0 && b.goal - b.n > 0)
     .map(b => Object.assign(b, { pct: b.n / b.goal })).sort((a, b) => b.pct - a.pct)[0];
   if (close && close.pct >= 0.5) {
-    add(3, "\u{1F3C5}", "You’re <b>" + (close.goal - close.n).toLocaleString() + " away</b> from a mystery badge! <span class=\"muted\">Hint: " + esc(close.desc) + "</span>", "badges");
+    add(3, "\u{1F3C5}", "You’re <b>" + (close.goal - close.n).toLocaleString() + " away</b> from a mystery badge! <span class=\"muted\">Hint: " + esc(close.desc) + "</span>", "badges", 0, { img: close.img, sil: 1, n: close.n, of: close.goal });
   }
 
   // ---- Haunt-O-Ween / Gobble-Palooza ----
@@ -104,10 +105,16 @@ export function nudges(st, cls, battles, students) {
   return out.sort((a, b) => a.pri - b.pri).slice(0, MAX_SHOWN);
 }
 
+// 🏰 Nov 19: each reminder is a little parchment scroll: a picture (a mystery silhouette for badges and creatures not
+// earned yet), the words, a gold progress tube when there's a count, and the wooden Go sign
+const NUDGE_PIC = { "\u26A0\uFE0F": "assets/ui/ck/hp-heart.webp", "⚠️": "assets/ui/ck/hp-heart.webp", "\u{1F9B8}": "assets/emoji/gear-cape.webp", "\u{1F4AA}": "assets/emoji/gear-cape.webp",
+  "\u{1F48C}": "assets/ui/ck/shoutout.webp", "\u{1F95A}": "assets/egg-common.webp", "\u{1F389}": "assets/egg-common.webp" };
 export function nudgeCard(st, cls, battles, students) {
   const list = nudges(st, cls, battles, students).filter(n => !n.dup);   // Nov 19: shown on the Checklist, without what its steps already say
   if (!list.length) return "";
-  return '<div class="nudges" aria-live="polite">' + list.map(n =>
-    '<div class="nudge">' + '<span class="nudge-i" aria-hidden="true">' + n.icon + '</span><span class="nudge-t">' + n.html + "</span>" +
-    (n.tab ? '<button class="btn small ghost" data-tab="' + n.tab + '">Go →</button>' : "") + "</div>").join("") + "</div>";
+  return '<div class="nudges ckn" aria-live="polite">' + list.map(n => { const a = n.art || {}, img = a.img || NUDGE_PIC[n.icon];
+    const pic = img ? '<span class="nudge-pic' + (a.sil ? " sil" : "") + '"><img src="' + esc(img) + '" alt="" onerror="this.style.visibility=\'hidden\'">' + (a.sil ? "<b>?</b>" : "") + "</span>" : '<span class="nudge-i" aria-hidden="true">' + n.icon + "</span>";
+    const bar = a.of ? '<span class="nudge-bar"><span style="width:' + Math.max(4, Math.min(100, (Number(a.n) || 0) / a.of * 100)) + '%"></span><b>' + Math.min(a.n || 0, a.of).toLocaleString() + " / " + a.of.toLocaleString() + (a.streak ? " days in a row" : "") + "</b></span>" : "";
+    return '<div class="nudge">' + pic + '<span class="nudge-t">' + n.html + bar + "</span>" +
+      (n.tab ? '<button class="nudge-go" data-tab="' + n.tab + '"><span>Go</span></button>' : "") + "</div>"; }).join("") + "</div>";
 }
