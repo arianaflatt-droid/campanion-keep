@@ -16,7 +16,7 @@ import { kitchenCard, kitchenOverlay, kitchenClick, kitchenBusy, kitchenPointer 
 import { miniCard, miniOverlay, miniClick, miniBusy, miniSync } from "./mini.js?v=20261119e";
 import { adventCard, adventSync } from "./advent.js?v=20261119e";
 import { paintCard, paintClick } from "./paint.js?v=20261119b";
-import { surpriseCards, surpriseOverlay, surpriseClick, surpriseBusy } from "./surprise.js?v=20261119b";
+import { surpriseCards, surpriseOverlay, surpriseClick, surpriseBusy, visitorCard } from "./surprise.js?v=20261119e";
 import { hofTab, hofParty, hofClick } from "./hof.js?v=20261119b";
 import { passTab, passOverlay, passClick, passBusy, passReady } from "./pass.js?v=20261119b";
 import { bondHTML, moodBubble, playTrick, burst, unlockAt } from "./bond.js?v=20261119b";
@@ -389,8 +389,9 @@ function render(force) {
       if (tab === "planet" || tab === "kd") tab = "pet";
       ["kdgame", "pjroot", "kqrace", "kqbake", "kqexplore", "kqhatch"].forEach(i => { const e = document.getElementById(i); if (e) e.remove(); });
       document.body.classList.remove("kdmode", "pjmode");
-      app.innerHTML = '<div class="xrlock"><div class="xrbox"><div class="xric">⚠️</div><h2>Rewards have been removed</h2>' +
-        "<p>Rewards have been removed as your XP was removed for academic dishonesty.</p>" +
+      app.innerHTML = '<div class="xrlock"><div class="xrbox"><div class="xric">⚠️</div><h2>' + (xs.xpRemoved.why === "vault" ? "Your vault was closed again" : "Rewards have been removed") + "</h2>" +
+        (xs.xpRemoved.why === "vault" ? "<p>Your Treasure Vault opened by mistake last time, so " + "Ms. Ariana" + " closed it again and took back what was inside. Keep earning XP to open your next one!</p>"
+          : "<p>Rewards have been removed as your XP was removed for academic dishonesty.</p>") +
         '<button class="btn gold big" data-xrok="' + esc(xs.xpRemoved.id) + '">I Understand</button></div></div>';
       return; } }
   const bme = cls && students.find(x => x.id === me);
@@ -516,7 +517,10 @@ function viewMine(s) {
   if (tab === "axo") markSeen(s.id, "axo");
   const B = n => n ? ' <span class="tbadge">' + n + "</span>" : "";
   const nMq = mqReady(s, cls), nQ = readyTests(s).length, nPass = cls && cls.passOff ? 0 : passReady(s, cls), nChk = todoCount(s, cls, students, battles);
-  const GROUPS = { check: "check", news: "check", morning: "adv", quest: "adv", pass: "tro", badges: "tro", hof: "tro", room: "room", axo: "room" };
+  // 🐾 Nov 19: Nebbles have their own tab at the top of My Companion (when the student has one)
+  const nebCard = nebbleCard(s, cls, nebbleOut(s, cls)) || "", hasNeb = !!(nebCard || freeDoneCard(s));
+  if (tab === "nebble" && !hasNeb) tab = "pet";
+  const GROUPS = { check: "check", news: "check", morning: "adv", quest: "adv", pass: "tro", badges: "tro", hof: "tro", room: "room", axo: "room", nebble: "pet" };
   const grp = GROUPS[tab] || tab; if (GROUPS[tab] && tab !== "axo") lastSub[grp] = tab;
   const firstOf = g => lastSub[g] || ({ check: "check", adv: "morning", tro: cls && cls.passOff ? "badges" : "pass", room: "room" })[g] || g;
   const TABS = [["check", "\u2705 Checklist" + B(nChk)], ["pet", "\u{1F43E} My Companion"]]
@@ -529,6 +533,7 @@ function viewMine(s) {
     TABS.map(([k, t]) => { const on = grp === k; return '<button role="tab" class="tab' + (on ? " on" : "") + '" data-tab="' + (on && tab === "axo" ? "room" : firstOf(k)) + '" aria-selected="' + on + '">' + t + "</button>"; }).join("") + "</div>";
   const SUBS = { check: [["check", "\u2705 Checklist" + B(nChk)], ["news", "\u{1F4E3} Announcements" + (newsRead(s, cls) ? "" : B(1))]],
     adv: [["morning", "\u{1F305} Morning Quests" + B(nMq)], ["quest", "\u{1F5FA}\uFE0F Quest" + B(nQ)]],
+    pet: hasNeb ? [["pet", "\u{1F43E} My Companion"], ["nebble", "\u{1F47E} Nebbles"]] : null,
     room: axoOn(cls) ? [["room", "\u{1F6CF}\uFE0F My Room"], ["axo", "\u{1FAE7} Bubble\u2019s Baby" + (seenAxo(s) ? "" : B(1))]] : null,
     tro: (cls && cls.passOff ? [] : [["pass", "\u{1F39F}\uFE0F Season Pass" + B(nPass)]]).concat([["badges", "\u{1F3C5} Badges"], ["hof", "\u{1F3DB}\uFE0F Hall of Fame"]]) };
   if (SUBS[grp]) h += '<div class="subtabs">' + SUBS[grp].map(([k, t]) => '<button class="subtab' + (tab === k ? " on" : "") + '" data-tab="' + k + '">' + t + "</button>").join("") + "</div>";
@@ -538,7 +543,8 @@ function viewMine(s) {
     if (kdUnlocked(s, cls) || PREVIEW) return notYou(s) + '<div class="kdtop"><button class="pjback" data-tab="' + (kdBack || "pet") + '">\u2190 Back to my Keep</button><b class="kdtoptitle">\u{1F30A} The Axolotl Kingdom</b>' +
       '<span class="kdtoppearls">\u26AA ' + (Number(kdOf(s, cls).p) || 0).toLocaleString() + " pearls</span></div>" + kingdomTab(s, cls);
     return h + kingdomTab(s, cls); }
-  if (tab === "check") return h + checklistTab(s, cls, students, battles);
+  if (tab === "check") return h + miniCard(s, cls) + checklistTab(s, cls, students, battles) + nudgeCard(s, cls, battles, students);   // 💡 Nov 19: the nudges sit under the Checklist (only the ones its steps don\u2019t already show)   // 🎪 Nov 19: mini event card on the Checklist
+  if (tab === "nebble") return h + freeDoneCard(s) + nebCard;
   if (tab === "collect") return h + tbCard(s, cls, battles, cls && cls.teacher && cls.teacher.name) + collectorTab(collectorCtx(s));
   if (tab === "badges") return h + badgesTab(s, battles, cls);
   if (tab === "haunt") return h + (soloOn(cls) ? soloCard(s, cls) : battleOn(cls) ? battleCard(s, c) : "") + wheelCard(s) + shopCard(s);
@@ -560,16 +566,13 @@ function viewMine(s) {
       '<aside class="pjside' + (pjLogOpen ? " open" : "") + '">' + missionsHTML(s, pjOpen(s, cls) || !!PREVIEW) + "</aside></div>";
   }
   if (tab === "clubs") return h + clubsTab(s, cls);   // the axolotl draws in its own frame right under the tabs (axolotl.js)
-  h += todayCard(s, c);
+  // Nov 19 (Ms. Ariana): the "Today" card left My Companion: cooking, the vault, Morning Quests and the Season Pass are all on the Checklist
   h += adventCard(s, cls);   // 🎄 Dec 1–17 Advent Calendar (Nov 19)
-  h += freeDoneCard(s) + nebbleCard(s, cls, nebbleOut(s, cls));   // 🐾 Nebble buddy (Nov 9)
   h += revengeCard(s, cls) + heistCard(s, cls);
-  h += miniCard(s, cls);
   h += partyCards(s, cls);
-  h += surpriseCards(s, cls, s.petName || c.name);
+  h += surpriseCards(s, cls, s.petName || c.name, "skip");   // 🦄 the Mystery Visitor is on Announcements now
   h += kitchenCard(s, cls, s.petName || c.name);
-  h += nudgeCard(s, cls, battles, students);
-  h += earlierWeeksHTML(s);
+    h += earlierWeeksHTML(s);
   if (!doorsOn || vaultState(s, cls) === "ready") h += vaultCard(s);
   { const vv = vipToday(s); h += '<div class="card"><div class="mypet t-' + t.key + (vv ? ' vip" style="--vipbg:url(../assets/party/vipbg-' + (Number(vv.bg) || 1) + '.webp)' : "") + '">' + pinnedBadgeHTML(s, "mine"); }
   h += '' +
@@ -578,8 +581,10 @@ function viewMine(s) {
     '<div class="stage' + vipStage(s) + '" aria-hidden="true">' + petWithHead(s, c, worn, heldWeapon(s)) + (side ? sidekickSVG(side, true) : "") + "</div>" +
     '<div class="bigname">' + esc(s.petName || c.name) + "</div>" +
     '<div class="tspec" style="font-family:var(--mono);font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);">' + esc(c.name) + "</div>" +
-    '<span class="tbar"><span style="width:' + Math.max(0, Math.min(100, sim.health / sim.max * 100)) + '%"></span></span>' +
-    '<div style="font-family:var(--mono);font-size:13px;margin-top:6px;">' + (sim.alive ? sim.health + " / " + sim.max + " health" : "disappeared") + "</div>" +
+    // ❤️ Nov 19: the health bar is a glass tube with a heart gem (green when full, orange at half, empty when gone)
+    (() => { const pct = Math.max(0, Math.min(100, sim.health / sim.max * 100)), k = !sim.alive ? "gone" : pct >= 100 ? "full" : "half";
+      return '<div class="hptube hp-' + k + '"><img class="hpheart" src="assets/ui/ck/hp-heart.webp" alt="" onerror="this.outerHTML=\'<span class=hpemo>\u2764\uFE0F</span>\'">' +
+        '<span class="hpglass"><span class="hpfill" style="width:' + pct + '%"></span><b class="hplab">' + (sim.alive ? sim.health + " / " + sim.max + " health" : "disappeared") + "</b></span></div>"; })() +
     (() => { const lv = compLevel(s), k = compKey(s), maxed = k !== "starter" && lv >= 100, f = maxed ? COMP_DAYS : compFill(s);
       return '<div style="margin-top:10px;font-weight:700;">\u2B50 Companion level ' + lv + "</div>" +
         '<div class="compbar" title="Each day you hit ' + goal + ' XP fills one spot">' + Array.from({ length: COMP_DAYS }, (_, i) => '<i class="' + (i < f ? "on" : "") + '"></i>').join("") + "</div>" +
@@ -708,7 +713,7 @@ function emberPlace() {
 }
 const seenAxo = s => { try { return localStorage.getItem("ck-seen-" + azToday() + "-" + s.id + "-axo") === "1"; } catch (e) { return false; } };
 const lastSub = {};   // the page each combined tab was last on
-function newsTab(cls) { return newsPage(students.find(x => x.id === me) || null, cls, students, npics, PREVIEW, countdownHTML(cls) + sdPill(cls) + secretBanner(cls)); }   // 🕵️ the Secret Students news shows here too
+function newsTab(cls) { const me0 = students.find(x => x.id === me); return (me0 ? visitorCard(me0, cls) : "") + newsPage(students.find(x => x.id === me) || null, cls, students, npics, PREVIEW, countdownHTML(cls) + sdPill(cls) + secretBanner(cls)); }   // 🕵️ the Secret Students news shows here too
 // ⭐ the starred announcement, at the top of every page
 function pinnedTop(st, cls) { const n = pinnedNews(cls); if (!n || !st || tab === "news") return ""; return '<div class="newstop">' + newsCard(n, npics, likesFor(students, n.id), (st.nlike || {})[n.id] || "", !PREVIEW) + "</div>"; }
 function newsPill(st, cls) {

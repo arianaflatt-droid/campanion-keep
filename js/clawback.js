@@ -73,23 +73,8 @@ export function takeBackPlan(st, cls, date) {
   if (doorsChanged && day.g) { say.push("the Golden Present for that day"); if (day.g.r) undoPresent(st, day.g.r, d, say); delete day.g; }
   if (doorsChanged) { doors[date] = day; d.doors = doors; }
   // 2) that week's Treasure Vault, if it no longer qualifies
-  const wk = mondayOf(date), v = (st.vault || {})[wk];
-  if (v === "open" && !vaultGift(st, cls, wk) && !vaultMet(st, cls, wk)) {
-    say.push("the Treasure Vault for the week of " + wk);
-    d.vault = Object.assign({}, st.vault || {}, { [wk]: "taken" });
-    d.vaultLegEggs = Math.max(0, (Number(st.vaultLegEggs) || 0) - 1); say.push("its Sparkle Legendary egg");
-    const ul = (st.ultraLog || []).filter(x => x.why === "vault" && String(x.at || "") >= wk);
-    if (ul.length) { d.ultraEggs = Math.max(0, (Number(st.ultraEggs) || 0) - 1); say.push("its Ultra egg"); }
-    dust += WEEK_DOOR_DUST; say.push(WEEK_DOOR_DUST + " Stardust");
-    // eggs from the vault that were already hatched: take back the creature that came out of it
-    const coll = Object.assign({}, d.coll || owned(st)), isUltra = f => { const n = Number(String(f).replace("L-", "")); return /^L-/.test(f) && n >= 46 && n <= 62; };
-    const newest = test => Object.keys(coll).filter(f => coll[f] && String(coll[f].at || "") >= wk && test(f)).sort((a, b) => String(coll[b].at).localeCompare(String(coll[a].at)))[0];
-    if ((Number(st.vaultLegUsed) || 0) > d.vaultLegEggs) { const f = newest(f => /^L-/.test(f) && !isUltra(f)); if (f) { say.push("the Legendary it hatched: " + ((formOf(f, coll[f].lvl || 1) || {}).name || f)); delete coll[f]; d.coll = coll; d.vaultLegUsed = Math.max(0, (Number(st.vaultLegUsed) || 0) - 1); } }
-    if (d.ultraEggs != null && (Number(st.ultraUsed) || 0) > d.ultraEggs) { const f = newest(isUltra); if (f) { say.push("the Ultra it hatched: " + ((formOf(f, coll[f].lvl || 1) || {}).name || f)); delete coll[f]; d.coll = coll; d.ultraUsed = Math.max(0, (Number(st.ultraUsed) || 0) - 1); } }
-    if (st.weekPresent && st.weekPresent.week === wk) { say.push("its Golden Present"); undoPresent(st, st.weekPresent.r, d, say); d.weekPresent = null; }
-    if ((st.weekDoor || {})[wk]) { const w = Object.assign({}, st.weekDoor); delete w[wk]; d.weekDoor = w; }
-    if (st.kd && st.kd.g && st.kd.g[wk]) { const kd = JSON.parse(JSON.stringify(st.kd)); delete kd.g[wk]; d.kd = kd; say.push("that week’s Kingdom treasure (and 1 week off their Kingdom rank)"); }
-  }
+  const wk = mondayOf(date);
+  if (((st.vault || {})[wk]) === "open" && !vaultGift(st, cls, wk) && !vaultMet(st, cls, wk)) dust += vaultPart(st, wk, d, say);
   // the real prizes on the Prize winners list from that day's doors / that week's vault
   const log = st.spinLog || [], keep = log.filter(e => {
     const day0 = String(e.at || "").slice(0, 10);
@@ -128,6 +113,36 @@ export function takeBackPlan(st, cls, date) {
     owe -= gone.length;
     if (owe > 0) say.push(owe + " egg" + (owe === 1 ? "" : "s") + " owed (their next eggs pay it back)");
   }
+  return { say, data: d };
+}
+
+// the vault part (shared): marks the vault "taken" and takes back what was inside it. Returns the Stardust to remove.
+function vaultPart(st, wk, d, say) {
+  let dust = 0;
+    say.push("the Treasure Vault for the week of " + wk);
+    d.vault = Object.assign({}, st.vault || {}, { [wk]: "taken" });
+    d.vaultLegEggs = Math.max(0, (Number(st.vaultLegEggs) || 0) - 1); say.push("its Sparkle Legendary egg");
+    const ul = (st.ultraLog || []).filter(x => x.why === "vault" && String(x.at || "") >= wk);
+    if (ul.length) { d.ultraEggs = Math.max(0, (Number(st.ultraEggs) || 0) - 1); say.push("its Ultra egg"); }
+    dust += WEEK_DOOR_DUST; say.push(WEEK_DOOR_DUST + " Stardust");
+    // eggs from the vault that were already hatched: take back the creature that came out of it
+    const coll = Object.assign({}, d.coll || owned(st)), isUltra = f => { const n = Number(String(f).replace("L-", "")); return /^L-/.test(f) && n >= 46 && n <= 62; };
+    const newest = test => Object.keys(coll).filter(f => coll[f] && String(coll[f].at || "") >= wk && test(f)).sort((a, b) => String(coll[b].at).localeCompare(String(coll[a].at)))[0];
+    if ((Number(st.vaultLegUsed) || 0) > d.vaultLegEggs) { const f = newest(f => /^L-/.test(f) && !isUltra(f)); if (f) { say.push("the Legendary it hatched: " + ((formOf(f, coll[f].lvl || 1) || {}).name || f)); delete coll[f]; d.coll = coll; d.vaultLegUsed = Math.max(0, (Number(st.vaultLegUsed) || 0) - 1); } }
+    if (d.ultraEggs != null && (Number(st.ultraUsed) || 0) > d.ultraEggs) { const f = newest(isUltra); if (f) { say.push("the Ultra it hatched: " + ((formOf(f, coll[f].lvl || 1) || {}).name || f)); delete coll[f]; d.coll = coll; d.ultraUsed = Math.max(0, (Number(st.ultraUsed) || 0) - 1); } }
+    if (st.weekPresent && st.weekPresent.week === wk) { say.push("its Golden Present"); undoPresent(st, st.weekPresent.r, d, say); d.weekPresent = null; }
+    if ((st.weekDoor || {})[wk]) { const w = Object.assign({}, st.weekDoor); delete w[wk]; d.weekDoor = w; }
+    if (st.kd && st.kd.g && st.kd.g[wk]) { const kd = JSON.parse(JSON.stringify(st.kd)); delete kd.g[wk]; d.kd = kd; say.push("that week’s Kingdom treasure (and 1 week off their Kingdom rank)"); }
+    return dust;
+}
+// 💎 Nov 19 (Ms. Ariana): take back an opened vault by hand (Vaults opened card), even if the week still adds up
+export function vaultTakePlan(st, cls, wk) {
+  const say = [], d = {};
+  if (((st.vault || {})[wk]) !== "open") return { say, data: d };
+  const dust = vaultPart(st, wk, d, say) + (d.__dust || 0); delete d.__dust;
+  const log = st.spinLog || [], keep = log.filter(e => !(e.src === "reward" && String(e.at || "").slice(0, 10) >= wk && String(e.at || "").slice(0, 10) <= addDays(wk, 13)));
+  if (keep.length !== log.length) { d.spinLog = keep; say.push((log.length - keep.length) + " prize" + (log.length - keep.length === 1 ? "" : "s") + " from the Prize winners list"); }
+  if (dust && st.planet) { const pl = JSON.parse(JSON.stringify(st.planet)); pl.dust = Math.max(0, (Number(pl.dust) || 0) - dust); pl.sv = (Number(pl.sv) || 0) + 1; d.planet = pl; }
   return { say, data: d };
 }
 

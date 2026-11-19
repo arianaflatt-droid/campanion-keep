@@ -16,7 +16,7 @@ import { MQ_CUTOFF } from "./morning.js?v=20261119e";
 import { kindAdmin } from "./kindness.js?v=20261119b";
 import { partyAdmin, partyAction, partyBanner, partyTicker, toggleMusic, partyClick, partySync, p120On, p60On } from "./party.js?v=20261119b";
 import { miniAdmin, miniAction, miniBanner, miniSync } from "./mini.js?v=20261119e";
-import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261119b";
+import { surpriseAdmin, surpriseAction, shoutTicker, surpriseBaseFill } from "./surprise.js?v=20261119e";
 import { passAdmin } from "./pass.js?v=20261119b";
 import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf, ULTRA_FAMS, CLUB_ULTRA_FAMS } from "./collect.js?v=20261119b";
 import { watchSecret, secretRef, talkRef, watchTalk } from "./db.js?v=20261119b";
@@ -31,7 +31,7 @@ import { nebbleAdmin } from "./pets.js?v=20261119b";
 import { mapAdmin } from "./readmap.js?v=20261119b";
 import { wheelTab, wheelClick } from "./subwheel.js?v=20261119b";
 import { tbRequestsCard, tbInvite, tbToSettle } from "./teachbattle.js?v=20261119b";
-import { noteDrop, takeBackPlan, dropCard } from "./clawback.js?v=20261119b";
+import { noteDrop, takeBackPlan, dropCard, vaultTakePlan } from "./clawback.js?v=20261119e";
 import { wheelSync, dailyPool, weeklyPool, makeSpin, WS_WEEKLY, testSpin, winnerOf, wsPicked, owedList } from "./wheel.js?v=20261119b";
 import { showdownSync, openShowdown, sdState, sdLine } from "./showdown.js?v=20261119b";
 import { lvlSync, lvlCard } from "./lvlup.js?v=20261119b";
@@ -1366,7 +1366,8 @@ function vaultWeekCard() {
     '<div class="row" style="gap:8px;align-items:center;margin-bottom:8px;"><button class="btn ghost small" data-act="vwWeek" data-d="1">\u25C0</button><b>' + (back === 0 ? "This week" : back === 1 ? "Last week" : back + " weeks ago") + " \u00b7 " + label + '</b>' +
     (back > 0 ? '<button class="btn ghost small" data-act="vwWeek" data-d="-1" title="' + (back === 1 ? "This week" : "A newer week") + '">\u25B6</button>' : "") +
     (open.length ? '<button class="btn small" data-act="vwCopy" style="margin-left:auto;">\u{1F4CB} Copy names</button>' : "") + "</div>" +
-    "<p style=\"margin:6px 0 2px;\"><b>\u2705 Opened their vault (" + open.length + ")</b></p>" + list(open, "\u2705") +
+    "<p style=\"margin:6px 0 2px;\"><b>\u2705 Opened their vault (" + open.length + ")</b>" + (open.length ? ' <span class="muted small">\u21A9\uFE0F takes one back</span>' : "") + "</p>" +
+    (open.length ? '<div class="inv">' + open.map(x => "<span>\u2705 " + nm(x) + ' <button class="wsx" data-act="vaultTake" data-sid="' + esc(x.id) + '" data-wk="' + wk + '" title="Take back this vault (you\u2019ll see what comes off first)">\u21A9\uFE0F</button></span>').join("") + "</div>" : '<p class="muted small" style="margin:2px 0;">Nobody.</p>') +
     (earned.length ? "<p style=\"margin:10px 0 2px;\"><b>\u{1F31F} Earned it but haven\u2019t opened it yet (" + earned.length + ")</b>" + (back === 1 ? ' <span class="muted small">they can still open it this week</span>' : back === 0 ? ' <span class="muted small">it\u2019s ready on their Doors tab</span>' : "") + "</p>" + list(earned, "\u{1F31F}") : "") +
     '<details style="margin-top:8px;"' + (back <= 1 ? " open" : "") + '><summary class="muted small">' + (back === 0 ? "Haven\u2019t reached it yet" : "Didn\u2019t reach it") + " (" + rest.length + ")</summary>" +
     (back <= 1 && rest.length ? '<div class="inv">' + rest.map(x => "<span>\u2022 " + nm(x) + ' <button class="btn small" data-act="vaultGift" data-on="1" data-sid="' + esc(x.id) + '" data-wk="' + wk + '" title="Let them open ' + (back === 0 ? "this" : "last") + ' week\u2019s vault">\u{1F513} Open it</button></span>').join("") + "</div>" : list(rest, "\u2022")) + "</details>" +
@@ -2867,6 +2868,18 @@ document.addEventListener("click", async ev => {
     if (act === "dropTake" && plan.say.length) data.xpRemoved = { id: "xr" + Date.now().toString(36), at: new Date().toISOString(), date };
     try { await updateDoc(studentRef(st.id), data); Object.assign(st, plan.data); if (st.xpDrop) { st.xpDrop = Object.assign({}, st.xpDrop); delete st.xpDrop[date]; } if (data.xpRemoved) st.xpRemoved = data.xpRemoved;
       flash(act === "dropIgnore" ? "Okay, ignored." : plan.say.length ? "\u21A9\uFE0F Taken back from " + st.name + "." : "Okay, nothing needed to be taken back.");
+    } catch (e) { flash("Couldn\u2019t save that \u2014 " + (e.code || e.message)); }
+    return render(); }
+  // 💎 Nov 19: take back an opened vault (it shouldn't have opened): shows exactly what comes off, then one save
+  if (act === "vaultTake") {
+    const st = sOf(el.dataset.sid), wk = el.dataset.wk; if (!st || !wk) return;
+    const plan = vaultTakePlan(st, cls, wk); if (!plan.say.length) { flash("That vault isn\u2019t open."); return; }
+    if (!confirm("Take back " + st.name + "\u2019s Treasure Vault (week of " + wk + ")?\n\nThis comes off:\n\u2022 " + plan.say.join("\n\u2022 ") + "\n\nTheir vault shows as locked again, and they see a message about it next time they open the Keep.")) return;
+    const data = Object.assign({}, plan.data, { xpRemoved: { id: "xr" + Date.now().toString(36), at: new Date().toISOString(), date: wk, why: "vault" } });
+    const g = ((cls.vaultGift || {})[wk] || {})[st.id];
+    try { await updateDoc(studentRef(st.id), data); Object.assign(st, data);
+      if (g) { await updateDoc(classRef, { ["vaultGift." + wk + "." + st.id]: deleteField() }); delete cls.vaultGift[wk][st.id]; }
+      flash("\u21A9\uFE0F Took back " + st.name + "\u2019s Treasure Vault.");
     } catch (e) { flash("Couldn\u2019t save that \u2014 " + (e.code || e.message)); }
     return render(); }
   if (act === "vaultGift") {

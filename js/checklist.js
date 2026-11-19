@@ -86,7 +86,7 @@ export function steps(s, cls, students, battles) {
     add("doors", "doors", PIC(DOOR_ART[SEASON.key] || DOOR_ART.jingle), "Check your " + doorName(), n || wk ? (n ? plural(n, "present") + " to open" : "") + (n && wk ? " and " : "") + (wk ? "your Weekly Door is ready!" : "!") : "Finish a door’s task, then tap “I did it!”", !n && !wk); }
   // 7. Treasure Vault
   { const st = vaultState(s, cls), v = vaultGoal(s, cls), unit = v.sub && v.sub !== "all" ? "XP in your goal subject" : "XP";
-    add("vault", doorsLive(cls) ? "doors" : "pet", PIC("assets/vault/vault-closed.webp"), "Check your Treasure Vault",
+    add("vault", doorsLive(cls) ? "doors" : "pet", PIC("assets/vault/vault-closed.webp"), st !== "open" && v.reward && v.reward.name ? "Open your vault: " + v.reward.name : "Check your Treasure Vault",
       st === "open" ? "Opened this week ✅" : st === "ready" ? "Your vault is ready to open!" : v.n >= v.xp && v.tot >= v.min ? "Almost! Finish your " + subReq(s, cls).short.map(r => r.name + " (" + r.have + " / " + r.need + ")").join(", ") + " this week" : v.n >= v.xp ? "Goal reached! Now " + v.tot.toLocaleString() + " / " + v.min + " XP total this week to open it" : v.n.toLocaleString() + " / " + v.xp.toLocaleString() + " " + unit + " this week" + (v.reward && v.reward.name ? " for " + v.reward.name : ""),
       st === "open" || (st !== "ready" && seen(s.id, "vault"))); }
   // 8. potion cauldron

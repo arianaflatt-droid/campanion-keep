@@ -5067,3 +5067,23 @@ body.ck .solobrew .feasttable.round .ft-dish{ margin-left:0; }
 .mover .mpop .mgift{ background:#FFF8E6; border:3px solid #B07A1A; color:#3A2410; }
 .mover .mpop .mreact{ color:#8E1A24 !important; text-shadow:none !important; font-family:Lora, Georgia, serif; }
 #pjkeep .pjk{ z-index:9800; }   /* Nov 19: the launch rocket flies over the class event screens (the Class Feast is 9600) */
+/* ❤️ Nov 19: companion health bar — a gold-rimmed glass tube with a heart gem, sparkly fill, the number inside */
+.hptube{ position:relative; display:flex; align-items:center; width:min(440px,86%); margin:10px auto 4px; }
+.hpheart{ position:relative; z-index:3; width:54px; height:54px; object-fit:contain; margin-right:-22px; filter:drop-shadow(0 3px 3px rgba(0,0,0,.4)); animation:hpbeat 1.4s ease-in-out infinite; }
+.hpheart.emo{ font-size:42px; line-height:54px; text-align:center; }
+.hp-half .hpheart{ animation-duration:.8s; } .hp-gone .hpheart{ filter:grayscale(1) brightness(.8); animation:none; }
+@keyframes hpbeat{ 0%,100%{ transform:scale(1); } 15%{ transform:scale(1.14); } 30%{ transform:scale(1); } 45%{ transform:scale(1.08); } }
+.hpglass{ position:relative; flex:1; height:30px; border-radius:99px; overflow:hidden; background:linear-gradient(#2E1A0A,#4E3018);
+  box-shadow:inset 0 3px 6px rgba(0,0,0,.6), 0 0 0 3px #E6A92C, 0 0 0 5px #8A5A10, 0 4px 8px rgba(0,0,0,.3); }
+.hpglass::after{ content:""; position:absolute; left:26px; right:10px; top:4px; height:7px; border-radius:99px; background:linear-gradient(rgba(255,255,255,.6),rgba(255,255,255,0)); z-index:2; }
+.hpfill{ position:absolute; left:0; top:0; bottom:0; border-radius:99px; transition:width .8s;
+  background:url(../assets/ui/ck/fill-green.webp) 0 50% / auto 100% repeat-x, linear-gradient(90deg,#4CD07A,#22A85A); box-shadow:inset 0 -3px 4px rgba(0,60,20,.35), 0 0 10px rgba(90,230,140,.6); animation:sstflow 5s linear infinite; }
+.hp-half .hpfill{ background:url(../assets/ui/ck/fill-orange.webp) 0 50% / auto 100% repeat-x, linear-gradient(90deg,#FFB547,#FF6A3D); box-shadow:inset 0 -3px 4px rgba(120,40,0,.35), 0 0 10px rgba(255,170,60,.6); }
+.hplab{ position:absolute; inset:0; z-index:3; display:flex; align-items:center; justify-content:center; padding-left:20px; color:#fff; font-weight:800; font-size:15px; text-shadow:0 1px 2px #000, 0 0 4px #000; }
+@media (prefers-reduced-motion: reduce){ .hpheart, .hpfill{ animation:none; } }
+/* the stage: no big empty gap under the companion (VIP day included), a glowing gold pedestal on every day */
+body.ck .mypet.vip .stage + .bigname, body.ck .mypet.vip .bigname{ margin-top:6cqw; }
+body.ck .mypet.vip{ background:linear-gradient(180deg, rgba(244,228,190,0) 46cqw, #F4E4BE 56cqw), var(--vipbg) top center / 100% 58cqw no-repeat, #F4E4BE; }
+body.ck .mypet .bigname{ position:relative; display:inline-block; padding:0 .3em; }
+body.ck .mypet .tspec{ display:inline-block; margin-top:2px; padding:2px 14px; border-radius:99px; background:rgba(142,26,36,.1); border:1px solid rgba(142,26,36,.25); color:#8E1A24 !important; font-weight:700; }
+.hpemo{ position:relative; z-index:3; width:54px; margin-right:-22px; font-size:40px; line-height:54px; text-align:center; filter:drop-shadow(0 3px 3px rgba(0,0,0,.4)); animation:hpbeat 1.4s ease-in-out infinite; }

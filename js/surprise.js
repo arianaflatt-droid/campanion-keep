@@ -63,10 +63,12 @@ export const surpriseReady = (st, cls) => (canCatch(st, cls) ? 1 : 0) + (snackRe
 
 /* ---------- student cards ---------- */
 let fx = null, confShown = "";
-export function surpriseCards(st, cls, petName) {
+// 🦄 Nov 19: the Mystery Visitor shows at the top of Announcements (visitorCard); surpriseCards skips it when noVisitor
+export function visitorCard(st, cls) { return surpriseCards(st, cls, "", "only"); }
+export function surpriseCards(st, cls, petName, which) {
   const today = azToday(), goal = goalXP(cls), V = visitorOf(today, cls), lunch = azNow().h < 12;
   let h = "";
-  if (V) {
+  if (V && which !== "skip") {
     const got = visitorCaught(st, today), can = canCatch(st, cls, today);
     h += '<div class="card spcard sp-visit"><img class="spimg' + (got || can ? "" : " shadow") + '" src="' + esc(V.img) + '" alt="">' +
       '<div class="sptxt"><h3>\u{1F984} Mystery Visitor: ' + (got || can ? esc(V.name) : "???") + ' <span class="sprar" style="color:' + RARITY_COLOR[V.rarity] + '">' + V.rarity + "</span></h3>" +
@@ -75,6 +77,7 @@ export function surpriseCards(st, cls, petName) {
         : lunch ? "<p>A rare creature is visiting! Hit <b>" + goal + " XP before lunch</b> to catch it.</p>"
         : "<p>The visitor left at lunch. Hit " + goal + " before lunch tomorrow to catch the next one!</p>") + "</div></div>";
   }
+  if (which === "only") return h;
   if (snackOn(cls)) {
     const fed = snackFed(st), g = Math.min(snackXP(cls), snackGain(st, cls)), ready = snackReady(st, cls);
     h += '<div class="card spcard sp-snack"><div class="spemoji">' + (fed ? "\u{1F60B}" : "\u{1F36A}") + '</div><div class="sptxt"><h3>\u{1F36A} Snack Drop!</h3>' +
