@@ -6,8 +6,8 @@
    The old single announcement (cls.news + news/pic) still shows until the first save in the new editor turns it into a list item.
    Students see them newest first on Checklist → 📣 Announcements and can react ONCE to each with a kind emote:
    saved on the student as nlike = { announcementId: emote } (one save per reaction; counts come from classmates' public cards). */
-import { esc } from "./game.js?v=20261118r";
-import { azToday } from "./collect.js?v=20261118r";
+import { esc } from "./game.js?v=20261118y";
+import { azToday } from "./collect.js?v=20261118y";
 
 export const NEWS_EMOTES = [["heart", "❤️"], ["up", "\u{1F44D}"], ["party", "\u{1F389}"], ["smile", "\u{1F604}"], ["star", "\u{1F31F}"], ["clap", "\u{1F44F}"]];
 const EMO = {}; NEWS_EMOTES.forEach(([k, e]) => { EMO[k] = e; });
@@ -32,10 +32,11 @@ export function newsKeyOf(cls) {
 
 const when = iso => { if (!iso) return ""; const d = new Date(iso); return isNaN(d) ? "" : d.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "America/Phoenix" }); };
 // one announcement card. likes = { emote: count }, mine = this student's emote (or ""), canReact = show buttons
-export function newsCard(n, pics, likes, mine, canReact) {
+export function newsCard(n, pics, likes, mine, canReact, notice) {   // notice = pinned on the Announcements board (Nov 18): "new" or true
   const img = n.pic && pics ? pics[n.pic] : "";
   // a picture announcement: the picture already has the words, so it shows big, across the whole card (Nov 9)
-  let h = '<div class="card newscard newsitem' + (img ? " haspic" : "") + '">' + (img ? '<img class="newsbig" src="' + esc(img) + '" alt="' + esc(n.title || "Announcement") + '">' : "") + '<div class="newstxt">' +
+  let h = '<div class="card newscard newsitem' + (img ? " haspic" : "") + (notice ? " notice" + (notice === "new" ? " isnew" : "") : "") + '">' +
+    (notice ? '<span class="nbpin" aria-hidden="true"></span>' + (notice === "new" ? '<span class="nbnew">NEW!</span>' : "") : "") + (img ? '<img class="newsbig" src="' + esc(img) + '" alt="' + esc(n.title || "Announcement") + '">' : "") + '<div class="newstxt">' +
     (n.title ? "<h2>" + (n.pin ? "⭐ " : "") + esc(n.title) + "</h2>" : "") + (n.at ? '<span class="newsdate">' + esc(when(n.at)) + "</span>" : "") +
     (n.text ? "<p>" + esc(n.text).replace(/\n/g, "<br>") + "</p>" : "") +
     '<div class="newsemos">' + NEWS_EMOTES.map(([k, e]) => { const c = (likes || {})[k] || 0;
@@ -49,8 +50,12 @@ export function likesFor(students, id) {
 // the student's Announcements page
 export function newsPage(st, cls, students, pics, preview, extra) {   // extra: other news (the Secret Students bar)
   const l = shownNews(cls);
-  if (!l.length) return (extra || "") + '<div class="card"><h2>\u{1F4E3} Announcements</h2><p class="lede">No announcements right now. When the teacher posts one, it shows up here (and on your Checklist).</p></div>';
-  return (extra || "") + l.map(n => newsCard(n, pics, likesFor(students, n.id), ((st && st.nlike) || {})[n.id] || "", !preview && !!st)).join("");
+  const head = '<div class="card-head nbhead"><h2>\u{1F4E3} Announcements</h2></div>';
+  if (!l.length) return (extra ? '<div class="nbbars">' + extra + "</div>" : "") + '<div class="card newsboard">' + head + '<p class="lede nbnone">No announcements right now. When the teacher posts one, it shows up here (and on your Checklist).</p></div>';
+  // 📌 Nov 18: a castle notice board. A notice is NEW until the student reacts to it, for 3 days after it was posted
+  const now = Date.now(), isNew = (n, mine) => !mine && n.at && now - new Date(n.at).getTime() < 3 * 864e5;
+  return (extra ? '<div class="nbbars">' + extra + "</div>" : "") + '<div class="card newsboard">' + head + '<div class="nbgrid">' +
+    l.map(n => { const mine = ((st && st.nlike) || {})[n.id] || ""; return newsCard(n, pics, likesFor(students, n.id), mine, !preview && !!st, isNew(n, mine) ? "new" : true); }).join("") + "</div></div>";
 }
 // the save for a reaction (only announcements still in the list are kept, so the field stays small)
 export function reactSave(st, cls, id, k) {

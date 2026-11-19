@@ -6,7 +6,7 @@
    • Students can open it any time (the 🦆 pill at the top of the page) to see where the classes are.
    • "Show to students" (show:true) takes over every student's screen until the teacher turns it off.
    • Running (or replaying) the showdown sets playAt, and every screen that has it open plays the animation. */
-const V = "20261118r";
+const V = "20261118y";
 let root = null, frame = null, ready = false, mode = "", userOpen = false, ctx = {}, sent = "";
 
 export function sdState(cls) { return (cls && cls.duckSD && cls.duckSD.state) || null; }
@@ -28,7 +28,7 @@ export function sdLine(st) {
 // the pill students tap to look any time (only once the teacher has started a board)
 export function sdPill(cls) {
   const st = sdState(cls); if (!st) return "";
-  return '<button class="sdpill" data-sdopen="1">\u{1F986} <b>Duck Showdown:</b> ' + sdLine(st) + " <span>Watch →</span></button>";
+  return '<button class="sdpill" data-sdopen="1"><i class="bic bic-duck">\u{1F986}</i> <b>Duck Showdown:</b> ' + sdLine(st) + " <span>Watch →</span></button>";
 }
 
 function send(force) {

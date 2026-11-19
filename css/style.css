@@ -4664,3 +4664,148 @@ body.ck .countdown, body.ck .sdpill, body.ck .secretbar{ border-style:solid !imp
   color:#3A2410 !important; filter:drop-shadow(0 5px 5px rgba(70,35,0,.28)); margin-bottom:10px; width:100%; }
 body.ck .countdown b{ color:#8E1A24 !important; font-family:Lora, Georgia, serif; } body.ck .countdown .cdleft{ color:#3A2410 !important; font-family:Lora, Georgia, serif; }
 body.ck .sdpill span{ color:#8E1A24 !important; } body.ck .secretbar *{ color:#3A2410; } body.ck .secretbar b{ color:#8E1A24; }
+
+/* 🍂 real falling leaves (fall mini events) instead of dots */
+body.ck.fallart::before{ display:none !important; }   /* the event's dots step aside once its falling pictures are in */
+#ckfall{ position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
+#ckfall img{ position:absolute; top:-60px; height:auto; opacity:.95; filter:drop-shadow(0 3px 3px rgba(0,0,0,.25)); animation:leaffall linear infinite, leafsway ease-in-out infinite alternate; }
+@keyframes leaffall{ 0%{ top:-60px; } 100%{ top:105vh; } }
+@keyframes leafsway{ 0%{ transform:translateX(-30px) rotate(-35deg); } 100%{ transform:translateX(30px) rotate(40deg); } }
+@media (prefers-reduced-motion: reduce){ #ckfall{ display:none; } }
+/* 🛡️ checklist numbers on a proper little shield: dark outline, gold face, red band, shine */
+body.ck .ckitem .ckn{ position:relative; width:36px; height:41px; background:#5A3200; color:#fff; font-family:Lora, Georgia, serif; font-size:17px; font-weight:700;
+  clip-path:path("M18 0 L36 6 L36 19 C36 31 28 38 18 41 C8 38 0 31 0 19 L0 6 Z"); display:grid; place-items:center; text-shadow:0 1px 0 #5A0E14, 0 0 3px #5A0E14; filter:drop-shadow(0 2px 2px rgba(0,0,0,.3)); }
+body.ck .ckitem .ckn::before{ content:""; position:absolute; inset:2.5px; z-index:-1;
+  background:linear-gradient(180deg, transparent 0 34%, #C8323A 34% 64%, transparent 64%), linear-gradient(160deg,#FFF6C2 0%,#FFD34D 35%,#E59A12 75%,#B8740C 100%);
+  clip-path:path("M15.5 0 L31 5.2 L31 16.5 C31 27 24 33 15.5 36 C7 33 0 27 0 16.5 L0 5.2 Z"); }
+body.ck .ckitem .ckn::after{ content:""; position:absolute; left:6px; top:5px; width:9px; height:14px; border-radius:50%; background:rgba(255,255,255,.55); transform:rotate(20deg); }
+body.ck .ckitem .ckn{ isolation:isolate; }
+/* 🪧 the tab you're on: the same wooden sign, lit up with a warm gold glow (not plain gold) */
+body.ck .maintabs .tab.on{ color:#FFE45C !important; border:12px solid transparent !important; border-image:var(--ck-woodtex) 80 fill / 12px / 0 stretch !important; border-radius:0 !important; background:none !important;
+  padding:10px 10px !important; text-shadow:0 2px 0 #4A1A00, 0 0 8px rgba(255,200,60,.9) !important; transform:translateY(-3px);
+  filter:brightness(1.22) saturate(1.2) drop-shadow(0 0 6px rgba(255,210,80,.95)) drop-shadow(0 0 14px rgba(255,170,40,.7)); box-shadow:none !important; }
+body.ck .maintabs .tab.on::after{ content:""; position:absolute; left:10%; right:10%; bottom:-14px; height:4px; border-radius:99px; background:linear-gradient(90deg,transparent,#FFE45C,transparent); box-shadow:0 0 8px #FFD34D; }
+body.ck .subtab.on{ color:#FFE45C !important; border:9px solid transparent !important; border-image:var(--ck-woodtex) 80 fill / 9px / 0 stretch !important; background:none !important; padding:7px 16px !important; border-radius:0 !important;
+  text-shadow:0 2px 0 #4A1A00, 0 0 8px rgba(255,200,60,.9) !important; filter:brightness(1.22) drop-shadow(0 0 6px rgba(255,210,80,.95)); box-shadow:none !important; }
+/* 🚀 Planet JP bar: a castle window onto the night sky (wood frame with gold rim), the track a glass tube with the gold sparkle fill */
+body.ck .pjbar{ border-radius:0 !important; border:14px solid transparent; border-image:var(--ck-woodtex) 80 / 14px / 0 stretch; background-clip:padding-box;
+  box-shadow:inset 0 0 0 2px #E6A92C, inset 0 0 24px rgba(0,0,0,.6), 0 8px 16px rgba(0,0,0,.4) !important; }
+body.ck .pjtrack::before{ height:16px; top:15px; background:linear-gradient(180deg,#2A1608,#4A2A12 55%,#3A200C); box-shadow:inset 0 2px 4px rgba(0,0,0,.6), 0 0 0 2px #8A5A10, 0 0 0 4px #3B220E; }
+body.ck .pjfill{ top:17px; height:12px; background:url(../assets/ui/ck/fill-gold.webp) 0 50% / 50px 34px repeat-x, #F2B33D; box-shadow:0 0 10px rgba(255,200,60,.8); animation:tflow 4s linear infinite; }
+body.ck .pjmsg{ font-family:Lora, Georgia, serif; } body.ck .pjtank{ background:rgba(255,227,138,.14); border:1px solid rgba(255,227,138,.45); } body.ck .pjtank.ok{ background:rgba(80,220,140,.25); border-color:rgba(120,230,160,.6); }
+/* 🌊 the "Go to the Axolotl Kingdom" button in the same wooden window frame */
+body.ck .kdreturn{ border-radius:0 !important; border:12px solid transparent !important; border-image:var(--ck-woodtex) 80 / 12px / 0 stretch !important; background-clip:padding-box !important; box-shadow:inset 0 0 0 2px #E6A92C, 0 8px 16px rgba(0,0,0,.35) !important; }
+/* 🛡️ Ms. Ariana's shield art behind the checklist numbers (the number sits on the red band) */
+body.ck .ckitem .ckn{ clip-path:none !important; background:url(../assets/ui/ck/shield.webp) center / contain no-repeat !important; width:38px !important; height:43px !important;
+  padding-bottom:3px; color:#FFF6DA !important; text-shadow:0 1px 0 #5A0E14, 0 0 3px #5A0E14 !important; filter:drop-shadow(0 2px 2px rgba(0,0,0,.3)); }
+body.ck .ckitem .ckn::before, body.ck .ckitem .ckn::after{ display:none !important; }
+/* 🚀 Planet JP bar: her starry sky inside her moon-and-stars frame */
+body.ck .pjbar{ border-style:solid !important; border-color:transparent !important; border-width:34px 22px 22px !important; border-image:url(../assets/planet/pj-bar-frame.webp) 103 62 62 fill / 34px 22px 22px / 0 stretch !important;
+  background:url(../assets/planet/pj-bar-sky.webp) center / cover no-repeat !important; background-clip:padding-box !important; box-shadow:none !important; border-radius:0 !important;
+  filter:drop-shadow(0 8px 10px rgba(0,0,0,.35)); padding:8px 14px 8px !important; }
+body.ck .pjbar::before{ display:none; }
+/* 🔥 tiny embers floating up from the torches */
+#ckember{ position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
+#ckember i{ position:absolute; width:4px; height:4px; border-radius:50%; background:radial-gradient(circle,#FFF6C2 0,#FFB938 45%,rgba(255,120,20,0) 75%);
+  box-shadow:0 0 6px 2px rgba(255,160,40,.7); opacity:0; animation:ember linear infinite; }
+@keyframes ember{ 0%{ transform:translate(0,0) scale(1); opacity:0; } 12%{ opacity:1; } 60%{ opacity:.8; } 100%{ transform:translate(var(--dx),-110px) scale(.3); opacity:0; } }
+@media (prefers-reduced-motion: reduce){ #ckember{ display:none; } }
+body.ck .ckitem .ckn{ padding-bottom:9px !important; font-size:16px !important; }
+body.ck .pjbar .pjmsg, body.ck .pjbar .pjmsg *{ text-shadow:0 1px 2px #000, 0 0 6px rgba(0,0,0,.8); }
+#ckember i{ width:5px; height:5px; }
+/* 🌊 Nov 18: the Kingdom box gets its own frame + undersea picture (like the Planet JP bar), once the art is uploaded */
+body.ck.kdart .kdreturn{ border-style:solid !important; border-color:transparent !important; border-width:44px 21px 20px !important;
+  border-image:url(../assets/kingdom/kd-bar-frame.webp) 155 72 69 fill / 44px 21px 20px / 0 stretch !important;
+  background:url(../assets/kingdom/kd-bar-sea.webp) center / cover no-repeat !important; background-clip:padding-box !important;
+  border-radius:0 !important; box-shadow:none !important; animation:none !important; filter:drop-shadow(0 6px 10px rgba(0,0,0,.4)); padding:6px 16px 8px !important; position:relative; overflow:visible; }
+body.ck.kdart .kdreturn::after{ content:""; position:absolute; left:50%; top:-44px; width:136px; height:50px; transform:translateX(-50%); background:url(../assets/kingdom/kd-bar-crest.webp) center / contain no-repeat; pointer-events:none; }
+body.ck.kdart .kdreturn b, body.ck.kdart .kdreturn small, body.ck.kdart .kdreturn em{ text-shadow:0 1px 2px #000, 0 0 6px rgba(0,0,0,.8); }
+/* 📌 Nov 18: Announcements = notices pinned to a castle notice board */
+
+body.ck::after{ min-height:100lvh; }
+body.ck .card.newsboard{ border-style:solid !important; border-color:transparent !important; border-width:22px !important; border-radius:0 !important;
+  border-image:var(--ck-woodtex) 80 / 22px / 0 stretch !important; background-clip:padding-box !important;
+  background-color:#B98552 !important; background-image:radial-gradient(rgba(90,50,15,.35) 1.2px, transparent 1.6px), radial-gradient(rgba(255,230,180,.25) 1px, transparent 1.4px) !important;
+  background-size:9px 9px, 13px 13px !important; background-position:0 0, 4px 6px !important;
+  box-shadow:inset 0 0 18px rgba(60,30,5,.55), 0 10px 18px rgba(0,0,0,.35) !important; padding:10px 18px 20px !important; }
+body.ck .newsboard .nbhead{ justify-content:center; margin:-4px 0 6px; }
+body.ck .newsboard .nbnone{ background:var(--ck-parch) center / cover; padding:14px 18px; color:#3A2410; box-shadow:0 4px 8px rgba(0,0,0,.3); }
+body.ck .nbgrid{ display:flex; flex-direction:column; gap:22px; padding-top:8px; }
+body.ck .card.newscard.notice{ border:0 !important; border-image:none !important; border-radius:3px !important; background:var(--ck-parch) center / cover !important;
+  padding:22px 22px 14px !important; margin:0 !important; filter:none !important; box-shadow:0 6px 10px rgba(50,25,5,.4), inset 0 0 22px rgba(150,95,30,.35) !important; transform:rotate(-.6deg); overflow:visible; }
+body.ck .nbgrid .notice:nth-child(even){ transform:rotate(.7deg); }
+body.ck .nbpin{ position:absolute; top:-9px; left:50%; width:22px; height:22px; margin-left:-11px; border-radius:50%; z-index:2;
+  background:radial-gradient(circle at 35% 30%, #FFB3A8 0 12%, #E0333C 30%, #8E1A24 85%); box-shadow:0 3px 3px rgba(0,0,0,.45), inset 0 -2px 3px rgba(0,0,0,.3); }
+body.ck .nbpin::after{ content:""; position:absolute; left:9px; top:16px; width:4px; height:8px; background:linear-gradient(90deg,#999,#eee,#888); border-radius:0 0 2px 2px; z-index:-1; }
+body.ck .notice.isnew{ box-shadow:0 0 0 3px #FFD45A, 0 0 22px 4px rgba(255,210,90,.75), 0 6px 10px rgba(50,25,5,.4), inset 0 0 22px rgba(150,95,30,.35) !important; }
+body.ck .nbnew{ position:absolute; top:-12px; right:-10px; z-index:3; transform:rotate(8deg); font:800 15px/1 Lora, Georgia, serif; letter-spacing:.5px; color:#FFF3D0;
+  padding:12px 9px; border-radius:50%; background:radial-gradient(circle at 40% 35%, #F0525A, #B01E2A 60%, #7A0E18); box-shadow:0 0 0 3px #C0303A, 0 3px 6px rgba(0,0,0,.4); text-shadow:0 1px 1px #5A0810; animation:nbnew 1.6s ease-in-out infinite; }
+@keyframes nbnew{ 50%{ transform:rotate(8deg) scale(1.1); } }
+@media (prefers-reduced-motion: reduce){ body.ck .nbnew{ animation:none; } }
+@media (max-width:520px){ body.ck .card.newsboard{ border-width:14px !important; border-image-width:14px !important; padding:8px 10px 14px !important; } body.ck .card.newscard.notice{ padding:20px 14px 12px !important; } }
+
+/* the three bars above the board, each its own thing */
+body.ck .nbbars{ display:flex; flex-direction:column; gap:12px; margin-bottom:14px; }
+body.ck .nbbars > *{ margin:0 !important; }
+/* ⏳ countdown: a hanging wooden sign */
+body.ck .nbbars .countdown{ border-width:16px 24px !important; border-image:var(--ck-woodtex) 80 fill / 16px 24px / 0 stretch !important; color:#FFF3D0 !important; justify-content:center; text-align:center;
+  font-family:Lora, Georgia, serif; text-shadow:0 2px 2px rgba(0,0,0,.6); filter:drop-shadow(0 6px 6px rgba(0,0,0,.4)); }
+body.ck .nbbars .countdown b{ color:#FFE38A !important; } body.ck .nbbars .countdown .cdleft{ color:#FFF3D0 !important; display:block; font-size:1.35em; }
+body.ck .nbbars .countdown .cdic{ font-size:34px; }
+/* 🦆 Duck Showdown: a pond in a wooden frame */
+body.ck .nbbars .sdpill{ border-width:14px !important; border-image:var(--ck-woodtex) 80 / 14px / 0 stretch !important; background-clip:padding-box !important;
+  background:radial-gradient(ellipse at 20% 120%, rgba(120,220,120,.55), transparent 45%), radial-gradient(ellipse at 85% -20%, rgba(255,255,255,.35), transparent 50%), linear-gradient(180deg,#5FD0F0,#2C8FD0) !important;
+  color:#fff !important; text-shadow:0 1px 2px #0B3A60, 0 0 4px #0B3A60; font-size:17px; padding:12px 16px !important; filter:drop-shadow(0 6px 6px rgba(0,0,0,.4)); }
+body.ck .nbbars .sdpill span{ color:#3A2410 !important; text-shadow:none; background:linear-gradient(#FFE38A,#E6A92C); border-radius:99px; padding:3px 12px; box-shadow:0 2px 0 #8A5A10; }
+/* 🕵️ Secret Students: a starry midnight banner with gold trim */
+body.ck .nbbars .secretbar{ border-width:14px !important; border-image:var(--ck-woodtex) 80 / 14px / 0 stretch !important; background-clip:padding-box !important;
+  background:radial-gradient(#FFE38A 1px, transparent 1.6px) 0 0 / 22px 18px, radial-gradient(rgba(255,255,255,.7) .8px, transparent 1.3px) 9px 7px / 31px 23px, linear-gradient(135deg,#2A1A5E,#4A2A8A 55%,#2A1A5E) !important;
+  box-shadow:inset 0 0 0 2px #E6A92C !important; padding:12px 16px !important; filter:drop-shadow(0 6px 6px rgba(0,0,0,.4)); }
+body.ck .nbbars .secretbar, body.ck .nbbars .secretbar *{ color:#F3E9FF !important; } body.ck .nbbars .secretbar b{ color:#FFE38A !important; }
+/* 🎉 the Secret Students shout-out: gold celebration scroll */
+body.ck .nbbars .secretbar.shout{ border-width:20px 34px !important; border-image:url(../assets/ui/ck/scroll.webp) 95 130 fill / 20px 34px / 0 stretch !important; background:none !important; box-shadow:none !important; filter:drop-shadow(0 5px 5px rgba(70,35,0,.28)); }
+body.ck .nbbars .secretbar.shout, body.ck .nbbars .secretbar.shout *{ color:#3A2410 !important; } body.ck .nbbars .secretbar.shout b{ color:#8E1A24 !important; }
+body.ck .nbbars .secretbar{ background:radial-gradient(#FFE38A 1.2px, transparent 1.8px) 6px 4px / 70px 38px, radial-gradient(rgba(255,255,255,.55) .9px, transparent 1.4px) 38px 22px / 90px 44px, linear-gradient(135deg,#24164F,#3E2378 55%,#24164F) !important; }
+body.ck .nbbars .secretbar, body.ck .nbbars .secretbar *{ text-shadow:0 1px 2px #120830, 0 0 5px #120830; }
+body.ck .nbbars .secretbar.shout, body.ck .nbbars .secretbar.shout *{ text-shadow:none; }
+body.ck .nbnew{ width:54px; height:54px; padding:0; display:flex; align-items:center; justify-content:center; font-size:13px; top:-16px; right:-14px; }
+body.ck .notice .newsdate{ background:rgba(142,26,36,.12); color:#6B3F1D; border:1px solid rgba(107,63,29,.3); }
+body.ck .notice.isnew{ box-shadow:0 0 0 4px #FFD45A, 0 0 26px 8px rgba(255,214,90,.8), 0 6px 10px rgba(50,25,5,.4), inset 0 0 22px rgba(150,95,30,.35) !important; }
+@media (max-width:560px){ body.ck .nbbars .sdpill{ display:block; text-align:center; line-height:1.5; } body.ck .nbbars .sdpill span{ display:inline-block; margin-top:6px; } }
+/* Nov 18: Ms. Ariana's cork + wax seal */
+body.ck .card.newsboard{ background:url(../assets/keep/notice-cork.webp) center / 520px auto repeat, #C77F2E !important; }
+body.ck .nbnew{ background:url(../assets/ui/news/new-seal.webp) center / contain no-repeat !important; box-shadow:none !important; border-radius:0; width:62px; height:62px; filter:drop-shadow(0 3px 4px rgba(0,0,0,.45)); top:-18px; right:-16px; font-size:14px; }
+/* Nov 18 (later): a wooden plank board, notices nailed on with iron nails */
+body.ck .card.newsboard{ background:repeating-linear-gradient(180deg, transparent 0 86px, rgba(30,12,2,.55) 86px 89px, rgba(255,210,150,.12) 89px 91px),
+  linear-gradient(rgba(70,32,8,.42), rgba(70,32,8,.42)), url(../assets/keep/wood-sign.webp) center / 100% 100% no-repeat, #7A4318 !important; }
+body.ck .nbpin{ left:14px; margin-left:0; top:10px; width:16px; height:16px; background:radial-gradient(circle at 35% 30%, #C9C9CF 0 14%, #6E6E78 38%, #2E2E36 80%) !important;
+  box-shadow:0 2px 2px rgba(0,0,0,.55), inset 0 -1px 2px rgba(0,0,0,.4) !important; }
+body.ck .nbpin::after{ display:none; }
+body.ck .nbpin::before{ content:""; position:absolute; left:calc(100cqw - 16px); top:0; width:16px; height:16px; border-radius:50%; background:inherit; box-shadow:inherit; }
+body.ck .card.newscard.notice{ container-type:inline-size; }
+body.ck .nbpin{ left:10px !important; right:10px; top:8px !important; width:auto !important; height:16px !important; background:none !important; box-shadow:none !important; border-radius:0 !important; }
+body.ck .nbpin::before, body.ck .nbpin::after{ content:"" !important; display:block !important; position:absolute; top:0; width:16px !important; height:16px !important; border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, #D6D6DC 0 14%, #74747E 38%, #2E2E36 80%) !important; box-shadow:0 2px 2px rgba(0,0,0,.55), inset 0 -1px 2px rgba(0,0,0,.4) !important; }
+body.ck .nbpin::before{ left:0 !important; } body.ck .nbpin::after{ left:auto !important; right:0; }
+body.ck .card.newscard.notice{ padding-top:30px !important; }
+body.ck .notice.isnew .nbpin::after{ display:none !important; }
+/* Nov 18: Ms. Ariana's art for the Announcements page — plank board + iron nails, and a frame + picture for each bar */
+body.ck .card.newsboard{ background:url(../assets/keep/notice-board.webp) center top / 640px auto repeat, #A4561E !important; }
+body.ck .nbpin::before, body.ck .nbpin::after{ background:url(../assets/ui/news/nail.webp) center / contain no-repeat !important; box-shadow:none !important; width:18px !important; height:18px !important; filter:drop-shadow(0 2px 1px rgba(0,0,0,.5)); }
+body.ck .nbbars .bic{ font-size:0 !important; display:inline-block; width:34px; height:34px; vertical-align:middle; margin:-6px 6px -4px 0; background:center / contain no-repeat; filter:drop-shadow(0 2px 2px rgba(0,0,0,.4)); }
+body.ck .nbbars .bic-duck{ background-image:url(../assets/ui/news/ic-duck.webp); } body.ck .nbbars .bic-secret{ background-image:url(../assets/ui/news/ic-secret.webp); }
+body.ck .nbbars .countdown .cdic{ font-size:0 !important; width:44px; height:60px; flex:none; background:url(../assets/ui/news/ic-hourglass.webp) center / contain no-repeat; filter:drop-shadow(0 3px 3px rgba(0,0,0,.5)); }
+body.ck .nbbars .sdpill, body.ck .nbbars .secretbar{ position:relative; overflow:visible; background-clip:padding-box !important; background-size:cover !important; background-position:center !important; background-repeat:no-repeat !important; box-shadow:none !important; filter:drop-shadow(0 6px 8px rgba(0,0,0,.4)) !important; }
+body.ck .nbbars .sdpill::after, body.ck .nbbars .secretbar::after{ content:""; position:absolute; left:50%; transform:translateX(-50%); background:var(--crest) center / contain no-repeat; pointer-events:none; }
+body.ck .nbbars .sdpill{ border-width:42px 26px 22px !important; border-image:url(../assets/keep/bar-duck-frame.webp) 139 85 73 fill / 42px 26px 22px / 0 stretch !important;
+  background-image:url(../assets/keep/bar-duck-bg.webp) !important; padding:8px 16px 10px !important; --crest:url(../assets/keep/bar-duck-crest.webp); }
+body.ck .nbbars .sdpill::after{ top:-42px; width:111px; height:47px; }
+body.ck .nbbars .secretbar{ border-width:39px 23px 20px !important; border-image:url(../assets/keep/bar-secret-frame.webp) 131 78 67 fill / 39px 23px 20px / 0 stretch !important;
+  background-image:url(../assets/keep/bar-secret-bg.webp) !important; padding:18px 18px 10px !important; --crest:url(../assets/keep/bar-secret-crest.webp); }
+body.ck .nbbars .secretbar::after{ top:-39px; width:153px; height:55px; }
+body.ck .nbbars .secretbar.shout{ border-width:36px 21px 21px !important; border-image:url(../assets/keep/bar-shout-frame.webp) 119 69 71 fill / 36px 21px 21px / 0 stretch !important;
+  background-image:url(../assets/keep/bar-shout-bg.webp) !important; padding:22px 18px 10px !important; --crest:url(../assets/keep/bar-shout-crest.webp); text-align:center; }
+body.ck .nbbars .secretbar.shout::after{ top:-36px; width:157px; height:56px; }
+body.ck .nbbars .secretbar.shout, body.ck .nbbars .secretbar.shout *{ color:#3A2410 !important; text-shadow:0 0 6px #FFF6D6, 0 0 3px #FFF6D6 !important; }
+body.ck .nbbars .secretbar.shout{ background-clip:padding-box !important; background-size:cover !important; background-position:center !important; background-repeat:no-repeat !important; }
+body.ck .card.newsboard{ background:url(../assets/keep/notice-board.webp) center top / 100% auto repeat-y, #A4561E !important; }

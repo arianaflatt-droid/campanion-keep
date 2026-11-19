@@ -14,10 +14,10 @@
      sub { own:{key:1}, use, trail, trails:{key:1} }, seen { area: 1 }.
    Weekly parts (a new week starts fresh): qd { quest: 1 } claimed quests, qx chest pearls, wb best dive this week,
      wn new creatures this week, vq { place: 1 } places visited this week, ws pearls spent this week. */
-import { esc, companionOf, petWithHead, petHTML } from "./game.js?v=20261118r";
-import { startPaint } from "./hangar.js?v=20261118r";
-import { KD_ULTRA_FAM } from "./kd-ultra.js?v=20261118r";
-import { owned as crOwned, ownedFams, formOf, fighterFrom, resolveRound, hitDamage, MOVES, moveOk, sparkleImg } from "./collect.js?v=20261118r";
+import { esc, companionOf, petWithHead, petHTML } from "./game.js?v=20261118y";
+import { startPaint } from "./hangar.js?v=20261118y";
+import { KD_ULTRA_FAM } from "./kd-ultra.js?v=20261118y";
+import { owned as crOwned, ownedFams, formOf, fighterFrom, resolveRound, hitDamage, MOVES, moveOk, sparkleImg } from "./collect.js?v=20261118y";
 
 const K = "assets/kingdom/";
 export const KEEP2_NOTE = "ar = this week's arena { w, won, tries }, arb = boss badges { boss: 1 }";
