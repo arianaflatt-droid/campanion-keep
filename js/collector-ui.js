@@ -968,7 +968,11 @@ export async function onClick(el, c) {
   }
   if (a === "lockTeam") {
     if (locking) return;
-    const team = JSON.parse(JSON.stringify(picks.map(f => fighterFrom(s, f)).filter(Boolean)));
+    // 🩹 Nov 19 fix: a Campfire Kitchen boost (Hearty +20% HP / Power +20% damage) on a strong Legendary could go past the
+    // server's safety limit for that level, so the lock-in was refused and nothing happened. Keep each fighter just under it.
+    const capHp = l => Math.floor((118 + 7.8 * (l - 1)) * 1.2 + 1), capDmg = l => Math.floor((38 + 2.9 * (l - 1)) * 1.2 + 1);
+    const team = JSON.parse(JSON.stringify(picks.map(f => fighterFrom(s, f)).filter(Boolean))).map(f => { const l = Math.max(1, Math.round(Number(f.lvl) || 1));
+      f.hp = Math.min(Math.round(f.hp), capHp(l)); f.cur = f.hp; f.dmg = Math.min(f.dmg, capDmg(l)); return f; });
     const bt0 = (c.battles || []).find(b => b.id === battleOpen);
     if (!bt0 || team.length !== bt0.n) { picks = picks.filter(f => owned(s)[f]); c.flash("One of those creatures isn\u2019t on your team anymore \u2014 pick again."); return c.render(true); }
     locking = battleOpen; c.render(true);   // show "Locking in…" right away
@@ -978,7 +982,8 @@ export async function onClick(el, c) {
         bt.team[me] = team; if (bt.team.A && bt.team.B) bt.status = "lead"; return bt;
       });
       if (!r) c.flash("That battle already moved on (or ended).");
-    } finally { locking = null; c.render(true); }
+    } catch (e) { c.flash("Your team didn\u2019t lock in \u2014 tap Lock in again, or ask Ms. Ariana. (" + (e.code || e.message) + ")"); }
+    finally { locking = null; c.render(true); }
     return;
   }
   if (a === "lead") {
