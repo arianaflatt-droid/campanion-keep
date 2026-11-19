@@ -5094,3 +5094,4 @@ body.ck .mypet .bigname span{ font-family:Lora, Georgia, serif; font-weight:700;
   text-shadow:0 1px 0 #FFF3B0, 0 2px 2px rgba(120,60,0,.35) !important; }
 body.ck .mypet .bigname{ color:transparent; text-shadow:none !important; }
 .hpheart{ width:58px; height:58px; }
+.btn.vtake{ padding:2px 8px !important; font-size:12px !important; margin-left:4px; background:#fff !important; color:#B3261E !important; border:1px solid #E5A3A0 !important; box-shadow:none !important; }

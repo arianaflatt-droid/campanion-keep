@@ -15,7 +15,7 @@
 import { esc } from "./game.js?v=20261119b";
 import { azToday } from "./collect.js?v=20261119b";
 import { planetNow, planetSave, planetCtx, freshSt } from "./safari.js?v=20261119b";
-import { breakRuns } from "./calendar.js?v=20261119b";
+import { breakRuns } from "./calendar.js?v=20261119j";
 import { duckImgOf } from "./shop-data.js?v=20261119b";
 import { ownedOf, nebHTML, NEB, PERSONALITIES } from "./pets.js?v=20261119b";
 import { openCrateFree } from "./spaceshop.js?v=20261119b";

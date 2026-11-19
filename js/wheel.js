@@ -12,7 +12,7 @@
    Saved on the class (teacher only): wspin = { id, kind, duck, label, names: [{ i, n }], slices: [name index], win, extra, at, open }
    and wsGoal (the weekly number). The wheel draws in its own layer (#wsroot), so page redraws never interrupt the spin. */
 import { esc, weekKey } from "./game.js?v=20261119b";
-import { addDays, histWeekTotal, subReq, subRuleOn, ringPass, mondayOf, ringDay, SUB_REQ, vaultGift } from "./doors.js?v=20261119b";
+import { addDays, histWeekTotal, subReq, subRuleOn, ringPass, mondayOf, ringDay, SUB_REQ, vaultGift } from "./doors.js?v=20261119j";
 import { getSpinPrizes } from "./db.js?v=20261119b";
 
 const COLORS = ["#F2545B", "#F4B942", "#2EC4B6", "#7B61FF", "#06D6A0", "#3A86FF"];

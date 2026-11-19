@@ -377,6 +377,7 @@ export const vaultNeedsMin = v => v.min > 0 && ((v.sub && v.sub !== "all") || v.
 export function vaultState(st, cls) {
   const v = ((st && st.vault) || {})[weekKey(cls)];
   if (v === "open") return v;
+  if (v === "taken") return "locked";   // 💎 Nov 19: Ms. Ariana took it back / stopped it
   return vaultMet(st, cls) ? "ready" : "locked";   // a saved "ready" still has to meet today's rule (600 XP total)
 }
 export function vaultsOpened(st) { return Object.values((st && st.vault) || {}).filter(v => v === "open").length; }

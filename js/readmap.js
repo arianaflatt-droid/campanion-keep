@@ -6,7 +6,7 @@
    Ms. Ariana turns it on/off in the console (cls.readMap). Saved on the student: rmap = { wk, got: [island indexes], log: { i: text } } */
 import { esc, SEASON, boostMult } from "./game.js?v=20261119b";
 import { azToday, doPull, formOf } from "./collect.js?v=20261119b";
-import { weekKey, addDays } from "./doors.js?v=20261119b";
+import { weekKey, addDays } from "./doors.js?v=20261119j";
 import { subFor, SUB_NAMES } from "./teams.js?v=20261119b";
 
 export const PER_ISLAND = 25;
