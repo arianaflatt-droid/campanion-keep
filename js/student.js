@@ -14,7 +14,7 @@ import { kindCard, gotKindToday } from "./kindness.js?v=20261119b";
 import { partyCards, partyOverlay, partyClick, partyBusy, partyTicker, partySync, albumPage, albumCount } from "./party.js?v=20261119w";
 import { kitchenCard, kitchenOverlay, kitchenClick, kitchenBusy, kitchenPointer } from "./meals.js?v=20261119b";
 import { miniCard, miniOverlay, miniClick, miniBusy, miniSync } from "./mini.js?v=20261119w";
-import { adventCard, adventSync } from "./advent.js?v=20261120k";
+import { adventCard, adventSync } from "./advent.js?v=20261120m";
 import { paintCard, paintClick } from "./paint.js?v=20261119w";
 import { surpriseCards, surpriseOverlay, surpriseClick, surpriseBusy, visitorCard } from "./surprise.js?v=20261119w";
 import { hofTab, hofParty, hofClick } from "./hof.js?v=20261119w";
@@ -24,23 +24,23 @@ import { morningTab, morningOverlay, morningClick, morningBusy, mqReady } from "
 import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261119b";
 import { cardOf, sameData } from "./card.js?v=20261119b";
 import { mapOn, mapTab, mapClick, mapReady } from "./readmap.js?v=20261119w";
-import { tbCard, tbLeft, tbSetTrades } from "./teachbattle.js?v=20261120k";
+import { tbCard, tbLeft, tbSetTrades } from "./teachbattle.js?v=20261120m";
 import { wheelBanner, wheelWinOverlay, wheelSeen } from "./subwheel.js?v=20261119w";
-import { axoOn, axoSync } from "./axolotl.js?v=20261120k";
+import { axoOn, axoSync } from "./axolotl.js?v=20261120m";
 import { wheelSync } from "./wheel.js?v=20261119w";
 import { showdownSync, sdPill } from "./showdown.js?v=20261119b";
-import { shoutSync } from "./shout.js?v=20261120k";
+import { shoutSync } from "./shout.js?v=20261120m";
 import { newsPopSync } from "./modes.js?v=20261119w";
 import { lvlSync } from "./lvlup.js?v=20261119b";
-import { kdOn, kdSync, kingdomTab, kdTodo, kdUnlocked, kdOf, kdPass } from "./kingdom.js?v=20261120k";
+import { kdOn, kdSync, kingdomTab, kdTodo, kdUnlocked, kdOf, kdPass } from "./kingdom.js?v=20261120m";
 import { clubsTab, clubsNew, doneCount, clubPageSet } from "./clubs.js?v=20261119b";
-import { planetBar, planetSync, planetBusy, planetTab, planetZone, planetZoneNow, pjOpen, planetOn, nebbleOut, rocketSync } from "./planet.js?v=20261120k";
-import { missionsHTML, missionList } from "./missions.js?v=20261120k";
+import { planetBar, planetSync, planetBusy, planetTab, planetZone, planetZoneNow, pjOpen, planetOn, nebbleOut, rocketSync } from "./planet.js?v=20261120m";
+import { missionsHTML, missionList } from "./missions.js?v=20261120m";
 import { freeOverlay, freeReady, freeDoneCard, showFree } from "./pets.js?v=20261119b";
 import { nebbleSync, nebbleCard } from "./pets.js?v=20261119b";
-import { nebbleCorner } from "./petpark.js?v=20261120k";
+import { nebbleCorner } from "./petpark.js?v=20261120m";
 import { playSync } from "./playground.js?v=20261119b";
-import { checklistTab, todoCount, markSeen, newsKey, newsRead } from "./checklist.js?v=20261120k";
+import { checklistTab, todoCount, markSeen, newsKey, newsRead } from "./checklist.js?v=20261120m";
 import { newsPage, shownNews, reactSave, pinnedNews, newsCard, likesFor } from "./news.js?v=20261119b";
 import { PREVIEW, configured, auth, googleStudentSignIn, seatInfo, googleReseat, signOut as gSignOut, SCHOOL_DOMAIN, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc as saveDoc, watchRewardPic, watchNewsPics, claimSeat, mySeat, watchCards, watchMe, saveCard, ck } from "./db.js?v=20261119b";
 import { rewardTab, rewardBadge, rgOf, rgProgress, RG_SUBS, prizeWeek, nameFromLink, prizeLinkOk } from "./weekgoal.js?v=20261119w";
@@ -53,18 +53,18 @@ const slicesNow = () => { const L = slicesNow0(); if (!planetOn(cls)) return L; 
   return L.map(x => x.id === "nothing" && n++ === 1 ? Object.assign({}, x, { id: "dust50", label: WHEEL_DUST + " Stardust", icon: "\u2B50", note: "+" + WHEEL_DUST + " Planet JP Stardust!" }) : x); };
 // ⭐ adds Stardust to the student's Planet JP save (the whole planet object, like every Planet JP save, so nothing is lost)
 function plusDust(s, n, data) { const pl = JSON.parse(JSON.stringify(((pjFresh(s) || {}).planet) || {})); pl.dust = (Number(pl.dust) || 0) + n; pl.sv = (Number(pl.sv) || 0) + 1; data.planet = pl; }
-import { nudgeCard } from "./nudges.js?v=20261120k";
-import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261120k";
+import { nudgeCard } from "./nudges.js?v=20261120m";
+import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261120m";
 import { teacherPlayer, hasStarter, MOVES, formOf, STARTERS as CR_STARTERS, family as crFamily, creature as crCreature } from "./collect.js?v=20261119b";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261120k";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261120m";
 import { addDays, wkGoalOf, wkShare, ringDay, vaultMet, goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked, weekGoal, weekKey, weekTotal, weekDoorState, vaultState, vaultGoal, rewardFor, oldReady, vaultLessonsLeft, VAULT_XP, VAULT_BONUS_XP, VAULT_EGGS, VAULT_MIN, vaultMinOk, vaultNeedsMin, subReq, subReqHTML, DOOR_DUST, WEEK_DOOR_DUST, WHEEL_DUST, DOOR_OPEN_DUST, SECRET_DUST, CHECK_DUST } from "./doors.js?v=20261119w";
-import { freshSt as pjFresh } from "./safari.js?v=20261120k";
+import { freshSt as pjFresh } from "./safari.js?v=20261120m";
 import { azToday } from "./collect.js?v=20261119b";
 import { tourSync } from "./tour.js?v=20261119b";
 import { roomHTML, FIT_SLOTS, slotKind, KIND_NAMES, KIND_ICON, EVERYDAY_PRICE, THEMED_PRICE, TROPHY_PRICE, TYPE_THEMES, SEASON_THEMES, THEME_NAMES, TROPHIES,
   itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId,
   ROOMS, EXTRA_ROOMS, ROOM_PRICE, hasRoom, roomStarters, fitIn, slotTakes, roomExtras, PET_SPOT_KEYS, petSpotLabel, petSpotOf, ACTIVITY_IDS, ACTIVITY_PRICE } from "./room.js?v=20261119b";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing, endMyBattle } from "./collector-ui.js?v=20261120k";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing, endMyBattle } from "./collector-ui.js?v=20261120m";
 
 let fxFor = null;   // the student whose companion is being drawn (for the potion glow)
 const petHTML = (c, worn, held) => { const h = petBase(c, worn, held), fx = fxFor ? potionFx(fxFor) : ""; return fx ? h.replace('class="petwrap', 'class="petwrap' + fx) : h; };
@@ -1060,8 +1060,8 @@ function doorsCard0(s) {
     else if (st === "wait") body = '<span class="dstate wait">\u23F3 Waiting for Ms. Ariana</span>';
     else if (st === "ok") body = '<button class="presentbtn" data-open="' + date + ":" + i + '">\u{1F381} Open your present!</button>';
     else if (st === "open") { const t = rewardText(e.r, S); body = '<span class="dstate done">\u2705 ' + t.icon + " " + esc(t.big) + "</span>"; }
-    else body = (st === "no" ? '<span class="dstate no">\u21A9\uFE0F Not yet \u2014 try again!</span>' : "") + '<button class="btn small ddid" data-claim="' + i + '">I did it!</button>';
-    return '<div class="door d-' + (locked ? "lock" : st || "new") + '"><div class="doorpic"><img src="' + ((S.key === "heart" || S.key === "lucky") && st === "open" ? "assets/doors/door-" + S.key + "-open.webp" : art) + '" alt=""><span class="dnum">' + (i + 1) + "</span>" +
+    else body = (st === "no" ? '<span class="dstate no">\u21A9\uFE0F Not yet \u2014 try again!</span>' : "") + (/before school/i.test(String(task)) ? '<span class="dstate wait">Opens by itself from your morning XP</span>' : '<button class="btn small ddid" data-claim="' + i + '">I did it!</button>');   // ☀️ Nov 20: no "I did it!" on the before-school door (the tracker or Ms. Ariana opens it)
+    return '<div class="door d-' + (locked ? "lock" : st || "new") + '"><div class="doorpic">' + (st === "open" ? '<img src="assets/doors/door-' + S.key + '-open.webp" alt="" onerror="this.onerror=null;this.src=\'' + art + '\'">' : '<img src="' + art + '" alt="">') + '<span class="dnum">' + (i + 1) + "</span>" +
       (st === "ok" ? '<img class="dgift" src="assets/xmas/ic-present.webp" alt="">' : st === "open" ? '<img class="dgift" src="assets/ui/ck/lv-star.webp" alt="">' : locked ? '<span class="dlockb"></span>' : "") + "</div>" +
       (isFree(task) ? '<span class="dfree">Free door</span>' : "") + '<div class="dtask">' + esc(doorText(task, s, cls)) + "</div>" + '<div class="dbody">' + body + "</div></div>";
   }).join("") + "</div>";

@@ -15,9 +15,9 @@
 import { esc, weekKey } from "./game.js?v=20261119b";
 import { azToday, azNow } from "./collect.js?v=20261119b";
 import { vaultMet, vaultGoal, subReq, addDays } from "./doors.js?v=20261119w";
-import { axoDay } from "./axolotl.js?v=20261120k";
-import { pjBreakDay } from "./safari.js?v=20261120k";
-import { guide as guide2, bind as bind2, KEEP2, kd2On, rankChip, rankOf as rankOf2, map2HTML, questsHTML, questsWaiting, aquariumHTML, gardenHTML, dockHTML, stableHTML, shipHTML, shipOpen, hatchHTML, beachHTML, townHTML, rankUpHTML, catchCreature, pickCreature, keepCreature, aqImg, AQSZ, catchCard, subSprite, subImg, trailHTML, resetViews, arenaHTML, cityHTML, statueHTML } from "./kingdom2.js?v=20261120k";
+import { axoDay } from "./axolotl.js?v=20261120m";
+import { pjBreakDay } from "./safari.js?v=20261120m";
+import { guide as guide2, bind as bind2, KEEP2, kd2On, rankChip, rankOf as rankOf2, map2HTML, questsHTML, questsWaiting, aquariumHTML, gardenHTML, dockHTML, stableHTML, shipHTML, shipOpen, hatchHTML, beachHTML, townHTML, rankUpHTML, catchCreature, pickCreature, keepCreature, aqImg, AQSZ, catchCard, subSprite, subImg, trailHTML, resetViews, arenaHTML, cityHTML, statueHTML } from "./kingdom2.js?v=20261120m";
 
 const K = "assets/kingdom/";
 export const ICE_DIVES = 2;   // ❄️ Nov 17: Ice Cave dives a week (Royal rank, week 12)

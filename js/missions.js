@@ -5,11 +5,11 @@
    All required done = a "Claim +5 ⭐" button (ONE save: planet.ml = { d: date claimed, n: days claimed }; it was planet.mb before Nov 12).
    The map shows a bouncing "!" on a place while it has something to do today (placeBang).  */
 import { azToday } from "./collect.js?v=20261119b";
-import { freshSt, planetSave, planetNow, planetCtx, filmLeft } from "./safari.js?v=20261120k";
+import { freshSt, planetSave, planetNow, planetCtx, filmLeft } from "./safari.js?v=20261120m";
 import { zooPicks } from "./zoo.js?v=20261119b";
 import { swapDeal } from "./spaceshop.js?v=20261119b";
-import { careDone, hasNebble } from "./petpark.js?v=20261120k";
-import { boardWaiting, boardLeft, missionPic } from "./board.js?v=20261120k";
+import { careDone, hasNebble } from "./petpark.js?v=20261120m";
+import { boardWaiting, boardLeft, missionPic } from "./board.js?v=20261120m";
 
 export const MISSION_BONUS = 5;
 const plOf = st => (st && st.planet) || {};
