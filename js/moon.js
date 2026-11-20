@@ -11,8 +11,8 @@
        hs: { game: best }, pl: { d, n } (playhouse taps today), cr: palace crown date, gy: gym glow date } */
 import { esc } from "./game.js?v=20261119b";
 import { azToday } from "./collect.js?v=20261119b";
-import { planetNow, planetSave, planetCtx, freshSt } from "./safari.js?v=20261120r";
-import { ownedOf, nebImg, nebHappy, NEB } from "./pets.js?v=20261119b";
+import { planetNow, planetSave, planetCtx, freshSt } from "./safari.js?v=20261120u";
+import { ownedOf, nebImg, nebHappy, NEB } from "./pets.js?v=20261120u";
 import { GAMES, gameByKey, play } from "./spacegames.js?v=20261119b";
 
 const M = "assets/planet/moon/";

@@ -5568,3 +5568,28 @@ body.ck .maintabs .tab .tbadge{ margin-top:2px; }
   transform:translate(-50%,-50%) scale(0); animation:ttwk2 2.8s ease-in-out infinite !important; filter:drop-shadow(0 0 3px #fff); }
 .sstfill::before{ left:72%; width:12px; height:12px; animation-delay:1.4s !important; }
 @media (prefers-reduced-motion: reduce){ .sstfill::after, .sstfill::before{ animation:none !important; opacity:0; } }
+/* 🧸 Nov 20: the companion stays centred on its platform; the lunch sidekick stands beside it (not pushing it over) */
+body.ck .mypet .stage > .side{ position:absolute !important; left:calc(50% + 11cqw); bottom:0; margin:0; z-index:2; }
+/* 🎨 Nov 20: My Clubs intro on Ms. Ariana's parchment sheet */
+body.ck .card.myclubs{ position:relative; isolation:isolate; background:#EAD3A2 !important; border:0 !important; box-shadow:none !important; padding:30px 34px 24px !important; filter:drop-shadow(0 6px 8px rgba(50,25,5,.4)); }
+body.ck .card.myclubs::before{ content:""; position:absolute; inset:-4px; z-index:-1; pointer-events:none; border-style:solid; border-color:transparent; border-width:44px; border-image:url(../assets/keep/parchment-sheet.webp) 110 fill / 44px / 0 stretch; }
+body.ck .card.myclubs .lede{ color:#3A2410 !important; font-size:15.5px; line-height:1.55; }
+body.ck .card.myclubs h2 img.kdi{ height:1.2em; }
+/* 🎨 Nov 20: every club card on the parchment sheet, with its own club egg as the icon */
+body.ck .card.clubcard{ position:relative; isolation:isolate; background:#EAD3A2 !important; border:0 !important; box-shadow:none !important; padding:30px 34px 26px !important; filter:drop-shadow(0 6px 8px rgba(50,25,5,.4)); }
+body.ck .card.clubcard::before{ content:""; position:absolute; inset:-4px; z-index:-1; pointer-events:none; border-style:solid; border-color:transparent; border-width:44px; border-image:url(../assets/keep/parchment-sheet.webp) 110 fill / 44px / 0 stretch; }
+body.ck .card.clubcard .clubic{ display:grid; place-items:center; width:54px; height:54px; font-size:34px; border-radius:50%; background:radial-gradient(circle at 40% 35%,#FFF6D8,#F2D88A 75%); box-shadow:0 0 0 3px #E6A92C, 0 0 0 5px #8A5A10, 0 3px 6px rgba(0,0,0,.3); flex:none; }
+body.ck .card.clubcard .clubic img{ width:40px; height:46px; object-fit:contain; filter:drop-shadow(0 2px 2px rgba(0,0,0,.3)); }
+body.ck .card.clubcard .clubhead h3{ font-family:Lora, Georgia, serif; color:#5A1A08 !important; font-size:20px; }
+body.ck .card.clubcard .clubhead small{ color:#7A5A30 !important; }
+body.ck .card.clubcard .clubn{ background:linear-gradient(#FFF1A8,#E6A92C); color:#5A1A08 !important; border:2px solid #8A5A10; border-radius:99px; padding:3px 14px; box-shadow:0 2px 0 #8A5A10; }
+body.ck .card.clubcard .clubegg small{ color:#5A3D1E !important; font:600 14px Lora, Georgia, serif; }
+body.ck .card.clubcard .clubeggimg img{ max-width:100%; }
+/* 🎩 Nov 20: switch buddy + hats right on the Nebbles tab */
+body.ck .card.nbbuddy .nbqh{ margin:12px 0 6px; font:700 15px Lora, Georgia, serif; color:#5A1A08; }
+body.ck .card.nbbuddy .nbquick{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:6px; }
+body.ck .card.nbbuddy .nbquick .nbslot, body.ck .card.nbbuddy .nbquick .nbhatbtn{ background:rgba(255,250,232,.85) !important; border:2px solid #D9B06A !important; border-radius:14px !important; padding:6px 8px !important; cursor:pointer; }
+body.ck .card.nbbuddy .nbquick .on{ border-color:#E6A92C !important; background:linear-gradient(#FFF1A8,#F2C14E) !important; box-shadow:0 0 0 2px #8A5A10, 0 0 10px rgba(255,200,60,.6) !important; }
+body.ck .card.nbbuddy .nbquick .nbhatbtn img{ width:40px; height:40px; object-fit:contain; display:block; margin:0 auto; }
+body.ck .card.nbbuddy .nbquick small{ display:block; font-size:11.5px; color:#5A3D1E; }
+.nbnone{ display:block; width:40px; height:40px; margin:0 auto; border-radius:50%; border:3px solid #B0471A; position:relative; } .nbnone::after{ content:""; position:absolute; left:50%; top:4px; bottom:4px; width:3px; background:#B0471A; transform:translateX(-50%) rotate(45deg); }

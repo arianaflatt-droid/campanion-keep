@@ -12,12 +12,12 @@
    The 🐾 My Room pet corner (Phase 3) also lives here: the buddy sits on its bed in My Room (display only). */
 import { esc } from "./game.js?v=20261119b";
 import { azToday } from "./collect.js?v=20261119b";
-import { schoolDayFor } from "./axolotl.js?v=20261120r";
+import { schoolDayFor } from "./axolotl.js?v=20261120u";
 import { addDays } from "./doors.js?v=20261119w";
-import { freshSt, planetSave, planetNow, planetCtx } from "./safari.js?v=20261120r";
+import { freshSt, planetSave, planetNow, planetCtx } from "./safari.js?v=20261120u";
 import { playOpen, playgroundHTML } from "./playground.js?v=20261119b";
 import { bedOf, bedWithPet, careUse } from "./nebshop.js?v=20261119b";
-import { NEB, PP, PERS, PERSONALITIES, ownedOf, petsOf, nebHTML, nebImg, nebHappy } from "./pets.js?v=20261119b";
+import { NEB, PP, PERS, PERSONALITIES, ownedOf, petsOf, nebHTML, nebImg, nebHappy } from "./pets.js?v=20261120u";
 
 export const CARE_EACH = 5, CARE_ALL = 3,   // Nov 10 (Ms. Ariana): +5 each, was +3
                    CARE_STREAK = 5, CARE_STREAK_BONUS = 25;

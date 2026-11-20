@@ -7,7 +7,7 @@
 import { esc } from "./game.js?v=20261119b";
 import { azToday } from "./collect.js?v=20261119b";
 import { cardOf, sameData } from "./card.js?v=20261119b";
-import { BADGES } from "./badges.js?v=20261120r";
+import { BADGES } from "./badges.js?v=20261120u";
 import { cardRef } from "./db.js?v=20261119b";
 import { setDoc, updateDoc, deleteDoc, writeBatch, db, classRef, studentRef, keysRef, getKeys, seatRef, snapRef, snapsFor, snapsAt, deleteField } from "./db.js?v=20261119b";
 

@@ -9,19 +9,19 @@
    Pictures live in assets/planet/ — until one is uploaded (ART below) the stand-in drawing is used. */
 import { esc, weekKey } from "./game.js?v=20261119b";
 import { azToday, azNow } from "./collect.js?v=20261119b";
-import { axoDay, schoolDayFor } from "./axolotl.js?v=20261120r";
+import { axoDay, schoolDayFor } from "./axolotl.js?v=20261120u";
 import { addDays, todayPlan, weekTotal, histWeekTotal } from "./doors.js?v=20261119w";
 import { GAMES, gameOfDay, gameByKey, play, preload } from "./spacegames.js?v=20261119b";
-import { setHitCheck, afterOn, PJ_AFTER, PJ_AFTER_END, pjCloseAt, pjAfterAt, pjClock } from "./safari.js?v=20261120r";
-import { ZONES, safariSync, freshSt, albumHTML, filmLeft, pageCount, pageSize, aliensFound, zoneAliens, FREE_FILM, ROLL_COST, shopHTML, netsOf, NETS, netImg, pjWindow, classOpenAll, PJ_LATE, pjBreakDay, pjBreakXP } from "./safari.js?v=20261120r";
+import { setHitCheck, afterOn, PJ_AFTER, PJ_AFTER_END, pjCloseAt, pjAfterAt, pjClock } from "./safari.js?v=20261120u";
+import { ZONES, safariSync, freshSt, albumHTML, filmLeft, pageCount, pageSize, aliensFound, zoneAliens, FREE_FILM, ROLL_COST, shopHTML, netsOf, NETS, netImg, pjWindow, classOpenAll, PJ_LATE, pjBreakDay, pjBreakXP } from "./safari.js?v=20261120u";
 import { cafeHTML } from "./cafe.js?v=20261119b";
 import { shopPageHTML } from "./spaceshop.js?v=20261119b";
 import { hangarHTML } from "./hangar.js?v=20261119b";
-import { stationHTML, stationAdminLine, doubleWaiting } from "./station.js?v=20261120r";
+import { stationHTML, stationAdminLine, doubleWaiting } from "./station.js?v=20261120u";
 import { zooHTML } from "./zoo.js?v=20261119b";
-import { adoptHTML, PP as NEB_PP } from "./pets.js?v=20261119b";
-import { parkHTML } from "./petpark.js?v=20261120r";
-import { missionsHTML, placeBang } from "./missions.js?v=20261120r";
+import { adoptHTML, PP as NEB_PP } from "./pets.js?v=20261120u";
+import { parkHTML } from "./petpark.js?v=20261120u";
+import { missionsHTML, placeBang } from "./missions.js?v=20261120u";
 import { duckImgOf, flameFxOf, trailOf } from "./shop-data.js?v=20261119b";
 
 export const PJ_OPEN = 11 * 60, PJ_CLOSE = 12 * 60 + 55;   // minutes after midnight, Arizona time
@@ -415,8 +415,8 @@ function hubHTML(st, n) {
   return h + "</div></div>";
 }
 import { arianaHTML, arianaToday } from "./ariana.js?v=20261119b";
-import { boardHTML } from "./board.js?v=20261120r";
-import { moonHTML } from "./moon.js?v=20261120r";
+import { boardHTML } from "./board.js?v=20261120u";
+import { moonHTML } from "./moon.js?v=20261120u";
 // 👽 Nov 12: every Planet JP page gets the hidden Alien Ms. Ariana check at the end
 // ◀ ▶ between the zones (locked zones show how many launches they need)
 function zoneArrows(z, n) {

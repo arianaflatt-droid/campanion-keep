@@ -17,7 +17,7 @@
    through safari.js planetSave, so the other Planet JP saves aren't overwritten. */
 import { esc, OUTFITS } from "./game.js?v=20261119b";
 import { azToday } from "./collect.js?v=20261119b";
-import { freshSt, planetSave, planetNow, planetCtx } from "./safari.js?v=20261119b";
+import { freshSt, planetSave, planetNow, planetCtx } from "./safari.js?v=20261120u";
 import { shopTab, shopTabs, bedShopHTML, careShopHTML } from "./nebshop.js?v=20261119b";
 
 export const PA = "assets/pets/", PP = PA + "place/";
@@ -95,7 +95,7 @@ const wearable = st => OUTFITS.filter(o => ((st && st.outfits) || {})[o.id]);
 
 /* ---------- state for the Adoption Center screen (nothing here is saved) ---------- */
 let sel = null, open1 = null, papers = null, msg = null;
-const rer = () => { const c = planetCtx(); if (c && c.rerender) c.rerender(); };
+const rer = () => { const c = planetCtx(); if (c && c.rerender) c.rerender(); else if (side.rerender) side.rerender(); };
 const say = (text, bad) => { msg = { text, bad: !!bad }; };
 const cleanName = (v, k) => { const s = String(v || "").replace(/[<>]/g, "").replace(/\s+/g, " ").trim().slice(0, NAME_MAX); return s || (NEB[k] || {}).name || "Nebble"; };
 
@@ -255,6 +255,14 @@ export function nebbleCard(st, cls, out) {
       "It pops up around your Keep on days you launch to Planet JP (or have full tanks).") + "</p>";
   if (lh && keys.length > 1) h += '<p class="small" style="margin:0 0 4px;"><b>☀️ You’re a Lunch Hero!</b> Pick today’s sidekick:</p><div class="nbsidepick">' +
     keys.map(x => '<button class="nbslot have' + (x === k ? " on" : "") + '" data-nb="side:' + x + '" title="' + esc(own[x].n) + '">' + nebHTML(x, { hat: own[x].h }) + "<small>" + esc(own[x].n) + "</small></button>").join("") + "</div>";
+  // 🎩 Nov 20: switch the buddy and change its hat right here (no need to open the Adoption Center)
+  const buddy = petsOf(st).buddy, hats = wearable(st);
+  if (keys.length > 1) h += '<p class="nbqh">Switch your buddy</p><div class="nbsidepick nbquick">' +
+    keys.map(x => '<button class="nbslot have' + (x === buddy ? " on" : "") + '" data-nb="buddy:' + x + '" title="' + esc(own[x].n) + '">' + nebHTML(x, { hat: own[x].h }) + "<small>" + esc(own[x].n) + "</small></button>").join("") + "</div>";
+  if (k) h += '<p class="nbqh">' + esc(o.n || "Your Nebble") + '’s hat</p><div class="nbhats nbquick">' +
+    '<button class="nbhatbtn' + (o.h ? "" : " on") + '" data-nb="hat:' + k + ':"><span class="nbnone"></span><small>None</small></button>' +
+    hats.map(x => '<button class="nbhatbtn' + (o.h === x.id ? " on" : "") + '" data-nb="hat:' + k + ":" + x.id + '" title="' + esc(x.name) + '"><img src="' + x.img + '" alt=""><small>' + esc(x.name) + "</small></button>").join("") + "</div>" +
+    (hats.length ? "" : '<p class="small" style="margin:2px 0 6px;">You don’t own any hats yet. Get them in the Space Shop and event shops!</p>');
   h += '<button class="btn ghost small" data-nb="pop">' + (off ? "\u{1F440} Turn pop-ups on" : "\u{1F648} Turn pop-ups off") + "</button>";
   return h + "</div></div>";
 }
