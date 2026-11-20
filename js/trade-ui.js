@@ -51,14 +51,17 @@ const open = t => t.status === "offer";
 export const TT_SINCE = "2026-11-09";
 const isT = x => x && (x.isTeacher || x.id === TEACHER_ID);
 const vsTeacher = (t, sid) => t.a && t.b && ((t.a.id === sid && t.b.id === TEACHER_ID) || (t.b.id === sid && t.a.id === TEACHER_ID));
-export function teacherTradesLeft(st, trades) {
+export function teacherTradesLeft(st, trades, battles) {
   if (!st || isT(st)) return 0;
-  const earned = Object.keys(st.vault || {}).filter(w => w >= TT_SINCE && st.vault[w] === "open").length;
+  // 🍎 Nov 20: a vault can be spent on a battle instead (tb = "v" + week): those don't count as trades left
+  const vb = new Set((st.tbUsed || []).filter(k => String(k).charAt(0) === "v"));
+  (battles || []).forEach(b => { if (b && b.tb && String(b.tb).charAt(0) === "v" && b.a && b.b && (b.a.id === st.id || b.b.id === st.id) && (b.a.id === TEACHER_ID || b.b.id === TEACHER_ID) && b.status !== "declined" && !(b.status === "ended" && b.endedBy !== st.id)) vb.add(b.tb); });
+  const earned = Object.keys(st.vault || {}).filter(w => w >= TT_SINCE && st.vault[w] === "open").length - vb.size;
   const used = (trades || []).filter(t => vsTeacher(t, st.id) && (t.status === "offer" || t.status === "accepted") && String(t.created || "") >= TT_SINCE).length;
   return Math.max(0, earned - used);
 }
 // can these two players trade? (a student and the teacher only with a vault trade left)
-const canPair = (ctx, me, o) => !isT(me) && !isT(o) ? true : teacherTradesLeft(isT(me) ? o : me, ctx.trades) > 0;
+const canPair = (ctx, me, o) => !isT(me) && !isT(o) ? true : teacherTradesLeft(isT(me) ? o : me, ctx.trades, ctx.battles) > 0;
 const mineOf = (ctx, s) => (ctx.trades || []).filter(t => t.a && t.b && (t.a.id === s.id || t.b.id === s.id));
 
 export function tradeCard(ctx) {
@@ -99,9 +102,9 @@ export function tradeCard(ctx) {
   if (!ready) return h + "</div>";
 
   // make an offer (only to other ready players who can trade right now)
-  const ttLeft = isT(s) ? 0 : teacherTradesLeft(s, ctx.trades);
-  h += isT(s) ? '<p class="muted small" style="margin:0 0 8px;">\u{1F34E} Students can trade with you once for every Treasure Vault they open. Only those students show up in your list.</p>'
-    : '<p class="small" style="margin:0 0 8px;">\u{1F34E} ' + (ttLeft ? "You opened your Treasure Vault, so you can send <b>" + (ttLeft === 1 ? "one trade offer" : ttLeft + " trade offers") + "</b> to the teacher!" : "Open your <b>Treasure Vault</b> to earn a trade with the teacher.") + "</p>";
+  const ttLeft = isT(s) ? 0 : teacherTradesLeft(s, ctx.trades, ctx.battles);
+  h += isT(s) ? '<p class="muted small" style="margin:0 0 8px;">\u{1F34E} Every Treasure Vault a student opens earns one trade OR one battle with you (their pick). Only those students show up in your list.</p>'
+    : '<p class="small" style="margin:0 0 8px;">\u{1F34E} ' + (ttLeft ? "You opened your Treasure Vault, so you can send <b>" + (ttLeft === 1 ? "one trade offer" : ttLeft + " trade offers") + "</b> to the teacher (or use it for a battle with her instead)!" : "Open your <b>Treasure Vault</b> to earn a trade or a battle with the teacher.") + "</p>";
   const others = ctx.students.filter(x => x.id !== s.id && hasStarter(x) && x.tradeReady && tradeOpenFor(x, cls) && canPair(ctx, s, x));
   if (!others.length) return h + '<p class="lede">Nobody else is ready to trade yet. Hang tight!</p></div>';
   const who = others.find(x => x.id === pick.who) || null;

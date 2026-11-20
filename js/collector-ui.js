@@ -10,7 +10,7 @@ import { newBattleRef, battleRef, updateDoc, changeBattle as changeBattleRaw, se
 let locking = null, leaving = null;   // battle id while "Lock in team" is saving
 const changeBattle = (id, fn) => changeBattleRaw(id, bt => { const n = fn(bt); if (n) n.upd = new Date().toISOString(); return n; });
 
-import { tradeCard } from "./trade-ui.js?v=20261119b";
+import { tradeCard } from "./trade-ui.js?v=20261120k";
 import { ultraLeft, isUltra, trapLegLeft, PRISM_FAM, teacherLegFam } from "./collect.js?v=20261119b";
 import { ultraSection, ultraInfoHTML } from "./ultra.js?v=20261119w";
 

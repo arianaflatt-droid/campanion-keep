@@ -19,11 +19,26 @@ export function tbEarned(st, cls) {
   if (cur >= TB_SINCE && weekDoorState(st, cls) !== "locked") w.push(cur);
   return w.sort();
 }
+/* 🍎 Nov 20: every Treasure Vault opened (from Nov 9) earns ONE of: a battle OR a trade with Ms. Ariana (the student picks).
+   Vault battles use tb = "v" + the vault's week. Trades are counted the same way trade-ui.js counts them. */
+let TB_TRADES = [];
+export const tbSetTrades = l => { TB_TRADES = l || []; };
+export const VT_SINCE = "2026-11-09";
+export const vaultWeeks = st => Object.keys((st && st.vault) || {}).filter(w => w >= VT_SINCE && st.vault[w] === "open").sort();
+const vsTT = (t, sid) => t && t.a && t.b && ((t.a.id === sid && t.b.id === TEACHER_ID) || (t.b.id === sid && t.a.id === TEACHER_ID));
+export const vaultTradesUsed = (st, trades) => (trades || []).filter(t => vsTT(t, st.id) && (t.status === "offer" || t.status === "accepted") && String(t.created || "") >= VT_SINCE).length;
+export function vaultBattlesUsed(st, battles) {
+  const u = new Set(((st && st.tbUsed) || []).filter(k => String(k).charAt(0) === "v"));
+  (battles || []).filter(vsT).forEach(b => { if (String(b.tb).charAt(0) === "v" && (b.a.id === st.id || b.b.id === st.id) && (LIVE.includes(b.status) || tbUsedBy(st, b))) u.add(b.tb); });
+  return u;
+}
+export const vaultCreditsLeft = (st, trades, battles) => Math.max(0, vaultWeeks(st).length - vaultTradesUsed(st, trades) - vaultBattlesUsed(st, battles).size);
 // Weeks not used yet: not in tbUsed, not already in a live battle, not in a finished one the console hasn't saved yet
 export function tbLeft(st, cls, battles) {
   const used = new Set((st && st.tbUsed) || []);
   (battles || []).filter(vsT).forEach(b => { if ((b.a.id === st.id || b.b.id === st.id) && (LIVE.includes(b.status) || tbUsedBy(st, b))) used.add(b.tb); });
-  return tbEarned(st, cls).filter(w => !used.has(w));
+  const n = vaultCreditsLeft(st, TB_TRADES, battles);
+  return tbEarned(st, cls).filter(w => !used.has(w)).concat(vaultWeeks(st).map(w => "v" + w).filter(k => !used.has(k)).slice(0, n));
 }
 export const tbLive = (st, battles) => (battles || []).find(b => vsT(b) && LIVE.includes(b.status) && (b.a.id === st.id || b.b.id === st.id)) || null;
 
@@ -32,7 +47,7 @@ export function tbCard(st, cls, battles, tName) {
   const left = tbLeft(st, cls, battles), live = tbLive(st, battles), T = esc(tName || "Ms. Ariana");
   let body;
   if (live) body = live.status === "invite" ? "<b>" + T + " started your battle!</b> Scroll down to the Battle Arena and tap <b>Accept</b>." : "Your battle with " + T + " is going on now. Go get ’em!";
-  else if (!left.length) body = "Reach <b>600 XP this week</b> to earn a battle with " + T + "!";
+  else if (!left.length) body = "Reach <b>600 XP this week</b> or open your <b>Treasure Vault</b> to earn a battle with " + T + "!";
   else if (st.tbAsk) body = '✅ You asked! ' + T + ' will start your battle when she’s ready. <button class="btn ghost small" data-act="tbCancel">Never mind</button>';
   else body = "You earned " + (left.length === 1 ? "a battle" : left.length + " battles") + " with " + T + '! <button class="btn small" data-act="tbAsk">\u{1F34E} Ask for a battle!</button>';
   return '<div class="card tbcard"><div class="card-head"><h2>\u{1F34E} Battle ' + T + '</h2><span class="fact">' + (left.length ? left.length + " earned" : "weekly goal") + '</span></div><p class="lede" style="margin:0;">' + body + "</p></div>";
@@ -48,7 +63,7 @@ export function tbRequestsCard(students, cls, battles, teacherBusy) {
   const ago = t => { const m = Math.round((Date.now() - new Date(t).getTime()) / 60000); return m < 1 ? "just now" : m < 60 ? m + " min ago" : m < 1440 ? Math.round(m / 60) + " hr ago" : Math.round(m / 1440) + " days ago"; };
   const earned = students.filter(st => tbLeft(st, cls, battles).length && !st.tbAsk && !tbLive(st, battles)).length;
   let h = '<div class="card tbreq"><div class="card-head"><h2>\u{1F34E} Battle requests</h2><span class="fact">' + req.length + " waiting</span></div>" +
-    '<p class="lede" style="font-size:13.5px;">Students earn one battle with you each week they reach the weekly XP goal (unused ones carry over). When they ask, they show up here. Tap <b>Start</b> and they get the challenge on their page.' +
+    '<p class="lede" style="font-size:13.5px;">Students earn one battle with you each week they reach the weekly XP goal (unused ones carry over), and every Treasure Vault they open earns a battle <i>or</i> a trade with you (their pick). When they ask, they show up here. Tap <b>Start</b> and they get the challenge on their page.' +
     (earned ? " " + earned + " more student" + (earned === 1 ? " has" : "s have") + " earned one but hasn’t asked yet." : "") + "</p>";
   if (live.length) h += live.map(([st, b]) => '<div class="dcheck"><span class="what">⚔️ <b>' + esc(st.name) + '</b> <span class="muted small">' + (b.status === "invite" ? "challenge sent, waiting for them to accept" : "battling now") + "</span></span></div>").join("");
   h += req.length ? req.map(st => { const n = tbLeft(st, cls, battles).length;
