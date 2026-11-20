@@ -36,6 +36,11 @@ export const CLUBS = {
     stickers: ["\u{1F5E3}️", "\u{1F4DD}", "\u{1F4D6}", "\u{1F4A1}", "\u{1F3A4}", "\u{1F3AC}", "\u{1F44F}", "\u{1F31F}"], ultra: "L-74" }
 };
 // "Impact Makers - Lower Grades", "IMAGINEERS", "Eureka Club" → club key (or null)
+// 🪺 Nov 20: use the painted nest once assets/clubs/nest.webp is on the site
+let NEST_OK = false; if (typeof Image !== "undefined") { const im = new Image(); im.onload = () => { NEST_OK = true; }; im.src = "assets/clubs/nest.webp"; }
+// 🖼️ Nov 20: a club's own painted frame (assets/clubs/frame-<club>.webp) is used once it's on the site
+const FRAME_OK = {};
+if (typeof Image !== "undefined") ["imagineers", "teamtrials", "popupshop", "impactmakers", "masterpiece", "eureka", "trainingcamp", "pixelstudio", "english"].forEach(k => { const im = new Image(); im.onload = () => { FRAME_OK[k] = true; }; im.src = "assets/clubs/frame-" + k + ".webp"; });
 export function clubKey(raw) {
   const s = String(raw || "").toLowerCase().replace(/\(.*?\)/g, " ").replace(/\b(lower|upper)\s*grades?\b/g, " ").replace(/\bclub\b/g, " ").replace(/[^a-z]/g, "");
   if (!s) return null;
@@ -169,7 +174,7 @@ export function clubsAdmin(students, cls, busy) {
 
 /* ---------- student tab ---------- */
 const eggStage = (n, tot) => (n >= tot ? 4 : Math.min(3, Math.floor(n / tot * 4)));
-const EGG_LINES = ["Your club egg is waiting…", "It wiggled! \u{1F95A}", "A crack! Something's inside…", "It's about to hatch!!", "HATCHED!"];
+const EGG_LINES = ["Your club egg is waiting…", "It wiggled!", "A crack! Something's inside…", "It's about to hatch!!", "HATCHED!"];
 // The stamp book (assets/clubs/stamp-book.webp): 5 round spots + the star (Final Challenge), [left %, top %] of each spot's middle.
 // A stamp picture assets/clubs/stamp-KEY-N.webp is used once it's in STAMP_ART; until then the club's emoji sticker is stamped.
 const BOOK_SPOTS = [[23.2, 31.5], [49.8, 31.8], [76, 31.5], [23.3, 69.1], [49.2, 69.2], [75.6, 69.5]];
@@ -200,12 +205,12 @@ export function clubsTab(st, cls) {
     const C = CLUBS[k], c = (st.clubs && st.clubs[k]) || { done: {}, wip: "" }, tot = clubSteps(cls, k), n = doneCount(c), stg = eggStage(n, tot), f = ultraOf(k), fam = f && family(f);
     const nums = Object.keys(c.done || {}).sort((a, b) => Number(a) - Number(b) || String(a).localeCompare(String(b)));
     const fresh = n > (Number(seen[k]) || 0);
-    h += '<div class="card clubcard' + (fresh ? " fresh" : "") + '" style="--cc:' + C.color + '"><div class="clubhead"><span class="clubic"><img src="assets/clubs/egg-' + k + '.webp" alt="" onerror="this.outerHTML=\'' + C.icon + '\'"></span><div><h3>' + esc(C.name) + '</h3><small>' + esc(C.goal) + " · " + esc(C.skill) + "</small></div><b class=\"clubn\">" + n + " / " + tot + "</b></div>" +
+    h += '<div class="card clubcard club-' + k + (FRAME_OK[k] ? " framed" : "") + (fresh ? " fresh" : "") + '" style="--cc:' + C.color + '"><div class="clubhead"><span class="clubic"><img src="assets/clubs/egg-' + k + '.webp" alt="" onerror="this.outerHTML=\'' + C.icon + '\'"></span><div><h3>' + esc(C.name) + '</h3><small>' + esc(C.goal) + " · " + esc(C.skill) + "</small></div><b class=\"clubn\">" + n + " / " + tot + "</b></div>" +
       '<div class="clubbody">' + bookHTML(k, C, c, tot, n, nums, fresh ? (Number(seen[k]) || 0) : n) +
-      '<div class="clubegg st' + stg + '"><span class="clubeggimg">' + (stg === 4 && fam ? '<img src="' + esc(creature(fam.forms[0]).img) + '" alt="">' : stg === 4 ? '<img src="assets/planet/ultra/ultra-egg.webp" alt="">' :
-        '<img src="assets/clubs/egg-' + k + '.webp" alt="" onerror="this.src=\'assets/egg-common.webp\'">' + (stg >= 2 ? CRACK(stg) : "")) + "</span><small>" + (stg === 4 ? (f ? "Your " + C.name + " Ultra is in your collection!" : "You finished! Your club Ultra is on its way!") : EGG_LINES[stg]) + "</small></div></div>" +
+      '<div class="clubegg st' + stg + '"><span class="clubnest"><span class="clubeggimg">' + (stg === 4 && fam ? '<img src="' + esc(creature(fam.forms[0]).img) + '" alt="">' : stg === 4 ? '<img src="assets/planet/ultra/ultra-egg.webp" alt="">' :
+        '<img src="assets/clubs/egg-' + k + '.webp" alt="" onerror="this.src=\'assets/egg-common.webp\'">' + (stg >= 2 ? CRACK(stg) : "")) + '</span></span><small>' + (stg === 4 ? (f ? "Your " + C.name + " Ultra is in your collection!" : "You finished! Your club Ultra is on its way!") : EGG_LINES[stg]) + "</small></div></div>" +
       (c.wip ? '<p class="small muted" style="margin:6px 0 0;">Working on: ' + esc(c.wip) + "</p>" : "") +
-      (fresh ? '<div class="row" style="margin-top:8px;"><span class="clubnew">\u{1F389} New sticker' + (n - (Number(seen[k]) || 0) === 1 ? "" : "s") + "!" + (eggsFor(k, n) - eggsFor(k, seen[k]) ? " +" + (eggsFor(k, n) - eggsFor(k, seen[k])) + " egg" + (eggsFor(k, n) - eggsFor(k, seen[k]) === 1 ? "" : "s") + " added to your Collector." : " One more step for your next egg!") + '</span><button class="btn small" data-clubseen="' + k + '">Yay!</button></div>' : "") + "</div>";
+      (fresh ? '<div class="row" style="margin-top:8px;"><span class="clubnew">New sticker' + (n - (Number(seen[k]) || 0) === 1 ? "" : "s") + "!" + (eggsFor(k, n) - eggsFor(k, seen[k]) ? " +" + (eggsFor(k, n) - eggsFor(k, seen[k])) + " egg" + (eggsFor(k, n) - eggsFor(k, seen[k]) === 1 ? "" : "s") + " added to your Collector." : " One more step for your next egg!") + '</span><button class="btn small" data-clubseen="' + k + '">Yay!</button></div>' : "") + "</div>";
   });
   return h;
 }

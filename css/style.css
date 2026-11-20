@@ -5593,3 +5593,48 @@ body.ck .card.nbbuddy .nbquick .on{ border-color:#E6A92C !important; background:
 body.ck .card.nbbuddy .nbquick .nbhatbtn img{ width:40px; height:40px; object-fit:contain; display:block; margin:0 auto; }
 body.ck .card.nbbuddy .nbquick small{ display:block; font-size:11.5px; color:#5A3D1E; }
 .nbnone{ display:block; width:40px; height:40px; margin:0 auto; border-radius:50%; border:3px solid #B0471A; position:relative; } .nbnone::after{ content:""; position:absolute; left:50%; top:4px; bottom:4px; width:3px; background:#B0471A; transform:translateX(-50%) rotate(45deg); }
+/* 🪺 Nov 20: club eggs sit in a cozy nest (assets/clubs/nest.webp if you upload one, otherwise the drawn nest) */
+.clubnest{ position:relative; display:inline-flex; justify-content:center; align-items:flex-end; width:170px; height:150px; margin-bottom:4px; }
+.clubnest::before, .clubnest::after{ content:""; position:absolute; left:0; right:0; bottom:0; height:76px; pointer-events:none; background-position:center bottom; background-repeat:no-repeat; background-size:100% auto; }
+.clubnest::before{ bottom:26px; height:70px; background-image:url(../assets/clubs/nest-back.svg); z-index:0; }
+.clubnest::after{ background-image:url(../assets/clubs/nest-front.svg); z-index:2; filter:drop-shadow(0 4px 4px rgba(60,30,5,.35)); }
+.clubnest .clubeggimg{ position:relative; z-index:1; margin-bottom:22px; transform-origin:50% 90%; }
+.clubnest .clubeggimg img{ width:96px; height:116px; }
+.clubnest::before{ bottom:34px; height:62px; }
+.clubnest::after{ height:84px; }
+.clubnest .clubeggimg{ margin-bottom:30px; }
+/* a painted nest (assets/clubs/nest.webp) replaces the drawn one once it's uploaded */
+.clubnest.painted::before{ display:none; } .clubnest.painted::after{ background-image:url(../assets/clubs/nest.webp); height:90px; }
+.clubnest::before{ bottom:40px; height:56px; background-size:92% auto; }
+.clubnest::after{ bottom:-6px; height:84px; }
+.clubnest .clubeggimg{ margin-bottom:26px; }
+/* nest v2: both layers share one box so they line up */
+.clubnest::before, .clubnest::after{ bottom:0 !important; height:auto !important; aspect-ratio:200/96; background-size:100% 100% !important; }
+.clubnest .clubeggimg{ margin-bottom:34px !important; }
+.clubnest .clubeggimg{ margin-bottom:16px !important; }
+/* 🪺 Nov 20: Ms. Ariana's painted nest: the whole nest behind the egg, its front rim in front (assets/clubs/nest.webp + nest-front.webp) */
+.clubnest::before, .clubnest::after{ aspect-ratio:400/200 !important; bottom:0 !important; }
+.clubnest::before{ background-image:url(../assets/clubs/nest.webp) !important; display:block !important; filter:drop-shadow(0 4px 5px rgba(60,30,5,.35)); }
+.clubnest::after, .clubnest.painted::after{ background-image:url(../assets/clubs/nest-front.webp) !important; filter:none !important; height:auto !important; }
+.clubnest .clubeggimg{ margin-bottom:22px !important; }
+/* 🖼️ Nov 20: club frames. The art is drawn at ONE scale (k = card width / 2172), so the corners, the top scene and the bottom lights keep their true shape;
+   only the plain wood sides (rows 310–545 of the art) stretch taller when the card needs more room. */
+body.ck .card.clubcard.framed{ container-type:inline-size; background:#F3E2BE !important; padding:calc(100cqw * 235 / 2172) calc(100cqw * 120 / 2172) calc(100cqw * 120 / 2172) !important; filter:drop-shadow(0 6px 8px rgba(50,25,5,.35)); }
+body.ck .card.clubcard.framed::before{ inset:0 !important; border-width:calc(100cqw * 310 / 2172) calc(100cqw * 90 / 2172) calc(100cqw * 180 / 2172) !important;
+  border-image:var(--cframe) 310 90 180 / calc(100cqw * 310 / 2172) calc(100cqw * 90 / 2172) calc(100cqw * 180 / 2172) / 0 stretch !important; }
+body.ck .card.clubcard.framed::after{ content:""; position:absolute; z-index:-2; pointer-events:none; left:calc(100cqw * 60 / 2172); right:calc(100cqw * 60 / 2172); top:calc(100cqw * 200 / 2172); bottom:calc(100cqw * 70 / 2172); background:#F3E2BE; border-radius:6px; }
+body.ck .card.clubcard.club-imagineers{ --cframe:url(../assets/clubs/frame-imagineers.webp); }
+body.ck .card.clubcard [data-clubseen]{ background:linear-gradient(#FFE38A,#E6A92C) !important; color:#3A2410 !important; border:2px solid #8A5A10 !important; box-shadow:0 3px 0 #8A5A10 !important; border-radius:999px !important; font-weight:800; padding:6px 18px !important; }
+body.ck .card.clubcard .clubnew{ color:#8E1A24 !important; font-family:Lora, Georgia, serif; }
+/* 🖼️ Nov 20: every club's own frame, each with its own measured slices (only its plain sides stretch) */
+body.ck .card.clubcard.framed{ padding:calc((100cqw / 2172) * var(--fpt)) calc((100cqw / 2172) * var(--fps)) calc((100cqw / 2172) * var(--fpb)) !important; }
+body.ck .card.clubcard.framed::before{ border-width:calc((100cqw / 2172) * var(--ft)) calc((100cqw / 2172) * var(--fr)) calc((100cqw / 2172) * var(--fb)) calc((100cqw / 2172) * var(--fl)) !important;
+  border-image:var(--cframe) var(--fts) var(--frs) var(--fbs) var(--fls) / calc((100cqw / 2172) * var(--ft)) calc((100cqw / 2172) * var(--fr)) calc((100cqw / 2172) * var(--fb)) calc((100cqw / 2172) * var(--fl)) / 0 stretch !important; }
+body.ck .card.clubcard.framed::after{ top:calc((100cqw / 2172) * (var(--fin) - 20)) !important; }
+body.ck .card.clubcard.club-teamtrials{ --cframe:url(../assets/clubs/frame-teamtrials.webp); --ft:234; --fb:250; --fl:101; --fr:103; --fts:234; --fbs:250; --fls:101; --frs:103; --fin:202; --fpt:228; --fps:137; --fpb:137; }
+body.ck .card.clubcard.club-popupshop{ --cframe:url(../assets/clubs/frame-popupshop.webp); --ft:275; --fb:226; --fl:121; --fr:122; --fts:275; --fbs:226; --fls:121; --frs:122; --fin:231; --fpt:257; --fps:156; --fpb:124; }
+body.ck .card.clubcard.club-impactmakers{ --cframe:url(../assets/clubs/frame-impactmakers.webp); --ft:235; --fb:254; --fl:126; --fr:126; --fts:235; --fbs:254; --fls:126; --frs:126; --fin:208; --fpt:234; --fps:160; --fpb:139; }
+body.ck .card.clubcard.club-masterpiece{ --cframe:url(../assets/clubs/frame-masterpiece.webp); --ft:224; --fb:235; --fl:127; --fr:127; --fts:224; --fbs:235; --fls:127; --frs:127; --fin:198; --fpt:224; --fps:161; --fpb:129; }
+body.ck .card.clubcard.club-trainingcamp{ --cframe:url(../assets/clubs/frame-trainingcamp.webp); --ft:249; --fb:274; --fl:80; --fr:80; --fts:249; --fbs:274; --fls:80; --frs:80; --fin:235; --fpt:261; --fps:114; --fpb:150; }
+body.ck .card.clubcard.club-english{ --cframe:url(../assets/clubs/frame-english.webp); --ft:226; --fb:310; --fl:113; --fr:112; --fts:226; --fbs:310; --fls:113; --frs:112; --fin:204; --fpt:230; --fps:147; --fpb:170; }
+body.ck .card.clubcard.club-imagineers{ --cframe:url(../assets/clubs/frame-imagineers.webp); --ft:293; --fb:182; --fl:89; --fr:93; --fts:293; --fbs:182; --fls:89; --frs:93; --fin:217; --fpt:243; --fps:127; --fpb:100; }

@@ -6,9 +6,9 @@
    planet.ms = { d: today, c: { missionKey: 1 } }, plus the Stardust (through safari.js planetSave). */
 import { esc } from "./game.js?v=20261119b";
 import { azToday } from "./collect.js?v=20261119b";
-import { freshSt, planetSave, planetNow, planetCtx } from "./safari.js?v=20261120u";
-import { cafeDone, safariDone, zooHas, zooDone } from "./missions.js?v=20261120u";
-import { careDone, hasNebble } from "./petpark.js?v=20261120u";
+import { freshSt, planetSave, planetNow, planetCtx } from "./safari.js?v=20261120y";
+import { cafeDone, safariDone, zooHas, zooDone } from "./missions.js?v=20261120y";
+import { careDone, hasNebble } from "./petpark.js?v=20261120y";
 
 const B = "assets/planet/board/";
 const plOf = st => (st && st.planet) || {};
