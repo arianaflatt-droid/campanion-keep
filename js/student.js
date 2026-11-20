@@ -14,7 +14,7 @@ import { kindCard, gotKindToday } from "./kindness.js?v=20261119b";
 import { partyCards, partyOverlay, partyClick, partyBusy, partyTicker, partySync, albumPage, albumCount } from "./party.js?v=20261119w";
 import { kitchenCard, kitchenOverlay, kitchenClick, kitchenBusy, kitchenPointer } from "./meals.js?v=20261119b";
 import { miniCard, miniOverlay, miniClick, miniBusy, miniSync } from "./mini.js?v=20261119w";
-import { adventCard, adventSync } from "./advent.js?v=20261119w";
+import { adventCard, adventSync } from "./advent.js?v=20261120i";
 import { paintCard, paintClick } from "./paint.js?v=20261119w";
 import { surpriseCards, surpriseOverlay, surpriseClick, surpriseBusy, visitorCard } from "./surprise.js?v=20261119w";
 import { hofTab, hofParty, hofClick } from "./hof.js?v=20261119w";
@@ -26,21 +26,21 @@ import { cardOf, sameData } from "./card.js?v=20261119b";
 import { mapOn, mapTab, mapClick, mapReady } from "./readmap.js?v=20261119w";
 import { tbCard, tbLeft } from "./teachbattle.js?v=20261119w";
 import { wheelBanner, wheelWinOverlay, wheelSeen } from "./subwheel.js?v=20261119w";
-import { axoOn, axoSync } from "./axolotl.js?v=20261119w";
+import { axoOn, axoSync } from "./axolotl.js?v=20261120i";
 import { wheelSync } from "./wheel.js?v=20261119w";
 import { showdownSync, sdPill } from "./showdown.js?v=20261119b";
-import { shoutSync } from "./shout.js?v=20261119w";
+import { shoutSync } from "./shout.js?v=20261120i";
 import { newsPopSync } from "./modes.js?v=20261119w";
 import { lvlSync } from "./lvlup.js?v=20261119b";
-import { kdOn, kdSync, kingdomTab, kdTodo, kdUnlocked, kdOf, kdPass } from "./kingdom.js?v=20261119w";
+import { kdOn, kdSync, kingdomTab, kdTodo, kdUnlocked, kdOf, kdPass } from "./kingdom.js?v=20261120i";
 import { clubsTab, clubsNew, doneCount, clubPageSet } from "./clubs.js?v=20261119b";
-import { planetBar, planetSync, planetBusy, planetTab, planetZone, planetZoneNow, pjOpen, planetOn, nebbleOut, rocketSync } from "./planet.js?v=20261119w";
-import { missionsHTML, missionList } from "./missions.js?v=20261119w";
+import { planetBar, planetSync, planetBusy, planetTab, planetZone, planetZoneNow, pjOpen, planetOn, nebbleOut, rocketSync } from "./planet.js?v=20261120i";
+import { missionsHTML, missionList } from "./missions.js?v=20261120i";
 import { freeOverlay, freeReady, freeDoneCard, showFree } from "./pets.js?v=20261119b";
 import { nebbleSync, nebbleCard } from "./pets.js?v=20261119b";
-import { nebbleCorner } from "./petpark.js?v=20261119w";
+import { nebbleCorner } from "./petpark.js?v=20261120i";
 import { playSync } from "./playground.js?v=20261119b";
-import { checklistTab, todoCount, markSeen, newsKey, newsRead } from "./checklist.js?v=20261119w";
+import { checklistTab, todoCount, markSeen, newsKey, newsRead } from "./checklist.js?v=20261120i";
 import { newsPage, shownNews, reactSave, pinnedNews, newsCard, likesFor } from "./news.js?v=20261119b";
 import { PREVIEW, configured, auth, googleStudentSignIn, seatInfo, googleReseat, signOut as gSignOut, SCHOOL_DOMAIN, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc as saveDoc, watchRewardPic, watchNewsPics, claimSeat, mySeat, watchCards, watchMe, saveCard, ck } from "./db.js?v=20261119b";
 import { rewardTab, rewardBadge, rgOf, rgProgress, RG_SUBS, prizeWeek, nameFromLink, prizeLinkOk } from "./weekgoal.js?v=20261119w";
@@ -53,12 +53,12 @@ const slicesNow = () => { const L = slicesNow0(); if (!planetOn(cls)) return L; 
   return L.map(x => x.id === "nothing" && n++ === 1 ? Object.assign({}, x, { id: "dust50", label: WHEEL_DUST + " Stardust", icon: "\u2B50", note: "+" + WHEEL_DUST + " Planet JP Stardust!" }) : x); };
 // ⭐ adds Stardust to the student's Planet JP save (the whole planet object, like every Planet JP save, so nothing is lost)
 function plusDust(s, n, data) { const pl = JSON.parse(JSON.stringify(((pjFresh(s) || {}).planet) || {})); pl.dust = (Number(pl.dust) || 0) + n; pl.sv = (Number(pl.sv) || 0) + 1; data.planet = pl; }
-import { nudgeCard } from "./nudges.js?v=20261119w";
-import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261119w";
+import { nudgeCard } from "./nudges.js?v=20261120i";
+import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261120i";
 import { teacherPlayer, hasStarter, MOVES, formOf, STARTERS as CR_STARTERS, family as crFamily, creature as crCreature } from "./collect.js?v=20261119b";
 import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261119b";
 import { addDays, wkGoalOf, wkShare, ringDay, vaultMet, goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked, weekGoal, weekKey, weekTotal, weekDoorState, vaultState, vaultGoal, rewardFor, oldReady, vaultLessonsLeft, VAULT_XP, VAULT_BONUS_XP, VAULT_EGGS, VAULT_MIN, vaultMinOk, vaultNeedsMin, subReq, subReqHTML, DOOR_DUST, WEEK_DOOR_DUST, WHEEL_DUST, DOOR_OPEN_DUST, SECRET_DUST, CHECK_DUST } from "./doors.js?v=20261119w";
-import { freshSt as pjFresh } from "./safari.js?v=20261119b";
+import { freshSt as pjFresh } from "./safari.js?v=20261120i";
 import { azToday } from "./collect.js?v=20261119b";
 import { tourSync } from "./tour.js?v=20261119b";
 import { roomHTML, FIT_SLOTS, slotKind, KIND_NAMES, KIND_ICON, EVERYDAY_PRICE, THEMED_PRICE, TROPHY_PRICE, TYPE_THEMES, SEASON_THEMES, THEME_NAMES, TROPHIES,
@@ -571,8 +571,8 @@ function viewMine(s) {
   if (tab === "axo") { return h; }   // the axolotl draws in its own frame right under the tabs (axolotl.js)
   if (tab === "kd") { kdSync({ st: s, cls, patch, render: () => render(true), preview: PREVIEW, mates: students });
     if (kdUnlocked(s, cls) || PREVIEW) return notYou(s) + '<div class="kdtop"><button class="pjback" data-tab="' + (kdBack || "pet") + '">\u2190 Back to my Keep</button><b class="kdtoptitle"><img class="kdti" src="assets/kingdom/duck-sub.webp" alt="">The Axolotl Kingdom</b>' +
-      '<span class="kdtoppearls"><img src="assets/kingdom/pearl.webp" alt="">' + (Number(kdOf(s, cls).p) || 0).toLocaleString() + " pearls</span></div>" + kingdomTab(s, cls);
-    return h + kingdomTab(s, cls); }
+      '<span class="kdtoppearls"><img src="assets/kingdom/pearl.webp" alt="">' + (Number(kdOf(s, cls).p) || 0).toLocaleString() + " pearls</span></div>" + kdPretty(kingdomTab(s, cls));
+    return h + kdPretty(kingdomTab(s, cls)); }
   if (tab === "check") return h + miniCard(s, cls) + checklistTab(s, cls, students, battles) + nudgeCard(s, cls, battles, students);   // 💡 Nov 19: the nudges sit under the Checklist (only the ones its steps don\u2019t already show)   // 🎪 Nov 19: mini event card on the Checklist
   if (tab === "nebble") return h + freeDoneCard(s) + nebCard;
   if (tab === "album") return h + albumPage(s, students);
@@ -591,7 +591,7 @@ function viewMine(s) {
     return notYou(s) + '<div class="pjtop"><button class="pjback" data-tab="' + (pjBack || "pet") + '">\u2190 Back to my Keep</button>' +
       // 🗂️ Planet JP tabs (Nov 10): the map and the photo album
       '<span class="pjtabs"><button class="pjmapbtn' + (z !== "album" ? " on" : "") + '" data-pjzone=""><img class="pjbi" src="assets/planet/btn-map.webp" alt="" onerror="this.outerHTML=\'<span class=pjbe>\u{1FA90}</span>\'">Map</button><button class="pjmapbtn' + (z === "album" ? " on" : "") + '" data-pjzone="album"><img class="pjbi" src="assets/planet/btn-album.webp" alt="" onerror="this.outerHTML=\'<span class=pjbe>\u{1F4F8}</span>\'">Photo Album</button></span>' +
-      '<span class="pjbardust">\u2B50 ' + (Number(pl.dust) || 0).toLocaleString() + '</span></div>' +
+      '<span class="pjbardust"><img class="pjsti" src="assets/planet/stardust.webp" alt=""> ' + (Number(pl.dust) || 0).toLocaleString() + '</span></div>' +
       (() => { const L = missionList(s), n = L.filter(x => x.done).length; return '<button class="pjlogtab' + (pjLogOpen ? " open" : "") + (n < L.length ? " todo" : "") + '" data-pjlog="1" aria-label="Mission log"><span>\u{1F9ED}</span><b>MISSIONS</b><i>' + n + "/" + L.length + "</i></button>"; })() +
       '<div class="pjlayout' + (pjLogOpen ? " logopen" : "") + '"><div class="pjmain">' + planetTab(s, cls, students, x => { const c = companionOf(x); return c ? petWithHead(x, c, wornItem(x, simulate(x, cls)), null) : ""; }, PREVIEW) + "</div>" +
       '<aside class="pjside' + (pjLogOpen ? " open" : "") + '">' + missionsHTML(s, pjOpen(s, cls) || !!PREVIEW) + "</aside></div>";
@@ -923,7 +923,18 @@ function vaultArt(open, spin) {
   return '<div class="vaultpic' + (spin ? " spinning" : "") + '"><img class="vbase" src="assets/vault/vault-' + (open ? "open" : "closed") + '.webp" alt="Treasure Vault">' +
     (open ? "" : '<img class="vdial" src="assets/vault/vault-dial.webp" alt="">') + "</div>";
 }
-function vaultCard(s) {
+// 💎 Nov 20: the vault's emojis become pictures (text only, never inside a tag) + the painted vault room behind it
+const VP = [[/\u{1F48E}/gu, "assets/ui/ck/gem-purple.webp"], [/\u{1F308}/gu, "assets/planet/ultra/ultra-egg.webp"], [/\u2728/g, "assets/xmas/ic-present.webp"], [/\u{1F510}/gu, "assets/ui/ck/battle.webp"],
+  [/\u2B50/g, "assets/planet/stardust.webp"], [/\u{1F34E}/gu, "assets/kitchen/food-apple.webp"], [/\u{1F381}/gu, "assets/xmas/ic-present.webp"], [/\u{1F3F0}/gu, "assets/kingdom/throne-gold.webp"], [/\u{1F4EC}/gu, "assets/xmas/ic-present.webp"]];
+function vaultPretty(html) {
+  return String(html).split(/(<[^>]*>)/).map(t => {
+    if (!t || t.charAt(0) === "<") return t;
+    VP.forEach(([re, src]) => { t = t.replace(re, '<img class="kdi" src="' + src + '" alt="">'); });
+    return t.replace(/\u2705/g, '<img class="kdi" src="' + KD_CHECK + '" alt="">').replace(/\u{1F512}/gu, '<img class="kdi" src="' + KD_LOCK + '" alt="">').replace(/\u{1F4E8}\s*/gu, "");
+  }).join("");
+}
+function vaultCard(s) { return vaultPretty(vaultCard0(s)); }
+function vaultCard0(s) {
   const st = vaultState(s, cls), v = vaultGoal(s, cls), tot = v.n, goal = v.xp, pct = Math.min(100, tot / goal * 100), unit = v.sub ? RG_SUBS[v.sub] + " XP" : "XP";
   let body;
   if (st === "open") body = '<span class="dstate done">✅ Opened this week! Come back next week for another one.</span>';
@@ -1230,6 +1241,20 @@ const prettySlices = L => L.map(x => { if (x.img) return x; const im = slicePic(
 const noGold = h => h.replace(/<path [^>]*stroke="#FFD34D"[^>]*\/>/g, "").replace(/<text x="0" y="-26"[^>]*>\u2728<\/text>/g, "");
 const prettyWheel = (L, rot) => noGold(wheelHTML(prettySlices(L), rot));
 try { Object.keys(SEASONS).forEach(k => { const sp = (SEASONS[k].store || []).find(x => x.id === "spin"); if (sp && !sp.img) sp.img = k === "gobble" ? "assets/gobble/pie-wheel-icon.svg" : "assets/wheel/wheel-icon-" + k + ".svg"; }); } catch (e) {}
+// 🐚 Nov 20: the Kingdom pages swap their emojis for the Kingdom's own pictures (only in the text, never inside a tag)
+const KQ = "assets/kingdom/";
+const KD_PICS = [[/\u26AA\uFE0F?/g, KQ + "pearl.webp"], [/\u{1F7E1}/gu, KQ + "pearl-gold.webp"], [/\u{1F9F0}/gu, KQ + "quest-chest-closed.webp"], [/\u{1F4DC}/gu, KQ + "quest-scroll.webp"],
+  [/\u{1F3F7}\uFE0F?/gu, KQ + "clam-closed.webp"], [/\u{1FAE7}/gu, KQ + "mg-bubble.webp"], [/\u{1F420}/gu, KQ + "mg-glowfish.webp"], [/\u{1F41A}/gu, KQ + "clam-open.webp"],
+  [/\u{1FAB8}/gu, KQ + "dock/coral-pink-sm.webp"], [/\u{1F451}/gu, KQ + "throne-gold.webp"], [/\u{1F986}/gu, KQ + "duck-sub.webp"], [/\u{1F30A}/gu, KQ + "duck-sub.webp"], [/\u{1F3A8}/gu, "assets/ui/ck/paint-magic.webp"]];
+const KD_CHECK = "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#2E9E5B" stroke="#145A30" stroke-width="1.5"/><path d="M6.5 12.5l3.5 3.5 7.5-8" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+const KD_LOCK = "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect x="3" y="7" width="10" height="7.5" rx="1.6" fill="#FFD34D" stroke="#2A1206" stroke-width=".9"/><path d="M5.2 7V5.2a2.8 2.8 0 0 1 5.6 0V7" fill="none" stroke="#FFD34D" stroke-width="1.9"/></svg>');
+function kdPretty(html) {
+  return String(html).split(/(<[^>]*>)/).map(t => {
+    if (!t || t.charAt(0) === "<") return t;
+    KD_PICS.forEach(([re, src]) => { t = t.replace(re, '<img class="kdi" src="' + src + '" alt="">'); });
+    return t.replace(/\u2705/g, '<img class="kdi" src="' + KD_CHECK + '" alt="">').replace(/\u{1F512}/gu, '<img class="kdi" src="' + KD_LOCK + '" alt="">').replace(/\s*\u{1F44D}/gu, "");
+  }).join("");
+}
 // "🟠 Orange = treats" → "Orange = treats" (the dot is drawn in the wheel's own colour)
 const legendTxt = t => { t = String(t).replace(/^[^A-Za-z]+/, ""); return t.charAt(0).toUpperCase() + t.slice(1); };
 const wheelIconPic = () => SEASON.key === "gobble" ? "assets/gobble/pie-wheel-icon.svg" : "assets/wheel/wheel-icon-" + SEASON.key + ".svg";

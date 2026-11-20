@@ -5414,3 +5414,72 @@ body.ck .nbbars .secretbar .sbtxt{ display:block; flex:1; min-width:0; } body.ck
 @media (max-width:560px){ body.ck .nbbars .sdpill, body.ck .nbbars .secretbar{ --k:.17; padding-left:22px !important; padding-right:22px !important; }
   body.ck .nbbars .sdpill{ flex-wrap:wrap; justify-content:center; text-align:center; gap:4px 8px; } body.ck .nbbars .secretbar .sbtxt{ text-align:center; font-size:14px; }
   body.ck .nbbars .secretbar .bic{ display:none; } }
+/* 🚀 Nov 20: Planet JP stat chips with pictures */
+.pjtabstats span{ display:inline-flex; align-items:center; gap:7px; padding:4px 14px 4px 6px !important; background:linear-gradient(180deg,rgba(80,70,190,.55),rgba(30,24,90,.75)) !important; border:1.5px solid rgba(122,231,255,.45); box-shadow:inset 0 1px 0 rgba(255,255,255,.2); }
+.pjtabstats span b{ color:#FFE38A; margin-right:-3px; }
+.pjsti{ width:30px; height:30px; object-fit:contain; filter:drop-shadow(0 2px 2px rgba(0,0,0,.4)); }
+.pjsti[src*="ss-duck"]{ width:38px; }
+.pjbardust{ display:inline-flex; align-items:center; gap:4px; } .pjbardust .pjsti{ width:26px; height:26px; margin:-4px 0; }
+/* 🪐 Nov 20: zone badges are little pictures of each zone (locked ones dark with a lock), the map picture, the next-zone chip */
+.pjhz{ position:relative; width:36px !important; height:36px !important; padding:0; overflow:visible; filter:none !important; }
+.pjhz img{ width:100%; height:100%; border-radius:50%; object-fit:cover; display:block; }
+.pjhz:not(.on) img{ filter:grayscale(.85) brightness(.45); }
+.pjhz.on{ box-shadow:0 0 0 2px #9AF0FF, 0 0 10px rgba(122,231,255,.7) !important; border:0 !important; }
+.pjhz.next{ box-shadow:0 0 0 2px #FFE38A, 0 0 12px rgba(255,227,138,.8) !important; border:0 !important; } .pjhz.next img{ filter:grayscale(.3) brightness(.8); }
+.pjhlock{ position:absolute; right:-3px; bottom:-3px; width:16px; height:16px; border-radius:50%; background:#2A2060 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='3.5' y='7' width='9' height='7' rx='1.5' fill='%23FFD34D'/%3E%3Cpath d='M5.5 7V5.2a2.5 2.5 0 0 1 5 0V7' fill='none' stroke='%23FFD34D' stroke-width='1.8'/%3E%3C/svg%3E") center / 12px no-repeat; border:1.5px solid #9AF0FF; }
+img.pjhhic{ width:52px; height:52px; padding:0; background:none; border:0; box-shadow:none; border-radius:0; object-fit:contain; filter:drop-shadow(0 0 8px rgba(122,231,255,.55)); }
+.pjhnext{ display:inline-flex !important; align-items:center; gap:6px; } .pjhnext .pjsti{ width:34px; height:26px; margin:-4px 0; }
+.pjhnz{ width:24px; height:24px; border-radius:50%; box-shadow:0 0 0 1.5px #FFE38A; }
+@media (max-width:640px){ .pjhz{ width:28px !important; height:28px !important; } img.pjhhic{ width:42px; height:42px; } }
+/* 🌙 Nov 20: Moon Base header pictures + a Back-to-the-Map button you can see on the dark sky */
+.mbcard .card-head h2{ display:inline-flex; align-items:center; gap:8px; } .mbhic{ width:38px; height:38px; filter:drop-shadow(0 0 8px rgba(190,170,255,.7)); }
+.mbchips{ display:inline-flex; gap:8px; flex-wrap:wrap; } .mbchips > span{ display:inline-flex; align-items:center; gap:6px; padding:3px 12px 3px 4px; border-radius:99px; background:#F3EEFF; border:1.5px solid #C9B8FF; font-size:14px; color:#2A2060; }
+.mbchips img{ width:28px; height:28px; object-fit:contain; } .mbchips b{ color:#5A3DC4; }
+.btn.pjmapback{ display:inline-flex; align-items:center; gap:8px; font-weight:800; font-size:15px; padding:8px 18px 8px 12px; border-radius:999px !important; color:#10123A !important;
+  background:linear-gradient(180deg,#9AF0FF,#7A8BFF) !important; border:2px solid #E6FBFF !important; box-shadow:inset 0 1px 0 rgba(255,255,255,.7), 0 3px 0 #3A3A9A, 0 0 14px rgba(122,231,255,.55) !important; }
+.btn.pjmapback b{ font-size:18px; line-height:1; } .btn.pjmapback:hover{ transform:translateY(-1px); }
+.mbh3{ display:inline-flex; align-items:center; gap:8px; } .mbh3 img{ width:40px; height:40px; object-fit:contain; margin:-6px 0; filter:drop-shadow(0 2px 2px rgba(0,0,0,.3)); }
+.mbsd{ width:22px; height:22px; object-fit:contain; vertical-align:-6px; margin-right:2px; } .mbh3 img[src*="mb-duck"]{ width:48px; height:48px; }
+.mbshop .btn img.mbsd, .mbgrid .btn img.mbsd{ display:inline-block !important; width:20px !important; height:20px !important; margin:0 4px 0 0 !important; padding:0 !important; vertical-align:-5px !important; position:static !important; }
+.mbshop .btn:has(.mbsd){ display:inline-flex; align-items:center; white-space:nowrap; }
+/* 📋 Nov 20: Mission Board + Mission Log pictures */
+.mbslot .mbicon{ display:inline-grid; place-items:center; } .mbpic{ width:48px; height:48px; object-fit:contain; filter:drop-shadow(0 2px 3px rgba(0,0,0,.35)); }
+.mbpic.big{ width:64px; height:64px; vertical-align:middle; }
+.mbsdi{ width:22px; height:22px; object-fit:contain; vertical-align:-6px; }
+.mbbtn .mbsdi{ width:20px; height:20px; margin-right:2px; }
+.mlogpic{ width:22px; height:22px; object-fit:contain; vertical-align:-6px; margin-right:2px; }
+.mbhead{ display:inline-flex; align-items:center; gap:8px; }
+/* 🌿 Nov 20: Planet JP zone pages + Safari Shop with pictures instead of emojis */
+.pjzh{ display:flex; align-items:center; gap:10px; } .pjzhic{ width:44px; height:44px; border-radius:50%; box-shadow:0 0 0 2px #9AF0FF, 0 0 10px rgba(122,231,255,.55); flex:none; }
+.pjzhic.sq{ border-radius:0; box-shadow:none; object-fit:contain; width:52px; height:52px; filter:drop-shadow(0 2px 3px rgba(0,0,0,.3)); }
+.pjtype{ display:inline-flex !important; align-items:center; gap:6px; padding:3px 12px 3px 4px !important; } .pjtypeic{ width:24px; height:24px; }
+.pjsafh{ display:inline-flex; align-items:center; gap:8px; font-size:17px; } .pjsafh img{ width:34px; height:34px; object-fit:contain; }
+.pjsi{ width:22px; height:22px; object-fit:contain; vertical-align:-6px; }
+.pjzonescene .pjmapback{ position:absolute; left:10px; top:10px; z-index:5; padding:6px 14px 6px 10px; font-size:14px; }
+.zarrow b.zlock{ display:inline-block; width:22px; height:22px; background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='3' y='7' width='10' height='7.5' rx='1.6' fill='%23FFD34D' stroke='%232A1206' stroke-width='.9'/%3E%3Cpath d='M5.2 7V5.2a2.8 2.8 0 0 1 5.6 0V7' fill='none' stroke='%23FFD34D' stroke-width='1.9'/%3E%3C/svg%3E") center / contain no-repeat; }
+.safshop .btn .mbsdi{ width:18px; height:18px; vertical-align:-4px; }
+/* 🐚 Nov 20: Kingdom pictures instead of emojis + easier-to-see buttons */
+img.kdi{ height:1.35em; width:auto; max-width:2.2em; object-fit:contain; vertical-align:-.32em; margin:0 .1em; filter:drop-shadow(0 1px 1px rgba(0,0,0,.25)); }
+.kdhead .fact{ display:inline-flex; align-items:center; gap:4px; font-family:inherit !important; font-weight:700; font-size:14px !important; color:#3A2A10 !important; background:linear-gradient(180deg,#FFF7E0,#F2DDB0) !important; border:2px solid #C9932E !important; border-radius:99px; padding:3px 14px !important; }
+.kdrank img.kdi{ height:1.5em; }
+body.kdmode .btn.ghost.small[data-kd="go:map"], body .btn.ghost.small[data-kd="go:map"]{ background:linear-gradient(180deg,#FFF1A8,#F2C14E) !important; color:#3A2410 !important; border:2px solid #8A5A10 !important; box-shadow:0 3px 0 #8A5A10 !important; font-weight:800; border-radius:999px !important; padding:6px 16px !important; }
+.btn.ghost.small[data-kd="trip"]{ background:rgba(255,255,255,.92) !important; color:#0A3050 !important; border:2px solid #F2C14E !important; font-weight:800; border-radius:999px !important; }
+.kq-spot.locked img.kdi{ height:1.1em; }
+/* 💎 Nov 20: the Treasure Vault sits in Ms. Ariana's painted vault room */
+.card.vaultcard{ position:relative; isolation:isolate; overflow:hidden; background:linear-gradient(180deg,#5A2E8E 0,#3A1D66 55%,#2A1452 100%) !important; border:3px solid #E8B842 !important;
+  box-shadow:inset 0 0 0 2px rgba(255,230,150,.35), 0 10px 26px rgba(30,10,60,.45); }
+.card.vaultcard::before{ content:""; position:absolute; z-index:-1; left:0; right:0; top:var(--vtop,0px); aspect-ratio:1672/941; pointer-events:none;
+  background:url(../assets/vault/vault-room.webp) center top / 100% 100% no-repeat; -webkit-mask-image:linear-gradient(#000 82%, transparent); mask-image:linear-gradient(#000 82%, transparent); }
+.card.vaultcard h2{ text-shadow:0 2px 0 #4A1E00, 0 0 14px rgba(255,200,80,.7); font-size:30px; }
+.card.vaultcard h2 img.kdi{ height:1em; }
+.card.vaultcard .lede{ text-shadow:0 1px 3px rgba(20,0,40,.9); }
+.card.vaultcard .vaultpic{ filter:drop-shadow(0 14px 18px rgba(20,0,40,.6)) drop-shadow(0 0 24px rgba(255,210,120,.35)); }
+.card.vaultcard.v-ready::after{ content:""; position:absolute; z-index:-1; left:50%; top:calc(var(--vtop,0px) + 30%); width:60%; aspect-ratio:1; transform:translate(-50%,-50%); pointer-events:none;
+  background:radial-gradient(circle, rgba(255,226,140,.55), rgba(255,200,80,0) 65%); animation:vaultpulse 1.6s ease-in-out infinite alternate; }
+@keyframes vaultpulse{ from{ opacity:.5; transform:translate(-50%,-50%) scale(.9); } to{ opacity:1; transform:translate(-50%,-50%) scale(1.08); } }
+@media (prefers-reduced-motion: reduce){ .card.vaultcard.v-ready::after{ animation:none; } }
+.card.vaultcard > p.small{ background:rgba(30,12,60,.55); border-radius:14px; padding:6px 12px; }
+.card.vaultcard .prizepick{ background:#F6E7C4 !important; border:3px solid #C9932E !important; border-radius:16px !important; color:#3A2410 !important; box-shadow:inset 0 0 0 2px #FFF6DA, 0 6px 14px rgba(0,0,0,.35) !important; }
+.card.vaultcard .prizepick h3{ color:#8E1A24 !important; font-family:Lora, Georgia, serif; } .card.vaultcard .prizepick .small, .card.vaultcard .prizepick p{ color:#5A3D1E !important; }
+.card.vaultcard .prizepick input{ background:#FFFDF6 !important; border:2px solid #D9B06A !important; border-radius:10px !important; color:#3A2410 !important; padding:8px 10px !important; }
+@media (max-width:640px){ .card.vaultcard::before{ aspect-ratio:auto; height:560px; background-size:cover; background-position:50% 100%; } }

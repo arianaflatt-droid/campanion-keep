@@ -5,11 +5,11 @@
    All required done = a "Claim +5 ⭐" button (ONE save: planet.ml = { d: date claimed, n: days claimed }; it was planet.mb before Nov 12).
    The map shows a bouncing "!" on a place while it has something to do today (placeBang).  */
 import { azToday } from "./collect.js?v=20261119b";
-import { freshSt, planetSave, planetNow, planetCtx, filmLeft } from "./safari.js?v=20261119b";
+import { freshSt, planetSave, planetNow, planetCtx, filmLeft } from "./safari.js?v=20261120i";
 import { zooPicks } from "./zoo.js?v=20261119b";
 import { swapDeal } from "./spaceshop.js?v=20261119b";
-import { careDone, hasNebble } from "./petpark.js?v=20261119w";
-import { boardWaiting, boardLeft } from "./board.js?v=20261119w";
+import { careDone, hasNebble } from "./petpark.js?v=20261120i";
+import { boardWaiting, boardLeft, missionPic } from "./board.js?v=20261120i";
 
 export const MISSION_BONUS = 5;
 const plOf = st => (st && st.planet) || {};
@@ -49,16 +49,16 @@ export function missionsHTML(st, open) {
   const d = new Date(), stamp = "STARDATE " + d.getFullYear() + "." + String(Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 864e5)).padStart(3, "0");
   let h = '<div class="mlog"><div class="mloghead"><span class="mlogdot"></span><b>MISSION LOG</b><span class="mlogstamp">' + stamp + "</span></div>" +
     '<div class="mlogbar">' + list.map(x => '<i class="' + (x.done ? "on" : "") + '"></i>').join("") + '</div><div class="mlogcount">' + (left ? done + " / " + list.length + " COMPLETE" : "ALL MISSIONS COMPLETE") + "</div>" +
-    '<ul class="mloglist">' + list.map(x => '<li class="' + (x.done ? "done" : "") + '"><span class="mlogbox">' + (x.done ? "\u2713" : "") + '</span><span class="mlogtxt">' + x.icon + " " + x.text + "</span>" +
+    '<ul class="mloglist">' + list.map(x => '<li class="' + (x.done ? "done" : "") + '"><span class="mlogbox">' + (x.done ? "\u2713" : "") + '</span><span class="mlogtxt">' + missionPic(x.k, x.icon, "mlogpic") + " " + x.text + "</span>" +
       (x.done || !open ? "" : '<button class="mloggo" data-pjzone="' + x.go + '">GO \u25B8</button>') + "</li>").join("");
-  if (swapWaiting(st)) h += '<li class="opt"><span class="mlogbox opt">\u2726</span><span class="mlogtxt">\u{1F6CD}\uFE0F Swap Shop deal waiting <small>(optional)</small></span>' + (open ? '<button class="mloggo" data-pjzone="swap">LOOK \u25B8</button>' : "") + "</li>";
+  if (swapWaiting(st)) h += '<li class="opt"><span class="mlogbox opt">\u2726</span><span class="mlogtxt"><img class="mlogpic" src="assets/planet/shop/swap-shop.webp" alt=""> Swap Shop deal waiting <small>(optional)</small></span>' + (open ? '<button class="mloggo" data-pjzone="swap">LOOK \u25B8</button>' : "") + "</li>";
   h += "</ul>";
   // 📋 Nov 12: the Mission Board (3 daily missions, each pays its own Stardust)
   { const w = boardWaiting(st), l = boardLeft(st);
-    h += '<button class="mlogboard" data-pjzone="board"><span>\u{1F4CB} <b>MISSION BOARD</b><small>' + (w ? w + " ready to claim!" : l ? l + " mission" + (l === 1 ? "" : "s") + " left today" : "All done today \u2713") + "</small></span>" + (w ? '<i class="mlogbang">!</i>' : "") + "<em>\u25B8</em></button>"; }
+    h += '<button class="mlogboard" data-pjzone="board"><span><img class="mlogpic" src="assets/planet/board/board-icon.webp" alt="" onerror="this.outerHTML=\'\u{1F4CB}\'"> <b>MISSION BOARD</b><small>' + (w ? w + " ready to claim!" : l ? l + " mission" + (l === 1 ? "" : "s") + " left today" : "All done today \u2713") + "</small></span>" + (w ? '<i class="mlogbang">!</i>' : "") + "<em>\u25B8</em></button>"; }
   if (!left) h += claimed ? '<p class="mlogdone">\u2605 REWARD RECEIVED: +' + MISSION_BONUS + " \u2B50</p>"
     : '<button class="mlogclaim" data-msclaim="1">\u25B6 CLAIM +' + MISSION_BONUS + " \u2B50 STARDUST</button>";
-  else h += '<p class="mlognote">Finish all for <b>+' + MISSION_BONUS + ' \u2B50</b>. A red <b>!</b> on the map = still to do.</p>';
+  else h += '<p class="mlognote">Finish all for <b>+' + MISSION_BONUS + ' <img class="mlogpic" src="assets/planet/stardust.webp" alt=""></b>. A red <b>!</b> on the map = still to do.</p>';
   return h + "</div>";
 }
 

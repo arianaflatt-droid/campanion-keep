@@ -11,7 +11,7 @@
        hs: { game: best }, pl: { d, n } (playhouse taps today), cr: palace crown date, gy: gym glow date } */
 import { esc } from "./game.js?v=20261119b";
 import { azToday } from "./collect.js?v=20261119b";
-import { planetNow, planetSave, planetCtx, freshSt } from "./safari.js?v=20261119b";
+import { planetNow, planetSave, planetCtx, freshSt } from "./safari.js?v=20261120i";
 import { ownedOf, nebImg, nebHappy, NEB } from "./pets.js?v=20261119b";
 import { GAMES, gameByKey, play } from "./spacegames.js?v=20261119b";
 
@@ -127,25 +127,25 @@ function builderHTML(st, open) {
   }
   // decoration picker
   if (dsel >= 0) {
-    h += '<div class="mbshop"><h3>✨ Decorations</h3><div class="mbgrid">' + DECOS.map(d => { const own = mb.dec[d.k];
+    h += '<div class="mbshop"><h3 class="mbh3"><img src="assets/planet/moon/mbd-flag.webp" alt="">Decorations</h3><div class="mbgrid">' + DECOS.map(d => { const own = mb.dec[d.k];
       return '<div class="mbitem' + (own ? " own" : "") + '"><img src="' + M + "mbd-" + d.k + '.webp" alt=""><b>' + esc(d.n) + "</b>" +
-        (own ? '<button class="btn small gold" data-mb="deco:' + dsel + ":" + d.k + '"' + (open ? "" : " disabled") + ">Put here</button>" : '<button class="btn small' + (dust >= d.c ? " gold" : " ghost") + '" data-mb="buyd:' + d.k + '"' + (open ? "" : " disabled") + ">⭐ " + d.c + "</button>") + "</div>"; }).join("") + "</div>" +
+        (own ? '<button class="btn small gold" data-mb="deco:' + dsel + ":" + d.k + '"' + (open ? "" : " disabled") + ">Put here</button>" : '<button class="btn small' + (dust >= d.c ? " gold" : " ghost") + '" data-mb="buyd:' + d.k + '"' + (open ? "" : " disabled") + "><img class='mbsd' src='assets/planet/stardust.webp' alt=''> " + d.c + "</button>") + "</div>"; }).join("") + "</div>" +
       '<div class="row" style="gap:6px;margin-top:6px;">' + (mb.ds[dsel] ? '<button class="btn ghost small" data-mb="deco:' + dsel + ':-">Clear this spot</button>' : "") + '<button class="btn ghost small" data-mb="cancel">Close</button></div></div>';
     return h;
   }
   // the build shop (+ storage)
   const stored = BUILDINGS.filter(b => mb.own[b.k] && !mb.pads.includes(b.k));
-  if (stored.length) h += '<div class="mbshop"><h3>\u{1F4E6} In storage</h3><div class="mbgrid">' + stored.map(b => '<div class="mbitem own"><img src="' + M + "mb-" + b.k + '.webp" alt=""><b>' + esc(b.n) + '</b><button class="btn small gold" data-mb="place:' + b.k + '"' + (open ? "" : " disabled") + ">Place</button></div>").join("") + "</div></div>";
-  h += '<div class="mbshop"><h3>\u{1F3D7}️ Build</h3><div class="mbgrid">' + BUILDINGS.filter(b => b.k !== "hut").map(b => { const own = mb.own[b.k];
+  if (stored.length) h += '<div class="mbshop"><h3 class="mbh3"><img src="assets/kingdom/quest-chest-closed.webp" alt="">In storage</h3><div class="mbgrid">' + stored.map(b => '<div class="mbitem own"><img src="' + M + "mb-" + b.k + '.webp" alt=""><b>' + esc(b.n) + '</b><button class="btn small gold" data-mb="place:' + b.k + '"' + (open ? "" : " disabled") + ">Place</button></div>").join("") + "</div></div>";
+  h += '<div class="mbshop"><h3 class="mbh3"><img src="assets/planet/moon/mb-duck-build.webp" alt="">Build</h3><div class="mbgrid">' + BUILDINGS.filter(b => b.k !== "hut").map(b => { const own = mb.own[b.k];
     return '<div class="mbitem' + (own ? " own" : "") + (b.big ? " big" : "") + '"><img src="' + M + "mb-" + b.k + '.webp" alt=""><b>' + esc(b.n) + '</b><span class="small">' + esc(b.room) + "</span>" +
-      (own ? '<span class="mbown">✅ Built</span>' : '<button class="btn small' + (dust >= b.c ? " gold" : " ghost") + '" data-mb="buy:' + b.k + '"' + (open ? "" : " disabled") + ">⭐ " + b.c.toLocaleString() + "</button>") + "</div>"; }).join("") + "</div></div>";
+      (own ? '<span class="mbown">✅ Built</span>' : '<button class="btn small' + (dust >= b.c ? " gold" : " ghost") + '" data-mb="buy:' + b.k + '"' + (open ? "" : " disabled") + "><img class='mbsd' src='assets/planet/stardust.webp' alt=''> " + b.c.toLocaleString() + "</button>") + "</div>"; }).join("") + "</div></div>";
   return h;
 }
 function visitHTML(students, me) {
   const others = (students || []).filter(s => s && s.companionId && s.id !== (me && me.id) && s.planet && s.planet.mb);
   const v = others.find(s => s.id === visit);
-  let h = '<div class="mbvisit"><b>\u{1F440} Visit a classmate’s base:</b> ' + (others.length ? others.map(s => '<button class="btn small' + (s.id === visit ? " gold" : " ghost") + '" data-mb="visit:' + s.id + '">' + esc(s.name || "") + "</button>").join("") : '<span class="muted small">No classmates have a Moon Base yet.</span>') + "</div>";
-  if (v) h += '<div class="mbvisithead"><b>' + esc(v.name || "") + "’s Moon Base</b> · \u{1F3D7}️ " + builtCount(v) + " buildings" + (hasPalace(v) ? " · \u{1F451} Moon Palace" : "") + ' <button class="btn ghost small" data-mb="visit:">Back to mine</button></div>' + sceneHTML(v, false);
+  let h = '<div class="mbvisit"><b class="mbh3"><img src="assets/planet/moon/mb-duck-wave.webp" alt="">Visit a classmate’s base:</b> ' + (others.length ? others.map(s => '<button class="btn small' + (s.id === visit ? " gold" : " ghost") + '" data-mb="visit:' + s.id + '">' + esc(s.name || "") + "</button>").join("") : '<span class="muted small">No classmates have a Moon Base yet.</span>') + "</div>";
+  if (v) h += '<div class="mbvisithead"><b>' + esc(v.name || "") + "’s Moon Base</b> · " + builtCount(v) + " buildings" + (hasPalace(v) ? " · Moon Palace" : "") + ' <button class="btn ghost small" data-mb="visit:">Back to mine</button></div>' + sceneHTML(v, false);
   return h;
 }
 
@@ -419,7 +419,7 @@ export function moonHTML(st, cls, students, petOf, open) {
   st = freshSt(st); lastStudents = students || []; lastPet = petOf || null; lastOpen = !!open;
   const mb = mbOf(st);
   if (view !== "base" && (!B[view] || !mb.own[view] || !mb.pads.includes(view))) view = "base";
-  let h = '<div class="card mbcard"><div class="card-head"><h2>\u{1F319} My Moon Base</h2><span class="fact">\u{1F3D7}️ ' + (builtCount(st) + 1) + " buildings · ⭐ " + (Number(((st && st.planet) || {}).dust) || 0).toLocaleString() + "</span></div>";
+  let h = '<div class="card mbcard"><div class="card-head"><h2><img class="mbhic" src="assets/planet/moon/moon-ic.webp" alt="">My Moon Base</h2><span class="mbchips"><span><img src="assets/planet/moon/mb-hut.webp" alt=""><b>' + (builtCount(st) + 1) + "</b> building" + (builtCount(st) + 1 === 1 ? "" : "s") + '</span><span><img src="assets/planet/stardust.webp" alt=""><b>' + (Number(((st && st.planet) || {}).dust) || 0).toLocaleString() + "</b> Stardust</span></span></div>";   // 🌙 Nov 20: pictures instead of emojis
   if (view !== "base") return h + roomHTML(view, st, open) + "</div>";
   if (visit) return h + visitHTML(students, st) + "</div>";
   return h + sceneHTML(st, true) + builderHTML(st, open) + visitHTML(students, st) + "</div>";

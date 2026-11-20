@@ -9,19 +9,19 @@
    Pictures live in assets/planet/ — until one is uploaded (ART below) the stand-in drawing is used. */
 import { esc, weekKey } from "./game.js?v=20261119b";
 import { azToday, azNow } from "./collect.js?v=20261119b";
-import { axoDay, schoolDayFor } from "./axolotl.js?v=20261119w";
+import { axoDay, schoolDayFor } from "./axolotl.js?v=20261120i";
 import { addDays, todayPlan, weekTotal, histWeekTotal } from "./doors.js?v=20261119w";
 import { GAMES, gameOfDay, gameByKey, play, preload } from "./spacegames.js?v=20261119b";
-import { setHitCheck, afterOn, PJ_AFTER, PJ_AFTER_END, pjCloseAt, pjAfterAt, pjClock } from "./safari.js?v=20261119b";
-import { ZONES, safariSync, freshSt, albumHTML, filmLeft, pageCount, pageSize, aliensFound, zoneAliens, FREE_FILM, ROLL_COST, shopHTML, netsOf, NETS, netImg, pjWindow, classOpenAll, PJ_LATE, pjBreakDay, pjBreakXP } from "./safari.js?v=20261119b";
+import { setHitCheck, afterOn, PJ_AFTER, PJ_AFTER_END, pjCloseAt, pjAfterAt, pjClock } from "./safari.js?v=20261120i";
+import { ZONES, safariSync, freshSt, albumHTML, filmLeft, pageCount, pageSize, aliensFound, zoneAliens, FREE_FILM, ROLL_COST, shopHTML, netsOf, NETS, netImg, pjWindow, classOpenAll, PJ_LATE, pjBreakDay, pjBreakXP } from "./safari.js?v=20261120i";
 import { cafeHTML } from "./cafe.js?v=20261119b";
 import { shopPageHTML } from "./spaceshop.js?v=20261119b";
 import { hangarHTML } from "./hangar.js?v=20261119b";
-import { stationHTML, stationAdminLine, doubleWaiting } from "./station.js?v=20261119w";
+import { stationHTML, stationAdminLine, doubleWaiting } from "./station.js?v=20261120i";
 import { zooHTML } from "./zoo.js?v=20261119b";
 import { adoptHTML, PP as NEB_PP } from "./pets.js?v=20261119b";
-import { parkHTML } from "./petpark.js?v=20261119w";
-import { missionsHTML, placeBang } from "./missions.js?v=20261119w";
+import { parkHTML } from "./petpark.js?v=20261120i";
+import { missionsHTML, placeBang } from "./missions.js?v=20261120i";
 import { duckImgOf, flameFxOf, trailOf } from "./shop-data.js?v=20261119b";
 
 export const PJ_OPEN = 11 * 60, PJ_CLOSE = 12 * 60 + 55;   // minutes after midnight, Arizona time
@@ -381,6 +381,10 @@ export function nebbleOut(st, cls) {
   return !!(pl.ls || pl.last) && (pl.ls || pl.last) === prev;
 }
 export const pjOpen = (st, cls) => { if (phase(st, cls) !== "landed") return false; const W = pjWindow(st, cls), m = mins(); return m < W.c && (!W.after || m >= W.o); };
+// 🎨 Nov 20: each type has its own little badge picture (assets/planet/types/type-<name>.svg)
+const typePic = t => '<img class="pjtypeic" src="' + A + 'types/type-' + String(t).toLowerCase() + '.svg" alt="">';
+const zonePic = (k, cls) => '<img class="' + (cls || "pjzic") + '" src="' + A + "zone-" + k + '-ic.webp" alt="">';
+const SDJ = "<img class='mbsdi' src='assets/planet/stardust.webp' alt=''>";
 const TYPE_IC = { Fire: "\u{1F525}", Water: "\u{1F4A7}", Nature: "\u{1F343}", Rock: "\u{1FAA8}", Earth: "⛰️", Air: "\u{1F32A}️", Electric: "⚡", Ice: "❄️", Light: "✨", Dark: "\u{1F311}", Ghost: "\u{1F47B}", Poison: "\u{1F9EA}", Steel: "⚙️", Normal: "\u{1F4AB}", Arcane: "\u{1F52E}", Crystal: "\u{1F48E}", Dragon: "\u{1F409}" };
 let zoneOpen = null;
 export function planetZone(k) { zoneOpen = k || null; }
@@ -405,22 +409,22 @@ function hubHTML(st, n) {
   let h = '<div class="pjhubscroll"><div class="pjhub" style="background-image:url(' + A + 'jp-landing.webp)">';
   // Nov 12: the 7 zones moved off the sky (the Moon Base needed the room) to side arrows: ▶ goes to the zones, ◀ to the newest one open
   const lastOpen = ZONES.filter(z => n >= z.at).pop();
-  if (ZONES[0] && n >= ZONES[0].at) h += '<button class="hubarrow r" data-pjzone="' + ZONES[0].key + '"><b>▶</b><span>' + ZONES[0].icon + " Zones</span></button>";
-  if (lastOpen && lastOpen !== ZONES[0]) h += '<button class="hubarrow l" data-pjzone="' + lastOpen.key + '"><b>◀</b><span>' + lastOpen.icon + " " + esc(lastOpen.name) + "</span></button>";
-  HUB_PLACES.forEach(p => { h += '<button class="hubplace hub-' + p.k + '" style="left:' + p.x + "%;top:" + p.y + "%;width:" + p.w + '%" ' + (p.k === "colony" ? 'data-pjcolony="1"' : 'data-pjzone="' + p.k + '"') + ">" + p.html() + (placeBang(st, p.k) ? '<span class="hubbang" title="Something to do here today!">!</span>' : "") + '<span class="hublbl">' + p.name + "</span></button>"; });
+  if (ZONES[0] && n >= ZONES[0].at) h += '<button class="hubarrow r" data-pjzone="' + ZONES[0].key + '"><b>▶</b><span>Zones</span></button>';
+  if (lastOpen && lastOpen !== ZONES[0]) h += '<button class="hubarrow l" data-pjzone="' + lastOpen.key + '"><b>◀</b><span>' + esc(lastOpen.name) + "</span></button>";
+  HUB_PLACES.forEach(p => { h += '<button class="hubplace hub-' + p.k + '" style="left:' + p.x + "%;top:" + p.y + "%;width:" + p.w + '%" ' + (p.k === "colony" ? 'data-pjcolony="1"' : 'data-pjzone="' + p.k + '"') + ">" + p.html() + (placeBang(st, p.k) ? '<span class="hubbang" title="Something to do here today!">!</span>' : "") + '<span class="hublbl">' + p.name.replace(/^\S+\s+/, "") + "</span></button>"; });   // Nov 20: the map labels without the emoji
   return h + "</div></div>";
 }
 import { arianaHTML, arianaToday } from "./ariana.js?v=20261119b";
-import { boardHTML } from "./board.js?v=20261119w";
-import { moonHTML } from "./moon.js?v=20261119b";
+import { boardHTML } from "./board.js?v=20261120i";
+import { moonHTML } from "./moon.js?v=20261120i";
 // 👽 Nov 12: every Planet JP page gets the hidden Alien Ms. Ariana check at the end
 // ◀ ▶ between the zones (locked zones show how many launches they need)
 function zoneArrows(z, n) {
   const i = ZONES.indexOf(z), prev = ZONES[i - 1], next = ZONES[i + 1];
-  const L = prev ? '<button class="zarrow l" data-pjzone="' + prev.key + '"><b>◀</b><span>' + prev.icon + " " + esc(prev.name) + "</span></button>" : '<button class="zarrow l" data-pjzone=""><b>◀</b><span>\u{1F5FA}\uFE0F Map</span></button>';
-  const R = !next ? '<button class="zarrow r" data-pjzone=""><b>▶</b><span>\u{1F5FA}\uFE0F Map</span></button>'
-    : n >= next.at ? '<button class="zarrow r" data-pjzone="' + next.key + '"><b>▶</b><span>' + next.icon + " " + esc(next.name) + "</span></button>"
-    : '<button class="zarrow r locked" disabled><b>\u{1F512}</b><span>' + next.icon + " " + esc(next.name) + " · " + next.at + " \u{1F680}</span></button>";
+  const L = prev ? '<button class="zarrow l" data-pjzone="' + prev.key + '"><b>◀</b><span>' + esc(prev.name) + "</span></button>" : '<button class="zarrow l" data-pjzone=""><b>◀</b><span>Map</span></button>';
+  const R = !next ? '<button class="zarrow r" data-pjzone=""><b>▶</b><span>Map</span></button>'
+    : n >= next.at ? '<button class="zarrow r" data-pjzone="' + next.key + '"><b>▶</b><span>' + esc(next.name) + "</span></button>"
+    : '<button class="zarrow r locked" disabled><b class="zlock"></b><span>' + esc(next.name) + " · " + next.at + " launches</span></button>";
   return L + R;
 }
 export function planetTab(st, cls, students, petOf, preview) {
@@ -433,39 +437,40 @@ function planetTab0(st, cls, students, petOf, preview) {
   const closeIn = Math.max(0, pjCloseAt() - mins());
   let h = '<div class="card pjtab"><div class="pjtabhead">' + planetHTML() + '<div><h2>Planet JP</h2><p class="lede">' +
     (pjOpen(st, cls) ? "Open until <b>" + hhmm(pjWindow(st, cls).c) + "</b> · ⏱️ " + left(pjWindow(st, cls).c) + " left" : preview ? "\u{1F440} Teacher preview" : "Closed for today") +
-    '</p></div><div class="pjtabstats"><span>\u{1F680} <b>' + n + "</b> launch" + (n === 1 ? "" : "es") + "</span><span>⭐ <b>" + (Number(pl.dust) || 0) + "</b> Stardust</span>" +
-    ((pl.streak || 0) > 1 ? "<span>\u{1F525} <b>" + pl.streak + "</b> days in a row</span>" : "") + "</div></div></div>";
+    // 🚀 Nov 20: the three stat chips get pictures (the rocket duck, the Stardust pouch, the streak flame)
+    '</p></div><div class="pjtabstats"><span><img class="pjsti" src="' + A + 'ss-duck.webp" alt=""><b>' + n + "</b> launch" + (n === 1 ? "" : "es") + '</span><span><img class="pjsti" src="' + A + 'stardust.webp" alt=""><b>' + (Number(pl.dust) || 0) + "</b> Stardust</span>" +
+    ((pl.streak || 0) > 1 ? '<span><img class="pjsti" src="assets/ui/ck/streak-flame.webp" alt=""><b>' + pl.streak + "</b> days in a row</span>" : "") + "</div></div></div>";
   if (zoneOpen === "album") return h + albumHTML(st, n);
-  if (zoneOpen === "hangar") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn ghost small" data-pjzone="">← Map</button></div>' + hangarHTML(st, cls, pjOpen(st, cls) || !!preview);
-  if (zoneOpen === "station") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn ghost small" data-pjzone="">← Map</button></div>' + stationHTML(st, cls, students, pjOpen(st, cls) || !!preview);
-  if (zoneOpen === "board") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn ghost small" data-pjzone="">← Map</button></div>' + boardHTML(st, pjOpen(st, cls) || !!preview);
-  if (zoneOpen === "moon") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn ghost small" data-pjzone="">← Map</button></div>' + moonHTML(st, cls, students, petOf, pjOpen(st, cls) || !!preview);
-  if (zoneOpen === "park") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn ghost small" data-pjzone="">← Map</button></div>' + parkHTML(st, cls, pjOpen(st, cls) || !!preview, students);
-  if (zoneOpen === "adopt") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn ghost small" data-pjzone="">← Map</button></div>' + adoptHTML(st, cls, pjOpen(st, cls) || !!preview);
-  if (zoneOpen === "zoo") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn ghost small" data-pjzone="">← Map</button></div>' + zooHTML(st, cls, pjOpen(st, cls) || !!preview);
-  if (zoneOpen === "safari") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn ghost small" data-pjzone="">← Map</button></div>' + shopHTML(st);
-  if (zoneOpen === "swap") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn ghost small" data-pjzone="">← Map</button></div>' + shopPageHTML(st, cls, pjOpen(st, cls) || !!preview, "swap");
-  if (zoneOpen === "shop") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn ghost small" data-pjzone="">← Map</button></div>' + shopPageHTML(st, cls, pjOpen(st, cls) || !!preview, "shop");
-  if (zoneOpen === "cafe") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn ghost small" data-pjzone="">← Map</button></div>' + cafeHTML(st, cls, students, petOf, pjOpen(st, cls) || !!preview);
+  if (zoneOpen === "hangar") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn pjmapback" data-pjzone=""><b>←</b> Back to the Map</button></div>' + hangarHTML(st, cls, pjOpen(st, cls) || !!preview);
+  if (zoneOpen === "station") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn pjmapback" data-pjzone=""><b>←</b> Back to the Map</button></div>' + stationHTML(st, cls, students, pjOpen(st, cls) || !!preview);
+  if (zoneOpen === "board") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn pjmapback" data-pjzone=""><b>←</b> Back to the Map</button></div>' + boardHTML(st, pjOpen(st, cls) || !!preview);
+  if (zoneOpen === "moon") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn pjmapback" data-pjzone=""><b>←</b> Back to the Map</button></div>' + moonHTML(st, cls, students, petOf, pjOpen(st, cls) || !!preview);
+  if (zoneOpen === "park") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn pjmapback" data-pjzone=""><b>←</b> Back to the Map</button></div>' + parkHTML(st, cls, pjOpen(st, cls) || !!preview, students);
+  if (zoneOpen === "adopt") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn pjmapback" data-pjzone=""><b>←</b> Back to the Map</button></div>' + adoptHTML(st, cls, pjOpen(st, cls) || !!preview);
+  if (zoneOpen === "zoo") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn pjmapback" data-pjzone=""><b>←</b> Back to the Map</button></div>' + zooHTML(st, cls, pjOpen(st, cls) || !!preview);
+  if (zoneOpen === "safari") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn pjmapback" data-pjzone=""><b>←</b> Back to the Map</button></div>' + shopHTML(st);
+  if (zoneOpen === "swap") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn pjmapback" data-pjzone=""><b>←</b> Back to the Map</button></div>' + shopPageHTML(st, cls, pjOpen(st, cls) || !!preview, "swap");
+  if (zoneOpen === "shop") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn pjmapback" data-pjzone=""><b>←</b> Back to the Map</button></div>' + shopPageHTML(st, cls, pjOpen(st, cls) || !!preview, "shop");
+  if (zoneOpen === "cafe") return h + '<div class="row" style="margin:0 0 10px;"><button class="btn pjmapback" data-pjzone=""><b>←</b> Back to the Map</button></div>' + cafeHTML(st, cls, students, petOf, pjOpen(st, cls) || !!preview);
   const z = zoneOpen && ZONES.find(x => x.key === zoneOpen && n >= x.at);
   if (z) {
     return h + '<div class="card pjzone"><div class="pjzonescene" style="background-image:url(' + A + "zone-" + z.key + '.webp)">' +
-      '<button class="btn ghost small pjback" data-pjzone="">← Map</button><div class="pjzonepet">' + (petOf ? petOf(st) : "") + "</div>" + zoneArrows(z, n) + "</div>" +
-      '<h2>' + z.icon + " " + esc(z.name) + '</h2><p class="lede">' + esc(z.line) + "</p>" +
-      '<p class="small">Creatures here: ' + z.types.map(t => '<span class="pjtype">' + (TYPE_IC[t] || "") + " " + t + "</span>").join(" ") + "</p>" +
-      '<div class="safbox"><div><b>\u{1F4F8} Creature Safari</b><p class="small" style="margin:2px 0 0;">Creatures peek out and hide again. Tap one fast to take its photo! ' +
-      "Album page: <b>" + pageCount(st, z.key) + " / " + pageSize(z.key) + "</b> · \u{1F47D} aliens <b>" + aliensFound(st, z.key) + " / 3</b> · \u{1F39E}️ <b>" + filmLeft(st) + "</b> film left today (" + FREE_FILM + " free a day, then " + ROLL_COST + " ⭐ a roll). Only here: " + zoneAliens(z.key).map(a => "<b>" + esc(a.name) + "</b>").join(", ") + " \u{1F47D}</p></div>" +
-      '<button class="btn gold" data-safari="' + z.key + '">\u{1F4F8} Start safari</button></div>' +
-      '<p class="small" style="margin:8px 0 0;">\u{1F6D2} Your nets: ' + NETS.map(n => netImg(n, "pjnetimg") + " " + (Number(netsOf(st)[n.k]) || 0)).join(" · ") + ". Switch to a net on the safari to catch a creature!</p></div>" + shopHTML(st);
+      '<button class="btn pjmapback pjback" data-pjzone=""><b>←</b> Map</button><div class="pjzonepet">' + (petOf ? petOf(st) : "") + "</div>" + zoneArrows(z, n) + "</div>" +
+      '<h2 class="pjzh">' + zonePic(z.key, "pjzhic") + esc(z.name) + '</h2><p class="lede">' + esc(z.line) + "</p>" +
+      '<p class="small">Creatures here: ' + z.types.map(t => '<span class="pjtype">' + typePic(t) + t + "</span>").join(" ") + "</p>" +
+      '<div class="safbox"><div><b class="pjsafh"><img src="' + A + 'btn-album.webp" alt="">Creature Safari</b><p class="small" style="margin:2px 0 0;">Creatures peek out and hide again. Tap one fast to take its photo! ' +
+      "Album page: <b>" + pageCount(st, z.key) + " / " + pageSize(z.key) + "</b> · <img class='pjsi' src='" + A + "alien-" + z.key + "-c.webp' alt=''> aliens <b>" + aliensFound(st, z.key) + " / 3</b> · <img class='pjsi' src='" + A + "types/film.svg' alt=''> <b>" + filmLeft(st) + "</b> film left today (" + FREE_FILM + " free a day, then " + ROLL_COST + " " + SDJ + " a roll). Only here: " + zoneAliens(z.key).map(a => "<b>" + esc(a.name) + "</b>").join(", ") + "</p></div>" +
+      '<button class="btn gold" data-safari="' + z.key + '">Start safari</button></div>' +
+      '<p class="small" style="margin:8px 0 0;">Your nets: ' + NETS.map(n => netImg(n, "pjnetimg") + " " + (Number(netsOf(st)[n.k]) || 0)).join(" · ") + ". Switch to a net on the safari to catch a creature!</p></div>" + shopHTML(st);
   }
   const next = ZONES.find(x => n < x.at);
   // 🗺️ The Planet JP hub (Nov 8): one big picture of the landing area. Tap a place to go there.
   // 🌌 Nov 19: a space-glass header: title, the 7 zones as glowing badges (locked ones dim), and the next-zone chip
   const nOpen = ZONES.filter(x => n >= x.at).length;
-  h += '<div class="card pjhubcard"><div class="pjhh"><div class="pjhht"><span class="pjhhic">\u{1F52D}</span><div><h2>Explore the planet</h2><small>Tap a place on the map to go there!</small></div></div>' +
-    '<div class="pjhzones" aria-label="' + nOpen + " of " + ZONES.length + ' zones open">' + ZONES.map(x => '<span class="pjhz' + (n >= x.at ? " on" : "") + (next && x.key === next.key ? " next" : "") + '" title="' + esc(x.name) + (n >= x.at ? " · open" : " · opens at " + x.at + " launches") + '">' + (n >= x.at ? x.icon : "\u{1F512}") + "</span>").join("") +
+  h += '<div class="card pjhubcard"><div class="pjhh"><div class="pjhht"><img class="pjhhic" src="' + A + 'btn-map.webp" alt=""><div><h2>Explore the planet</h2><small>Tap a place on the map to go there!</small></div></div>' +
+    '<div class="pjhzones" aria-label="' + nOpen + " of " + ZONES.length + ' zones open">' + ZONES.map(x => '<span class="pjhz' + (n >= x.at ? " on" : "") + (next && x.key === next.key ? " next" : "") + '" title="' + esc(x.name) + (n >= x.at ? " · open" : " · opens at " + x.at + " launches") + '"><img src="' + A + "zone-" + x.key + '-ic.webp" alt="">' + (n >= x.at ? "" : '<i class="pjhlock"></i>') + "</span>").join("") +
     '<b class="pjhcount">' + nOpen + "/" + ZONES.length + "</b></div></div>" +
-    (next ? '<p class="pjhnext">\u{1F680} Next zone: <b>' + next.icon + " " + esc(next.name) + "</b> in <b>" + (next.at - n) + "</b> more launch" + (next.at - n === 1 ? "" : "es") + "</p>" : '<p class="pjhnext">\u{1F3C6} You unlocked every zone!</p>') +
+    (next ? '<p class="pjhnext"><img class="pjsti" src="' + A + 'ss-duck.webp" alt=""> Next zone: <img class="pjhnz" src="' + A + "zone-" + next.key + '-ic.webp" alt=""> <b>' + esc(next.name) + "</b> in <b>" + (next.at - n) + "</b> more launch" + (next.at - n === 1 ? "" : "es") + "</p>" : '<p class="pjhnext">\u{1F3C6} You unlocked every zone!</p>') +
     hubHTML(st, n) + '<p class="small muted pjhubhint">\u2194\uFE0F Swipe the picture to see all of Planet JP.</p></div>';
   // the Class Colony: who landed today
   const kids = (students || []).filter(s => s.companionId && !s.isTeacher), landed = kids.filter(s => s.planet && s.planet.last === today);

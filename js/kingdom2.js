@@ -433,7 +433,7 @@ export function map2HTML(st, cls, k, badges) {
   const n = rankOf(st).n;
   return '<div class="kdscene kq-map" style="background-image:url(' + K + 'kd-map-big.webp)">' + SPOTS.map(([v, label, x, y, need]) => {
     const open = n >= need, b = badges[v] || 0;
-    return open ? '<button class="kq-spot" style="left:' + x + "%;top:" + y + '%" data-kd="go:' + v + '"><span>' + label + (b ? ' <i class="kdbang">' + b + "</i>" : "") + "</span></button>"
+    return open ? '<button class="kq-spot" style="left:' + x + "%;top:" + y + '%" data-kd="go:' + v + '"><span>' + label.replace(/^\S+\s+/, "") + (b ? ' <i class="kdbang">' + b + "</i>" : "") + "</span></button>"
       : '<span class="kq-spot locked" style="left:' + x + "%;top:" + y + '%" title="Opens at week ' + need + '"><span>\u{1F512} ' + label.replace(/^\S+\s/, "") + " <small>week " + need + "</small></span></span>";
   }).join("") + "</div>";
 }

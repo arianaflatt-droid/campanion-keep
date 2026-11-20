@@ -6,9 +6,9 @@
    planet.ms = { d: today, c: { missionKey: 1 } }, plus the Stardust (through safari.js planetSave). */
 import { esc } from "./game.js?v=20261119b";
 import { azToday } from "./collect.js?v=20261119b";
-import { freshSt, planetSave, planetNow, planetCtx } from "./safari.js?v=20261119b";
-import { cafeDone, safariDone, zooHas, zooDone } from "./missions.js?v=20261119w";
-import { careDone, hasNebble } from "./petpark.js?v=20261119w";
+import { freshSt, planetSave, planetNow, planetCtx } from "./safari.js?v=20261120i";
+import { cafeDone, safariDone, zooHas, zooDone } from "./missions.js?v=20261120i";
+import { careDone, hasNebble } from "./petpark.js?v=20261120i";
 
 const B = "assets/planet/board/";
 const plOf = st => (st && st.planet) || {};
@@ -49,23 +49,28 @@ if (typeof document !== "undefined") document.addEventListener("click", ev => {
   if (t.dataset.mbclaim) claim(t.dataset.mbclaim); else { pop = null; rer(); }
 });
 
+// 🖼️ Nov 20: pictures for each mission (the emoji shows if a picture is missing)
+const MPIC = { launch: "assets/planet/ss-duck.webp", cafe: "assets/planet/cafe/chef-duck-360.webp", safari: "assets/planet/btn-album.webp", zoo: "assets/planet/zoo/zoo-gate.webp",
+  park: "assets/pets/place/park-building.webp", moon: "assets/planet/moon/moon-ic.webp", ariana: "assets/planet/alien-ariana-peek.webp" };
+export const missionPic = (k, emo, cls) => MPIC[k] ? '<img class="' + (cls || "mbpic") + '" src="' + MPIC[k] + '" alt="" onerror="this.outerHTML=\'' + emo + '\'">' : emo;
+const SDI = '<img class="mbsdi" src="assets/planet/stardust.webp" alt="">';
 export function boardHTML(st, open) {
   st = freshSt(st); const list = boardToday(st), c = claimedOf(st), got = list.filter(m => c[m.k]).length;
   const earned = list.filter(m => c[m.k]).reduce((a, m) => a + m.pay, 0), total = list.reduce((a, m) => a + m.pay, 0);
-  let h = '<div class="card mbcard"><div class="card-head"><h2>\u{1F4CB} Mission Board</h2><span class="fact">' + got + " / " + list.length + " done · ⭐ " + earned + " / " + total + "</span></div>" +
+  let h = '<div class="card mbcard"><div class="card-head"><h2 class="mbhead"><img class="mbhic" src="' + B + 'board-icon.webp" alt="" onerror="this.outerHTML=\'\u{1F4CB}\'">Mission Board</h2><span class="mbchips"><span><b>' + got + " / " + list.length + "</b> done</span><span>" + SDI + "<b>" + earned + " / " + total + "</b></span></span></div>" +
     '<p class="lede" style="font-size:14px;margin:0 0 8px;">Commander JP posts <b>3 new missions every day</b>. Finish one, then tap <b>Claim</b> for its Stardust!</p>' +
     '<div class="mboard" style="background-image:url(' + B + 'mission-board.webp)">';
   list.forEach((m, i) => {
     const claimed = !!c[m.k], done = claimed || m.done(st);
-    h += '<div class="mbslot s' + i + (claimed ? " got" : done ? " ready" : "") + '"><span class="mbicon">' + m.icon + '</span><b class="mbtext">' + esc(m.text) + '</b><span class="mbpay">+' + m.pay + " ⭐</span>" +
+    h += '<div class="mbslot s' + i + (claimed ? " got" : done ? " ready" : "") + '"><span class="mbicon">' + missionPic(m.k, m.icon) + '</span><b class="mbtext">' + esc(m.text) + '</b><span class="mbpay">+' + m.pay + " " + SDI + "</span>" +
       (claimed ? '<img class="mbstamp" src="' + B + 'stamp-360.webp" alt="Mission complete">'
-        : done ? (open ? '<button class="btn gold small mbbtn" data-mbclaim="' + m.k + '">⭐ Claim</button>' : '<span class="mbnote">Done! Claim it while Planet JP is open.</span>')
+        : done ? (open ? '<button class="btn gold small mbbtn" data-mbclaim="' + m.k + '">' + SDI + ' Claim</button>' : '<span class="mbnote">Done! Claim it while Planet JP is open.</span>')
         : m.k === "ariana" ? '<span class="mbnote">Look on every page! She peeks in from the side.</span>'
         : m.k === "launch" ? '<span class="mbnote">Earn your XP and fill your tanks, then launch!</span>'
         : open ? '<button class="btn small mbbtn" data-pjzone="' + m.go + '">GO ▸</button>' : "") + "</div>";
   });
-  h += "</div>" + (got === list.length && list.length ? '<p class="mblall">\u{1F31F} <b>Every mission done today!</b> New missions tomorrow, Captain.</p>' : "") + "</div>";
+  h += "</div>" + (got === list.length && list.length ? '<p class="mblall"><img class="mbsdi" src="assets/ui/ck/lv-star.webp" alt=""> <b>Every mission done today!</b> New missions tomorrow, Captain.</p>' : "") + "</div>";
   if (pop) h += '<div class="mbpop" data-mbok="1"><div class="mbpopcard" style="background-image:url(' + B + 'mission-card.webp)"><img class="mbpopstamp" src="' + B + 'stamp.webp" alt="">' +
-    "<p>" + pop.m.icon + " " + esc(pop.m.text) + '</p><b class="mbpopdust">+' + pop.m.pay + " ⭐ Stardust!</b>" + (pop.preview ? '<small>Preview: nothing was saved.</small>' : "") + '<button class="btn gold">Yay! \u{1F389}</button></div></div>';
+    "<p>" + missionPic(pop.m.k, pop.m.icon, "mbpic big") + " " + esc(pop.m.text) + '</p><b class="mbpopdust">+' + pop.m.pay + " " + SDI + " Stardust!</b>" + (pop.preview ? '<small>Preview: nothing was saved.</small>' : "") + '<button class="btn gold">Yay! \u{1F389}</button></div></div>';
   return h;
 }

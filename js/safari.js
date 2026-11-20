@@ -119,11 +119,11 @@ export const netsOf = st => ((st && st.planet) || {}).nets || {};
 export const catchChance = (net, e) => e.alien ? net.ch[(ALIENS[e.alien] || {}).tier] || 0 : (net.ch[e.rarity] || 0) * (STAGE_CATCH[e.stage] || 0.7);
 export function shopHTML(st) {
   const pl = (st && st.planet) || {}, dust = Number(pl.dust) || 0, nets = netsOf(st);
-  return '<div class="card safshop"><div class="card-head"><h2>\u{1F6D2} Safari Shop</h2><span class="fact">⭐ ' + dust + " Stardust</span></div>" +
+  return '<div class="card safshop"><div class="card-head"><h2 class="pjzh"><img class="pjzhic sq" src="' + A + 'safari-shop.webp" alt="">Safari Shop</h2><span class="mbchips"><span><img class="mbsdi" src="assets/planet/stardust.webp" alt=""><b>' + dust + "</b> Stardust</span></span></div>" +
     '<img class="safbooth" src="' + A + 'safari-shop.webp" alt="The Safari Shop booth">' +
-    '<p class="lede" style="font-size:13.5px;">Buy a net, then on the safari switch from \u{1F4F8} to the net and tap a creature to throw it. A catch joins your <b>Creature Collector</b>. It\u2019s never a sure thing: better nets catch rarer creatures more often, and a miss scares it away. The 👽 aliens can only be caught here!</p>' +
-    '<div class="safnets">' + NETS.map(n => '<div class="safnet"><span class="safneti">' + netImg(n, "safnetimg") + "</span><b>" + esc(n.name) + '</b><small>Common ' + Math.round(n.ch.Common * 100) + "% · Rare " + Math.round(n.ch.Rare * 100) + "% · 👽 " + Math.round(n.ch.c * 100) + "–" + Math.round(n.ch.s * 100) + "%</small>" +
-      '<span class="safhave">You have <b>' + (Number(nets[n.k]) || 0) + "</b></span>" + '<button class="btn small' + (dust >= n.cost ? " gold" : " ghost") + '" data-safbuy="' + n.k + '"' + (dust >= n.cost ? "" : " disabled") + ">Buy for " + n.cost + " ⭐</button></div>").join("") + "</div></div>";
+    '<p class="lede" style="font-size:13.5px;">Buy a net, then on the safari switch from the camera to the net and tap a creature to throw it. A catch joins your <b>Creature Collector</b>. It\u2019s never a sure thing: better nets catch rarer creatures more often, and a miss scares it away. The aliens can only be caught here!</p>' +
+    '<div class="safnets">' + NETS.map(n => '<div class="safnet"><span class="safneti">' + netImg(n, "safnetimg") + "</span><b>" + esc(n.name) + '</b><small>Common ' + Math.round(n.ch.Common * 100) + "% · Rare " + Math.round(n.ch.Rare * 100) + "% · Aliens " + Math.round(n.ch.c * 100) + "–" + Math.round(n.ch.s * 100) + "%</small>" +
+      '<span class="safhave">You have <b>' + (Number(nets[n.k]) || 0) + "</b></span>" + '<button class="btn small' + (dust >= n.cost ? " gold" : " ghost") + '" data-safbuy="' + n.k + '"' + (dust >= n.cost ? "" : " disabled") + ">Buy for " + n.cost + " <img class='mbsdi' src='assets/planet/stardust.webp' alt=''></button></div>").join("") + "</div></div>";
 }
 export const FREE_FILM = 5, ROLL_FILM = 3, ROLL_COST = 10, DUPE_DUST = 2, PAGE_DUST = 100, MILE_EVERY = 10, MILE_DUST = 25;
 // Every form of every creature (babies and evolved forms count separately) whose main type lives in the zone.

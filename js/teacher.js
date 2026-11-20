@@ -1,4 +1,4 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261119w";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261120i";
 import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261119b";
 import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261119b";
 import { cpEarnedCalc } from "./room.js?v=20261119b";
@@ -21,7 +21,7 @@ import { passAdmin } from "./pass.js?v=20261119b";
 import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf, ULTRA_FAMS, CLUB_ULTRA_FAMS } from "./collect.js?v=20261119b";
 import { watchSecret, secretRef, talkRef, watchTalk } from "./db.js?v=20261119b";
 import { talkCard, talkSync } from "./talk.js?v=20261119b";
-import { shoutCard, shoutSync, setShoutMode } from "./shout.js?v=20261119w";
+import { shoutCard, shoutSync, setShoutMode } from "./shout.js?v=20261120i";
 import { mmState, mmStartCard, mmBar, mmScreenChip, mmNewsScreen, newsPopSync, battleKind, launchedToday, MM_NAME } from "./modes.js?v=20261119w";
 import { kdDiveWatch, kdDiveTest } from "./divewatch.js?v=20261119b";
 import { secretAdmin, secretClick, autoPick, secretBanner } from "./secret.js?v=20261119w";
@@ -44,22 +44,22 @@ import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef, watchSeats, watchCards, deleteField
 } from "./db.js?v=20261119b";
-import { G, guardCard, guardClick, guardInput, autoSnap, personalLink, syncCards } from "./guard.js?v=20261119w";
+import { G, guardCard, guardClick, guardInput, autoSnap, personalLink, syncCards } from "./guard.js?v=20261120i";
 import { lockCard, lockClick } from "./lock.js?v=20261119b";
 import { revengeAdmin, revengeAction } from "./revenge.js?v=20261119b";
 import { heistAdmin, heistAction } from "./heist.js?v=20261119b";
 import { calendarCard, calendarEdit, autoExcuse } from "./calendar.js?v=20261119w";
-import { axoAdmin } from "./axolotl.js?v=20261119w";
-import { kdAdmin } from "./kingdom.js?v=20261119w";
+import { axoAdmin } from "./axolotl.js?v=20261120i";
+import { kdAdmin } from "./kingdom.js?v=20261120i";
 import { clubsAdmin, clubUpload, clubPicks, pickChange } from "./clubs.js?v=20261119b";
-import { planetAdmin, keepLaunchWatch, pjMinsNow, rocketSync } from "./planet.js?v=20261119w";
+import { planetAdmin, keepLaunchWatch, pjMinsNow, rocketSync } from "./planet.js?v=20261120i";
 import { soloScreenSync, soloScreenOpenNow, soloScreenOpen, soloScreenClose } from "./soloscreen.js?v=20261119w";
 import { recessAdmin, recessAction } from "./playground.js?v=20261119b";
 import { rosterAdmin, rosterPreview, okEmail } from "./roster.js?v=20261119b";
 import { rosterList, rosterSave, seatsOnce, removeLinkSeats, myAccess, saveClassDir, createClass, adminList, setAdmin, isBuiltInAdmin, switchClass } from "./db.js?v=20261119b";
 
 /* ================= state ================= */
-const CONSOLE_V = "nov19w";   // Nov 19: which console update is loaded (shown under the Guide tab)
+const CONSOLE_V = "nov20i";   // Nov 19: which console update is loaded (shown under the Guide tab)
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
 // 📺 Nov 16: "?screen=1" = the student screen tab (projected). It only watches and shows; the console tab does all the saving.
 const SCREEN = (() => { try { return new URLSearchParams(location.search).has("screen"); } catch (e) { return false; } })();

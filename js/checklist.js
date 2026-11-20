@@ -5,7 +5,7 @@
    (remembered on this computer only). */
 import { rvStarted, rvStock, rvBeatCount } from "./revenge.js?v=20261119b";
 import { heistTodo } from "./heist.js?v=20261119b";
-import { axoOn } from "./axolotl.js?v=20261119w";
+import { axoOn } from "./axolotl.js?v=20261120i";
 import { newsKeyOf, shownNews } from "./news.js?v=20261119b";
 import { freeReady } from "./pets.js?v=20261119b";
 import { tbLeft, tbLive } from "./teachbattle.js?v=20261119w";
@@ -20,8 +20,8 @@ import { pettedToday } from "./bond.js?v=20261119w";
 import { mealsReady } from "./meals.js?v=20261119b";
 import { readyTests } from "./quest.js?v=20261119b";
 import { unthanked } from "./kindness.js?v=20261119b";
-import { kdTodo } from "./kingdom.js?v=20261119w";
-import { adventOn, adventReady, adventState, ADVENT_DAYS } from "./advent.js?v=20261119w";
+import { kdTodo } from "./kingdom.js?v=20261120i";
+import { adventOn, adventReady, adventState, ADVENT_DAYS } from "./advent.js?v=20261120i";
 
 const seenKey = (id, what) => "ck-seen-" + azToday() + "-" + id + "-" + what;
 // 📣 the class announcement (Nov 9): a new one gets a new key, so it shows up on the list again
