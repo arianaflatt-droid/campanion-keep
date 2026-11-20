@@ -7,8 +7,8 @@
 import { esc } from "./game.js?v=20261119b";
 import { azToday } from "./collect.js?v=20261119b";
 import { freshSt, planetSave, planetNow, planetCtx } from "./safari.js?v=20261119b";
-import { cafeDone, safariDone, zooHas, zooDone } from "./missions.js?v=20261119t";
-import { careDone, hasNebble } from "./petpark.js?v=20261119t";
+import { cafeDone, safariDone, zooHas, zooDone } from "./missions.js?v=20261119v";
+import { careDone, hasNebble } from "./petpark.js?v=20261119v";
 
 const B = "assets/planet/board/";
 const plOf = st => (st && st.planet) || {};

@@ -1,50 +1,50 @@
 import {
   checkVersion, hitOn, gearInSeason, applyDisplayNames, companionOf, petCreatures, pinnedBadgeHTML, DAYS, SHORT, ROSTER, GEAR, SIDEKICKS, BANNER, bannerFor, newsHTML, boostHTML, vipToday, countdownHTML, countdownLeft, isHaunt, battleOn, candyOf, basketHTML, CANDY_FULL, bossState, attacksReady, bossBarHTML, GHOST_IMG, ghostUnlocked, turkeyUnlocked, grinchUnlocked, isJingle, isFrost, isHeart, heartUnlocked, isLucky, luckyUnlocked, attackRefusal, saveProblems, yetiUnlocked, eventMode, isGobble, setSeason, SEASON, seasonOf, STORE, candyLeft, candySpent, ownedCount, ownsItem, storeArt, nextAttack, dmgOf, HAT_BONUS, BREW_BONUS, teamHTML, wallHTML, WHEEL, pickSlice, wheelHTML, spinTo, PRIZES, prizeSlices, bucketState, bucketHTML, baseDamage, EAT_PER_DAY, dayEaten, dayXP, byId, esc, arr5, recordedDays, goalXP,
   simulate, wornItem, tier, boardDay, sidekickToday, sidekickSVG, petHTML as petBase, vipStage, withVipHat, vipWorn, petWithHead, OUTFITS, itemArt, potionFx, bondLevel,
-  ghost2Unlocked, starterFam, boss2Of, BOSS2, BOSS2_LIST, creditCompanion, compKey, compLevel, compFill, COMP_DAYS, creatureCompanion, win1HTML
+  ghost2Unlocked, starterFam, boss2Of, BOSS2, BOSS2_LIST, creditCompanion, compKey, compLevel, compFill, COMP_DAYS, creatureCompanion, win1HTML, SEASONS
 } from "./game.js?v=20261119b";
 import { EVENT_LIST, TEAM_EVENTS, eventOn, teamCard, teamOf as tevTeamOf } from "./teams.js?v=20261119b";
 import { lockOf, lockScreen } from "./lock.js?v=20261119b";
 import { revengeCard, revengeSync } from "./revenge.js?v=20261119b";
 import { heistCard, heistSync } from "./heist.js?v=20261119b";
-import { ultraSync, vaultUltra } from "./ultra.js?v=20261119t";
-import { secretBanner, secretOverlay, secretOpen } from "./secret.js?v=20261119t";
+import { ultraSync, vaultUltra } from "./ultra.js?v=20261119v";
+import { secretBanner, secretOverlay, secretOpen } from "./secret.js?v=20261119v";
 import { questTab, questOverlay, questClick, questBusy } from "./quest-ui.js?v=20261119b";
 import { kindCard, gotKindToday } from "./kindness.js?v=20261119b";
-import { partyCards, partyOverlay, partyClick, partyBusy, partyTicker, partySync, albumPage, albumCount } from "./party.js?v=20261119t";
+import { partyCards, partyOverlay, partyClick, partyBusy, partyTicker, partySync, albumPage, albumCount } from "./party.js?v=20261119v";
 import { kitchenCard, kitchenOverlay, kitchenClick, kitchenBusy, kitchenPointer } from "./meals.js?v=20261119b";
-import { miniCard, miniOverlay, miniClick, miniBusy, miniSync } from "./mini.js?v=20261119t";
-import { adventCard, adventSync } from "./advent.js?v=20261119t";
-import { paintCard, paintClick } from "./paint.js?v=20261119t";
-import { surpriseCards, surpriseOverlay, surpriseClick, surpriseBusy, visitorCard } from "./surprise.js?v=20261119t";
-import { hofTab, hofParty, hofClick } from "./hof.js?v=20261119t";
+import { miniCard, miniOverlay, miniClick, miniBusy, miniSync } from "./mini.js?v=20261119v";
+import { adventCard, adventSync } from "./advent.js?v=20261119v";
+import { paintCard, paintClick } from "./paint.js?v=20261119v";
+import { surpriseCards, surpriseOverlay, surpriseClick, surpriseBusy, visitorCard } from "./surprise.js?v=20261119v";
+import { hofTab, hofParty, hofClick } from "./hof.js?v=20261119v";
 import { passTab, passOverlay, passClick, passBusy, passReady } from "./pass.js?v=20261119b";
-import { bondHTML, moodBubble, playTrick, burst, unlockAt } from "./bond.js?v=20261119t";
-import { morningTab, morningOverlay, morningClick, morningBusy, mqReady } from "./morning.js?v=20261119t";
+import { bondHTML, moodBubble, playTrick, burst, unlockAt } from "./bond.js?v=20261119v";
+import { morningTab, morningOverlay, morningClick, morningBusy, mqReady } from "./morning.js?v=20261119v";
 import { readyTests, heldWeapon, weaponsOwned, weapon } from "./quest.js?v=20261119b";
 import { cardOf, sameData } from "./card.js?v=20261119b";
-import { mapOn, mapTab, mapClick, mapReady } from "./readmap.js?v=20261119t";
-import { tbCard, tbLeft } from "./teachbattle.js?v=20261119t";
-import { wheelBanner, wheelWinOverlay, wheelSeen } from "./subwheel.js?v=20261119t";
-import { axoOn, axoSync } from "./axolotl.js?v=20261119t";
-import { wheelSync } from "./wheel.js?v=20261119t";
+import { mapOn, mapTab, mapClick, mapReady } from "./readmap.js?v=20261119v";
+import { tbCard, tbLeft } from "./teachbattle.js?v=20261119v";
+import { wheelBanner, wheelWinOverlay, wheelSeen } from "./subwheel.js?v=20261119v";
+import { axoOn, axoSync } from "./axolotl.js?v=20261119v";
+import { wheelSync } from "./wheel.js?v=20261119v";
 import { showdownSync, sdPill } from "./showdown.js?v=20261119b";
-import { shoutSync } from "./shout.js?v=20261119t";
-import { newsPopSync } from "./modes.js?v=20261119t";
+import { shoutSync } from "./shout.js?v=20261119v";
+import { newsPopSync } from "./modes.js?v=20261119v";
 import { lvlSync } from "./lvlup.js?v=20261119b";
-import { kdOn, kdSync, kingdomTab, kdTodo, kdUnlocked, kdOf, kdPass } from "./kingdom.js?v=20261119t";
+import { kdOn, kdSync, kingdomTab, kdTodo, kdUnlocked, kdOf, kdPass } from "./kingdom.js?v=20261119v";
 import { clubsTab, clubsNew, doneCount, clubPageSet } from "./clubs.js?v=20261119b";
-import { planetBar, planetSync, planetBusy, planetTab, planetZone, planetZoneNow, pjOpen, planetOn, nebbleOut, rocketSync } from "./planet.js?v=20261119t";
-import { missionsHTML, missionList } from "./missions.js?v=20261119t";
+import { planetBar, planetSync, planetBusy, planetTab, planetZone, planetZoneNow, pjOpen, planetOn, nebbleOut, rocketSync } from "./planet.js?v=20261119v";
+import { missionsHTML, missionList } from "./missions.js?v=20261119v";
 import { freeOverlay, freeReady, freeDoneCard, showFree } from "./pets.js?v=20261119b";
 import { nebbleSync, nebbleCard } from "./pets.js?v=20261119b";
-import { nebbleCorner } from "./petpark.js?v=20261119t";
+import { nebbleCorner } from "./petpark.js?v=20261119v";
 import { playSync } from "./playground.js?v=20261119b";
-import { checklistTab, todoCount, markSeen, newsKey, newsRead } from "./checklist.js?v=20261119t";
+import { checklistTab, todoCount, markSeen, newsKey, newsRead } from "./checklist.js?v=20261119v";
 import { newsPage, shownNews, reactSave, pinnedNews, newsCard, likesFor } from "./news.js?v=20261119b";
 import { PREVIEW, configured, auth, googleStudentSignIn, seatInfo, googleReseat, signOut as gSignOut, SCHOOL_DOMAIN, studentRef, watchClass, watchStudents, watchMyBattles, watchMyTrades, anonSignIn, onAuthStateChanged, updateDoc as saveDoc, watchRewardPic, watchNewsPics, claimSeat, mySeat, watchCards, watchMe, saveCard, ck } from "./db.js?v=20261119b";
-import { rewardTab, rewardBadge, rgOf, rgProgress, RG_SUBS, prizeWeek, nameFromLink, prizeLinkOk } from "./weekgoal.js?v=20261119t";
-import { soloOn, soloSwap, soloCard, brewOne, freeIngredient, soloReady, soloCfg, potNaming, potNameData } from "./solobrew.js?v=20261119t";
+import { rewardTab, rewardBadge, rgOf, rgProgress, RG_SUBS, prizeWeek, nameFromLink, prizeLinkOk } from "./weekgoal.js?v=20261119v";
+import { soloOn, soloSwap, soloCard, brewOne, freeIngredient, soloReady, soloCfg, potNaming, potNameData } from "./solobrew.js?v=20261119v";
 let rpic = null, npic = null, npics = {};
 // The wheel's slices; with Solo Potion Brewing on, Free Attack becomes Free Ingredient (same slice id, so saves still pass)
 const slicesNow0 = () => soloOn(cls) ? SEASON.slices.map(x => x.id === "attack" ? Object.assign({}, x, { label: "Free Ingredient", icon: soloCfg(cls).icon, note: "A free " + (soloCfg(cls).ingFor || soloCfg(cls).one) + " ingredient!" }) : x) : SEASON.slices;
@@ -53,18 +53,18 @@ const slicesNow = () => { const L = slicesNow0(); if (!planetOn(cls)) return L; 
   return L.map(x => x.id === "nothing" && n++ === 1 ? Object.assign({}, x, { id: "dust50", label: WHEEL_DUST + " Stardust", icon: "\u2B50", note: "+" + WHEEL_DUST + " Planet JP Stardust!" }) : x); };
 // ⭐ adds Stardust to the student's Planet JP save (the whole planet object, like every Planet JP save, so nothing is lost)
 function plusDust(s, n, data) { const pl = JSON.parse(JSON.stringify(((pjFresh(s) || {}).planet) || {})); pl.dust = (Number(pl.dust) || 0) + n; pl.sv = (Number(pl.sv) || 0) + 1; data.planet = pl; }
-import { nudgeCard } from "./nudges.js?v=20261119t";
-import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261119t";
+import { nudgeCard } from "./nudges.js?v=20261119v";
+import { badgesTab, newlyEarned, badgeParty, unseenBadges } from "./badges.js?v=20261119v";
 import { teacherPlayer, hasStarter, MOVES, formOf, STARTERS as CR_STARTERS, family as crFamily, creature as crCreature } from "./collect.js?v=20261119b";
 import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261119b";
-import { addDays, wkGoalOf, wkShare, ringDay, vaultMet, goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked, weekGoal, weekKey, weekTotal, weekDoorState, vaultState, vaultGoal, rewardFor, oldReady, vaultLessonsLeft, VAULT_XP, VAULT_BONUS_XP, VAULT_EGGS, VAULT_MIN, vaultMinOk, vaultNeedsMin, subReq, subReqHTML, DOOR_DUST, WEEK_DOOR_DUST, WHEEL_DUST, DOOR_OPEN_DUST, SECRET_DUST, CHECK_DUST } from "./doors.js?v=20261119t";
+import { addDays, wkGoalOf, wkShare, ringDay, vaultMet, goalTier, GOAL_CANDY, SEASON_LEGENDARY, doorsLive, doorsFor, dayDoors, doorState, doorLocked, gateOpen, allDone, goldenReady, rollPresent, rewardText, REWARD_XP, DOOR_GATE, DOOR_ART, doorName, isFree, doorText, gateLabel, hasLocked, weekGoal, weekKey, weekTotal, weekDoorState, vaultState, vaultGoal, rewardFor, oldReady, vaultLessonsLeft, VAULT_XP, VAULT_BONUS_XP, VAULT_EGGS, VAULT_MIN, vaultMinOk, vaultNeedsMin, subReq, subReqHTML, DOOR_DUST, WEEK_DOOR_DUST, WHEEL_DUST, DOOR_OPEN_DUST, SECRET_DUST, CHECK_DUST } from "./doors.js?v=20261119v";
 import { freshSt as pjFresh } from "./safari.js?v=20261119b";
 import { azToday } from "./collect.js?v=20261119b";
 import { tourSync } from "./tour.js?v=20261119b";
 import { roomHTML, FIT_SLOTS, slotKind, KIND_NAMES, KIND_ICON, EVERYDAY_PRICE, THEMED_PRICE, TROPHY_PRICE, TYPE_THEMES, SEASON_THEMES, THEME_NAMES, TROPHIES,
   itemArt as roomArt, itemName, parseItem, owned as roomOwned, bought as roomBought, STARTERS as ROOM_STARTERS, fitOf, cpLeft, cpEarned, everydayItems, setItems, setPrice, liveSeason, trophyUnlocked, itemId,
   ROOMS, EXTRA_ROOMS, ROOM_PRICE, hasRoom, roomStarters, fitIn, slotTakes, roomExtras, PET_SPOT_KEYS, petSpotLabel, petSpotOf, ACTIVITY_IDS, ACTIVITY_PRICE } from "./room.js?v=20261119b";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing, endMyBattle } from "./collector-ui.js?v=20261119t";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing, endMyBattle } from "./collector-ui.js?v=20261119v";
 
 let fxFor = null;   // the student whose companion is being drawn (for the potion glow)
 const petHTML = (c, worn, held) => { const h = petBase(c, worn, held), fx = fxFor ? potionFx(fxFor) : ""; return fx ? h.replace('class="petwrap', 'class="petwrap' + fx) : h; };
@@ -1207,15 +1207,41 @@ function powerMeter(s) {
     (extra ? '<div class="power-s">+' + extra + " extra " + SEASON.cur + " went into your " + SEASON.basket + "</div>" : '<div class="power-s">' + SEASON.Cur + " over " + EAT_PER_DAY + " goes into your " + SEASON.basket + "</div>") + "</div>";
 }
 
+// 🥧 Nov 19: the Pie Wheel gets real pictures on its slices (and no gold outlines); the shop's Pie Wheel item uses the pie picture
+const REROLL_PIC = "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><g fill="none" stroke="#3A1A08" stroke-width="13" stroke-linecap="round"><path d="M14 30a18 18 0 0 1 31-12"/><path d="M50 34a18 18 0 0 1-31 12"/></g><g fill="none" stroke="#FFE38A" stroke-width="7" stroke-linecap="round"><path d="M14 30a18 18 0 0 1 31-12"/><path d="M50 34a18 18 0 0 1-31 12"/></g><path d="M38 8l14 6-11 11z M26 56l-14-6 11-11z" fill="#FFE38A" stroke="#3A1A08" stroke-width="3" stroke-linejoin="round"/></svg>');
+// every event wheel: a picture for each slice (by the slice's emoji, so each event's own slices get their own art)
+const W_ = "assets/wheel/";
+const WHEEL_PICS = { "\u{1F504}": REROLL_PIC, "\u2694\uFE0F": W_ + "ic-swords.svg", "\u{1F381}": "assets/xmas/ic-present.webp", "\u{1F31F}": "assets/ui/ck/lv-star.webp",
+  "\u{1F36C}": W_ + "ic-candy.svg", "\u{1F36D}": W_ + "ic-lollipop.svg", "\u{1F47B}": "assets/ghost-pet.png", "\u{1F987}": W_ + "ic-bat.svg",
+  "\u{1F33D}": "assets/feast/ing-corn.webp", "\u{1F34E}": "assets/kitchen/food-apple.webp", "\u{1F342}": "assets/kitchen/food-apple.webp",
+  "\u{1FAA8}": W_ + "ic-coal.webp", "\u2744\uFE0F": W_ + "ic-snowflake.svg", "\u{1F9E4}": "assets/xmas/gift-mittens.webp", "\u{1F976}": W_ + "ic-brrr.svg", "\u{1F32C}\uFE0F": W_ + "ic-wind.svg", "\u26C4": W_ + "ic-snowball.svg",
+  "\u{1F497}": "assets/ui/ck/hp-heart.webp", "\u{1F498}": "assets/heart/candy-jar.webp", "\u{1F494}": W_ + "ic-heartbreak.webp",
+  "\u{1FA99}": W_ + "ic-coin.svg", "\u{1F308}": W_ + "ic-rainbow.svg", "\u{1F340}": "assets/lucky/pot-of-gold.webp", "\u{1F344}": W_ + "ic-mushroom.svg", "\u2B50": "assets/planet/stardust.webp" };
+const STEAL_PICS = { haunt: W_ + "ic-mask.svg", gobble: "assets/gobble/cornucopia.webp", jingle: "assets/jingle/grinch-sack.webp" };
+const slicePic = x => {
+  if (x.id === "steal" && STEAL_PICS[SEASON.key]) return STEAL_PICS[SEASON.key];
+  if (x.id === "dust50") return "assets/planet/stardust.webp";
+  if (x.id === "attack" && soloOn(cls)) return "assets/feast/ing-potato.webp";
+  if (SEASON.key === "heart" && x.id === "candy75" && x.icon === "\u{1F36C}") return W_ + "ic-candy-pink.svg";
+  if (SEASON.key === "lucky" && x.id === "nothing" && x.icon === "\u{1FAA8}") return "assets/hero/train-rock.webp";   // fool's gold sparkles
+  return WHEEL_PICS[x.icon] || null;
+};
+const prettySlices = L => L.map(x => { if (x.img) return x; const im = slicePic(x); return im ? Object.assign({}, x, { img: im }) : x; });
+const noGold = h => h.replace(/<path [^>]*stroke="#FFD34D"[^>]*\/>/g, "").replace(/<text x="0" y="-26"[^>]*>\u2728<\/text>/g, "");
+const prettyWheel = (L, rot) => noGold(wheelHTML(prettySlices(L), rot));
+try { Object.keys(SEASONS).forEach(k => { const sp = (SEASONS[k].store || []).find(x => x.id === "spin"); if (sp && !sp.img) sp.img = k === "gobble" ? "assets/gobble/pie-wheel-icon.svg" : "assets/wheel/wheel-icon-" + k + ".svg"; }); } catch (e) {}
+// "🟠 Orange = treats" → "Orange = treats" (the dot is drawn in the wheel's own colour)
+const legendTxt = t => { t = String(t).replace(/^[^A-Za-z]+/, ""); return t.charAt(0).toUpperCase() + t.slice(1); };
+const wheelIconPic = () => SEASON.key === "gobble" ? "assets/gobble/pie-wheel-icon.svg" : "assets/wheel/wheel-icon-" + SEASON.key + ".svg";
 function wheelCard(s) {
   const spins = Number(s.spins) || 0;
   const S = SEASON;
-  let h = '<div class="arena ' + S.key + '" style="margin-bottom:16px;"><p class="arena-title">' + S.wheelIcon + " " + S.wheel + "</p>" +
+  let h = '<div class="arena ' + S.key + '" style="margin-bottom:16px;"><p class="arena-title">' + '<img class="wtitleic" src="' + wheelIconPic() + '" alt="">' + " " + S.wheel + "</p>" +
     '<p class="arena-foot" style="margin:0 0 10px;">Spins: <b>' + spins + "</b>" + (spins ? "" : " \u00b7 buy a spin in the " + S.shop) + "</p>" +
-    '<div id="wheelbox">' + wheelHTML(slicesNow(), wheelRot) + "</div>" +
-    '<button class="attackbtn" data-act="spin"' + (spins && !wheelBusy ? "" : " disabled") + ">" + (wheelBusy ? "Spinning\u2026" : "\u{1F3A1} Spin!") + "</button>" +
+    '<div id="wheelbox">' + prettyWheel(slicesNow(), wheelRot) + "</div>" +
+    '<button class="attackbtn spinbtn" data-act="spin"' + (spins && !wheelBusy ? "" : " disabled") + ">" + (wheelBusy ? "Spinning\u2026" : "Spin!") + "</button>" +
     '<div class="wheelres">' + (wheelResult && !wheelBusy ? wheelResult : "") + "</div>" +
-    '<p class="arena-foot">' + S.treat + " \u00b7 " + S.trick + " \u00b7 \u2728 rare slices</p></div>";
+    '<p class="arena-foot wlegend"><span><i style="background:' + S.colors.treat[0] + '"></i>' + esc(legendTxt(S.treat)) + '</span><span><i style="background:' + S.colors.trick[0] + '"></i>' + esc(legendTxt(S.trick)) + "</span></p></div>";
   return h;
 }
 

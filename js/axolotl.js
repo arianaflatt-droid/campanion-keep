@@ -13,8 +13,8 @@
 import { azToday } from "./collect.js?v=20261119b";
 import { goalXP, arr5, dateOfDay } from "./game.js?v=20261119b";
 import { subFor, SUB_NAMES } from "./teams.js?v=20261119b";
-import { addDays } from "./doors.js?v=20261119t";
-import { subRuleOn, SUB_DAY, SUB_REQ, ringDay, subReq, weekTotal, histWeekTotal, mondayOf, VAULT_MIN, vaultMinOf } from "./doors.js?v=20261119t";
+import { addDays } from "./doors.js?v=20261119v";
+import { subRuleOn, SUB_DAY, SUB_REQ, ringDay, subReq, weekTotal, histWeekTotal, mondayOf, VAULT_MIN, vaultMinOf } from "./doors.js?v=20261119v";
 import { weekKey } from "./game.js?v=20261119b";
 import { APP_V } from "./game.js?v=20261119b";
 
