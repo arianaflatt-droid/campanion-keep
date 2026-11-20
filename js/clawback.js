@@ -12,7 +12,7 @@
    Things worked out from XP fix themselves: streaks, gear, companion health, 120-day spins, event tickets, Kingdom entry. */
 import { esc } from "./game.js?v=20261119b";
 import { pullsEarned, owned, formOf } from "./collect.js?v=20261119b";
-import { doorsFor, dayDoors, doorMet, approved, addDays, mondayOf, vaultMet, vaultGift, subReq, ringDay, REWARD_XP, GOAL_CANDY, DOOR_OPEN_DUST, WEEK_DOOR_DUST, DOOR_DUST } from "./doors.js?v=20261119v";
+import { doorsFor, dayDoors, doorMet, approved, addDays, mondayOf, vaultMet, vaultGift, subReq, ringDay, REWARD_XP, GOAL_CANDY, DOOR_OPEN_DUST, WEEK_DOOR_DUST, DOOR_DUST } from "./doors.js?v=20261119w";
 
 const DROP_MIN = 3;   // ignore wobbles of 1–2 XP
 const SUBN = { m: "Math", f: "Fast Math", r: "Reading", w: "Writing", l: "Language", v: "Vocabulary", sc: "Science", ss: "Social Studies" };

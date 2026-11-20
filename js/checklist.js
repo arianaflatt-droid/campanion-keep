@@ -5,23 +5,23 @@
    (remembered on this computer only). */
 import { rvStarted, rvStock, rvBeatCount } from "./revenge.js?v=20261119b";
 import { heistTodo } from "./heist.js?v=20261119b";
-import { axoOn } from "./axolotl.js?v=20261119v";
+import { axoOn } from "./axolotl.js?v=20261119w";
 import { newsKeyOf, shownNews } from "./news.js?v=20261119b";
 import { freeReady } from "./pets.js?v=20261119b";
-import { tbLeft, tbLive } from "./teachbattle.js?v=20261119v";
+import { tbLeft, tbLive } from "./teachbattle.js?v=20261119w";
 import { esc, simulate, companionOf, goalXP, SEASON } from "./game.js?v=20261119b";
 import { azToday, azNow, todayXP, pullsLeft, legendaryLeft, birthdayLeft, pickleLeft, vaultLegLeft, BOSS2_LIST, boss2EggLeft, candyLegLeft, snowLegLeft,
   gingerLegLeft, feastLegLeft, brewLegLeft, goalLeft, themeLeft, hasStarter, bankXP, LEVEL_XP } from "./collect.js?v=20261119b";
-import { mqReady } from "./morning.js?v=20261119v";
-import { DOOR_ART, doorsLive, doorName, goldenReady, weekDoorState, vaultState, vaultGoal, subReq, todayPlan, SUBJECT_KEYS } from "./doors.js?v=20261119v";
-import { soloOn, soloReady, soloCfg } from "./solobrew.js?v=20261119v";
+import { mqReady } from "./morning.js?v=20261119w";
+import { DOOR_ART, doorsLive, doorName, goldenReady, weekDoorState, vaultState, vaultGoal, subReq, todayPlan, SUBJECT_KEYS } from "./doors.js?v=20261119w";
+import { soloOn, soloReady, soloCfg } from "./solobrew.js?v=20261119w";
 import { passReady } from "./pass.js?v=20261119b";
-import { pettedToday } from "./bond.js?v=20261119v";
+import { pettedToday } from "./bond.js?v=20261119w";
 import { mealsReady } from "./meals.js?v=20261119b";
 import { readyTests } from "./quest.js?v=20261119b";
 import { unthanked } from "./kindness.js?v=20261119b";
-import { kdTodo } from "./kingdom.js?v=20261119v";
-import { adventOn, adventReady, adventState, ADVENT_DAYS } from "./advent.js?v=20261119v";
+import { kdTodo } from "./kingdom.js?v=20261119w";
+import { adventOn, adventReady, adventState, ADVENT_DAYS } from "./advent.js?v=20261119w";
 
 const seenKey = (id, what) => "ck-seen-" + azToday() + "-" + id + "-" + what;
 // 📣 the class announcement (Nov 9): a new one gets a new key, so it shows up on the list again

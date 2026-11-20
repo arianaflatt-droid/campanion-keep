@@ -29,9 +29,9 @@
 import { esc, HEAD_FNS, OUTFITS, candyLeft, companionOf } from "./game.js?v=20261119b";
 import { azToday, creature, FAMILIES } from "./collect.js?v=20261119b";
 import { CREATURES } from "./creatures.js?v=20261119b";
-import { xpOn } from "./surprise.js?v=20261119v";
+import { xpOn } from "./surprise.js?v=20261119w";
 import { SEASON, boostExtra } from "./game.js?v=20261119b";
-import { readingOn, readingOnBoosted } from "./readmap.js?v=20261119v";
+import { readingOn, readingOnBoosted } from "./readmap.js?v=20261119w";
 
 export const PER_TICKET = 10, OUTFIT_COST = 60;
 const typesOf = fam => { const f = FAMILIES.find(x => x.id === fam); const c = f && CREATURES.find(x => x.id === f.forms[0]); return (c && c.types) || []; };

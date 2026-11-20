@@ -5387,3 +5387,30 @@ body.pjmode .pjhubcard .pjhubhint{ color:#AFC8FF !important; }
 .wlegend i{ width:14px; height:14px; border-radius:50%; border:2px solid #4A1A06; box-shadow:0 0 0 1.5px #FFD34D; } .wl-o{ background:radial-gradient(circle,#F7B24A,#D9861E); } .wl-r{ background:radial-gradient(circle,#D8404A,#9C1C24); }
 .arena-title .wtitleic{ width:40px; vertical-align:-11px; }
 .wlegend i{ background-image:none; }
+/* 🖼️ Nov 20: Announcements frames remade for their real (wide) size: the corners keep their true shape, only the plain rails stretch,
+   and the bottom ornament + crest sit on top at the same scale. --k = how big the art is drawn (smaller on phones). */
+body.ck .nbbars .sdpill, body.ck .nbbars .secretbar{ --k:.27; }
+@media (max-width:560px){ body.ck .nbbars .sdpill, body.ck .nbbars .secretbar{ --k:.21; } }
+body.ck .nbbars .sdpill{ position:relative; box-sizing:border-box; border-image:none !important; border-style:solid !important; border-color:transparent !important;
+  border-width:calc(139px * var(--k)) calc(85px * var(--k)) calc(73px * var(--k)) !important; min-height:calc(467px * var(--k)); }
+body.ck .nbbars .sdpill::before{ content:""; position:absolute; z-index:0; pointer-events:none; top:calc(139px * -1 * var(--k)); bottom:calc(73px * -1 * var(--k)); left:calc(85px * -1 * var(--k)); right:calc(85px * -1 * var(--k));
+  border-style:solid; border-color:transparent; border-width:calc(139px * var(--k)) calc(520px * var(--k)) calc(73px * var(--k)); border-image:url(../assets/keep/bar-duck-frame2.webp) 139 520 73 fill / calc(139px * var(--k)) calc(520px * var(--k)) calc(73px * var(--k)) / 0 stretch; }
+body.ck .nbbars .sdpill::after{ top:calc(139px * -1 * var(--k)) !important; bottom:calc(73px * -1 * var(--k)); left:calc(85px * -1 * var(--k)) !important; right:calc(85px * -1 * var(--k)); width:auto !important; height:auto !important; transform:none !important; z-index:1;
+  background:var(--crest) center top / calc(369px * var(--k)) calc(158px * var(--k)) no-repeat, url(../assets/keep/bar-duck-orn.webp) center bottom / calc(250px * var(--k)) calc(234px * var(--k)) no-repeat !important; }
+body.ck .nbbars .secretbar:not(.shout){ position:relative; box-sizing:border-box; border-image:none !important; border-style:solid !important; border-color:transparent !important;
+  border-width:calc(131px * var(--k)) calc(78px * var(--k)) calc(67px * var(--k)) !important; min-height:calc(467px * var(--k)); }
+body.ck .nbbars .secretbar:not(.shout)::before{ content:""; position:absolute; z-index:0; pointer-events:none; top:calc(131px * -1 * var(--k)); bottom:calc(67px * -1 * var(--k)); left:calc(78px * -1 * var(--k)); right:calc(78px * -1 * var(--k));
+  border-style:solid; border-color:transparent; border-width:calc(131px * var(--k)) calc(445px * var(--k)) calc(67px * var(--k)); border-image:url(../assets/keep/bar-secret-frame2.webp) 131 445 67 fill / calc(131px * var(--k)) calc(445px * var(--k)) calc(67px * var(--k)) / 0 stretch; }
+body.ck .nbbars .secretbar:not(.shout)::after{ top:calc(131px * -1 * var(--k)) !important; bottom:calc(67px * -1 * var(--k)); left:calc(78px * -1 * var(--k)) !important; right:calc(78px * -1 * var(--k)); width:auto !important; height:auto !important; transform:none !important; z-index:1;
+  background:var(--crest) center top / calc(510px * var(--k)) calc(184px * var(--k)) no-repeat, url(../assets/keep/bar-secret-orn.webp) center bottom / calc(400px * var(--k)) calc(234px * var(--k)) no-repeat !important; }
+body.ck .nbbars .secretbar.shout{ position:relative; box-sizing:border-box; border-image:none !important; border-style:solid !important; border-color:transparent !important;
+  border-width:calc(119px * var(--k)) calc(69px * var(--k)) calc(71px * var(--k)) !important; min-height:calc(467px * var(--k)); }
+body.ck .nbbars .secretbar.shout::before{ content:""; position:absolute; z-index:0; pointer-events:none; top:calc(119px * -1 * var(--k)); bottom:calc(71px * -1 * var(--k)); left:calc(69px * -1 * var(--k)); right:calc(69px * -1 * var(--k));
+  border-style:solid; border-color:transparent; border-width:calc(119px * var(--k)) calc(440px * var(--k)) calc(71px * var(--k)); border-image:url(../assets/keep/bar-shout-frame2.webp) 119 440 71 fill / calc(119px * var(--k)) calc(440px * var(--k)) calc(71px * var(--k)) / 0 stretch; }
+body.ck .nbbars .secretbar.shout::after{ top:calc(119px * -1 * var(--k)) !important; bottom:calc(71px * -1 * var(--k)); left:calc(69px * -1 * var(--k)) !important; right:calc(69px * -1 * var(--k)); width:auto !important; height:auto !important; transform:none !important; z-index:1;
+  background:var(--crest) center top / calc(522px * var(--k)) calc(187px * var(--k)) no-repeat, url(../assets/keep/bar-shout-orn.webp) center bottom / calc(350px * var(--k)) calc(234px * var(--k)) no-repeat !important; }
+body.ck .nbbars .sdpill > *, body.ck .nbbars .secretbar > *{ position:relative; z-index:2; }
+body.ck .nbbars .secretbar .sbtxt{ display:block; flex:1; min-width:0; } body.ck .nbbars .secretbar.shout .sbtxt{ text-align:center; } body.ck .nbbars .secretbar .sbtxt b{ margin-right:4px; }
+@media (max-width:560px){ body.ck .nbbars .sdpill, body.ck .nbbars .secretbar{ --k:.17; padding-left:22px !important; padding-right:22px !important; }
+  body.ck .nbbars .sdpill{ flex-wrap:wrap; justify-content:center; text-align:center; gap:4px 8px; } body.ck .nbbars .secretbar .sbtxt{ text-align:center; font-size:14px; }
+  body.ck .nbbars .secretbar .bic{ display:none; } }
