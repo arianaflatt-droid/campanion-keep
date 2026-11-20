@@ -1,11 +1,11 @@
-import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261120m";
+import { newlyEarned, badgeById, fullWeekCount, bestFullWeekRun } from "./badges.js?v=20261120q";
 import { questTracker, questTeacherClick, questTeacherChange } from "./quest-ui.js?v=20261119b";
-import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261120m";
+import { onTradeClick, onTradeChange, onTradeReady, settleTrades } from "./trade-ui.js?v=20261120q";
 import { cpEarnedCalc } from "./room.js?v=20261119b";
 import { TEAM_EVENTS, EVENT_LIST, PER_XP, eventOn, teams as tevTeams, teamOf as tevTeamOf, teamDay, recipeChanged, brewRewards, standings as tevStandings, topTeams, brewCount, legField, topField, SUB_NAMES, subFor } from "./teams.js?v=20261119b";
 import { rewardFor, wkGoalOf, wkShare, ringDay, hasSwap, portalDay, addDays as pdAdd, fullFloor, realDay } from "./doors.js?v=20261119w";
 import { isTeacherCheck, GOAL_SUBJECTS, DOOR_DEFAULT, DOOR_GATE, DOOR_NAMES, doorsFor, doorsLive, autoDoors, FAST_RING, waitingDoors, doorXPRows, REWARD_XP, WEEK_DOOR_XP, weekKey, weekGoal, weekTotal, histWeekTotal, mondayOf, VAULT_XP, vaultMet, subReq, subRuleOn, SUB_DAY, addDays } from "./doors.js?v=20261119w";
-import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing } from "./collector-ui.js?v=20261120m";
+import { collectorTab, overlays as collectorOverlays, onClick as collectorClick, isBusy as collectorBusy, battleShowing } from "./collector-ui.js?v=20261120q";
 import {
   newsHTML, boostOn, boostHTML, countdownHTML, applyDisplayNames, displayNames, firstLast, companionOf, DAYS, SHORT, ROSTER, ITEMS, GEAR, BANNER, byId, esc, arr5, five, recordedDays, goalXP,
   boss2Of, boss2Prize, simulate, wornItem, tier, boardDay, sidekickToday, keepHTML, itemArt, isHaunt, battleOn, candyOf, CANDY_FULL, weekCandy, weekCandyBefore, battleHTML, bossState, ghostUnlocked, STORE, candyLeft, storeArt, dmgOf, baseDamage,
@@ -21,7 +21,7 @@ import { passAdmin } from "./pass.js?v=20261119b";
 import { MOVES, pickleLeft, staleBattle, EVENTS, eventOpen, tradeOpen, birthdayLeft, teacherPlayer, teacherReward, TEACHER_XP_PER_MISS, hasStarter, duckWindow, duckOpen, azToday, azNow, xpTotal, pullsLeft, legendaryLeft, bankXP, ownedFams, seenSet, arenaOpen, ARENA_HOURS, CREATURES, family, creature, formOf, ULTRA_FAMS, CLUB_ULTRA_FAMS } from "./collect.js?v=20261119b";
 import { watchSecret, secretRef, talkRef, watchTalk } from "./db.js?v=20261119b";
 import { talkCard, talkSync } from "./talk.js?v=20261119b";
-import { shoutCard, shoutSync, setShoutMode } from "./shout.js?v=20261120m";
+import { shoutCard, shoutSync, setShoutMode } from "./shout.js?v=20261120q";
 import { mmState, mmStartCard, mmBar, mmScreenChip, mmNewsScreen, newsPopSync, battleKind, launchedToday, MM_NAME } from "./modes.js?v=20261119w";
 import { kdDiveWatch, kdDiveTest } from "./divewatch.js?v=20261119b";
 import { secretAdmin, secretClick, autoPick, secretBanner } from "./secret.js?v=20261119w";
@@ -30,7 +30,7 @@ import { allNews, newsAdminHTML } from "./news.js?v=20261119b";
 import { nebbleAdmin } from "./pets.js?v=20261119b";
 import { mapAdmin } from "./readmap.js?v=20261119w";
 import { wheelTab, wheelClick } from "./subwheel.js?v=20261119w";
-import { tbRequestsCard, tbInvite, tbToSettle, tbSetTrades } from "./teachbattle.js?v=20261120m";
+import { tbRequestsCard, tbInvite, tbToSettle, tbSetTrades } from "./teachbattle.js?v=20261120q";
 import { noteDrop, takeBackPlan, dropCard, vaultTakePlan } from "./clawback.js?v=20261119w";
 import { wheelSync, dailyPool, weeklyPool, makeSpin, WS_WEEKLY, testSpin, winnerOf, wsPicked, owedList } from "./wheel.js?v=20261119w";
 import { showdownSync, openShowdown, sdState, sdLine } from "./showdown.js?v=20261119b";
@@ -44,22 +44,22 @@ import { watchTrades, watchBattles,
   configured, auth, classRef, studentRef, newStudentRef, isTeacherEmail, watchClass, watchStudents,
   teacherSignIn, onAuthStateChanged, signOut, setDoc, updateDoc, deleteDoc, writeBatch, db, changeBattle, battleRef, tradeRef, watchSeats, watchCards, deleteField
 } from "./db.js?v=20261119b";
-import { G, guardCard, guardClick, guardInput, autoSnap, personalLink, syncCards } from "./guard.js?v=20261120m";
+import { G, guardCard, guardClick, guardInput, autoSnap, personalLink, syncCards } from "./guard.js?v=20261120q";
 import { lockCard, lockClick } from "./lock.js?v=20261119b";
 import { revengeAdmin, revengeAction } from "./revenge.js?v=20261119b";
 import { heistAdmin, heistAction } from "./heist.js?v=20261119b";
 import { calendarCard, calendarEdit, autoExcuse } from "./calendar.js?v=20261119w";
-import { axoAdmin } from "./axolotl.js?v=20261120m";
-import { kdAdmin } from "./kingdom.js?v=20261120m";
+import { axoAdmin } from "./axolotl.js?v=20261120q";
+import { kdAdmin } from "./kingdom.js?v=20261120q";
 import { clubsAdmin, clubUpload, clubPicks, pickChange } from "./clubs.js?v=20261119b";
-import { planetAdmin, keepLaunchWatch, pjMinsNow, rocketSync } from "./planet.js?v=20261120m";
+import { planetAdmin, keepLaunchWatch, pjMinsNow, rocketSync } from "./planet.js?v=20261120q";
 import { soloScreenSync, soloScreenOpenNow, soloScreenOpen, soloScreenClose } from "./soloscreen.js?v=20261119w";
 import { recessAdmin, recessAction } from "./playground.js?v=20261119b";
 import { rosterAdmin, rosterPreview, okEmail } from "./roster.js?v=20261119b";
 import { rosterList, rosterSave, seatsOnce, removeLinkSeats, myAccess, saveClassDir, createClass, adminList, setAdmin, isBuiltInAdmin, switchClass } from "./db.js?v=20261119b";
 
 /* ================= state ================= */
-const CONSOLE_V = "nov20m";   // Nov 19: which console update is loaded (shown under the Guide tab)
+const CONSOLE_V = "nov20q";   // Nov 19: which console update is loaded (shown under the Guide tab)
 let user = null, cls = null, clsLoaded = false, students = [], studentsLoaded = false;
 // 📺 Nov 16: "?screen=1" = the student screen tab (projected). It only watches and shows; the console tab does all the saving.
 const SCREEN = (() => { try { return new URLSearchParams(location.search).has("screen"); } catch (e) { return false; } })();

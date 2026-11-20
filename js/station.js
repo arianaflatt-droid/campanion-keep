@@ -14,7 +14,7 @@
    (already read for the page), so no new reads and no class-document writes. */
 import { esc } from "./game.js?v=20261119b";
 import { azToday } from "./collect.js?v=20261119b";
-import { planetNow, planetSave, planetCtx, freshSt } from "./safari.js?v=20261120m";
+import { planetNow, planetSave, planetCtx, freshSt } from "./safari.js?v=20261120q";
 import { breakRuns } from "./calendar.js?v=20261119w";
 import { duckImgOf } from "./shop-data.js?v=20261119b";
 import { ownedOf, nebHTML, NEB, PERSONALITIES } from "./pets.js?v=20261119b";

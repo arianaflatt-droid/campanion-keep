@@ -3,7 +3,7 @@ import { presentsOpened } from "./doors.js?v=20261119w";
 import { PASS_THEMES, passDone } from "./pass.js?v=20261119b";
 import { shopBuys, swapBuys, outfitsOwned, cabinOwned, paintsOwned } from "./shop-data.js?v=20261119b";
 import { REGULARS as CF_REG, SPECIALS as CF_SP, keptCount as cfKept, perfectTotal as cfPerfect, monthPairs as cfPairs } from "./cafe-data.js?v=20261119b";
-import { ZONES as PJ_ZONES, pageCount as pjPage, pageSize as pjSize, aliensFound as pjAl, allAliensFound as pjAllAl, ALIEN_LIST as PJ_ALIENS } from "./safari.js?v=20261120m";
+import { ZONES as PJ_ZONES, pageCount as pjPage, pageSize as pjSize, aliensFound as pjAl, allAliensFound as pjAllAl, ALIEN_LIST as PJ_ALIENS } from "./safari.js?v=20261120q";
 // Badges: worked out from each student's saved data, so nothing extra is stored and no rules change.
 // To add a badge: add an entry with a check(st) that returns how far along the student is,
 // and a goal. Put its picture in assets/badges/ (a transparent WEBP or PNG). Without a picture, the emoji shows.
