@@ -10,8 +10,8 @@ import { esc, goalXP } from "./game.js?v=20261119b";
 import { azToday } from "./collect.js?v=20261119b";
 import { ringDay, SUB_REQ } from "./doors.js?v=20261119w";
 import { subFor } from "./teams.js?v=20261119b";
-import { kdOf } from "./kingdom.js?v=20261120q";
-import { planetNow } from "./safari.js?v=20261120q";
+import { kdOf } from "./kingdom.js?v=20261120r";
+import { planetNow } from "./safari.js?v=20261120r";
 
 export const ADVENT_DAYS = ["2026-12-01", "2026-12-02", "2026-12-03", "2026-12-04", "2026-12-07", "2026-12-08", "2026-12-09", "2026-12-10", "2026-12-11",
   "2026-12-14", "2026-12-15", "2026-12-16", "2026-12-17"];

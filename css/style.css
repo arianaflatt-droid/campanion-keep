@@ -5546,12 +5546,17 @@ body.ck .maintabs .tab .tabpic{ width:48px; height:40px; margin:0 0 2px; flex:no
 body.ck .maintabs .tab .tbadge{ margin-top:2px; }
 @media (max-width:640px){ body.ck .maintabs .tab .tabpic{ width:34px; height:28px; } }
 /* 🍂 Nov 20: each event's Daily Doors stand in that event's painted hallway (assets/doors/hall-<event>.webp, a tall picture: the floor runs to the bottom) */
-.arena.doors.gobble{ position:relative; isolation:isolate; overflow:hidden; background:#7A3A12 url(../assets/doors/hall-gobble.webp) center top / 100% 100% no-repeat !important; }
-.arena.doors.gobble .door{ background:linear-gradient(180deg,rgba(60,25,5,.6),rgba(35,14,2,.75)) !important; backdrop-filter:blur(2px); }
-.arena.doors.gobble .dtitle{ text-shadow:0 2px 4px rgba(0,0,0,.9) !important; }
-.arena.doors.gobble > p.arena-foot:nth-of-type(2){ display:table; margin-left:auto !important; margin-right:auto !important; background:rgba(40,14,0,.6); border-radius:14px; padding:6px 14px; text-shadow:0 1px 3px rgba(0,0,0,.9); }
-.arena.doors.gobble > p.arena-foot, .arena.doors.gobble .arena-title{ text-shadow:0 1px 3px rgba(0,0,0,.9); }
-@media (max-width:640px){ .arena.doors.gobble{ background-size:auto 100% !important; } }
+.arena.doors.haunt{ position:relative; isolation:isolate; overflow:hidden; background:#5A2A7A url(../assets/doors/hall-haunt.webp) center top / 100% 100% no-repeat !important; --dtint:40,10,60; }
+.arena.doors.gobble{ position:relative; isolation:isolate; overflow:hidden; background:#7A3A12 url(../assets/doors/hall-gobble.webp) center top / 100% 100% no-repeat !important; --dtint:60,25,5; }
+.arena.doors.jingle{ position:relative; isolation:isolate; overflow:hidden; background:#7A3A12 url(../assets/doors/hall-jingle.webp) center top / 100% 100% no-repeat !important; --dtint:60,22,10; }
+.arena.doors.frost{ position:relative; isolation:isolate; overflow:hidden; background:#3A6AB0 url(../assets/doors/hall-frost.webp) center top / 100% 100% no-repeat !important; --dtint:14,36,80; }
+.arena.doors.heart{ position:relative; isolation:isolate; overflow:hidden; background:#C0507A url(../assets/doors/hall-heart.webp) center top / 100% 100% no-repeat !important; --dtint:90,20,50; }
+.arena.doors.lucky{ position:relative; isolation:isolate; overflow:hidden; background:#7A3A12 url(../assets/doors/hall-lucky.webp) center top / 100% 100% no-repeat !important; --dtint:30,45,15; }
+.arena.doors.haunt .door, .arena.doors.gobble .door, .arena.doors.jingle .door, .arena.doors.frost .door, .arena.doors.heart .door, .arena.doors.lucky .door{ background:linear-gradient(180deg,rgba(var(--dtint),.6),rgba(var(--dtint),.78)) !important; backdrop-filter:blur(2px); }
+.arena.doors.haunt .dtitle, .arena.doors.gobble .dtitle, .arena.doors.jingle .dtitle, .arena.doors.frost .dtitle, .arena.doors.heart .dtitle, .arena.doors.lucky .dtitle{ text-shadow:0 2px 4px rgba(0,0,0,.9) !important; }
+.arena.doors.haunt > p.arena-foot:nth-of-type(2), .arena.doors.gobble > p.arena-foot:nth-of-type(2), .arena.doors.jingle > p.arena-foot:nth-of-type(2), .arena.doors.frost > p.arena-foot:nth-of-type(2), .arena.doors.heart > p.arena-foot:nth-of-type(2), .arena.doors.lucky > p.arena-foot:nth-of-type(2){ display:table; margin-left:auto !important; margin-right:auto !important; background:rgba(var(--dtint),.7); border-radius:14px; padding:6px 14px; }
+.arena.doors.haunt > p.arena-foot, .arena.doors.gobble > p.arena-foot, .arena.doors.jingle > p.arena-foot, .arena.doors.frost > p.arena-foot, .arena.doors.heart > p.arena-foot, .arena.doors.lucky > p.arena-foot, .arena.doors.haunt .arena-title, .arena.doors.gobble .arena-title, .arena.doors.jingle .arena-title, .arena.doors.frost .arena-title, .arena.doors.heart .arena-title, .arena.doors.lucky .arena-title{ text-shadow:0 1px 3px rgba(0,0,0,.9); }
+@media (max-width:640px){ .arena.doors.haunt, .arena.doors.gobble, .arena.doors.jingle, .arena.doors.frost, .arena.doors.heart, .arena.doors.lucky{ background-size:auto 100% !important; } }
 /* ✨ Nov 20: the Golden Present bar uses the gold sparkle fill from the rings */
 .dgoldbar span{ background:url(../assets/ui/ck/fill-gold.webp) 0 50% / 66px 44px repeat-x, #F2B33D !important; animation:tflow 4s linear infinite;
   box-shadow:inset 0 -2px 0 rgba(0,0,0,.18), inset 0 2px 0 rgba(255,255,255,.35), 0 0 10px #F2B33D !important; }
