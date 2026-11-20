@@ -5638,3 +5638,8 @@ body.ck .card.clubcard.club-masterpiece{ --cframe:url(../assets/clubs/frame-mast
 body.ck .card.clubcard.club-trainingcamp{ --cframe:url(../assets/clubs/frame-trainingcamp.webp); --ft:249; --fb:274; --fl:80; --fr:80; --fts:249; --fbs:274; --fls:80; --frs:80; --fin:235; --fpt:261; --fps:114; --fpb:150; }
 body.ck .card.clubcard.club-english{ --cframe:url(../assets/clubs/frame-english.webp); --ft:226; --fb:310; --fl:113; --fr:112; --fts:226; --fbs:310; --fls:113; --frs:112; --fin:204; --fpt:230; --fps:147; --fpb:170; }
 body.ck .card.clubcard.club-imagineers{ --cframe:url(../assets/clubs/frame-imagineers.webp); --ft:293; --fb:182; --fl:89; --fr:93; --fts:293; --fbs:182; --fls:89; --frs:93; --fin:217; --fpt:243; --fps:127; --fpb:100; }
+/* no box behind the club frames: only the inside of the frame is filled */
+body.ck .card.clubcard.framed{ background:none !important; }
+body.ck .card.clubcard.framed::after{ left:calc(100cqw / 2172 * (var(--fl) - 40)) !important; right:calc(100cqw / 2172 * (var(--fr) - 40)) !important; bottom:calc(100cqw / 2172 * 80) !important; }
+/* no box peeking out from behind the torn parchment edges */
+body.ck .card.myclubs, body.ck .card.clubcard:not(.framed), body.ck .card.nbbuddy, body.ck .card.palbpage{ background:none !important; }

@@ -17,7 +17,7 @@
    through safari.js planetSave, so the other Planet JP saves aren't overwritten. */
 import { esc, OUTFITS } from "./game.js?v=20261119b";
 import { azToday } from "./collect.js?v=20261119b";
-import { freshSt, planetSave, planetNow, planetCtx } from "./safari.js?v=20261120y";
+import { freshSt, planetSave, planetNow, planetCtx } from "./safari.js?v=20261120z";
 import { shopTab, shopTabs, bedShopHTML, careShopHTML } from "./nebshop.js?v=20261119b";
 
 export const PA = "assets/pets/", PP = PA + "place/";
