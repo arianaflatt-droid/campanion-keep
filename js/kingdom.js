@@ -15,9 +15,9 @@
 import { esc, weekKey } from "./game.js?v=20261119b";
 import { azToday, azNow } from "./collect.js?v=20261119b";
 import { vaultMet, vaultGoal, subReq, addDays } from "./doors.js?v=20261119w";
-import { axoDay } from "./axolotl.js?v=20261120z";
-import { pjBreakDay } from "./safari.js?v=20261120z";
-import { guide as guide2, bind as bind2, KEEP2, kd2On, rankChip, rankOf as rankOf2, map2HTML, questsHTML, questsWaiting, aquariumHTML, gardenHTML, dockHTML, stableHTML, shipHTML, shipOpen, hatchHTML, beachHTML, townHTML, rankUpHTML, catchCreature, pickCreature, keepCreature, aqImg, AQSZ, catchCard, subSprite, subImg, trailHTML, resetViews, arenaHTML, cityHTML, statueHTML } from "./kingdom2.js?v=20261120z";
+import { axoDay } from "./axolotl.js?v=20261121e";
+import { pjBreakDay } from "./safari.js?v=20261121e";
+import { guide as guide2, bind as bind2, KEEP2, kd2On, rankChip, rankOf as rankOf2, map2HTML, questsHTML, questsWaiting, aquariumHTML, gardenHTML, dockHTML, stableHTML, shipHTML, shipOpen, hatchHTML, beachHTML, townHTML, rankUpHTML, catchCreature, pickCreature, keepCreature, aqImg, AQSZ, catchCard, subSprite, subImg, trailHTML, resetViews, arenaHTML, cityHTML, statueHTML } from "./kingdom2.js?v=20261121e";
 
 const K = "assets/kingdom/";
 export const ICE_DIVES = 2;   // ❄️ Nov 17: Ice Cave dives a week (Royal rank, week 12)
@@ -63,18 +63,17 @@ export function kdTimeOk(cls) {
 // 🎟️ Nov 15 (Ms. Ariana): a Kingdom pass for this week only (e.g. a student testing their first week): cls.kdPass[week][studentId] = true
 export const kdPass = (st, cls) => !!(st && cls && ((cls.kdPass || {})[wk(cls)] || {})[st.id]);
 /* 🦃 Nov 17 (Ms. Ariana): in a break week (weekdays marked off on the school calendar) the Kingdom opens only with the normal
-   weekly requirement: 600 XP + the week's rings closed (25 a day × 5 = 125 of each), even though break days don't need rings.
-   (Planet JP is different: 120 XP + that day's rings opens it on a break day.) No daily 120 path for the Kingdom. */
+   weekly XP: 600 XP. Nov 21 (Ms. Ariana): no rings needed in a break week. (Planet JP: 120 XP on a break day, no rings.) */
 const breakWeek = cls => { const mon = wk(cls); for (let i = 0; i < 5; i++) if (pjBreakDay(cls, addDays(mon, i))) return true; return false; };
 export function kdBreak(st, cls) {
   if (!st || !cls || !breakWeek(cls)) return null;
   const today = azToday(), mon = wk(cls), d = axoDay(st, cls, today);
   const by = {}; let xp = 0;
   for (let i = 0; i < 7; i++) { const iso = addDays(mon, i), x = axoDay(st, cls, iso); if (iso > today) break; xp += x.xp; x.rows.forEach(r => { by[r.src] = by[r.src] || { name: r.name, have: 0, need: r.need * 5 }; by[r.src].have += r.have; }); }
-  const rows = Object.values(by), weekOk = xp >= 600 && rows.every(r => r.have >= r.need);
+  const rows = [], weekOk = xp >= 600;   // 🦃 Nov 21 (Ms. Ariana): a break week is just 600 XP for the week, no rings
   return { weekOk, ok: weekOk, day: d, xp, rows };
 }
-const kdMet = (st, cls) => { const b = kdBreak(st, cls); return b ? b.ok : vaultMet(st, cls); };   // a break week: 600 XP + 125 of each ring (the Vault rule would skip the rings)
+const kdMet = (st, cls) => { const b = kdBreak(st, cls); return b ? b.ok : vaultMet(st, cls); };   // a break week: 600 XP, no rings
 export const kdUnlocked = (st, cls) => kdOn(cls) && !!st && (kdMet(st, cls) || kdPass(st, cls)) && kdTimeOk(cls);
 export const kdTodo = (st, cls) => { if (!kdUnlocked(st, cls)) return false; const k = kdOf(st, cls); return !k.t || !k.c || (Number(k.dv) || 0) < KD_DIVES; };
 // which minigame this week: the 1st–4th Monday of the month (a 5th Monday plays week 1 again)
@@ -127,8 +126,8 @@ function gateHTML(st, cls) {
 function breakGate(st, cls) {
   const b = kdBreak(st, cls); if (!b) return "";
   const chip = (ok, txt) => '<span class="kdreq' + (ok ? " ok" : "") + '">' + txt + (ok ? " ✅" : "") + "</span>";
-  return '<p style="margin:12px 0 4px;"><b>\u{1F983} Break week:</b> the gate opens with <b>600 XP + all your rings</b> this week (25 a day, even on break days):</p><div class="kdreqs">' +
-    chip(b.xp >= 600, "⭐ " + Math.min(b.xp, 600) + " / 600 XP") + b.rows.map(r => chip(r.have >= r.need, esc(r.name) + " " + Math.min(r.have, r.need) + " / " + r.need)).join("") + "</div>";
+  return '<p style="margin:12px 0 4px;"><b>Break week:</b> the gate opens with <b>600 XP</b> this week (no rings needed):</p><div class="kdreqs">' +
+    chip(b.xp >= 600, Math.min(b.xp, 600) + " / 600 XP") + b.rows.map(r => chip(r.have >= r.need, esc(r.name) + " " + Math.min(r.have, r.need) + " / " + r.need)).join("") + "</div>";
 }
 
 /* ----- the Kingdom map ----- */

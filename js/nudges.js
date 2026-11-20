@@ -2,8 +2,8 @@
 // Each rule returns a nudge or null; the most useful few are shown (lower pri = shown first).
 import { seasonOf, dayXP, simulate, GEAR, goalXP, arr5, esc, isHaunt, battleOn, nextAttack, companionOf, bossState } from "./game.js?v=20261119b";
 import { azToday, brewLegLeft, feastLegLeft, gingerLegLeft, snowLegLeft, candyLegLeft, ghostEggLeft, BOSS2_LIST, boss2EggLeft, vaultLegLeft, pickleLeft, birthdayLeft, EVENTS, eventOpen, eventUnlocked, hasEvent, eventStreak, creature, family, azNow, pullsLeft, legendaryLeft, bankXP, LEVEL_XP, PULL_XP, hasStarter, owned, MAX_LEVEL } from "./collect.js?v=20261119b";
-import { badgeState } from "./badges.js?v=20261120z";
-import { mqReady } from "./morning.js?v=20261119w";
+import { badgeState } from "./badges.js?v=20261121e";
+import { mqReady } from "./morning.js?v=20261121e";
 import { unthanked } from "./kindness.js?v=20261119b";
 import { pettedToday } from "./bond.js?v=20261119w";
 import { mealsReady } from "./meals.js?v=20261119b";

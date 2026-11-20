@@ -9,19 +9,19 @@
    Pictures live in assets/planet/ — until one is uploaded (ART below) the stand-in drawing is used. */
 import { esc, weekKey } from "./game.js?v=20261119b";
 import { azToday, azNow } from "./collect.js?v=20261119b";
-import { axoDay, schoolDayFor } from "./axolotl.js?v=20261120z";
+import { axoDay, schoolDayFor } from "./axolotl.js?v=20261121e";
 import { addDays, todayPlan, weekTotal, histWeekTotal } from "./doors.js?v=20261119w";
 import { GAMES, gameOfDay, gameByKey, play, preload } from "./spacegames.js?v=20261119b";
-import { setHitCheck, afterOn, PJ_AFTER, PJ_AFTER_END, pjCloseAt, pjAfterAt, pjClock } from "./safari.js?v=20261120z";
-import { ZONES, safariSync, freshSt, albumHTML, filmLeft, pageCount, pageSize, aliensFound, zoneAliens, FREE_FILM, ROLL_COST, shopHTML, netsOf, NETS, netImg, pjWindow, classOpenAll, PJ_LATE, pjBreakDay, pjBreakXP } from "./safari.js?v=20261120z";
+import { setHitCheck, afterOn, PJ_AFTER, PJ_AFTER_END, pjCloseAt, pjAfterAt, pjClock } from "./safari.js?v=20261121e";
+import { ZONES, safariSync, freshSt, albumHTML, filmLeft, pageCount, pageSize, aliensFound, zoneAliens, FREE_FILM, ROLL_COST, shopHTML, netsOf, NETS, netImg, pjWindow, classOpenAll, PJ_LATE, pjBreakDay, pjBreakXP } from "./safari.js?v=20261121e";
 import { cafeHTML } from "./cafe.js?v=20261119b";
 import { shopPageHTML } from "./spaceshop.js?v=20261119b";
 import { hangarHTML } from "./hangar.js?v=20261119b";
-import { stationHTML, stationAdminLine, doubleWaiting } from "./station.js?v=20261120z";
+import { stationHTML, stationAdminLine, doubleWaiting } from "./station.js?v=20261121e";
 import { zooHTML } from "./zoo.js?v=20261119b";
-import { adoptHTML, PP as NEB_PP } from "./pets.js?v=20261120z";
-import { parkHTML } from "./petpark.js?v=20261120z";
-import { missionsHTML, placeBang } from "./missions.js?v=20261120z";
+import { adoptHTML, PP as NEB_PP } from "./pets.js?v=20261121e";
+import { parkHTML } from "./petpark.js?v=20261121e";
+import { missionsHTML, placeBang } from "./missions.js?v=20261121e";
 import { duckImgOf, flameFxOf, trailOf } from "./shop-data.js?v=20261119b";
 
 export const PJ_OPEN = 11 * 60, PJ_CLOSE = 12 * 60 + 55;   // minutes after midnight, Arizona time
@@ -42,14 +42,8 @@ export function fuel(st, cls) {
   //   - school days earlier this week → caught up: goal × those days for the week (Mon–Tue = 240) + every core-subject ring closed so far
   //   - no school days yet this week (a weeklong break) → the daily goal (120) today
   if (pjBreakDay(cls, iso) && !schoolDayFor(cls, iso)) {
-    const mon = mondayOf(iso); let sd = 0; for (let k = addDays(mon, 0); k < iso; k = addDays(k, 1)) if (schoolDayFor(cls, k)) sd++;
-    let bt;
-    if (sd > 0) {
-      const p = todayPlan(st, cls, iso), wx = Math.round(Math.max(histWeekTotal(st, mon), mon === weekKey(cls) ? weekTotal(st, cls) : 0));
-      bt = [{ icon: "⭐", name: "XP this week", have: wx, need: d.goal * sd }];
-      if (p) p.rows.forEach(r => { const need = Math.max(0, r.week - r.today + r.target); if (need > 0) bt.push({ icon: ICON[r.src] || "\u{1F4DA}", name: r.name + " this week", have: Math.min(r.week, need), need }); });
-    } else bt = [{ icon: "⭐", name: "XP today", have: hit ? Math.max(xp, d.goal) : xp, need: d.goal }].concat(d.rows.map(r => ({ icon: ICON[r.src] || "\u{1F4DA}", name: r.name + " today", have: r.have, need: r.need })));   // 🦃 Nov 17: a weeklong break needs 120 XP + the day's rings
-    if (sd > 0 && d.good) bt = [{ icon: "⭐", name: "XP today", have: Math.max(xp, d.goal), need: d.goal }].concat(d.rows.map(r => ({ icon: ICON[r.src] || "\u{1F4DA}", name: r.name + " today", have: r.have, need: r.need })));   // 🦃 120 XP + today's rings also works
+    // 🦃 Nov 21 (Ms. Ariana): on a break day it's just 120 XP that day, no rings
+    const bt = [{ icon: "⭐", name: "XP today", have: hit ? Math.max(xp, d.goal) : xp, need: d.goal }];
     const bn = bt.reduce((n, t) => n + t.need, 0), bh = bt.reduce((n, t) => n + Math.min(t.have, t.need), 0);
     if (st && (st.pjGo === iso || classOpenAll(cls))) return { tanks: bt.map(t => Object.assign({}, t, { have: Math.max(t.have, t.need) })), pct: 1, full: true, manual: true, brk: true };
     return { tanks: bt, pct: bn ? bh / bn : 0, full: bt.every(t => t.have >= t.need), brk: true };
@@ -95,7 +89,7 @@ export function planetBar(st, cls, preview) {
   const f = fuel(st, cls), pct = p === "landed" ? 1 : Math.min(1, f.pct), pl = st.planet || {};
   const W = pjWindow(st, cls);
   let msg;
-  if (p === "fill" && f.brk) msg = "\u{1F3D6}\uFE0F <b>Break day bonus!</b> " + (f.tanks[0].name === "XP today" ? "Earn <b>" + f.tanks[0].need + " XP today</b>" : "Reach <b>" + f.tanks[0].need + " XP this week</b>" + (f.tanks.length > 1 ? " and catch up your subject rings" : "")) + " to launch to <b>Planet JP</b> (open until " + hhmm(W.c) + " pm).";
+  if (p === "fill" && f.brk) msg = "\u{1F3D6}\uFE0F <b>Break day bonus!</b> " + (f.tanks[0].name === "XP today" ? "Earn <b>" + f.tanks[0].need + " XP today</b>" : "Reach <b>" + f.tanks[0].need + " XP this week</b>") + " to launch to <b>Planet JP</b> (open until " + hhmm(W.c) + " pm).";
   else if (p === "fill" && f.after) msg = "\u{1F307} <b>Afternoon launch!</b> Fill all 4 tanks today and you can launch to <b>Planet JP</b>" + (mins() < pjAfterAt() ? " after " + pjClock(pjAfterAt()) + " pm." : " (open until 10 pm).");
   else if (p === "ready" && W.after) msg = "\u{1F307} Tanks full! The <b>afternoon launch</b> opens in <b id=\"pjcd\">" + left(W.o) + "</b> (" + pjClock(pjAfterAt()) + " pm).";
   else if (p === "fill") msg = "Fill all 4 tanks to launch to <b>Planet JP</b>! " + (mins() < W.o ? "Launch window opens at " + hhmm(W.o) + "." : 'Window closes in <b id="pjcd">' + left(W.c) + "</b>");
@@ -415,8 +409,8 @@ function hubHTML(st, n) {
   return h + "</div></div>";
 }
 import { arianaHTML, arianaToday } from "./ariana.js?v=20261119b";
-import { boardHTML } from "./board.js?v=20261120z";
-import { moonHTML } from "./moon.js?v=20261120z";
+import { boardHTML } from "./board.js?v=20261121e";
+import { moonHTML } from "./moon.js?v=20261121e";
 // 👽 Nov 12: every Planet JP page gets the hidden Alien Ms. Ariana check at the end
 // ◀ ▶ between the zones (locked zones show how many launches they need)
 function zoneArrows(z, n) {

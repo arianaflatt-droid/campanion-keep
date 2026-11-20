@@ -120,22 +120,22 @@ function questPic(q) {
 export function morningTab(s, cls) {
   const date = azToday(), wd = new Date().getDay(), board = boardFor(date, cls), mo = morningXP(s, date), m = mqOf(s, date);
   const nDone = board.filter(q => m.done[q.tier]).length;
-  let h = '<div class="card mqintro"><div class="card-head"><h2>\u{1F305} Morning Quest Board</h2><span class="fact">' + nDone + " / 12 done</span></div>" +
-    '<p class="lede" style="font-size:13.5px;">Earn XP <b>before ' + MQ_BEFORE + "</b> to unlock today’s quests! Every quest gives a bonus too. The higher the quest, the rarer the creatures — and the better the ✨ Sparkle chance.</p>" +
+  let h = '<div class="card mqintro"><div class="card-head"><h2><img class="kdi" src="assets/morning/mq-chest.webp" alt=""> Morning Quest Board</h2><span class="fact mqdone">' + nDone + " / 12 done</span></div>" +
+    '<p class="lede" style="font-size:13.5px;">Earn XP <b>before ' + MQ_BEFORE + "</b> to unlock today’s quests! Every quest gives a bonus too. The higher the quest, the rarer the creatures — and the better the <img class='kdi' src='assets/ui/ck/twinkle.webp' alt=''> Sparkle chance.</p>" +
     (wd === 0 || wd === 6 ? '<p class="small muted">No quests on the weekend — see you Monday morning!</p>'
-      : mo == null ? '<p class="small"><b>⏳ Waiting for Ms. Ariana’s morning check.</b> Quests unlock once she adds this morning’s XP.</p>'
-      : '<p class="small">\u{1F305} This morning you earned <b>' + mo + " XP</b>!</p>") + "</div>";
+      : mo == null ? '<p class="small"><b>Waiting for Ms. Ariana’s morning check.</b> Quests unlock once she adds this morning’s XP.</p>'
+      : '<p class="small mqearn"><img class="kdi" src="assets/planet/stardust.webp" alt=""> This morning you earned <b>' + mo + " XP</b>!</p>") + "</div>";
   h += '<div class="mqboard">' + board.map(q => {
     const st = wd === 0 || wd === 6 ? "locked" : questState(s, q, date), T = MQ_TYPES[q.type], d = m.done[q.tier];
     return '<div class="mqcard mq-' + st + (q.rarity === "Legendary" ? " mqleg" : "") + '"' + (q.rarity ? ' style="--rc:' + RARITY_COLOR[q.rarity] + '"' : "") + ">" +
       '<div class="mqreq">' + (st === "locked" ? "\u{1F512}" : "✅") + " Earn <b>" + q.tier + " XP</b> before " + MQ_BEFORE + "</div>" +
       '<div class="mqtype">' + ic(T) + " " + T.name + (q.rarity ? ' · <span class="mqrar">' + q.rarity + "</span>" : "") + "</div>" + questPic(q) +
       '<div class="mqtitle">' + questTitle(q) + "</div>" +
-      '<div class="mqbonus">+ ' + bonusText(q.tier, cls) + ' · <span title="Sparkle chance">✨ ' + Math.round(SPARKLE_BY_TIER[q.i] * 100) + "%</span></div>" +
+      '<div class="mqbonus">+ ' + bonusText(q.tier, cls) + ' · <span title="Sparkle chance"><img class="kdi" src="assets/ui/ck/twinkle.webp" alt=""> ' + Math.round(SPARKLE_BY_TIER[q.i] * 100) + "%</span></div>" +
       (st === "done" ? '<img class="mqstamp" src="assets/morning/mq-stamp.webp" alt="Complete"><div class="mqgot">' + esc(d.r || "") + "</div>"
         : st === "ready" ? '<button class="btn mqgo" data-mq="' + q.tier + '">' + ic(T) + " Start!</button>" : "") + "</div>";
   }).join("") + "</div>";
-  if (nDone === 12) h += '<div class="banner info" style="margin-top:12px;text-align:center;">\u{1F305} <b>You finished the whole board!</b> Come back tomorrow morning for new quests.</div>';
+  if (nDone === 12) h += '<div class="banner info" style="margin-top:12px;text-align:center;"><img class="kdi" src="assets/ui/ck/lv-star.webp" alt=""> <b>You finished the whole board!</b> Come back tomorrow morning for new quests.</div>';
   return h;
 }
 
@@ -211,7 +211,7 @@ export function morningOverlay(s, cls) {
   }
   if (q.type === "nest") {
     h += '<div class="qbpanel mqnest"><h3>\u{1FAB9} Pick one egg from the nest!</h3><div class="mqnestbox"><img class="mqnestbg" src="assets/morning/mq-nest.webp" alt=""><div class="mqeggs">' + [0, 1, 2].map(k => '<button class="mqegg" data-mqegg="' + k + '"><img src="assets/morning/mq-egg.webp" alt="Mystery egg"></button>').join("") + "</div></div>" +
-      '<p class="small">Better chance at Rare eggs on higher quests. ✨ Sparkle chance ' + Math.round(SPARKLE_BY_TIER[q.i] * 100) + "%</p></div>";
+      '<p class="small">Better chance at Rare eggs on higher quests. <img class="kdi" src="assets/ui/ck/twinkle.webp" alt=""> Sparkle chance ' + Math.round(SPARKLE_BY_TIER[q.i] * 100) + "%</p></div>";
     return h + "</div>";
   }
   return h + "</div>";

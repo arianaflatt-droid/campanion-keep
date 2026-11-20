@@ -11,7 +11,7 @@ export const questBusy = () => !!qb;
 /* ---------- student: the road ---------- */
 export function questTab(s, petMarkup) {
   const cur = currentGrade(s), ready = readyTests(s), held = heldWeapon(s);
-  let h = '<div class="qtell">\u{1F4E3} Go Tell Your Teacher You Have a Test!</div>' +
+  let h = '' +   // Nov 21: the "Go Tell Your Teacher" banner was removed
     '<div class="card questintro"><div class="card-head"><h2>\u{1F5FA}️ Grade Level Quest</h2><span class="fact">' +
     (cur >= 9 ? "\u{1F3C6} Road complete!" : "\u{1F4CD} " + esc(GRADES[cur].name)) + "</span></div>" +
     '<p class="lede" style="font-size:13.5px;">Pass a Math, Reading or Language test and Ms. Ariana unlocks a <b>guardian battle</b>. Win it for a <b>Legendary egg</b>, XP, Comfort Points and a new weapon! ' +
@@ -23,13 +23,14 @@ export function questTab(s, petMarkup) {
   h += "</div>";
   // weapons
   const ws = weaponsOwned(s);
-  h += '<div class="card"><div class="card-head"><h2>⚔️ My weapons</h2><span class="fact">' + ws.length + " / 27</span></div>";
+  h += '<div class="card qwcard"><div class="card-head"><h2><img class="kdi" src="assets/quest/gear/2-sword.webp" alt=""> My weapons</h2><span class="fact">' + ws.length + " / 27</span></div>";
   h += ws.length ? '<div class="qweapons">' + ws.map(id => { const w = weapon(id); return '<button class="qw' + (held && held.id === id ? " on" : "") + '" data-qhold="' + id + '" title="' + esc(w.name) + '"><img src="' + esc(w.img) + '" alt=""><small>' + esc(w.name) + "</small></button>"; }).join("") + "</div>" +
     '<p class="muted small" style="margin-top:8px;text-align:center;">Tap a weapon for your companion to hold it (it works with any hat). Tap it again to put it away.</p>'
     : '<p class="lede">Win guardian battles to earn shields, staffs and swords!</p>';
   h += "</div>";
   // the road, current grade first, then the rest in order
-  const order = cur < 9 ? [cur].concat([...Array(9).keys()].filter(g => g !== cur)) : [...Array(9).keys()];
+  // 📜 Nov 21: current grade first, then the ones still ahead, then the finished ones (folded up) at the bottom
+  const order = cur < 9 ? [cur].concat([...Array(9).keys()].filter(g => g > cur), [...Array(9).keys()].filter(g => g < cur)) : [...Array(9).keys()];
   order.forEach(g => { h += roadCard(s, g, cur, petMarkup); });
   return h;
 }
@@ -38,7 +39,9 @@ function roadCard(s, g, cur, petMarkup) {
   if (g < start) return '<div class="qroad small done"><b>✅ ' + esc(G.name) + "</b> · " + esc(G.area) + ' <span class="muted small">(finished before the quest — weapons unlocked!)</span></div>';
   const done = doneOf(s), byN = {};
   SUBJECTS.forEach(([k]) => { const d = done[qKey(g, k)]; if (d) byN[d.n] = k; });
-  let h = '<div class="qroad' + (g === cur ? " here" : "") + (g > cur ? " later" : "") + '"><div class="qmap"><img class="qbg" src="' + roadArt(g) + '" alt="' + esc(G.name + " — " + G.area) + '" loading="lazy">';
+  const fin = g < cur;   // a grade they already passed: folded into one line, tap to see its map
+  let h = (fin ? '<details class="qroadfold"><summary><img class="kdi" src="' + KD_OK + '" alt=""><b>' + esc(G.name) + "</b> · " + esc(G.area) + ' <span class="qfoldtag">All 3 tests passed</span><span class="qfoldmore">Show map</span></summary>' : "") +
+    '<div class="qroad' + (g === cur ? " here" : "") + (g > cur ? " later" : "") + '"><div class="qmap"><img class="qbg" src="' + roadArt(g) + '" alt="' + esc(G.name + " — " + G.area) + '" loading="lazy">';
   ROAD_SPOTS[g].forEach(([x, y], i) => {
     const k = byN[i + 1];
     h += '<span class="qspot' + (k ? " ok" : "") + '" style="left:' + x + "%;top:" + y + '%">' + (k ? SUBJ[k].i + "<i>✓</i>" : "") + "</span>";
@@ -49,8 +52,9 @@ function roadCard(s, g, cur, petMarkup) {
     const st = testState(s, g, k);
     return '<span class="qchip ' + (st || "todo") + '">' + i + " " + n + " " + (st === "done" ? "✅" : st === "battle" ? '<button class="btn small" data-qfight="' + g + ":" + k + '">⚔️ Battle!</button>' : st === "wait" ? "⏳ saved" : "⬜") + "</span>";
   }).join("") + "</div></div>";
-  return h;
+  return h + (fin ? "</details>" : "");
 }
+const KD_OK = "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#2E9E5B" stroke="#145A30" stroke-width="1.5"/><path d="M6.5 12.5l3.5 3.5 7.5-8" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>');
 
 /* ---------- student: the guardian battle (on this page only, vs the computer) ---------- */
 function startFight(s, g, k) {

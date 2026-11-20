@@ -96,7 +96,7 @@ function draw(full) {
   set("sstotal", isFeast(k)
     // 🍽️ Nov 19: the feast's count box: big number, a glass tube that fills toward the next class goal, and three little stat chips on one line
     ? '<div class="ssbig"><b>' + total + "</b> " + esc(total === 1 ? k.one : k.many) + ' cooked</div>' +
-      '<div class="sstube"><span class="sstfill" style="width:' + pct + '%"></span><span class="sstlab">' + (total % MILE) + " / " + MILE + '</span><img class="sstgoal" src="assets/feast/ic-dish.webp" alt=""></div>' +
+      '<div class="sstube2"><span class="tube s-f"><span class="tfill" style="width:' + pct + '%"><i class="tshine"></i></span></span><span class="sstlab">' + (total % MILE) + " / " + MILE + '</span><img class="sstgoal" src="assets/feast/ic-dish.webp" alt=""></div>' +
       '<div class="sschips"><span>\u{1F3AF} Next goal <b>' + next + "</b></span><span>Today <b>" + todayN + "</b></span><span>Table <b>" + (Math.floor(Math.max(0, total - 1) / 10) + 1) + "</b></span></div>"
     : '<div class="ssbig"><b>' + total + "</b> " + esc(total === 1 ? k.one : k.many) + ' this event</div><div class="ssmeter"><span style="width:' + pct + '%"></span></div>' +
     '<div class="sssmall">\u{1F3AF} Next class milestone: <b>' + next + "</b> · Today: <b>" + todayN + "</b></div>");
